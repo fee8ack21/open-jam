@@ -1,0 +1,10 @@
+@model CheckboxModel
+@{
+    var cls = "checkbox" + (Model.Checked ? " on" : "");
+    var ariaChecked = Model.Checked ? "true" : "false";
+}
+
+<div class="@cls" data-checkbox="@Model.Id" role="checkbox" aria-checked="@ariaChecked" tabindex="0">
+    <span class="box">@IconHelper.Render("check", 13, 2.6)</span>
+    <span>@Html.Raw(Model.Label)</span>
+</div>

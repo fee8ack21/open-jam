@@ -1,0 +1,70 @@
+@model BrandPanelModel
+
+<aside class="brand-panel">
+    <div class="brand-content">
+        <div class="collage" aria-hidden="true">
+            <div class="fcard" style="top:20%;left:60%;transform:rotate(6deg)">
+                <div class="fc-thumb" style="background:linear-gradient(135deg,#ff7a2f,#ff4d9d)">
+                    <div class="fc-dots"></div>
+                    <div class="fc-cat">PHOTO</div>
+                    <div class="fc-glyph">@IconHelper.Render("image", 34, 1.6)</div>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-title">霓虹城市夜景</div>
+                    <div class="fc-foot">
+                        <span class="fc-price">$24</span>
+                        <span class="fc-star">@IconHelper.Render("star", 11, 1.9, fill: true, style: "color:#f0a92b;") 4.9</span>
+                    </div>
+                </div>
+            </div>
+            <div class="fcard" style="top:46%;left:52%;transform:rotate(-7deg)">
+                <div class="fc-thumb" style="background:linear-gradient(135deg,#1fd6c6,#6c4cf1)">
+                    <div class="fc-dots"></div>
+                    <div class="fc-cat">SCORE</div>
+                    <div class="fc-glyph">@IconHelper.Render("note", 34, 1.6)</div>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-title">Lo-Fi 節拍包</div>
+                    <div class="fc-foot">
+                        <span class="fc-price">$18</span>
+                        <span class="fc-star">@IconHelper.Render("star", 11, 1.9, fill: true, style: "color:#f0a92b;") 4.8</span>
+                    </div>
+                </div>
+            </div>
+            <div class="fcard" style="top:8%;left:8%;transform:rotate(-5deg)">
+                <div class="fc-thumb" style="background:linear-gradient(135deg,#ffc83a,#ff7a2f)">
+                    <div class="fc-dots"></div>
+                    <div class="fc-cat">EBOOK</div>
+                    <div class="fc-glyph">@IconHelper.Render("book", 34, 1.6)</div>
+                </div>
+                <div class="fc-body">
+                    <div class="fc-title">插畫家手冊</div>
+                    <div class="fc-foot">
+                        <span class="fc-price">免費</span>
+                        <span class="fc-star">@IconHelper.Render("star", 11, 1.9, fill: true, style: "color:#f0a92b;") 5.0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="shape sq"  style="top:74%;left:12%;width:70px;height:70px;background:var(--c-lime);transform:rotate(14deg);"></div>
+            <div class="shape dot" style="top:16%;left:46%;width:46px;height:46px;background:var(--c-yellow);"></div>
+            <div class="shape dot" style="top:64%;left:70%;width:30px;height:30px;background:var(--c-cyan);"></div>
+            <div class="shape tri" style="top:40%;left:6%;border-left:26px solid transparent;border-right:26px solid transparent;border-bottom:44px solid var(--c-pink);transform:rotate(-16deg);filter:drop-shadow(3px 4px 0 rgba(26,22,38,.45));"></div>
+        </div>
+        <div class="brand-lockup">
+            <span class="brand-mark">@IconHelper.BrandMark(20)</span>
+            <span class="brand-name">Open Jam</span>
+        </div>
+        <div class="brand-mid">
+            <span class="brand-eyebrow">@IconHelper.Render("sparkle", 13) 創作者數位市集</span>
+            <h1 class="brand-headline">@Html.Raw(Model.Headline)</h1>
+            <p class="brand-sub">@Model.Sub</p>
+        </div>
+        <div class="brand-foot">
+            <span>12,400+ 創作者</span>
+            <span class="fdiv"></span>
+            <span>86,000+ 作品</span>
+            <span class="fdiv"></span>
+            <span>安全付款</span>
+        </div>
+    </div>
+</aside>

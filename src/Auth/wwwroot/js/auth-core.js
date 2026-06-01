@@ -1,52 +1,62 @@
-/* June Auth — multipage controller (jQuery).
-   Each HTML page calls Auth.start('<screen>'); navigation hops between real pages. */
+/* June Auth — event controller (jQuery).
+   Razor views render the initial HTML; this file handles interactions
+   and renders the 5 post-submit screens into .form-wrap. */
 (function () {
-  const icon = window.icon;
-  const esc = window.esc;
   const $ = window.jQuery;
 
-  // screen -> page file
-  const PAGE = {
-    login: 'Login.html',
-    register: 'Register.html',
-    forgot: 'Forgot Password.html',
-    'forgot-sent': 'Forgot Sent.html',
-    reset: 'Reset Password.html',
-    'reset-done': 'Reset Done.html',
-    'register-sent': 'Register Sent.html',
-    'login-done': 'Login Done.html',
-    'login-error': 'Login Error.html',
+  // ---- minimal SVG icon helper (used only in post-submit screens + field errors + pw-toggle) ----
+  const PATHS = {
+    mail:       'M3 5h18v14H3zM3 6l9 7 9-7',
+    check:      'M5 12.5l4.5 4.5L19 7',
+    arrowRight: 'M5 12h14M13 6l6 6-6 6',
+    alert:      'M12 8v5M12 16.5v.5 M10.3 3.8 2.4 18a1.9 1.9 0 0 0 1.7 2.9h15.8a1.9 1.9 0 0 0 1.7-2.9L13.7 3.8a1.9 1.9 0 0 0-3.4 0z',
+    shield:     'M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3z',
+    eye:        'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+    eyeOff:     'M3 3l18 18 M10.6 10.6a3 3 0 0 0 4 4 M9.4 5.2A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a16 16 0 0 1-3.3 4 M6.3 6.3A16 16 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.3-.6',
   };
-
-  const BRAND = {
-    login:    { h: '歡迎回來，<br/>繼續 <span class="hl hl-lime">創作</span>。', s: '登入 Open Jam，管理你的作品、追蹤銷售，與全球創作者一起發光。' },
-    register: { h: '把作品<br/>變成 <span class="hl hl-yellow">收入</span>。', s: '加入 12,400+ 創作者，今天就開始在 Open Jam 上架你的數位作品。' },
-    forgot:   { h: '別擔心，<br/>我們<span class="hl hl-cyan">幫你</span>。', s: '輸入註冊信箱，我們會立刻把重置連結寄給你。' },
-    reset:    { h: '設定一組<br/><span class="hl hl-lime">新密碼</span>。', s: '選一組夠強的密碼，好好保護你的創作資產。' },
-  };
-  function brandFor(screen) {
-    const map = { 'register-sent': 'register', 'forgot-sent': 'forgot', 'reset-done': 'reset', 'login-done': 'login', 'login-error': 'login' };
-    return BRAND[map[screen] || screen] || BRAND.login;
+  function icon(name, opts) {
+    opts = opts || {};
+    const size = opts.size == null ? 20 : opts.size;
+    const fill = !!opts.fill;
+    const stroke = opts.stroke == null ? 1.9 : opts.stroke;
+    const d = PATHS[name] || '';
+    const styleStr = 'display:block;flex:none;' + (opts.style || '');
+    return (
+      '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" ' +
+      'fill="' + (fill ? 'currentColor' : 'none') + '" ' +
+      'stroke="' + (fill ? 'none' : 'currentColor') + '" ' +
+      'stroke-width="' + (fill ? 0 : stroke) + '" ' +
+      'stroke-linecap="round" stroke-linejoin="round" style="' + styleStr + '">' +
+      '<path d="' + d + '"></path></svg>'
+    );
+  }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  // ---- accent gradients ----
   const ACCENT_GRAD = {
     violet: 'radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.42), transparent 58%), radial-gradient(680px 520px at 92% 18%, rgba(255,77,157,.55), transparent 60%), radial-gradient(720px 620px at 78% 96%, rgba(31,214,198,.42), transparent 62%), radial-gradient(820px 720px at 18% 92%, rgba(108,76,241,.55), transparent 64%), linear-gradient(150deg, #6c4cf1, #8a3df1 46%, #c33ad6)',
     sunset: 'radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.5), transparent 58%), radial-gradient(680px 520px at 92% 18%, rgba(255,77,157,.55), transparent 60%), radial-gradient(720px 520px at 78% 96%, rgba(255,122,47,.5), transparent 62%), radial-gradient(820px 720px at 18% 92%, rgba(255,77,157,.5), transparent 64%), linear-gradient(150deg, #ff7a2f, #ff5a6e 50%, #ff4d9d)',
     ocean:  'radial-gradient(620px 460px at 12% 6%, rgba(174,240,62,.4), transparent 58%), radial-gradient(680px 520px at 92% 18%, rgba(31,214,198,.55), transparent 60%), radial-gradient(720px 620px at 78% 96%, rgba(108,76,241,.5), transparent 62%), radial-gradient(820px 720px at 18% 92%, rgba(31,214,198,.5), transparent 64%), linear-gradient(150deg, #1fd6c6, #2f8ff1 50%, #6c4cf1)',
   };
 
-  // ---------------- state ----------------
+  // ---- state ----
   const state = {
-    screen: 'login', data: {}, form: {}, errors: {}, show: {}, loading: false,
-    font: 'bricolage', accent: 'violet', tweaksOpen: false, legal: null,
-    read: { terms: false, privacy: false }, left: 45, justSent: false,
+    screen: 'login', form: {}, show: {}, loading: false,
+    font: 'bricolage', accent: 'violet',
+    legal: null, read: { terms: false, privacy: false },
+    left: 45, justSent: false,
+    data: {},
   };
 
-  // ---------------- persistence (carries across pages) ----------------
+  // ---- prefs (localStorage) ----
   function loadPrefs() {
     try {
       const p = JSON.parse(localStorage.getItem('ojAuthPrefs') || '{}');
-      if (p.font) state.font = p.font;
+      if (p.font)   state.font   = p.font;
       if (p.accent) state.accent = p.accent;
     } catch (e) { /* ignore */ }
   }
@@ -54,17 +64,38 @@
     try { localStorage.setItem('ojAuthPrefs', JSON.stringify({ font: state.font, accent: state.accent })); } catch (e) { /* ignore */ }
   }
 
-  // ---------------- navigation ----------------
+  // ---- apply prefs to DOM ----
+  function applyPrefs() {
+    $('#auth-shell').removeClass('font-bricolage font-unbounded').addClass('font-' + state.font);
+    $('#accent-style').html('.brand-panel{background:' + ACCENT_GRAD[state.accent] + ' !important;} .mobile-brand .brand-mark svg{color:#fff;}');
+    $('.seg button').removeClass('on');
+    $('.seg button[data-font="' + state.font + '"]').addClass('on');
+    $('.swatch').removeClass('on');
+    $('.swatch[data-accent="' + state.accent + '"]').addClass('on');
+  }
+
+  // ---- page navigation ----
+  const PAGE_URL = { login: '/login', register: '/register', forgot: '/forgot', reset: '/reset' };
+
   function navigate(screen, data) {
     if (data && data.email != null) {
       try { sessionStorage.setItem('ojAuthEmail', data.email); } catch (e) { /* ignore */ }
     }
-    window.location.href = encodeURI(PAGE[screen] || PAGE.login);
+    if (POST_SCREENS[screen]) {
+      state.screen = screen;
+      if (data) state.data = { email: data.email || state.data.email };
+      if (screen === 'forgot-sent' || screen === 'register-sent') startTimer();
+      $('.form-wrap').html(POST_SCREENS[screen]());
+      return;
+    }
+    window.location.href = PAGE_URL[screen] || '/login';
   }
 
+  // ---- resend countdown ----
   let timer = null;
   function clearTimer() { if (timer) { clearInterval(timer); timer = null; } }
   function startTimer() {
+    state.left = 45;
     clearTimer();
     timer = setInterval(function () {
       if (state.left > 0) state.left--;
@@ -72,85 +103,18 @@
       if (state.left <= 0) clearTimer();
     }, 1000);
   }
-
-  // ---------------- shared bits ----------------
-  function popBtn(o) {
-    const cls = 'btn-pop' + (o.variant ? ' ' + o.variant : '');
-    let inner;
-    if (state.loading) inner = '<span class="spinner"></span>';
-    else inner = icon(o.icon, { size: o.size || 18, stroke: o.stroke }) + ' ' + o.label;
-    return '<button class="' + cls + '" data-submit' + (state.loading ? ' disabled' : '') + '>' + inner + '</button>';
-  }
-  function readTick(on) {
-    return on ? icon('check', { size: 13, stroke: 2.8, style: 'color:#11a36a;margin-left:3px;vertical-align:-2px;' }) : '';
-  }
   function resendHTML() {
     const mm = Math.floor(state.left / 60);
     const ss = String(state.left % 60).padStart(2, '0');
     const isReg = state.screen === 'register-sent';
-    const lead = isReg ? '沒收到信？' : '沒收到？';
+    const lead  = isReg ? '沒收到信？' : '沒收到？';
     const label = isReg ? '重新寄送確認信' : '重新寄送至此信箱';
     if (state.justSent) return '<span class="resend-ok">' + icon('check', { size: 13, stroke: 2.6 }) + ' 已重新寄送至此信箱</span>';
-    if (state.left > 0) return lead + '可於 <b>' + mm + ':' + ss + '</b> 後重新寄送';
+    if (state.left > 0)  return lead + '可於 <b>' + mm + ':' + ss + '</b> 後重新寄送';
     return lead + '<button class="link-strong" data-resend>' + label + '</button>';
   }
 
-  // ---------------- screens ----------------
-  function loginHTML() {
-    return '<div class="screen">' +
-      '<p class="form-eyebrow">' + icon('sparkle', { size: 13 }) + ' 歡迎回來</p>' +
-      '<h2 class="form-title">登入 Open Jam</h2>' +
-      '<p class="form-sub">還沒準備好？先逛逛也沒關係。輸入帳號繼續你的創作旅程。</p>' +
-      '<div class="form-body">' +
-        window.fieldHTML({ id: 'email', label: '電子信箱', type: 'email', icon: 'mail', value: state.form.email, placeholder: 'you@example.com', error: state.errors.email, autoComplete: 'email' }) +
-        window.passwordFieldHTML({ id: 'pw', label: '密碼', value: state.form.pw, placeholder: '輸入你的密碼', error: state.errors.pw, autoComplete: 'current-password', show: state.show.pw, labelRight: '<button class="link-strong" data-go="forgot">忘記密碼？</button>' }) +
-        '<div class="form-row">' + window.checkboxHTML({ id: 'remember', checked: state.form.remember, label: '記住我' }) + '</div>' +
-        popBtn({ variant: 'violet', icon: 'arrowRight', size: 18, label: '登入' }) +
-      '</div>' +
-      '<p class="form-foot">還沒有帳號？<button class="link-strong" data-go="register">免費註冊</button></p>' +
-    '</div>';
-  }
-
-  function registerHTML() {
-    const agreeLabel =
-      '我已閱讀並同意 ' +
-      '<button type="button" class="legal-link" data-legal-open="terms">服務條款' + readTick(state.read.terms) + '</button>' +
-      ' 與 ' +
-      '<button type="button" class="legal-link" data-legal-open="privacy">隱私政策' + readTick(state.read.privacy) + '</button>';
-    const agreeErr = state.errors.agree
-      ? '<span class="field-err" style="margin-top:4px">' + icon('alert', { size: 13 }) + ' ' + esc(state.errors.agree) + '</span>'
-      : '';
-    return '<div class="screen">' +
-      '<p class="form-eyebrow">' + icon('sparkle', { size: 13 }) + ' 開始創作</p>' +
-      '<h2 class="form-title">建立帳號</h2>' +
-      '<p class="form-sub">免費開店、零月費，售出才收 3% 手續費。30 秒就能上手。</p>' +
-      '<div class="form-body">' +
-        window.fieldHTML({ id: 'name', label: '創作者暱稱', icon: 'user', value: state.form.name, placeholder: '例如：小雨工作室', error: state.errors.name, autoComplete: 'nickname' }) +
-        window.fieldHTML({ id: 'email', label: '電子信箱', type: 'email', icon: 'mail', value: state.form.email, placeholder: 'you@example.com', error: state.errors.email, autoComplete: 'email' }) +
-        window.passwordFieldHTML({ id: 'pw', label: '密碼', value: state.form.pw, placeholder: '設定一組密碼', error: state.errors.pw, showStrength: true, autoComplete: 'new-password', show: state.show.pw }) +
-        '<div class="field" data-field="agree" style="margin-top:-2px">' +
-          window.checkboxHTML({ id: 'agree', checked: state.form.agree, label: agreeLabel }) + agreeErr +
-        '</div>' +
-        popBtn({ icon: 'sparkle', size: 18, label: '建立帳號' }) +
-      '</div>' +
-      '<p class="form-foot">已經有帳號了？<button class="link-strong" data-go="login">前往登入</button></p>' +
-    '</div>';
-  }
-
-  function forgotHTML() {
-    return '<div class="screen">' +
-      '<button class="back-link" data-go="login">' + icon('arrowLeft', { size: 16 }) + ' 返回登入</button>' +
-      '<p class="form-eyebrow">' + icon('key', { size: 13 }) + ' 帳號救援</p>' +
-      '<h2 class="form-title">忘記密碼？</h2>' +
-      '<p class="form-sub">輸入你的註冊信箱，我們會寄一條重置連結給你。連結 30 分鐘內有效。</p>' +
-      '<div class="form-body">' +
-        window.fieldHTML({ id: 'email', label: '電子信箱', type: 'email', icon: 'mail', value: state.form.email, placeholder: 'you@example.com', error: state.errors.email, autoComplete: 'email' }) +
-        popBtn({ variant: 'violet', icon: 'send', size: 17, label: '寄送重置連結' }) +
-      '</div>' +
-      '<p class="form-foot">想起來了？<button class="link-strong" data-go="login">直接登入</button></p>' +
-    '</div>';
-  }
-
+  // ---- post-submit screens (JS-rendered into .form-wrap) ----
   function forgotSentHTML() {
     return '<div class="screen">' +
       '<div class="success-ring violet">' + icon('mail', { size: 40 }) + '</div>' +
@@ -166,31 +130,6 @@
     '</div>';
   }
 
-  function resetHTML() {
-    return '<div class="screen">' +
-      '<p class="form-eyebrow">' + icon('key', { size: 13 }) + ' 設定新密碼</p>' +
-      '<h2 class="form-title">重置密碼</h2>' +
-      '<p class="form-sub">為你的 Open Jam 帳號設定一組全新密碼。設定後其他裝置會自動登出。</p>' +
-      '<div class="form-body">' +
-        window.passwordFieldHTML({ id: 'pw', label: '新密碼', value: state.form.pw, placeholder: '輸入新密碼', error: state.errors.pw, showStrength: true, autoComplete: 'new-password', show: state.show.pw }) +
-        window.passwordFieldHTML({ id: 'pw2', label: '確認新密碼', value: state.form.pw2, placeholder: '再次輸入新密碼', error: state.errors.pw2, autoComplete: 'new-password', show: state.show.pw2 }) +
-        popBtn({ variant: 'violet', icon: 'check', size: 18, stroke: 2.4, label: '更新密碼' }) +
-      '</div>' +
-      '<p class="form-foot"><button class="link-strong" data-go="login">取消，返回登入</button></p>' +
-    '</div>';
-  }
-
-  function resetDoneHTML() {
-    return '<div class="screen">' +
-      '<div class="success-ring">' + icon('check', { size: 46, stroke: 2.6 }) + '</div>' +
-      '<h2 class="form-title">密碼已更新 🎉</h2>' +
-      '<p class="form-sub">你的密碼已成功重置，現在可以用新密碼登入 Open Jam 了。</p>' +
-      '<div class="form-body">' +
-        '<button class="btn-pop violet" data-go="login">' + icon('arrowRight', { size: 17 }) + ' 前往登入</button>' +
-      '</div>' +
-    '</div>';
-  }
-
   function registerSentHTML() {
     return '<div class="screen">' +
       '<div class="success-ring cyan">' + icon('mail', { size: 40 }) + '</div>' +
@@ -203,6 +142,17 @@
         '<button class="btn-ghost" data-go="register">換一個信箱</button>' +
       '</div>' +
       '<p class="resend" style="text-align:center">' + resendHTML() + '</p>' +
+    '</div>';
+  }
+
+  function resetDoneHTML() {
+    return '<div class="screen">' +
+      '<div class="success-ring">' + icon('check', { size: 46, stroke: 2.6 }) + '</div>' +
+      '<h2 class="form-title">密碼已更新 🎉</h2>' +
+      '<p class="form-sub">你的密碼已成功重置，現在可以用新密碼登入 Open Jam 了。</p>' +
+      '<div class="form-body">' +
+        '<button class="btn-pop violet" data-go="login">' + icon('arrowRight', { size: 17 }) + ' 前往登入</button>' +
+      '</div>' +
     '</div>';
   }
 
@@ -233,142 +183,159 @@
     '</div>';
   }
 
-  const SCREENS = {
-    login: loginHTML, register: registerHTML, forgot: forgotHTML, 'forgot-sent': forgotSentHTML,
-    reset: resetHTML, 'reset-done': resetDoneHTML, 'register-sent': registerSentHTML, 'login-done': loginDoneHTML,
-    'login-error': loginErrorHTML,
+  const POST_SCREENS = {
+    'forgot-sent':    forgotSentHTML,
+    'register-sent':  registerSentHTML,
+    'reset-done':     resetDoneHTML,
+    'login-done':     loginDoneHTML,
+    'login-error':    loginErrorHTML,
   };
 
-  // ---------------- tweaks ----------------
-  function tweaksHTML() {
-    if (!state.tweaksOpen) return '';
-    const accents = [
-      { id: 'violet', label: '紫粉', a: '#6c4cf1', b: '#ff4d9d' },
-      { id: 'sunset', label: '日落', a: '#ff7a2f', b: '#ff4d9d' },
-      { id: 'ocean',  label: '海洋', a: '#1fd6c6', b: '#6c4cf1' },
-    ];
-    const sw = accents.map(function (x) {
-      return '<div class="swatch' + (state.accent === x.id ? ' on' : '') + '" data-accent="' + x.id + '" ' +
-        'style="background:linear-gradient(135deg, ' + x.a + ', ' + x.b + ')" title="' + x.label + '"></div>';
-    }).join('');
-    return '<div class="tweaks-panel">' +
-      '<div class="tweaks-head"><span>Tweaks</span>' +
-        '<button class="tweaks-x" data-tweaks-close><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>' +
-      '</div>' +
-      '<div class="tweaks-body">' +
-        '<div class="tweaks-section">展示字體</div>' +
-        '<div class="tweaks-row"><span>標題字型</span>' +
-          '<div class="seg">' +
-            '<button class="' + (state.font === 'bricolage' ? 'on' : '') + '" data-font="bricolage">Bricolage</button>' +
-            '<button class="' + (state.font === 'unbounded' ? 'on' : '') + '" data-font="unbounded">Unbounded</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="tweaks-section">品牌色調</div>' +
-        '<div class="tweaks-row"><span>面板漸層</span><div class="swatches">' + sw + '</div></div>' +
-      '</div>' +
-    '</div>';
+  // ---- DOM helpers ----
+  function setFieldError(id, msg) {
+    const $field = $('.field[data-field="' + id + '"]');
+    $field.find('.field-err').remove();
+    $field.find('.input-shell').toggleClass('err', !!msg);
+    if (msg) $field.append('<span class="field-err">' + icon('alert', { size: 13 }) + ' ' + esc(msg) + '</span>');
   }
 
-  // ---------------- render ----------------
-  function render() {
-    const b = brandFor(state.screen);
-    const html =
-      '<div class="auth-shell font-' + state.font + '" data-screen-label="' + state.screen + '">' +
-        window.brandPanelHTML(b.h, b.s) +
-        '<main class="form-panel">' +
-          '<div class="mobile-brand">' +
-            '<span class="brand-mark" style="background:linear-gradient(135deg, var(--c-violet), var(--c-pink))">' +
-              '<span style="color:#fff;display:grid;place-items:center">' + window.brandMark(18) + '</span>' +
-            '</span>' +
-            '<span class="brand-name">Open Jam</span>' +
-          '</div>' +
-          '<div class="form-wrap">' + SCREENS[state.screen]() + '</div>' +
-        '</main>' +
-        tweaksHTML() +
-        window.legalModalHTML(state.legal) +
-        '<style>.brand-panel{background:' + ACCENT_GRAD[state.accent] + ' !important;} .mobile-brand .brand-mark svg{color:#fff;}</style>' +
-      '</div>';
-    $('#root').html(html);
+  function setLoading(on) {
+    const $btn = $('[data-submit]');
+    if (on) $btn.attr('disabled', true).html('<span class="spinner"></span>');
   }
 
-  // ---------------- flow ----------------
+  // ---- password strength ----
+  function scorePassword(pw) {
+    pw = pw || '';
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (pw.length >= 12 && score >= 3) score = 4;
+    return [
+      { level: 0, color: 'var(--border)', text: '太短',   hint: '至少 8 個字元' },
+      { level: 1, color: '#ff4d9d',       text: '弱',     hint: '加入大小寫' },
+      { level: 2, color: '#ff7a2f',       text: '普通',   hint: '加入數字' },
+      { level: 3, color: '#ffc83a',       text: '不錯',   hint: '加入符號更強' },
+      { level: 4, color: '#11a36a',       text: '很強',   hint: '安全 👍' },
+    ][Math.min(score, 4)];
+  }
+
+  function strengthHTML(value) {
+    if (!value) return '';
+    const s = scorePassword(value);
+    let bars = '';
+    for (let i = 0; i < 4; i++) {
+      bars += '<div class="pw-bar" style="background:' + (i < s.level ? s.color : 'var(--border)') + '"></div>';
+    }
+    return '<div class="pw-strength"><div class="pw-bars">' + bars + '</div>' +
+      '<div class="pw-meta"><span class="pw-label" style="color:' + s.color + '">' + s.text + '</span>' +
+      '<span class="pw-hint">' + s.hint + '</span></div></div>';
+  }
+
+  // ---- validators ----
+  function isEmail(v) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v || ''); }
+
+  // ---- form submission ----
   function submit() {
     const f = state.form;
     if (state.screen === 'login') {
       const e = {};
-      if (!window.isEmail(f.email)) e.email = '請輸入正確的電子信箱';
+      if (!isEmail(f.email)) e.email = '請輸入正確的電子信箱';
       if (!f.pw) e.pw = '請輸入密碼';
-      state.errors = e;
-      if (Object.keys(e).length) { render(); return; }
-      state.loading = true; render();
+      if (Object.keys(e).length) { Object.keys(e).forEach(function (k) { setFieldError(k, e[k]); }); return; }
+      setLoading(true);
       setTimeout(function () { navigate('login-done', { email: f.email }); }, 1100);
+
     } else if (state.screen === 'register') {
       const e = {};
       if (!(f.name || '').trim()) e.name = '請輸入你的暱稱';
-      if (!window.isEmail(f.email)) e.email = '請輸入正確的電子信箱';
-      if (window.scorePassword(f.pw).level < 2) e.pw = '密碼太弱，請加強';
+      if (!isEmail(f.email))      e.email = '請輸入正確的電子信箱';
+      if (scorePassword(f.pw).level < 2) e.pw = '密碼太弱，請加強';
       if (!f.agree) e.agree = '請先同意服務條款';
-      state.errors = e;
-      if (Object.keys(e).length) { render(); return; }
-      state.loading = true; render();
+      if (Object.keys(e).length) { Object.keys(e).forEach(function (k) { setFieldError(k, e[k]); }); return; }
+      setLoading(true);
       setTimeout(function () { navigate('register-sent', { email: f.email }); }, 1100);
+
     } else if (state.screen === 'forgot') {
-      if (!window.isEmail(f.email)) { state.errors = { email: '請輸入正確的電子信箱' }; render(); return; }
-      state.errors = {};
-      state.loading = true; render();
+      if (!isEmail(f.email)) { setFieldError('email', '請輸入正確的電子信箱'); return; }
+      setFieldError('email', null);
+      setLoading(true);
       setTimeout(function () { navigate('forgot-sent', { email: f.email }); }, 1100);
+
     } else if (state.screen === 'reset') {
       const e = {};
-      if (window.scorePassword(f.pw).level < 2) e.pw = '密碼太弱，請加強';
+      if (scorePassword(f.pw).level < 2) e.pw = '密碼太弱，請加強';
       if (!f.pw2) e.pw2 = '請再次輸入密碼';
       else if (f.pw !== f.pw2) e.pw2 = '兩次輸入的密碼不一致';
-      state.errors = e;
-      if (Object.keys(e).length) { render(); return; }
-      state.loading = true; render();
+      if (Object.keys(e).length) { Object.keys(e).forEach(function (k) { setFieldError(k, e[k]); }); return; }
+      setLoading(true);
       setTimeout(function () { navigate('reset-done', {}); }, 1100);
     }
   }
 
+  // ---- legal modal (pre-rendered in Razor, toggled by JS) ----
+  function openLegal(which) {
+    state.legal = which;
+    $('#legal-scrim').css('display', '');
+    $('#legal-terms-card').toggle(which === 'terms');
+    $('#legal-privacy-card').toggle(which === 'privacy');
+  }
+  function closeLegal() {
+    state.legal = null;
+    $('#legal-scrim').hide();
+    $('#legal-terms-card, #legal-privacy-card').hide();
+  }
+  function acknowledgeLegal() {
+    if (state.legal) {
+      state.read[state.legal] = true;
+      $('.read-tick[data-tick="' + state.legal + '"]').html(
+        icon('check', { size: 13, stroke: 2.8, style: 'color:#11a36a;margin-left:3px;vertical-align:-2px;' })
+      );
+    }
+    closeLegal();
+  }
+
+  // ---- checkbox ----
   function toggleCheckbox(id) {
     state.form[id] = !state.form[id];
     const $cb = $('.checkbox[data-checkbox="' + id + '"]');
-    $cb.toggleClass('on', !!state.form[id]).attr('aria-checked', !!state.form[id]);
-    if (id === 'agree' && state.errors.agree) {
-      $('.field[data-field="agree"] .field-err').remove();
-      delete state.errors.agree;
-    }
+    $cb.toggleClass('on', !!state.form[id]).attr('aria-checked', String(!!state.form[id]));
+    if (state.form[id]) setFieldError(id, null);
   }
 
-  function openLegal(which) { state.legal = which; render(); }
-  function closeLegal() { state.legal = null; render(); }
-  function acknowledgeLegal() {
-    if (state.legal) state.read[state.legal] = true;
-    state.legal = null;
-    render();
-  }
-
+  // ---- resend ----
   function resend() {
     if (state.left > 0) return;
-    state.left = 45;
     state.justSent = true;
     $('.resend').html(resendHTML());
     startTimer();
     setTimeout(function () { state.justSent = false; $('.resend').html(resendHTML()); }, 2600);
   }
 
-  // ---------------- events (delegated, bound once) ----------------
+  // ---- default form state per screen ----
+  function defaultForm(screen) {
+    if (screen === 'login')    return { remember: true };
+    if (screen === 'register') return { agree: false };
+    return {};
+  }
+
+  // ---- event binding ----
   function bind() {
     const $d = $(document);
+
     $d.on('click', '[data-go]', function () { navigate($(this).attr('data-go')); });
     $d.on('click', '[data-submit]', function () { submit(); });
 
     $d.on('input', 'input[data-input]', function () {
       const id = $(this).attr('data-input');
       state.form[id] = this.value;
+      setFieldError(id, null);
       const $field = $(this).closest('.field');
       if ($field.attr('data-strength')) {
         $field.find('.pw-strength').remove();
-        const h = window.strengthHTML(this.value);
+        const h = strengthHTML(this.value);
         if (h) $field.find('.input-shell').after(h);
       }
     });
@@ -377,9 +344,9 @@
     $d.on('click', '[data-pwtoggle]', function () {
       const id = $(this).attr('data-pwtoggle');
       state.show[id] = !state.show[id];
-      $('.field[data-field="' + id + '"]').find('input[data-pw]').attr('type', state.show[id] ? 'text' : 'password');
+      $('.field[data-field="' + id + '"] input[data-pw]').attr('type', state.show[id] ? 'text' : 'password');
       $(this).attr('title', state.show[id] ? '隱藏密碼' : '顯示密碼')
-        .html(icon(state.show[id] ? 'eyeOff' : 'eye', { size: 18 }));
+             .html(icon(state.show[id] ? 'eyeOff' : 'eye', { size: 18 }));
     });
 
     $d.on('click', '[data-checkbox]', function (e) {
@@ -390,48 +357,53 @@
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleCheckbox($(this).attr('data-checkbox')); }
     });
 
-    $d.on('click', '[data-legal-open]', function (e) { e.stopPropagation(); openLegal($(this).attr('data-legal-open')); });
-    $d.on('click', '[data-legal-close]', function () { closeLegal(); });
-    $d.on('click', '[data-legal-ack]', function () { acknowledgeLegal(); });
+    $d.on('click', '[data-legal-open]',  function (e) { e.stopPropagation(); openLegal($(this).attr('data-legal-open')); });
+    $d.on('click', '[data-legal-close]', function ()  { closeLegal(); });
+    $d.on('click', '[data-legal-ack]',   function ()  { acknowledgeLegal(); });
     $d.on('click', '[data-legal-scrim]', function (e) { if (e.target === this) closeLegal(); });
 
     $d.on('click', '[data-resend]', function () { resend(); });
 
     $d.on('click', '[data-tweaks-close]', function () {
-      state.tweaksOpen = false; render();
+      $('#tweaks-panel').hide();
       window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
     });
-    $d.on('click', '[data-font]', function () { state.font = $(this).attr('data-font'); savePrefs(); render(); });
-    $d.on('click', '[data-accent]', function () { state.accent = $(this).attr('data-accent'); savePrefs(); render(); });
+    $d.on('click', '[data-font]', function () {
+      state.font = $(this).attr('data-font');
+      savePrefs();
+      $('#auth-shell').removeClass('font-bricolage font-unbounded').addClass('font-' + state.font);
+      $('.seg button').removeClass('on');
+      $('.seg button[data-font="' + state.font + '"]').addClass('on');
+    });
+    $d.on('click', '[data-accent]', function () {
+      state.accent = $(this).attr('data-accent');
+      savePrefs();
+      $('#accent-style').html('.brand-panel{background:' + ACCENT_GRAD[state.accent] + ' !important;}');
+      $('.swatch').removeClass('on');
+      $('.swatch[data-accent="' + state.accent + '"]').addClass('on');
+    });
 
     $d.on('keydown', function (e) { if (e.key === 'Escape' && state.legal) closeLegal(); });
 
     window.addEventListener('message', function (e) {
       const t = e && e.data && e.data.type;
-      if (t === '__activate_edit_mode') { state.tweaksOpen = true; render(); }
-      else if (t === '__deactivate_edit_mode') { state.tweaksOpen = false; render(); }
+      if (t === '__activate_edit_mode')   $('#tweaks-panel').css('display', '');
+      else if (t === '__deactivate_edit_mode') $('#tweaks-panel').hide();
     });
     window.parent.postMessage({ type: '__edit_mode_available' }, '*');
   }
 
-  function defaultForm(screen) {
-    if (screen === 'login') return { remember: true };
-    if (screen === 'register') return { agree: false };
-    return {};
-  }
-
-  // ---------------- entry ----------------
-  window.Auth = {
-    start: function (screen) {
-      loadPrefs();
-      state.screen = SCREENS[screen] ? screen : 'login';
-      state.form = defaultForm(state.screen);
-      let email = '';
-      try { email = sessionStorage.getItem('ojAuthEmail') || ''; } catch (e) { /* ignore */ }
-      state.data = { email: email };
+  // ---- init ----
+  $(function () {
+    loadPrefs();
+    state.screen = $('#auth-shell').attr('data-screen') || 'login';
+    state.form   = defaultForm(state.screen);
+    try { state.data = { email: sessionStorage.getItem('ojAuthEmail') || '' }; } catch (e) { state.data = { email: '' }; }
+    applyPrefs();
+    if (POST_SCREENS[state.screen]) {
       if (state.screen === 'forgot-sent' || state.screen === 'register-sent') startTimer();
-      bind();
-      render();
-    },
-  };
+      $('.form-wrap').html(POST_SCREENS[state.screen]());
+    }
+    bind();
+  });
 })();

@@ -1,0 +1,31 @@
+@model FieldModel
+@{
+    var shellClass = "input-shell" + (Model.Error != null ? " err" : "");
+}
+
+<div class="field" data-field="@Model.Id">
+    <label class="field-label">
+        @if (Model.LabelRight != null)
+        {
+            <span>@Model.Label</span>
+            @Model.LabelRight
+        }
+        else
+        {
+            @Model.Label
+        }
+    </label>
+    <div class="@shellClass">
+        @if (Model.Icon != null)
+        {
+            <span class="lead">@IconHelper.Render(Model.Icon, 18)</span>
+        }
+        <input type="@(Model.Type ?? "text")" data-input="@Model.Id"
+               value="@(Model.Value ?? "")" placeholder="@(Model.Placeholder ?? "")"
+               autocomplete="@(Model.AutoComplete ?? "off")">
+    </div>
+    @if (Model.Error != null)
+    {
+        <span class="field-err">@IconHelper.Render("alert", 13) @Model.Error</span>
+    }
+</div>
