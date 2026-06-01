@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Open Jam · 密碼已更新";
+}
+
+<div class="auth-shell font-bricolage" id="auth-shell" data-screen="reset-done">
+    @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
+        Headline = "設定一組<br/><span class=\"hl hl-lime\">新密碼</span>。",
+        Sub = "選一組夠強的密碼，好好保護你的創作資產。"
+    })
+    <main class="form-panel">
+        <div class="mobile-brand">
+            <span class="brand-mark" style="background:linear-gradient(135deg,var(--c-violet),var(--c-pink))">
+                <span style="color:#fff;display:grid;place-items:center">@IconHelper.BrandMark(18)</span>
+            </span>
+            <span class="brand-name">Open Jam</span>
+        </div>
+        <div class="form-wrap">
+            <div class="screen">
+                <div class="success-ring">@IconHelper.Render("check", 46, 2.6)</div>
+                <h2 class="form-title">密碼已更新 🎉</h2>
+                <p class="form-sub">你的密碼已成功重置，現在可以用新密碼登入 Open Jam 了。</p>
+                <div class="form-body">
+                    <a class="btn-pop violet" asp-action="Login">
+                        @IconHelper.Render("arrowRight", 17) 前往登入
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+    @await Html.PartialAsync("_TweaksPanel")
+    <style id="accent-style"></style>
+</div>

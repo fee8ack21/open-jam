@@ -1,6 +1,6 @@
+@model LoginViewModel
 @{
     ViewData["Title"] = "Open Jam · 登入";
-    var forgotLink = Html.Raw("<a href=\"/forgot\" class=\"link-strong\">忘記密碼？</a>");
 }
 
 <div class="auth-shell font-bricolage" id="auth-shell" data-screen="login">
@@ -20,24 +20,50 @@
                 <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) 歡迎回來</p>
                 <h2 class="form-title">登入 Open Jam</h2>
                 <p class="form-sub">還沒準備好？先逛逛也沒關係。輸入帳號繼續你的創作旅程。</p>
-                <div class="form-body">
-                    @await Html.PartialAsync("_Field", new FieldModel {
-                        Id = "email", Label = "電子信箱", Type = "email", Icon = "mail",
-                        Placeholder = "you@example.com", AutoComplete = "email"
-                    })
-                    @await Html.PartialAsync("_PasswordField", new PasswordFieldModel {
-                        Id = "pw", Label = "密碼", Placeholder = "輸入你的密碼",
-                        AutoComplete = "current-password", LabelRight = forgotLink
-                    })
-                    <div class="form-row">
-                        @await Html.PartialAsync("_Checkbox", new CheckboxModel {
-                            Id = "remember", Label = "記住我", Checked = true
-                        })
+                <form asp-action="Login" method="post" novalidate>
+                    <div class="form-body">
+
+                        <div class="field" data-field="Email">
+                            <label class="field-label" asp-for="Email">電子信箱</label>
+                            <div class="input-shell @(ViewData.ModelState["Email"]?.Errors.Any() == true ? "err" : "")">
+                                <span class="lead">@IconHelper.Render("mail", 18)</span>
+                                <input asp-for="Email" data-input="Email"
+                                       placeholder="you@example.com" autocomplete="email">
+                            </div>
+                            <span asp-validation-for="Email" class="field-err"></span>
+                        </div>
+
+                        <div class="field" data-field="Password">
+                            <label class="field-label">
+                                <span>密碼</span>
+                                <a href="/forgot" class="link-strong">忘記密碼？</a>
+                            </label>
+                            <div class="input-shell @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "err" : "")">
+                                <span class="lead">@IconHelper.Render("lock", 18)</span>
+                                <input asp-for="Password" type="password" data-input="Password" data-pw="1"
+                                       placeholder="輸入你的密碼" autocomplete="current-password">
+                                <button type="button" class="pw-toggle" data-pwtoggle="Password" title="顯示密碼">
+                                    @IconHelper.Render("eye", 18)
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="field-err"></span>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="checkbox @(Model.Remember ? "on" : "")" data-checkbox="Remember"
+                                 role="checkbox" aria-checked="@(Model.Remember ? "true" : "false")" tabindex="0">
+                                <span class="box">@IconHelper.Render("check", 13, 2.6)</span>
+                                <span>記住我</span>
+                            </div>
+                            <input asp-for="Remember"
+                                   style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+                        </div>
+
+                        <button type="submit" class="btn-pop violet">
+                            @IconHelper.Render("arrowRight", 18) 登入
+                        </button>
                     </div>
-                    <button class="btn-pop violet" data-submit>
-                        @IconHelper.Render("arrowRight", 18) 登入
-                    </button>
-                </div>
+                </form>
                 <p class="form-foot">還沒有帳號？<a asp-action="Register" class="link-strong">免費註冊</a></p>
             </div>
         </div>

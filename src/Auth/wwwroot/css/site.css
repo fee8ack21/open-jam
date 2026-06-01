@@ -493,6 +493,10 @@ input {
   gap: 5px;
   animation: shake 0.32s;
 }
+.field-err:empty,
+.field-validation-valid {
+  display: none !important;
+}
 @keyframes shake {
   0%,
   100% {

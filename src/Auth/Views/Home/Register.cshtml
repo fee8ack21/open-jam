@@ -1,3 +1,4 @@
+@model RegisterViewModel
 @{
     ViewData["Title"] = "Open Jam · 建立帳號";
     var agreeLabel =
@@ -24,28 +25,59 @@
                 <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) 開始創作</p>
                 <h2 class="form-title">建立帳號</h2>
                 <p class="form-sub">免費開店、零月費，售出才收 3% 手續費。30 秒就能上手。</p>
-                <div class="form-body">
-                    @await Html.PartialAsync("_Field", new FieldModel {
-                        Id = "name", Label = "創作者暱稱", Icon = "user",
-                        Placeholder = "例如：小雨工作室", AutoComplete = "nickname"
-                    })
-                    @await Html.PartialAsync("_Field", new FieldModel {
-                        Id = "email", Label = "電子信箱", Type = "email", Icon = "mail",
-                        Placeholder = "you@example.com", AutoComplete = "email"
-                    })
-                    @await Html.PartialAsync("_PasswordField", new PasswordFieldModel {
-                        Id = "pw", Label = "密碼", Placeholder = "設定一組密碼",
-                        ShowStrength = true, AutoComplete = "new-password"
-                    })
-                    <div class="field" data-field="agree" style="margin-top:-2px">
-                        @await Html.PartialAsync("_Checkbox", new CheckboxModel {
-                            Id = "agree", Label = agreeLabel
-                        })
+                <form asp-action="Register" method="post" novalidate>
+                    <div class="form-body">
+
+                        <div class="field" data-field="DisplayName">
+                            <label class="field-label" asp-for="DisplayName">創作者暱稱</label>
+                            <div class="input-shell @(ViewData.ModelState["DisplayName"]?.Errors.Any() == true ? "err" : "")">
+                                <span class="lead">@IconHelper.Render("user", 18)</span>
+                                <input asp-for="DisplayName" data-input="DisplayName"
+                                       placeholder="例如：小雨工作室" autocomplete="nickname">
+                            </div>
+                            <span asp-validation-for="DisplayName" class="field-err"></span>
+                        </div>
+
+                        <div class="field" data-field="Email">
+                            <label class="field-label" asp-for="Email">電子信箱</label>
+                            <div class="input-shell @(ViewData.ModelState["Email"]?.Errors.Any() == true ? "err" : "")">
+                                <span class="lead">@IconHelper.Render("mail", 18)</span>
+                                <input asp-for="Email" data-input="Email"
+                                       placeholder="you@example.com" autocomplete="email">
+                            </div>
+                            <span asp-validation-for="Email" class="field-err"></span>
+                        </div>
+
+                        <div class="field" data-field="Password" data-strength="1">
+                            <label class="field-label" asp-for="Password">密碼</label>
+                            <div class="input-shell @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "err" : "")">
+                                <span class="lead">@IconHelper.Render("lock", 18)</span>
+                                <input asp-for="Password" type="password" data-input="Password" data-pw="1"
+                                       data-val-minpasswordstrength="密碼太弱，請加強"
+                                       placeholder="設定一組密碼" autocomplete="new-password">
+                                <button type="button" class="pw-toggle" data-pwtoggle="Password" title="顯示密碼">
+                                    @IconHelper.Render("eye", 18)
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="field-err"></span>
+                        </div>
+
+                        <div class="field" data-field="Agree" style="margin-top:-2px">
+                            <div class="checkbox @(Model.Agree ? "on" : "")" data-checkbox="Agree"
+                                 role="checkbox" aria-checked="@(Model.Agree ? "true" : "false")" tabindex="0">
+                                <span class="box">@IconHelper.Render("check", 13, 2.6)</span>
+                                <span>@Html.Raw(agreeLabel)</span>
+                            </div>
+                            <input asp-for="Agree"
+                                   style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+                            <span asp-validation-for="Agree" class="field-err"></span>
+                        </div>
+
+                        <button type="submit" class="btn-pop">
+                            @IconHelper.Render("sparkle", 18) 建立帳號
+                        </button>
                     </div>
-                    <button class="btn-pop" data-submit>
-                        @IconHelper.Render("sparkle", 18) 建立帳號
-                    </button>
-                </div>
+                </form>
                 <p class="form-foot">已經有帳號了？<a asp-action="Login" class="link-strong">前往登入</a></p>
             </div>
         </div>
