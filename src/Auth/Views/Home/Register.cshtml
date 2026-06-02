@@ -28,16 +28,6 @@
                 <form asp-action="Register" method="post" novalidate>
                     <div class="form-body">
 
-                        <div class="field" data-field="DisplayName">
-                            <label class="field-label" asp-for="DisplayName">創作者暱稱</label>
-                            <div class="input-shell @(ViewData.ModelState["DisplayName"]?.Errors.Any() == true ? "err" : "")">
-                                <span class="lead">@IconHelper.Render("user", 18)</span>
-                                <input asp-for="DisplayName" data-input="DisplayName"
-                                       placeholder="例如：小雨工作室" autocomplete="nickname">
-                            </div>
-                            <span asp-validation-for="DisplayName" class="field-err"></span>
-                        </div>
-
                         <div class="field" data-field="Email">
                             <label class="field-label" asp-for="Email">電子信箱</label>
                             <div class="input-shell @(ViewData.ModelState["Email"]?.Errors.Any() == true ? "err" : "")">
@@ -60,6 +50,19 @@
                                 </button>
                             </div>
                             <span asp-validation-for="Password" class="field-err"></span>
+                        </div>
+
+                        <div class="field" data-field="ConfirmPassword">
+                            <label class="field-label" asp-for="ConfirmPassword">確認密碼</label>
+                            <div class="input-shell @(ViewData.ModelState["ConfirmPassword"]?.Errors.Any() == true ? "err" : "")">
+                                <span class="lead">@IconHelper.Render("lock", 18)</span>
+                                <input asp-for="ConfirmPassword" type="password" data-input="ConfirmPassword"
+                                       placeholder="再輸入一次密碼" autocomplete="new-password">
+                                <button type="button" class="pw-toggle" data-pwtoggle="ConfirmPassword" title="顯示密碼">
+                                    @IconHelper.Render("eye", 18)
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="field-err"></span>
                         </div>
 
                         <div class="field" data-field="Agree" style="margin-top:-2px">
