@@ -5,21 +5,32 @@
   var $ = window.jQuery;
 
   // ---- password strength scorer (shared with auth-core.js) ----
+  // Rules mirror server-side PasswordValidator:
+  //   8–20 chars · uppercase · lowercase · digit · special char · no whitespace
   window.scorePassword = function (pw) {
     pw = pw || '';
-    var score = 0;
-    if (pw.length >= 8) score++;
-    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-    if (/\d/.test(pw)) score++;
-    if (/[^A-Za-z0-9]/.test(pw)) score++;
-    if (pw.length >= 12 && score >= 3) score = 4;
-    return [
-      { level: 0, color: 'var(--border)',  text: '太短',   hint: '至少 8 個字元' },
-      { level: 1, color: '#ff4d9d',        text: '弱',     hint: '加入大小寫' },
-      { level: 2, color: '#ff7a2f',        text: '普通',   hint: '加入數字' },
-      { level: 3, color: '#ffc83a',        text: '不錯',   hint: '加入符號更強' },
-      { level: 4, color: '#11a36a',        text: '很強',   hint: '安全 👍' },
-    ][Math.min(score, 4)];
+    if (!pw) return { level: 0, color: 'var(--border)', text: '', hint: '' };
+
+    if (pw.length > 20)
+      return { level: 0, color: '#ff4d9d', text: '過長',  hint: '密碼最多 20 個字元' };
+    if (pw.length < 8)
+      return { level: 0, color: 'var(--border)', text: '太短', hint: '至少 8 個字元' };
+    if (/\s/.test(pw))
+      return { level: 0, color: '#ff4d9d', text: '無效',  hint: '不得含空白字元' };
+
+    var hasUpper   = /[A-Z]/.test(pw);
+    var hasLower   = /[a-z]/.test(pw);
+    var hasDigit   = /[0-9]/.test(pw);
+    var hasSpecial = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(pw);
+
+    if (!hasUpper)   return { level: 1, color: '#ff4d9d', text: '弱',    hint: '缺少大寫字母 (A–Z)' };
+    if (!hasLower)   return { level: 1, color: '#ff4d9d', text: '弱',    hint: '缺少小寫字母 (a–z)' };
+    if (!hasDigit)   return { level: 2, color: '#ff7a2f', text: '普通',  hint: '缺少數字 (0–9)' };
+    if (!hasSpecial) return { level: 2, color: '#ff7a2f', text: '普通',  hint: '缺少特殊符號（例如 !@#$）' };
+
+    return pw.length >= 16
+      ? { level: 4, color: '#11a36a', text: '很強',   hint: '安全 👍' }
+      : { level: 3, color: '#ffc83a', text: '符合規則', hint: '加長密碼可更安全' };
   };
 
   // ---- custom validation methods ----
@@ -27,13 +38,19 @@
     return element.checked;
   }, '');
 
+  // Mirrors PasswordValidator.IsValid — all criteria must be met before submit
   $.validator.addMethod('minpasswordstrength', function (value) {
-    return !value || window.scorePassword(value).level >= 2;
+    if (!value) return true; // [Required] handles empty
+    if (value.length < 8 || value.length > 20) return false;
+    if (!/[A-Z]/.test(value))  return false;
+    if (!/[a-z]/.test(value))  return false;
+    if (!/[0-9]/.test(value))  return false;
+    if (!/[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(value)) return false;
+    if (/\s/.test(value))      return false;
+    return true;
   }, '');
 
   // ---- unobtrusive adapters ----
-  // addBool reads a sub-attribute, which we don't have; use add() with empty params
-  // so the rule is simply enabled (true) and the message comes from the attribute value.
   $.validator.unobtrusive.adapters.add('mustbetrue', [], function (options) {
     options.rules['mustbetrue'] = true;
     options.messages['mustbetrue'] = options.message;

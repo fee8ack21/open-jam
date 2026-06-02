@@ -12,4 +12,6 @@ public class LoginViewModel
     public string Password { get; set; } = "";
 
     public bool Remember { get; set; } = true;
+
+    public string? Challenge { get; set; }
 }

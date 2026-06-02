@@ -5,7 +5,7 @@ namespace Auth.Models;
 public class ResetPasswordViewModel
 {
     [Required(ErrorMessage = "請設定新密碼")]
-    [MinLength(8, ErrorMessage = "密碼至少需要 8 個字元")]
+    [ValidPassword]
     public string Password { get; set; } = "";
 
     [Required(ErrorMessage = "請再次輸入密碼")]

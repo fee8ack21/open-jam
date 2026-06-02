@@ -43,7 +43,7 @@
                             <div class="input-shell @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("lock", 18)</span>
                                 <input asp-for="Password" type="password" data-input="Password" data-pw="1"
-                                       data-val-minpasswordstrength="密碼太弱，請加強"
+                                       data-val-minpasswordstrength="密碼需含大小寫英文、數字及特殊符號（8–20 字元）"
                                        placeholder="設定一組密碼" autocomplete="new-password">
                                 <button type="button" class="pw-toggle" data-pwtoggle="Password" title="顯示密碼">
                                     @IconHelper.Render("eye", 18)

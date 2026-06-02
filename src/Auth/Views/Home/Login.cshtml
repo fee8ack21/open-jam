@@ -21,6 +21,7 @@
                 <h2 class="form-title">登入 Open Jam</h2>
                 <p class="form-sub">還沒準備好？先逛逛也沒關係。輸入帳號繼續你的創作旅程。</p>
                 <form asp-action="Login" method="post" novalidate>
+                    <input type="hidden" asp-for="Challenge">
                     <div class="form-body">
 
                         <div class="field" data-field="Email">
