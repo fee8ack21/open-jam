@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Auth.Controllers;
 
-public class HomeController(IHydraService hydra) : Controller
+public class HomeController(IHydraService hydra, IUserService userService) : Controller
 {
     [HttpGet("/")]
     public IActionResult Index() => RedirectToAction(nameof(Login));
@@ -91,10 +91,17 @@ public class HomeController(IHydraService hydra) : Controller
     public IActionResult Register() => View(new RegisterViewModel());
 
     [HttpPost("register"), ValidateAntiForgeryToken]
-    public IActionResult Register(RegisterViewModel model)
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
-        // TODO: real registration
+
+        var (success, error) = await userService.RegisterAsync(model.Email, model.Password);
+        if (!success)
+        {
+            ModelState.AddModelError(nameof(model.Email), error!);
+            return View(model);
+        }
+
         TempData["Email"] = model.Email;
         return RedirectToAction(nameof(RegisterSent));
     }
@@ -112,10 +119,11 @@ public class HomeController(IHydraService hydra) : Controller
     public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
 
     [HttpPost("forgot"), ValidateAntiForgeryToken]
-    public IActionResult ForgotPassword(ForgotPasswordViewModel model)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
-        // TODO: real forgot-password flow
+
+        await userService.SendPasswordResetAsync(model.Email);
         TempData["Email"] = model.Email;
         return RedirectToAction(nameof(ForgotSent));
     }
@@ -136,7 +144,7 @@ public class HomeController(IHydraService hydra) : Controller
     public IActionResult ResetPassword(ResetPasswordViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
-        // TODO: real password reset
+        // TODO: validate token + update password
         return RedirectToAction(nameof(ResetDone));
     }
 
