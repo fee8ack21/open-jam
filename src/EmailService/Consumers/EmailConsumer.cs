@@ -22,13 +22,23 @@ public class EmailConsumer(
 
         if (existing?.Status == EmailStatus.Sent) return;
 
+        var translation = await db.EmailConfigTranslations
+            .Include(t => t.EmailConfig)
+            .FirstOrDefaultAsync(t => t.EmailConfig.TemplateKey == evt.TemplateKey
+                                   && t.Locale == evt.Locale, ct)
+            ?? throw new InvalidOperationException(
+                $"找不到模板 '{evt.TemplateKey}' / '{evt.Locale}'");
+
+        var subject  = Render(translation.Subject,  evt.Params);
+        var bodyHtml = Render(translation.BodyHtml,  evt.Params);
+
         var record = existing ?? new EmailRecord
         {
             Id              = Guid.NewGuid(),
             OutboxMessageId = evt.OutboxMessageId,
             To              = evt.To,
-            Subject         = evt.Subject,
-            BodyHtml        = evt.BodyHtml,
+            Subject         = subject,
+            BodyHtml        = bodyHtml,
             Status          = EmailStatus.Pending,
             AttemptCount    = 0,
             CreatedAt       = DateTime.UtcNow
@@ -41,7 +51,7 @@ public class EmailConsumer(
 
         try
         {
-            await emailSender.SendAsync(record.To, record.Subject, record.BodyHtml, ct);
+            await emailSender.SendAsync(record.To, subject, bodyHtml, ct);
             record.Status = EmailStatus.Sent;
             record.SentAt = DateTime.UtcNow;
         }
@@ -54,4 +64,7 @@ public class EmailConsumer(
 
         await db.SaveChangesAsync(ct);
     }
+
+    private static string Render(string template, Dictionary<string, string> parameters) =>
+        parameters.Aggregate(template, (s, kv) => s.Replace("{{" + kv.Key + "}}", kv.Value));
 }

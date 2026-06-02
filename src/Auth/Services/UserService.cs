@@ -47,8 +47,9 @@ public class UserService(AppDbContext db, IOptions<AppOptions> appOptions) : IUs
             Payload   = JsonSerializer.Serialize(new EmailRequestedEvent(
                 OutboxMessageId: outboxId,
                 To:              email,
-                Subject:         "Open Jam 帳號驗證",
-                BodyHtml:        $"<p>感謝您註冊 Open Jam！</p><p>請點擊以下連結驗證您的電子信箱：</p><p><a href='{verifyUrl}'>驗證帳號</a></p><p>連結將在 24 小時後失效。</p>",
+                TemplateKey:     "email.verification",
+                Params:          new() { ["VerifyUrl"] = verifyUrl, ["ExpiresInHours"] = "24" },
+                Locale:          "zh-TW",
                 EventType:       "email.verification"
             )),
             CreatedAt = DateTime.UtcNow
@@ -86,8 +87,9 @@ public class UserService(AppDbContext db, IOptions<AppOptions> appOptions) : IUs
             Payload   = JsonSerializer.Serialize(new EmailRequestedEvent(
                 OutboxMessageId: outboxId,
                 To:              email,
-                Subject:         "Open Jam 密碼重置",
-                BodyHtml:        $"<p>我們收到了您的密碼重置請求。</p><p>請點擊以下連結重置您的密碼：</p><p><a href='{resetUrl}'>重置密碼</a></p><p>連結將在 1 小時後失效。若非您本人操作，請忽略此信。</p>",
+                TemplateKey:     "email.password_reset",
+                Params:          new() { ["ResetUrl"] = resetUrl, ["ExpiresInHours"] = "1" },
+                Locale:          "zh-TW",
                 EventType:       "email.password_reset"
             )),
             CreatedAt = DateTime.UtcNow

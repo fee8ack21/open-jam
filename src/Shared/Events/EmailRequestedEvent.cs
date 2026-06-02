@@ -1,9 +1,10 @@
 namespace Shared.Events;
 
 public record EmailRequestedEvent(
-    Guid   OutboxMessageId,
-    string To,
-    string Subject,
-    string BodyHtml,
-    string EventType
+    Guid                       OutboxMessageId,
+    string                     To,
+    string                     TemplateKey,
+    Dictionary<string, string> Params,
+    string                     Locale,
+    string                     EventType
 );
