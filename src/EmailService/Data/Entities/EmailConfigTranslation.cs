@@ -1,9 +1,11 @@
+using Shared.Audit;
+
 namespace EmailService.Data.Entities;
 
 /// <summary>
 /// 某種信件模板的單一語系版本，包含主旨與 HTML 內文。
 /// </summary>
-public class EmailConfigTranslation
+public class EmailConfigTranslation : ICreatedAt
 {
     /// <summary>自動遞增識別碼。</summary>
     public int Id { get; set; }
@@ -20,8 +22,8 @@ public class EmailConfigTranslation
     /// <summary>信件 HTML 內文模板，支援 {{Param}} 佔位符。</summary>
     public string BodyHtml { get; set; } = "";
 
-    /// <summary>建立時間（UTC）。</summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    /// <inheritdoc/>
+    public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>關聯的 EmailConfig。</summary>
     public EmailConfig EmailConfig { get; set; } = null!;

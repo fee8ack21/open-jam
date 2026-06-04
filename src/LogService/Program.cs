@@ -4,6 +4,7 @@ using LogService.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
+using Shared.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,8 @@ builder.Services.AddSwaggerGen(opts =>
 });
 
 var app = builder.Build();
+
+app.UseExceptionMiddleware();
 
 if (app.Environment.IsDevelopment())
 {
