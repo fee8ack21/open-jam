@@ -294,6 +294,9 @@ node_modules/
 # Claude Code
 .claude/settings.local.json
 
+# Superpowers dev plans (AI-assisted scaffolding, not project docs)
+docs/superpowers/
+
 # Vite
 **/.vite/
 
