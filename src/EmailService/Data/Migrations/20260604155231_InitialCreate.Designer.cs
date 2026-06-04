@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EmailService.Data.Migrations
 {
     [DbContext(typeof(EmailDbContext))]
-    [Migration("20260602133436_AddEmailTemplates")]
-    partial class AddEmailTemplates
+    [Migration("20260604155231_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,40 +29,46 @@ namespace EmailService.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<string>("TemplateKey")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("template_key");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_email_configs");
 
                     b.HasIndex("TemplateKey")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_email_configs_template_key");
 
-                    b.ToTable("EmailConfigs");
+                    b.ToTable("email_configs", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "帳號開通驗證信",
                             TemplateKey = "email.verification"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "密碼重置信",
                             TemplateKey = "email.password_reset"
                         });
@@ -72,43 +78,51 @@ namespace EmailService.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BodyHtml")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("body_html");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<int>("EmailConfigId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("email_config_id");
 
                     b.Property<string>("Locale")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("locale");
 
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("subject");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_email_config_translations");
 
                     b.HasIndex("EmailConfigId", "Locale")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_email_config_translations_email_config_id_locale");
 
-                    b.ToTable("EmailConfigTranslations");
+                    b.ToTable("email_config_translations", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
                             BodyHtml = "<p>感謝您註冊 Open Jam！</p>\n<p>請點擊以下連結驗證您的電子信箱：</p>\n<p><a href=\"{{VerifyUrl}}\" style=\"display:inline-block;padding:10px 20px;background:#6d28d9;color:#fff;text-decoration:none;border-radius:4px;\">驗證帳號</a></p>\n<p style=\"color:#6b7280;font-size:14px;\">連結將在 {{ExpiresInHours}} 小時後失效。若非您本人操作，請忽略此信。</p>",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EmailConfigId = 1,
                             Locale = "zh-TW",
                             Subject = "Open Jam 帳號驗證"
@@ -117,7 +131,7 @@ namespace EmailService.Data.Migrations
                         {
                             Id = 2,
                             BodyHtml = "<p>我們收到了您的密碼重置請求。</p>\n<p>請點擊以下連結重置您的密碼：</p>\n<p><a href=\"{{ResetUrl}}\" style=\"display:inline-block;padding:10px 20px;background:#6d28d9;color:#fff;text-decoration:none;border-radius:4px;\">重置密碼</a></p>\n<p style=\"color:#6b7280;font-size:14px;\">連結將在 {{ExpiresInHours}} 小時後失效。若非您本人操作，請忽略此信。</p>",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EmailConfigId = 2,
                             Locale = "zh-TW",
                             Subject = "Open Jam 密碼重置"
@@ -128,51 +142,68 @@ namespace EmailService.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<int>("AttemptCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt_count");
 
                     b.Property<string>("BodyHtml")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("body_html");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("ErrorMessage")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("error_message");
 
-                    b.Property<DateTime?>("LastAttemptAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset?>("LastAttemptAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_attempt_at");
 
                     b.Property<Guid>("OutboxMessageId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("outbox_message_id");
 
-                    b.Property<DateTime?>("SentAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
 
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("subject");
 
                     b.Property<string>("To")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("to");
 
-                    b.HasKey("Id");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_email_records");
 
                     b.HasIndex("OutboxMessageId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_email_records_outbox_message_id");
 
-                    b.ToTable("EmailRecords");
+                    b.ToTable("email_records", (string)null);
                 });
 
             modelBuilder.Entity("EmailService.Data.Entities.EmailConfigTranslation", b =>
@@ -181,7 +212,8 @@ namespace EmailService.Data.Migrations
                         .WithMany("Translations")
                         .HasForeignKey("EmailConfigId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_email_config_translations_email_configs_email_config_id");
 
                     b.Navigation("EmailConfig");
                 });

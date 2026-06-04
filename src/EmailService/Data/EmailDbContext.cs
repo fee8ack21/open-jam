@@ -1,16 +1,30 @@
 using EmailService.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Shared.Auth;
+using Shared.Data;
 
 namespace EmailService.Data;
 
-public class EmailDbContext(DbContextOptions<EmailDbContext> options) : DbContext(options)
+/// <summary>
+/// EmailService 的 EF Core DbContext，繼承 BaseDbContext 取得 Audit 自動填入能力。
+/// </summary>
+public class EmailDbContext(DbContextOptions<EmailDbContext> options, ICurrentUserAccessor currentUser)
+    : BaseDbContext(options, currentUser)
 {
-    public DbSet<EmailRecord>            EmailRecords            => Set<EmailRecord>();
-    public DbSet<EmailConfig>            EmailConfigs            => Set<EmailConfig>();
+    /// <summary>信件寄送紀錄資料表。</summary>
+    public DbSet<EmailRecord> EmailRecords => Set<EmailRecord>();
+
+    /// <summary>信件模板設定資料表。</summary>
+    public DbSet<EmailConfig> EmailConfigs => Set<EmailConfig>();
+
+    /// <summary>信件模板語系翻譯資料表。</summary>
     public DbSet<EmailConfigTranslation> EmailConfigTranslations => Set<EmailConfigTranslation>();
 
+    /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder model)
     {
+        var seedTime = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
         model.Entity<EmailRecord>(e =>
         {
             e.HasKey(r => r.Id);
@@ -31,8 +45,8 @@ public class EmailDbContext(DbContextOptions<EmailDbContext> options) : DbContex
              .HasForeignKey(t => t.EmailConfigId);
 
             e.HasData(
-                new EmailConfig { Id = 1, TemplateKey = "email.verification",  Description = "帳號開通驗證信", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-                new EmailConfig { Id = 2, TemplateKey = "email.password_reset", Description = "密碼重置信",    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+                new EmailConfig { Id = 1, TemplateKey = "email.verification",  Description = "帳號開通驗證信", CreatedAt = seedTime },
+                new EmailConfig { Id = 2, TemplateKey = "email.password_reset", Description = "密碼重置信",    CreatedAt = seedTime }
             );
         });
 
@@ -57,7 +71,7 @@ public class EmailDbContext(DbContextOptions<EmailDbContext> options) : DbContex
                         <p><a href="{{VerifyUrl}}" style="display:inline-block;padding:10px 20px;background:#6d28d9;color:#fff;text-decoration:none;border-radius:4px;">驗證帳號</a></p>
                         <p style="color:#6b7280;font-size:14px;">連結將在 {{ExpiresInHours}} 小時後失效。若非您本人操作，請忽略此信。</p>
                         """,
-                    CreatedAt     = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    CreatedAt     = seedTime,
                 },
                 new EmailConfigTranslation
                 {
@@ -71,7 +85,7 @@ public class EmailDbContext(DbContextOptions<EmailDbContext> options) : DbContex
                         <p><a href="{{ResetUrl}}" style="display:inline-block;padding:10px 20px;background:#6d28d9;color:#fff;text-decoration:none;border-radius:4px;">重置密碼</a></p>
                         <p style="color:#6b7280;font-size:14px;">連結將在 {{ExpiresInHours}} 小時後失效。若非您本人操作，請忽略此信。</p>
                         """,
-                    CreatedAt     = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    CreatedAt     = seedTime,
                 }
             );
         });

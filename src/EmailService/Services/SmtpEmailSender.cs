@@ -5,8 +5,13 @@ using MimeKit;
 
 namespace EmailService.Services;
 
+/// <summary>
+/// 以 MailKit SMTP 寄信的 IEmailSender 實作。
+/// 正式環境接 Gmail（Workspace），地端開發對接 SMTP catcher（如 Mailpit）。
+/// </summary>
 public class SmtpEmailSender(IOptions<SmtpOptions> options) : IEmailSender
 {
+    /// <inheritdoc/>
     public async Task SendAsync(string to, string subject, string bodyHtml, CancellationToken ct = default)
     {
         var opts = options.Value;

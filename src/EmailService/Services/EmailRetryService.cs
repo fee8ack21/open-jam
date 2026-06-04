@@ -6,11 +6,16 @@ using Microsoft.Extensions.Options;
 
 namespace EmailService.Services;
 
+/// <summary>
+/// 補償重試背景服務，定期掃描 Failed 且未達最大重試次數的紀錄並補發。
+/// 作為 MassTransit 原生重試之後的最後保險。
+/// </summary>
 public class EmailRetryService(
     IServiceScopeFactory scopeFactory,
     IOptions<EmailOptions> emailOptions,
     ILogger<EmailRetryService> logger) : BackgroundService
 {
+    /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
@@ -31,10 +36,10 @@ public class EmailRetryService(
 
     private async Task RetryFailedAsync(CancellationToken ct)
     {
-        using var scope   = scopeFactory.CreateScope();
-        var db            = scope.ServiceProvider.GetRequiredService<EmailDbContext>();
-        var emailSender   = scope.ServiceProvider.GetRequiredService<IEmailSender>();
-        var maxAttempts   = emailOptions.Value.MaxRetryAttempts;
+        using var scope     = scopeFactory.CreateScope();
+        var db              = scope.ServiceProvider.GetRequiredService<EmailDbContext>();
+        var emailSender     = scope.ServiceProvider.GetRequiredService<IEmailSender>();
+        var maxAttempts     = emailOptions.Value.MaxRetryAttempts;
 
         var failed = await db.EmailRecords
             .Where(r => r.Status == EmailStatus.Failed && r.AttemptCount < maxAttempts)
@@ -47,13 +52,13 @@ public class EmailRetryService(
         foreach (var record in failed)
         {
             record.AttemptCount++;
-            record.LastAttemptAt = DateTime.UtcNow;
+            record.LastAttemptAt = DateTimeOffset.UtcNow;
 
             try
             {
                 await emailSender.SendAsync(record.To, record.Subject, record.BodyHtml, ct);
                 record.Status       = EmailStatus.Sent;
-                record.SentAt       = DateTime.UtcNow;
+                record.SentAt       = DateTimeOffset.UtcNow;
                 record.ErrorMessage = null;
             }
             catch (Exception ex)

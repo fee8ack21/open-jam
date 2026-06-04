@@ -7,20 +7,20 @@ using Shared.Events;
 
 namespace EmailService.Consumers;
 
+/// <summary>
+/// 消費 EmailRequestedEvent，渲染模板並寄信，以 OutboxMessageId 去重確保冪等。
+/// 採「先寫 claim 再寄」策略：先 INSERT 取得鎖，捕捉 unique constraint 例外判斷是否已處理。
+/// </summary>
 public class EmailConsumer(
     EmailDbContext db,
     IEmailSender emailSender,
     ILogger<EmailConsumer> logger) : IConsumer<EmailRequestedEvent>
 {
+    /// <inheritdoc/>
     public async Task Consume(ConsumeContext<EmailRequestedEvent> context)
     {
         var evt = context.Message;
         var ct  = context.CancellationToken;
-
-        var existing = await db.EmailRecords
-            .FirstOrDefaultAsync(r => r.OutboxMessageId == evt.OutboxMessageId, ct);
-
-        if (existing?.Status == EmailStatus.Sent) return;
 
         var translation = await db.EmailConfigTranslations
             .Include(t => t.EmailConfig)
@@ -30,30 +30,46 @@ public class EmailConsumer(
                 $"找不到模板 '{evt.TemplateKey}' / '{evt.Locale}'");
 
         var subject  = Render(translation.Subject,  evt.Params);
-        var bodyHtml = Render(translation.BodyHtml,  evt.Params);
+        var bodyHtml = Render(translation.BodyHtml, evt.Params);
 
-        var record = existing ?? new EmailRecord
+        // 先寫 claim：嘗試插入 Pending 紀錄取得去重鎖
+        var record = new EmailRecord
         {
-            Id              = Guid.NewGuid(),
             OutboxMessageId = evt.OutboxMessageId,
             To              = evt.To,
             Subject         = subject,
             BodyHtml        = bodyHtml,
             Status          = EmailStatus.Pending,
-            AttemptCount    = 0,
-            CreatedAt       = DateTime.UtcNow
         };
 
-        if (existing is null) db.EmailRecords.Add(record);
-
-        record.AttemptCount++;
-        record.LastAttemptAt = DateTime.UtcNow;
+        db.EmailRecords.Add(record);
 
         try
         {
-            await emailSender.SendAsync(record.To, subject, bodyHtml, ct);
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            // 重複訊息：確認是否已成功寄出
+            db.ChangeTracker.Clear();
+            var existing = await db.EmailRecords
+                .FirstOrDefaultAsync(r => r.OutboxMessageId == evt.OutboxMessageId, ct);
+
+            if (existing is null || existing.Status == EmailStatus.Sent)
+                return;
+
+            // 之前失敗的紀錄 → 繼續重試
+            record = existing;
+        }
+
+        record.AttemptCount++;
+        record.LastAttemptAt = DateTimeOffset.UtcNow;
+
+        try
+        {
+            await emailSender.SendAsync(record.To, record.Subject, record.BodyHtml, ct);
             record.Status = EmailStatus.Sent;
-            record.SentAt = DateTime.UtcNow;
+            record.SentAt = DateTimeOffset.UtcNow;
         }
         catch (Exception ex)
         {
@@ -67,4 +83,7 @@ public class EmailConsumer(
 
     private static string Render(string template, Dictionary<string, string> parameters) =>
         parameters.Aggregate(template, (s, kv) => s.Replace("{{" + kv.Key + "}}", kv.Value));
+
+    private static bool IsUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == "23505";
 }
