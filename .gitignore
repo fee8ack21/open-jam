@@ -291,6 +291,16 @@ FakesAssemblies/
 .ntvs_analysis.dat
 node_modules/
 
+# Claude Code
+.claude/settings.local.json
+
+# Vite
+**/.vite/
+
+# VitePress
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
 # Visual Studio 6 build log
 *.plg
 

@@ -1,0 +1,10 @@
+/* Always show appearance toggle directly in nav bar */
+.VPNavBar .appearance {
+  display: flex !important;
+  align-items: center;
+}
+
+/* Hide the empty flyout dropdown */
+.VPNavBarExtra {
+  display: none !important;
+}
