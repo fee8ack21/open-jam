@@ -9,51 +9,46 @@ using Shared.Events;
 
 namespace Auth.Services;
 
-public class UserService(AppDbContext db, IOptions<AppOptions> appOptions) : IUserService
+/// <summary>帳號相關業務邏輯的具體實作。</summary>
+public class UserService(
+    AppDbContext db,
+    IPasswordHasher passwordHasher,
+    IOptions<AppOptions> appOptions) : IUserService
 {
+    /// <inheritdoc/>
     public async Task<(bool Success, string? Error)> RegisterAsync(string email, string password)
     {
-        if (await db.Users.AnyAsync(u => u.Email == email))
+        var existing = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (existing is not null && existing.Status != UserStatus.Pending)
             return (false, "此電子信箱已被使用");
 
         await using var tx = await db.Database.BeginTransactionAsync();
 
-        var userId    = Guid.NewGuid();
-        var token     = GenerateToken();
-        var outboxId  = Guid.NewGuid();
-        var verifyUrl = $"{appOptions.Value.BaseUrl}/verify-email?token={token}";
+        var hash = passwordHasher.Hash(password);
+        User user;
 
-        db.Users.Add(new User
+        if (existing is not null)
         {
-            Id           = userId,
-            Email        = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-            IsVerified   = false,
-            CreatedAt    = DateTime.UtcNow
-        });
+            // Squatting 防護：同一信箱已有 Pending 帳號 → 覆蓋並重發驗證信
+            existing.PasswordHash = hash;
 
-        db.EmailVerificationTokens.Add(new EmailVerificationToken
-        {
-            Id        = Guid.NewGuid(),
-            UserId    = userId,
-            Token     = token,
-            ExpiresAt = DateTime.UtcNow.AddHours(24)
-        });
+            // 作廢舊的未使用 token
+            await db.EmailVerificationTokens
+                .Where(t => t.UserId == existing.Id && t.UsedAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.UsedAt, DateTimeOffset.UtcNow));
 
-        db.OutboxMessages.Add(new OutboxMessage
+            user = existing;
+        }
+        else
         {
-            Id        = outboxId,
-            EventType = "email.verification",
-            Payload   = JsonSerializer.Serialize(new EmailRequestedEvent(
-                OutboxMessageId: outboxId,
-                To:              email,
-                TemplateKey:     "email.verification",
-                Params:          new() { ["VerifyUrl"] = verifyUrl, ["ExpiresInHours"] = "24" },
-                Locale:          "zh-TW",
-                EventType:       "email.verification"
-            )),
-            CreatedAt = DateTime.UtcNow
-        });
+            user = new User { Email = email, PasswordHash = hash, Status = UserStatus.Pending };
+            db.Users.Add(user);
+        }
+
+        var (token, outbox) = BuildVerificationOutbox(user.Id, email);
+        db.EmailVerificationTokens.Add(token);
+        db.OutboxMessages.Add(outbox);
 
         await db.SaveChangesAsync();
         await tx.CommitAsync();
@@ -61,44 +56,152 @@ public class UserService(AppDbContext db, IOptions<AppOptions> appOptions) : IUs
         return (true, null);
     }
 
+    /// <inheritdoc/>
+    public async Task<(bool Success, string? Error)> VerifyEmailAsync(string token)
+    {
+        var record = await db.EmailVerificationTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.Token == token);
+
+        if (record is null)
+            return (false, "驗證連結無效");
+
+        if (record.UsedAt.HasValue)
+            return (false, "此驗證連結已使用過");
+
+        if (record.ExpiresAt < DateTimeOffset.UtcNow)
+            return (false, "驗證連結已過期，請重新註冊或申請補發");
+
+        record.UsedAt      = DateTimeOffset.UtcNow;
+        record.User.Status = UserStatus.Active;
+
+        await db.SaveChangesAsync();
+        return (true, null);
+    }
+
+    /// <inheritdoc/>
+    public async Task<(bool Success, string? Subject, string? Error)> LoginAsync(string email, string password)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user is null || !passwordHasher.Verify(password, user.PasswordHash))
+            return (false, null, "電子信箱或密碼錯誤");
+
+        var error = user.Status switch
+        {
+            UserStatus.Pending     => "帳號尚未驗證，請至信箱點擊開通連結",
+            UserStatus.Locked      => "帳號因多次登入失敗已暫時鎖定，請稍後再試",
+            UserStatus.Suspended   => "帳號已停權，請聯繫客服",
+            UserStatus.Deactivated => "帳號已停用",
+            UserStatus.Deleted     => "電子信箱或密碼錯誤",
+            _                      => null,
+        };
+
+        if (error is not null)
+            return (false, null, error);
+
+        return (true, user.Id.ToString(), null);
+    }
+
+    /// <inheritdoc/>
     public async Task<(bool Success, string? Error)> SendPasswordResetAsync(string email)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (user is null) return (true, null); // 不揭露信箱是否存在
+
+        // 無論信箱是否存在一律成功，防止帳號列舉
+        if (user is null || user.Status is UserStatus.Deleted)
+            return (true, null);
 
         await using var tx = await db.Database.BeginTransactionAsync();
 
-        var token    = GenerateToken();
-        var outboxId = Guid.NewGuid();
-        var resetUrl = $"{appOptions.Value.BaseUrl}/reset?token={token}";
+        // 作廢舊的未使用重置 token
+        await db.PasswordResetTokens
+            .Where(t => t.UserId == user.Id && t.UsedAt == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.UsedAt, DateTimeOffset.UtcNow));
 
-        db.PasswordResetTokens.Add(new PasswordResetToken
-        {
-            Id        = Guid.NewGuid(),
-            UserId    = user.Id,
-            Token     = token,
-            ExpiresAt = DateTime.UtcNow.AddHours(1)
-        });
-
-        db.OutboxMessages.Add(new OutboxMessage
-        {
-            Id        = outboxId,
-            EventType = "email.password_reset",
-            Payload   = JsonSerializer.Serialize(new EmailRequestedEvent(
-                OutboxMessageId: outboxId,
-                To:              email,
-                TemplateKey:     "email.password_reset",
-                Params:          new() { ["ResetUrl"] = resetUrl, ["ExpiresInHours"] = "1" },
-                Locale:          "zh-TW",
-                EventType:       "email.password_reset"
-            )),
-            CreatedAt = DateTime.UtcNow
-        });
+        var (resetToken, outbox) = BuildPasswordResetOutbox(user.Id, email);
+        db.PasswordResetTokens.Add(resetToken);
+        db.OutboxMessages.Add(outbox);
 
         await db.SaveChangesAsync();
         await tx.CommitAsync();
 
         return (true, null);
+    }
+
+    /// <inheritdoc/>
+    public async Task<(bool Success, string? Error)> ResetPasswordAsync(string token, string newPassword)
+    {
+        var record = await db.PasswordResetTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.Token == token);
+
+        if (record is null)
+            return (false, "重置連結無效");
+
+        if (record.UsedAt.HasValue)
+            return (false, "此重置連結已使用過");
+
+        if (record.ExpiresAt < DateTimeOffset.UtcNow)
+            return (false, "重置連結已過期，請重新申請");
+
+        record.UsedAt            = DateTimeOffset.UtcNow;
+        record.User.PasswordHash = passwordHasher.Hash(newPassword);
+
+        await db.SaveChangesAsync();
+        return (true, null);
+    }
+
+    // ── 私有輔助方法 ───────────────────────────────────────────────────────────
+
+    private (EmailVerificationToken Token, OutboxMessage Outbox) BuildVerificationOutbox(Guid userId, string email)
+    {
+        var tokenStr  = GenerateToken();
+        var verifyUrl = $"{appOptions.Value.BaseUrl}/verify-email?token={tokenStr}";
+
+        var token = new EmailVerificationToken
+        {
+            UserId    = userId,
+            Token     = tokenStr,
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+        };
+
+        var outbox = new OutboxMessage { EventType = "email.verification" };
+        outbox.Payload = JsonSerializer.Serialize(new EmailRequestedEvent(
+            OutboxMessageId: outbox.Id,
+            To:              email,
+            TemplateKey:     "email.verification",
+            Params:          new() { ["VerifyUrl"] = verifyUrl, ["ExpiresInHours"] = "24" },
+            Locale:          "zh-TW",
+            EventType:       "email.verification"
+        ));
+
+        return (token, outbox);
+    }
+
+    private (PasswordResetToken Token, OutboxMessage Outbox) BuildPasswordResetOutbox(Guid userId, string email)
+    {
+        var tokenStr = GenerateToken();
+        var resetUrl = $"{appOptions.Value.BaseUrl}/reset?token={tokenStr}";
+
+        var token = new PasswordResetToken
+        {
+            UserId    = userId,
+            Token     = tokenStr,
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1),
+        };
+
+        var outbox = new OutboxMessage { EventType = "email.password_reset" };
+        outbox.Payload = JsonSerializer.Serialize(new EmailRequestedEvent(
+            OutboxMessageId: outbox.Id,
+            To:              email,
+            TemplateKey:     "email.password_reset",
+            Params:          new() { ["ResetUrl"] = resetUrl, ["ExpiresInHours"] = "1" },
+            Locale:          "zh-TW",
+            EventType:       "email.password_reset"
+        ));
+
+        return (token, outbox);
     }
 
     private static string GenerateToken() =>

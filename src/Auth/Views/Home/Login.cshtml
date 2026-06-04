@@ -23,6 +23,10 @@
                 <form asp-action="Login" method="post" novalidate>
                     <input type="hidden" asp-for="Challenge">
                     <div class="form-body">
+                        @if (ViewData.ModelState[""] is { } ms && ms.Errors.Any())
+                        {
+                            <p class="field-err" style="display:block">@ms.Errors[0].ErrorMessage</p>
+                        }
 
                         <div class="field" data-field="Email">
                             <label class="field-label" asp-for="Email">電子信箱</label>

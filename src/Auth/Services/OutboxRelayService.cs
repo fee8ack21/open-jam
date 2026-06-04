@@ -6,10 +6,15 @@ using Shared.Events;
 
 namespace Auth.Services;
 
+/// <summary>
+/// 背景服務，定期掃描 outbox_messages 資料表並將待處理訊息推送至 RabbitMQ。
+/// 使用 FOR UPDATE SKIP LOCKED 確保多副本部署時不重複發布。
+/// </summary>
 public class OutboxRelayService(
     IServiceScopeFactory scopeFactory,
     ILogger<OutboxRelayService> logger) : BackgroundService
 {
+    /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
@@ -38,9 +43,9 @@ public class OutboxRelayService(
         var messages = await db.OutboxMessages
             .FromSqlRaw(
                 """
-                SELECT * FROM "OutboxMessages"
-                WHERE "ProcessedAt" IS NULL
-                ORDER BY "CreatedAt"
+                SELECT * FROM outbox_messages
+                WHERE processed_at IS NULL
+                ORDER BY created_at
                 LIMIT 10
                 FOR UPDATE SKIP LOCKED
                 """)
@@ -56,7 +61,7 @@ public class OutboxRelayService(
         {
             var evt = JsonSerializer.Deserialize<EmailRequestedEvent>(message.Payload)!;
             await bus.Publish(evt, ct);
-            message.ProcessedAt = DateTime.UtcNow;
+            message.ProcessedAt = DateTimeOffset.UtcNow;
         }
 
         await db.SaveChangesAsync(ct);

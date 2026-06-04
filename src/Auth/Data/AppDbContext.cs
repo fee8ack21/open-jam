@@ -1,15 +1,27 @@
 using Auth.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Shared.Auth;
+using Shared.Data;
 
 namespace Auth.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+/// <summary>Auth service 的 EF Core DbContext，繼承 BaseDbContext 取得 Audit 自動填入能力。</summary>
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAccessor currentUser)
+    : BaseDbContext(options, currentUser)
 {
-    public DbSet<User>                   Users                   => Set<User>();
-    public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
-    public DbSet<PasswordResetToken>     PasswordResetTokens     => Set<PasswordResetToken>();
-    public DbSet<OutboxMessage>          OutboxMessages          => Set<OutboxMessage>();
+    /// <summary>帳號資料表。</summary>
+    public DbSet<User> Users => Set<User>();
 
+    /// <summary>信箱驗證 token 資料表。</summary>
+    public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
+
+    /// <summary>密碼重置 token 資料表。</summary>
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+
+    /// <summary>Outbox 訊息資料表。</summary>
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.Entity<User>(e =>
@@ -18,6 +30,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(u => u.Email).HasMaxLength(255).IsRequired();
             e.HasIndex(u => u.Email).IsUnique();
             e.Property(u => u.PasswordHash).IsRequired();
+            e.Property(u => u.Status).IsRequired();
         });
 
         model.Entity<EmailVerificationToken>(e =>
