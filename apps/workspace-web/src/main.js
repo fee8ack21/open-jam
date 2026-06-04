@@ -10,8 +10,8 @@ import ProductThumb from '@/components/ProductThumb.vue'
 import Stars from '@/components/Stars.vue'
 import TrendChart from '@/components/TrendChart.vue'
 
-import '@/styles/june.css'
-import '@/styles/dashboard.css'
+import '@/styles/base.css'
+import '@/styles/workspace.css'
 
 const pinia = createPinia()
 // make the router available inside store actions as `this.router`

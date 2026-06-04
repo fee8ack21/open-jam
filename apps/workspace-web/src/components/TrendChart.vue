@@ -69,7 +69,7 @@ export default {
           <line :x1="p.x" :y1="p.y" :x2="p.x" :y2="H - pad.b" stroke="var(--c-pink)" stroke-width="1.5" stroke-dasharray="3 4" />
           <g :transform="'translate(' + Math.min(Math.max(p.x, 54), W - 54) + ',' + Math.max(p.y - 16, 18) + ')'">
             <rect x="-46" y="-26" width="92" height="26" rx="8" fill="var(--text)" />
-            <text x="0" y="-8" text-anchor="middle" fill="var(--surface)" font-family="var(--june-mono)" font-size="12.5" font-weight="600">{{ fmt(p.d.value) }}</text>
+            <text x="0" y="-8" text-anchor="middle" fill="var(--surface)" font-family="var(--oj-mono)" font-size="12.5" font-weight="600">{{ fmt(p.d.value) }}</text>
           </g>
         </g>
       </g>

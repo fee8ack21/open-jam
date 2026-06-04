@@ -1,4 +1,4 @@
-# Open Jam · 創作者後台 (SPA)
+# workspace-web · 創作者後台 (SPA)
 
 由 HTML 原型遷移而來的單頁應用骨架。
 
@@ -13,9 +13,18 @@ pnpm build      # 打包到 dist/
 pnpm preview    # 預覽打包結果
 ```
 
+> 尚未安裝 Node/pnpm 環境也能預覽：直接開啟根目錄的 **`preview.html`**。
+> 它透過 `vue3-sfc-loader` 在瀏覽器端載入**同一份** `src/` 原始碼（免建置），
+> 僅差在改用 hash 路由、樣式以 `<link>` 直接載入。正式環境一律以 `pnpm dev` / `pnpm build` 為準。
+
 ## 專案結構
 
 ```
+.
+index.html             # Vite 進入點（掛載 #app）
+vite.config.js         # 別名 @ → /src
+package.json           # pnpm 相依與指令
+preview.html           # 免建置預覽用（dev harness，非 SPA 的一部分）
 src/
   main.js              # 進入點：掛載 Pinia / Router / Naive UI、註冊全域元件
   App.vue              # 應用外殼：側欄、頂欄、抽屜、使用者選單、Tweaks
@@ -41,8 +50,8 @@ src/
     WishlistView.vue   # Wishlist
     SettingsView.vue   # 帳號設定
   styles/
-    june.css           # 基礎設計系統（含 Google Fonts @import）
-    dashboard.css      # 後台版面與元件樣式
+    base.css           # 基礎設計系統（含 Google Fonts @import）
+    workspace.css      # 後台版面與元件樣式
 ```
 
 ## 遷移備忘
@@ -51,3 +60,4 @@ src/
 - **賣家 / 買家模式**：存在 Pinia (`mode`)，並隨路由所屬群組自動同步。
 - **資料層**：`src/data/index.js` 為靜態範例，正式環境改成在 store action 內呼叫 API 即可。
 - **Naive UI**：在 `main.js` 以 `app.use(naive)` 全域安裝；如需縮小打包體積可改成按需引入。
+- **`preview.html`**：免建置的開發預覽工具，載入與正式版相同的 `src/`；正式部署時可移除。

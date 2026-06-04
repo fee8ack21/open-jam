@@ -157,7 +157,7 @@ export default {
               <button class="free-toggle" :class="{ on: d.free }" @click="store.patchDraft({ free: !d.free })">
                 <j-icon :name="d.free ? 'check' : 'tag'" :size="16" :stroke="2.2" /> 免費提供
               </button>
-              <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--june-mono);">平台抽成 3%</span>
+              <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono);">平台抽成 3%</span>
             </div>
           </div>
 
@@ -222,7 +222,7 @@ export default {
               <div class="rev-row"><span class="rev-k">簡介</span><span class="rev-v" style="max-width:280px;">{{ d.blurb || '—' }}</span></div>
             </div>
           </div>
-          <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius:var(--r-md); background:var(--june-primary-wash); color:var(--june-primary); font-size:13.5px; font-weight:600;">
+          <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius:var(--r-md); background:var(--oj-primary-wash); color:var(--oj-primary); font-size:13.5px; font-weight:600;">
             <j-icon name="shield" :size="18" /> 你保留作品 100% 著作權，平台僅收取 3% 交易手續費。
           </div>
         </template>
@@ -261,11 +261,11 @@ export default {
             </div>
             <div class="card-foot">
               <span class="price" :class="{ free: previewProduct.price === 0 }">{{ previewProduct.price === 0 ? '免費' : '$' + previewProduct.price }}</span>
-              <span style="font-family:var(--june-mono); font-size:11.5px; color:var(--text-faint);">{{ totalSize }}</span>
+              <span style="font-family:var(--oj-mono); font-size:11.5px; color:var(--text-faint);">{{ totalSize }}</span>
             </div>
           </div>
         </div>
-        <p style="font-size:12px; color:var(--text-faint); margin-top:14px; line-height:1.6; font-family:var(--june-font);">
+        <p style="font-size:12px; color:var(--text-faint); margin-top:14px; line-height:1.6; font-family:var(--oj-font);">
           這是買家在商城看到的卡片樣式，會即時隨你的編輯更新。
         </p>
       </div>

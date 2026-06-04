@@ -34,20 +34,20 @@ export default {
               {{ pu.product.creator }}
             </span>
             <span style="color:var(--text-faint)">·</span>
-            <span style="font-family:var(--june-mono); font-size:12px;">{{ pu.product.formats.join(' · ') }} · {{ pu.product.totalSize }}</span>
+            <span style="font-family:var(--oj-mono); font-size:12px;">{{ pu.product.formats.join(' · ') }} · {{ pu.product.totalSize }}</span>
             <span style="color:var(--text-faint)">·</span>
-            <span style="font-family:var(--june-mono); font-size:12px; color:var(--text-faint);">{{ F.date(pu.date) }} 購買</span>
+            <span style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint);">{{ F.date(pu.date) }} 購買</span>
           </div>
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex:none;">
           <span class="price" style="font-size:16px;">{{ pu.price === 0 ? '免費' : '$' + pu.price }}</span>
           <div style="display:flex; gap:8px;">
-            <n-popover trigger="click" placement="bottom-end" :show-arrow="false" to=".june-root">
+            <n-popover trigger="click" placement="bottom-end" :show-arrow="false" to=".oj-root">
               <template #trigger><n-button size="small" tertiary>{{ pu.product.contents.length }} 個檔案 <template #icon><j-icon name="chevronD" :size="14" /></template></n-button></template>
               <div style="display:grid; gap:2px; min-width:240px; padding:2px;">
                 <button v-for="(f, i) in pu.product.contents" :key="i" class="menu-item" style="justify-content:space-between;">
                   <span style="display:flex; align-items:center; gap:9px; min-width:0;"><j-icon name="file" :size="16" /> <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ f.name }}</span></span>
-                  <span style="font-family:var(--june-mono); font-size:11px; color:var(--text-faint); flex:none;">{{ f.size }}</span>
+                  <span style="font-family:var(--oj-mono); font-size:11px; color:var(--text-faint); flex:none;">{{ f.size }}</span>
                 </button>
               </div>
             </n-popover>

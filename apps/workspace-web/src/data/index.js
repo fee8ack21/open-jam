@@ -27,7 +27,7 @@ export const TAGS = {
 export const ME = {
   name: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
   bio: '視覺設計師與攝影創作者，分享可商用的素材與模板。',
-  email: 'mira@junemail.co',
+  email: 'mira@studiomail.co',
   joined: '2024-03',
   followers: 3820,
 }

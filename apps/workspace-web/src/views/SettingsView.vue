@@ -42,7 +42,7 @@ export default {
               <span class="avatar" :style="{ background: me.avatar }">{{ F.initials(form.name) }}</span>
               <div>
                 <n-button size="small">更換頭像</n-button>
-                <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px; font-family:var(--june-mono);">JPG / PNG · 建議 400×400</div>
+                <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px; font-family:var(--oj-mono);">JPG / PNG · 建議 400×400</div>
               </div>
             </div>
             <div class="field"><label class="field-label">顯示名稱</label><n-input v-model:value="form.name" size="large" /></div>
@@ -65,7 +65,7 @@ export default {
               <span class="kpi-ic" style="background:var(--c-violet)"><j-icon name="wallet" :size="20" /></span>
               <div style="flex:1;">
                 <div style="font-weight:700; font-size:14.5px;">銀行轉帳 · 永豐銀行 ••• 4821</div>
-                <div style="font-family:var(--june-mono); font-size:12px; color:var(--text-faint); margin-top:3px;">下次撥款 2026/06/05 · 待結算 {{ F.money(store.pendingPayout) }}</div>
+                <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:3px;">下次撥款 2026/06/05 · 待結算 {{ F.money(store.pendingPayout) }}</div>
               </div>
               <n-button size="small">變更</n-button>
             </div>

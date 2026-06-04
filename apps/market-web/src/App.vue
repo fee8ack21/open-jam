@@ -1,0 +1,30 @@
+<script>
+/* App root — Naive UI providers wrap the router outlet so
+   message / dialog hooks are available app-wide. */
+
+// Naive UI theme overrides — align the component primary with the brand violet.
+const themeOverrides = {
+  common: {
+    primaryColor: '#6151f0',
+    primaryColorHover: '#7264f5',
+    primaryColorPressed: '#5040d8',
+    borderRadius: '12px',
+    fontFamily: 'var(--oj-font)',
+  },
+};
+
+export default {
+  name: 'App',
+  data() {
+    return { themeOverrides };
+  },
+};
+</script>
+
+<template>
+  <n-config-provider :theme-overrides="themeOverrides">
+    <n-message-provider>
+      <router-view />
+    </n-message-provider>
+  </n-config-provider>
+</template>

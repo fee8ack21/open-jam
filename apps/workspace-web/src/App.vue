@@ -93,7 +93,7 @@ export default {
     },
     initials(name) { return JFmt.initials(name) },
     nav(view) { this.store.go(view); this.drawerOpen = false },
-    pickMode(m) { this.store.setMode(m); this.drawerOpen = false },
+    pickMode(m) { this.store.setMode(m) },
     isActive(view) { return this.$route.name === view },
   },
 }
@@ -102,7 +102,7 @@ export default {
 <template>
   <n-config-provider :theme="null" :theme-overrides="overrides">
   <n-message-provider>
-    <div class="june-root" :class="rootClass">
+    <div class="oj-root" :class="rootClass">
       <div class="dash-shell">
 
         <!-- ============ SIDEBAR / MOBILE DRAWER ============ -->

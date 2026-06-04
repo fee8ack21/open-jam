@@ -43,7 +43,7 @@ export default {
           <span v-if="k.delta !== null" class="kpi-delta" :class="k.up ? 'up' : 'down'">
             <j-icon :name="k.up ? 'trend' : 'chevronD'" :size="13" :stroke="2.2" /> {{ Math.abs(k.delta) }}%
           </span>
-          <span v-else class="kpi-delta up" style="background:var(--june-primary-wash); color:var(--june-primary)">
+          <span v-else class="kpi-delta up" style="background:var(--oj-primary-wash); color:var(--oj-primary)">
             <j-icon name="clock" :size="13" /> {{ k.sub }}
           </span>
         </div>
@@ -79,11 +79,11 @@ export default {
         <div style="margin-top:22px; padding-top:18px; border-top:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
           <div>
             <div class="kpi-label" style="margin:0">轉換率</div>
-            <div style="font-family:var(--june-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ g.convRate }}%</div>
+            <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ g.convRate }}%</div>
           </div>
           <div style="text-align:right;">
             <div class="kpi-label" style="margin:0">粉絲</div>
-            <div style="font-family:var(--june-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ F.compact(me.followers) }}</div>
+            <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ F.compact(me.followers) }}</div>
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@ export default {
       <div class="card-pad">
         <div class="card-head">
           <h3>熱銷作品</h3>
-          <button class="link-btn" style="color:var(--june-primary)" @click="store.go('products')">查看全部 <j-icon name="chevron" :size="13" /></button>
+          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('products')">查看全部 <j-icon name="chevron" :size="13" /></button>
         </div>
         <div class="list-rows">
           <div v-for="(p,i) in g.topProducts" :key="p.id" class="lrow">
@@ -115,7 +115,7 @@ export default {
       <div class="card-pad">
         <div class="card-head">
           <h3>最新訂單</h3>
-          <button class="link-btn" style="color:var(--june-primary)" @click="store.go('orders')">查看全部 <j-icon name="chevron" :size="13" /></button>
+          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('orders')">查看全部 <j-icon name="chevron" :size="13" /></button>
         </div>
         <div class="list-rows">
           <div v-for="o in g.recentOrders" :key="o.id" class="lrow">

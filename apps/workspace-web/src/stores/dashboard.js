@@ -8,7 +8,7 @@
 import { defineStore } from 'pinia'
 import { MY_PRODUCTS, ORDERS, PURCHASES, WISHLIST, REVENUE, ME } from '@/data'
 
-const KEY = 'june.dash.'
+const KEY = 'openjam.dash.'
 const load = (k, fb) => {
   try { const v = localStorage.getItem(KEY + k); return v ? JSON.parse(v) : fb }
   catch (e) { return fb }

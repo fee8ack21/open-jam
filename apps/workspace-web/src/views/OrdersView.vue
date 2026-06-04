@@ -56,13 +56,13 @@ export default {
         </thead>
         <tbody>
           <tr v-for="o in rows" :key="o.id">
-            <td style="font-family:var(--june-mono); font-size:12.5px; color:var(--text-soft);">{{ o.id }}</td>
+            <td style="font-family:var(--oj-mono); font-size:12.5px; color:var(--text-soft);">{{ o.id }}</td>
             <td>
               <div style="display:flex; align-items:center; gap:10px;">
                 <span class="avatar" :style="{ background: o.avatar, width:'30px', height:'30px', fontSize:'11px' }">{{ F.initials(o.buyer) }}</span>
                 <div style="min-width:0;">
                   <div style="font-weight:600; font-size:13.5px;">{{ o.buyer }}</div>
-                  <div style="font-family:var(--june-mono); font-size:11px; color:var(--text-faint);">{{ o.buyerHandle }}</div>
+                  <div style="font-family:var(--oj-mono); font-size:11px; color:var(--text-faint);">{{ o.buyerHandle }}</div>
                 </div>
               </div>
             </td>
@@ -70,7 +70,7 @@ export default {
               <div style="display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; font-size:13.5px; color:var(--text-soft);">{{ prod(o.productId).title }}</div>
             </td>
             <td class="hide-sm"><span class="pill" :class="o.status"><span class="pdot"></span>{{ statusLabel(o.status) }}</span></td>
-            <td class="hide-sm" style="font-family:var(--june-mono); font-size:12px; color:var(--text-faint);">{{ dt(o.date) }}</td>
+            <td class="hide-sm" style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint);">{{ dt(o.date) }}</td>
             <td class="num" style="font-weight:700;" :style="o.status === 'refunded' ? 'color:var(--text-faint); text-decoration:line-through' : ''">{{ F.money(o.amount) }}</td>
           </tr>
         </tbody>

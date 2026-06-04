@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open Jam · 創作者數位市集（免建置預覽）</title>
+<link rel="stylesheet" href="./src/styles/base.css">
+
+<!-- ════════════════════════════════════════════════════════════
+     BUILD-FREE PREVIEW ENTRY
+     Loads the exact same /src modules that the Vite build uses,
+     but resolves the bare imports (vue / pinia / vue-router /
+     naive-ui) to global CDN builds via the importmap below.
+     For the real dev server use index.html + `pnpm dev` instead.
+     ════════════════════════════════════════════════════════════ -->
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.js"></script>
+<script src="https://unpkg.com/vue-demi@0.14.10/lib/index.iife.js"></script>
+<script src="https://unpkg.com/pinia@2.1.7/dist/pinia.iife.js"></script>
+<script src="https://unpkg.com/vue-router@4.3.0/dist/vue-router.global.js"></script>
+<script src="https://unpkg.com/naive-ui@2.40.1/dist/index.prod.js"></script>
+
+<script type="importmap">
+{
+  "imports": {
+    "vue": "./preview/shims/vue.js",
+    "pinia": "./preview/shims/pinia.js",
+    "vue-router": "./preview/shims/vue-router.js",
+    "naive-ui": "./preview/shims/naive-ui.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

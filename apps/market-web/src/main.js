@@ -1,0 +1,35 @@
+/* ============================================================
+   main.js — app bootstrap
+   Vue 3 · Pinia · Vue Router · Naive UI · global icon set
+   ============================================================ */
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import naive from 'naive-ui';
+
+import App from './App.vue';
+import router from './router';
+
+// global design-system CSS
+import './assets/css/base.css';
+import './assets/css/market.css';
+
+// globally-registered shared components
+import JIcon from './components/JIcon.vue';
+import Stars from './components/Stars.vue';
+import ProductThumb from './components/ProductThumb.vue';
+import ProductCard from './components/ProductCard.vue';
+import MktCard from './components/MktCard.vue';
+
+const app = createApp(App);
+
+app.use(createPinia());
+app.use(router);
+app.use(naive);
+
+app.component('JIcon', JIcon);
+app.component('Stars', Stars);
+app.component('ProductThumb', ProductThumb);
+app.component('ProductCard', ProductCard);
+app.component('MktCard', MktCard);
+
+app.mount('#app');

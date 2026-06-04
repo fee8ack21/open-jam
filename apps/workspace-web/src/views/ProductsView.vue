@@ -76,11 +76,11 @@ export default {
             <td>
               <div class="row-actions">
                 <n-switch v-if="canToggle(p)" :value="p.status === 'live'" @update:value="toggle(p)" size="medium" />
-                <span v-else style="font-size:12px; color:var(--text-faint); font-family:var(--june-mono); margin-right:6px;">
+                <span v-else style="font-size:12px; color:var(--text-faint); font-family:var(--oj-mono); margin-right:6px;">
                   {{ p.status === 'review' ? '審核中' : '草稿' }}
                 </span>
                 <button class="ic-act" title="編輯" @click="store.go('upload')"><j-icon name="edit" :size="17" /></button>
-                <n-popover trigger="click" placement="bottom-end" :show-arrow="false" to=".june-root">
+                <n-popover trigger="click" placement="bottom-end" :show-arrow="false" to=".oj-root">
                   <template #trigger><button class="ic-act" title="更多"><j-icon name="more" :size="18" /></button></template>
                   <div style="display:grid; gap:2px; min-width:150px; padding:2px;">
                     <button class="menu-item"><j-icon name="eye" :size="16" /> 在商城預覽</button>
