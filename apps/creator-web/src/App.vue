@@ -1,11 +1,8 @@
-/* ============================================================
-   Open Jam — App root
-   Naive UI theme provider · nav · routed <router-view> · tweaks
-   ============================================================ */
+<script>
 import { computed, onMounted, ref } from 'vue';
 import { useShopStore } from './stores/shop.js';
-import AppNav from './components/AppNav.js';
-import JIcon from './components/JIcon.js';
+import AppNav from './components/AppNav.vue';
+import JIcon from './components/JIcon.vue';
 
 export default {
   name: 'App',
@@ -82,36 +79,38 @@ export default {
 
     return { store, naiveTheme, overrides, tweaksOpen, dismissTweaks, fontClass };
   },
-  template: `
-    <n-config-provider :theme="naiveTheme" :theme-overrides="overrides">
-    <n-message-provider>
-      <div class="oj-root" :class="['light', fontClass]">
+};
+</script>
 
-        <app-nav />
+<template>
+  <n-config-provider :theme="naiveTheme" :theme-overrides="overrides">
+  <n-message-provider>
+    <div class="oj-root" :class="['light', fontClass]">
 
-        <main>
-          <router-view />
-        </main>
+      <app-nav />
 
-        <!-- ============ TWEAKS PANEL ============ -->
-        <div v-show="tweaksOpen" class="tweaks-panel">
-          <div class="tweaks-head">
-            <span>Tweaks</span>
-            <button class="tweaks-x" @click="dismissTweaks"><j-icon name="close" :size="16" /></button>
-          </div>
-          <div class="tweaks-body">
-            <div class="tweaks-section">展示字體</div>
-            <div class="tweaks-row">
-              <span>標題字型</span>
-              <div class="seg">
-                <button :class="{ on: store.font === 'sora' }" @click="store.setFont('sora')">Bricolage</button>
-                <button :class="{ on: store.font === 'grotesk' }" @click="store.setFont('grotesk')">Unbounded</button>
-              </div>
+      <main>
+        <router-view />
+      </main>
+
+      <div v-show="tweaksOpen" class="tweaks-panel">
+        <div class="tweaks-head">
+          <span>Tweaks</span>
+          <button class="tweaks-x" @click="dismissTweaks"><j-icon name="close" :size="16" /></button>
+        </div>
+        <div class="tweaks-body">
+          <div class="tweaks-section">展示字體</div>
+          <div class="tweaks-row">
+            <span>標題字型</span>
+            <div class="seg">
+              <button :class="{ on: store.font === 'sora' }" @click="store.setFont('sora')">Bricolage</button>
+              <button :class="{ on: store.font === 'grotesk' }" @click="store.setFont('grotesk')">Unbounded</button>
             </div>
           </div>
         </div>
-
       </div>
-    </n-message-provider>
-    </n-config-provider>`,
-};
+
+    </div>
+  </n-message-provider>
+  </n-config-provider>
+</template>

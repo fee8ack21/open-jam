@@ -1,11 +1,7 @@
-/* ============================================================
-   Open Jam — ProductThumb: vibrant striped placeholder thumbnail
-   The hue is taken from the product and rotated by `seed` so the
-   gallery shows distinct "previews" without real imagery.
-   ============================================================ */
+<script>
 import { useShopStore } from '../stores/shop.js';
 import { CATEGORIES } from '../data/products.js';
-import JIcon from './JIcon.js';
+import JIcon from './JIcon.vue';
 
 export default {
   name: 'ProductThumb',
@@ -43,12 +39,15 @@ export default {
       return `${this.product.formats[0]} · ${this.product.totalSize}`;
     },
   },
-  template: `
-    <div class="thumb" :style="vars">
-      <div class="thumb-dots"></div>
-      <div class="thumb-blob"></div>
-      <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
-      <div class="thumb-glyph"><j-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
-      <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
-    </div>`,
 };
+</script>
+
+<template>
+  <div class="thumb" :style="vars">
+    <div class="thumb-dots"></div>
+    <div class="thumb-blob"></div>
+    <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
+    <div class="thumb-glyph"><j-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
+    <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
+  </div>
+</template>

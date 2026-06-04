@@ -7,10 +7,10 @@
    SPA rewrite rules). When you move this into a real server with
    history fallback, switch to createWebHistory(import.meta.env.BASE_URL).
    ============================================================ */
-import { createRouter, createWebHashHistory } from 'vue-router';
-import ListView from '../views/ListView.js';
-import DetailView from '../views/DetailView.js';
-import CheckoutView from '../views/CheckoutView.js';
+import { createRouter, createWebHistory } from 'vue-router';
+import ListView from '../views/ListView.vue';
+import DetailView from '../views/DetailView.vue';
+import CheckoutView from '../views/CheckoutView.vue';
 
 export const routes = [
   { path: '/', name: 'list', component: ListView },
@@ -20,7 +20,7 @@ export const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior() {
     return { top: 0 };

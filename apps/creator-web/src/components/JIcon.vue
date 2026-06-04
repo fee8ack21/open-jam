@@ -1,6 +1,4 @@
-/* ============================================================
-   Open Jam — JIcon: simple UI line-icon set
-   ============================================================ */
+<script>
 const PATHS = {
   heart: 'M12 20s-7-4.3-9.3-8.2C1.2 9 2.3 5.8 5.3 5.1 7.2 4.6 9 5.4 10 6.8c.5.6.7 1 1 1 .3 0 .5-.4 1-1 1-1.4 2.8-2.2 4.7-1.7 3 .7 4.1 3.9 2.6 6.7C19 15.7 12 20 12 20z',
   cart: 'M2 3h1.4a1 1 0 0 1 .98.8l.42 2.2m0 0l1.5 7.9a2 2 0 0 0 1.96 1.6h8.2a2 2 0 0 0 1.96-1.58l1.4-6.4a1 1 0 0 0-.98-1.22H5.2M10 20.5a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0zM18.5 20.5a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0z',
@@ -42,12 +40,15 @@ export default {
   computed: {
     d() { return PATHS[this.name] || ''; },
   },
-  template: `
-    <svg :width="size" :height="size" viewBox="0 0 24 24"
-         :fill="fill ? 'currentColor' : 'none'"
-         :stroke="fill ? 'none' : 'currentColor'"
-         :stroke-width="stroke" stroke-linecap="round" stroke-linejoin="round"
-         style="display:block; flex:none;">
-      <path :d="d"></path>
-    </svg>`,
 };
+</script>
+
+<template>
+  <svg :width="size" :height="size" viewBox="0 0 24 24"
+       :fill="fill ? 'currentColor' : 'none'"
+       :stroke="fill ? 'none' : 'currentColor'"
+       :stroke-width="stroke" stroke-linecap="round" stroke-linejoin="round"
+       style="display:block; flex:none;">
+    <path :d="d"></path>
+  </svg>
+</template>
