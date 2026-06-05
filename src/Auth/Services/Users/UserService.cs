@@ -172,7 +172,7 @@ public class UserService(
             OutboxMessageId: outbox.Id,
             To:              email,
             TemplateKey:     "email.verification",
-            Params:          new() { ["VerifyUrl"] = verifyUrl, ["ExpiresInHours"] = "24" },
+            Params:          new() { ["activation_url"] = verifyUrl },
             Locale:          "zh-TW",
             EventType:       "email.verification"
         ));
@@ -189,7 +189,7 @@ public class UserService(
         {
             UserId    = userId,
             Token     = tokenStr,
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1),
+            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30),
         };
 
         var outbox = new OutboxMessage { EventType = "email.password_reset" };
@@ -197,7 +197,7 @@ public class UserService(
             OutboxMessageId: outbox.Id,
             To:              email,
             TemplateKey:     "email.password_reset",
-            Params:          new() { ["ResetUrl"] = resetUrl, ["ExpiresInHours"] = "1" },
+            Params:          new() { ["reset_url"] = resetUrl },
             Locale:          "zh-TW",
             EventType:       "email.password_reset"
         ));

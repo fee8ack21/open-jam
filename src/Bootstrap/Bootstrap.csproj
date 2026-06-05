@@ -18,4 +18,8 @@
     <ProjectReference Include="..\EmailService\EmailService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Resources/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
