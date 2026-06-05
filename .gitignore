@@ -499,3 +499,4 @@ $RECYCLE.BIN/
 # Docker volume data
 infra/docker/volumes/postgres/data/
 infra/docker/volumes/rabbitmq/
+infra/docker/volumes/redis/
