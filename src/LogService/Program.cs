@@ -50,6 +50,13 @@ builder.Services.AddSwaggerGen(opts =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider
+        .GetRequiredService<LogDbContext>()
+        .Database.MigrateAsync();
+}
+
 app.UseExceptionMiddleware();
 
 if (app.Environment.IsDevelopment())

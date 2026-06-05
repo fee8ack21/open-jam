@@ -48,4 +48,12 @@ builder.Services.AddMassTransit(x =>
 builder.Services.AddHostedService<EmailRetryService>();
 
 var host = builder.Build();
+
+using (var scope = host.Services.CreateScope())
+{
+    await scope.ServiceProvider
+        .GetRequiredService<EmailDbContext>()
+        .Database.MigrateAsync();
+}
+
 host.Run();
