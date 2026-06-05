@@ -15,29 +15,29 @@ public class HydraClientSeeder(
 
     public async Task SeedAsync()
     {
-        await EnsureClientAsync(BuildSpaClient());
-        await EnsureClientAsync(BuildApiClient());
+        await EnsureClientAsync(BuildWebClient());
+        await EnsureClientAsync(BuildServiceClient());
     }
 
-    private HydraOAuth2Client BuildSpaClient() => new()
+    private HydraOAuth2Client BuildWebClient() => new()
     {
-        ClientId                = config["HydraClients:Spa:ClientId"] ?? "open-jam-spa",
-        ClientName              = "Open Jam SPA",
+        ClientId                = config["HydraClients:Web:ClientId"] ?? "open-jam-web",
+        ClientName              = "Open Jam Web",
         GrantTypes              = ["authorization_code", "refresh_token"],
         ResponseTypes           = ["code"],
         Scope                   = "openid profile email offline_access",
-        RedirectUris            = config.GetSection("HydraClients:Spa:RedirectUris").Get<string[]>()
+        RedirectUris            = config.GetSection("HydraClients:Web:RedirectUris").Get<string[]>()
                                       ?? ["http://localhost:3000/callback"],
-        PostLogoutRedirectUris  = config.GetSection("HydraClients:Spa:PostLogoutRedirectUris").Get<string[]>()
+        PostLogoutRedirectUris  = config.GetSection("HydraClients:Web:PostLogoutRedirectUris").Get<string[]>()
                                       ?? ["http://localhost:3000"],
         TokenEndpointAuthMethod = "none",
     };
 
-    private HydraOAuth2Client BuildApiClient() => new()
+    private HydraOAuth2Client BuildServiceClient() => new()
     {
-        ClientId                = config["HydraClients:Api:ClientId"] ?? "open-jam-api",
-        ClientName              = "Open Jam API",
-        ClientSecret            = config["HydraClients:Api:ClientSecret"] ?? "change-me-in-production",
+        ClientId                = config["HydraClients:Service:ClientId"] ?? "open-jam-service",
+        ClientName              = "Open Jam Service",
+        ClientSecret            = config["HydraClients:Service:ClientSecret"] ?? "change-me-in-production",
         GrantTypes              = ["client_credentials"],
         ResponseTypes           = [],
         Scope                   = "openid",
