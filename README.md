@@ -43,9 +43,11 @@ docs/               # VitePress 文件站
 從 `src/<Service>/` 執行：
 
 ```bash
-dotnet run                  # 開發伺服器
-dotnet build                # 建置
-dotnet publish -c Release   # 發佈
+dotnet run                              # 開發伺服器
+dotnet build                            # 建置
+dotnet publish -c Release               # 發佈
+dotnet ef migrations add <Name>         # 新增 EF Core Migration（需 dotnet-ef tool）
+dotnet ef database update               # 套用 Migration
 ```
 
 | 服務 | 說明 | 開發 URL |

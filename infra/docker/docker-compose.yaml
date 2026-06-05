@@ -1,0 +1,179 @@
+name: ${PROJECT_NAME}
+
+services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
+  postgres:
+    container_name: ${PROJECT_NAME}-postgres
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./volumes/postgres/data:/var/lib/postgresql/data
+      - ./volumes/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    container_name: ${PROJECT_NAME}-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./volumes/redis/data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+
+  rabbitmq:
+    container_name: ${PROJECT_NAME}-rabbitmq
+    image: rabbitmq:3.13-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VIRTUAL_HOST}
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # management UI
+    volumes:
+      - ./volumes/rabbitmq/data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  hydra:
+    container_name: ${PROJECT_NAME}-hydra
+    image: oryd/hydra:v2.2
+    command: serve all --dev
+    restart: unless-stopped
+    environment:
+      DSN: ${HYDRA_DSN}
+      URLS_SELF_ISSUER: ${HYDRA_URLS_SELF_ISSUER}
+      URLS_CONSENT: ${HYDRA_URLS_CONSENT}
+      URLS_LOGIN: ${HYDRA_URLS_LOGIN}
+      URLS_LOGOUT: ${HYDRA_URLS_LOGOUT}
+      SECRETS_SYSTEM: ${HYDRA_SECRETS_SYSTEM}
+      OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES: ${HYDRA_OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES}
+      OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT: ${HYDRA_OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT}
+      TTL_AUTH_CODE: ${HYDRA_TTL_AUTH_CODE}
+      TTL_LOGIN_CONSENT_REQUEST: ${HYDRA_TTL_LOGIN_CONSENT_REQUEST}
+      LOG_LEAK_SENSITIVE_VALUES: ${HYDRA_LOG_LEAK_SENSITIVE_VALUES}
+      SERVE_PUBLIC_CORS_ALLOWED_ORIGINS: ${HYDRA_SERVE_PUBLIC_CORS_ALLOWED_ORIGINS}
+      LOG_LEVEL: info
+    ports:
+      - "${HYDRA_PUBLIC_PORT}:4444"
+      - "${HYDRA_ADMIN_PORT}:4445"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mailpit:
+    container_name: ${PROJECT_NAME}-mailpit
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # web UI
+
+  # ── Application Services ────────────────────────────────────────────────────
+
+  auth:
+    container_name: ${PROJECT_NAME}-auth
+    build:
+      context: ../../src
+      dockerfile: Auth/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__Postgres: ${AUTH__CONNECTION_STRING}
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
+      App__BaseUrl: ${AUTH_PAGE_URL}
+    ports:
+      - "5169:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      hydra:
+        condition: service_started
+
+  log-service:
+    container_name: ${PROJECT_NAME}-log-service
+    build:
+      context: ../../src
+      dockerfile: LogService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_log;Username=${DB_USER};Password=${DB_PASSWORD}
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5170:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  email-service:
+    container_name: ${PROJECT_NAME}-email-service
+    build:
+      context: ../../src
+      dockerfile: EmailService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Smtp__Host: ${SMTP_HOST}
+      Smtp__Port: ${SMTP_PORT}
+      Smtp__UseSsl: ${SMTP_ENABLE_SSL}
+      Smtp__FromAddress: ${SMTP_FROM}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  bootstrap:
+    container_name: ${PROJECT_NAME}-bootstrap
+    build:
+      context: ../../src
+      dockerfile: Bootstrap/Dockerfile
+    environment:
+      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
+      Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hydra:
+        condition: service_started
+    restart: "no"
+    profiles:
+      - seed
