@@ -158,7 +158,8 @@ public class UserService(
     private (EmailVerificationToken Token, OutboxMessage Outbox) BuildVerificationOutbox(Guid userId, string email)
     {
         var tokenStr  = GenerateToken();
-        var verifyUrl = $"{appOptions.Value.BaseUrl}/verify-email?token={tokenStr}";
+        var baseUrl   = appOptions.Value.BaseUrl.TrimEnd('/');
+        var verifyUrl = $"{baseUrl}/verify-email?token={tokenStr}";
 
         var token = new EmailVerificationToken
         {
@@ -172,7 +173,7 @@ public class UserService(
             OutboxMessageId: outbox.Id,
             To:              email,
             TemplateKey:     "email.verification",
-            Params:          new() { ["activation_url"] = verifyUrl },
+            Params:          new() { ["VerifyUrl"] = verifyUrl, ["ExpiresInHours"] = "24" },
             Locale:          "zh-TW",
             EventType:       "email.verification"
         ));
@@ -183,7 +184,8 @@ public class UserService(
     private (PasswordResetToken Token, OutboxMessage Outbox) BuildPasswordResetOutbox(Guid userId, string email)
     {
         var tokenStr = GenerateToken();
-        var resetUrl = $"{appOptions.Value.BaseUrl}/reset?token={tokenStr}";
+        var baseUrl  = appOptions.Value.BaseUrl.TrimEnd('/');
+        var resetUrl = $"{baseUrl}/reset?token={tokenStr}";
 
         var token = new PasswordResetToken
         {
@@ -197,7 +199,7 @@ public class UserService(
             OutboxMessageId: outbox.Id,
             To:              email,
             TemplateKey:     "email.password_reset",
-            Params:          new() { ["reset_url"] = resetUrl },
+            Params:          new() { ["ResetUrl"] = resetUrl, ["ExpiresInHours"] = "0.5" },
             Locale:          "zh-TW",
             EventType:       "email.password_reset"
         ));

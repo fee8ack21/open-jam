@@ -44,7 +44,6 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VIRTUAL_HOST}
     ports:
       - "5672:5672"
       - "15672:15672"   # management UI
@@ -56,13 +55,22 @@ services:
       timeout: 5s
       retries: 10
 
+  hydra-migrate:
+    container_name: ${PROJECT_NAME}-hydra-migrate
+    image: oryd/hydra:v2.2
+    command: migrate sql --yes ${HYDRA_DSN}?sslmode=disable
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   hydra:
     container_name: ${PROJECT_NAME}-hydra
     image: oryd/hydra:v2.2
     command: serve all --dev
     restart: unless-stopped
     environment:
-      DSN: ${HYDRA_DSN}
+      DSN: ${HYDRA_DSN}?sslmode=disable
       URLS_SELF_ISSUER: ${HYDRA_URLS_SELF_ISSUER}
       URLS_CONSENT: ${HYDRA_URLS_CONSENT}
       URLS_LOGIN: ${HYDRA_URLS_LOGIN}
@@ -81,6 +89,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      hydra-migrate:
+        condition: service_completed_successfully
 
   mailpit:
     container_name: ${PROJECT_NAME}-mailpit
@@ -124,7 +134,7 @@ services:
       dockerfile: LogService/Dockerfile
     restart: unless-stopped
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: "8080"
       ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_log;Username=${DB_USER};Password=${DB_PASSWORD}
       RabbitMQ__Host: ${RABBITMQ_HOST}
