@@ -1,0 +1,44 @@
+{{- if .Values.workspaceWeb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-workspace-web
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: workspace-web
+spec:
+  replicas: {{ .Values.workspaceWeb.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: workspace-web
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: workspace-web
+    spec:
+      containers:
+        - name: workspace-web
+          image: {{ printf "%s:%s" .Values.workspaceWeb.image.repository .Values.workspaceWeb.image.tag | quote }}
+          imagePullPolicy: {{ .Values.workspaceWeb.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+              name: http
+          {{- with .Values.workspaceWeb.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+{{- end }}

@@ -1,0 +1,61 @@
+{{- if .Values.logService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-log-service
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: log-service
+spec:
+  replicas: {{ .Values.logService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: log-service
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: log-service
+    spec:
+      containers:
+        - name: log-service
+          image: {{ printf "%s:%s" .Values.logService.image.repository .Values.logService.image.tag | quote }}
+          imagePullPolicy: {{ .Values.logService.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: ConnectionStrings__Postgres
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: log-service-connection-string
+            - name: RabbitMQ__Host
+              value: {{ include "open-jam.rabbitmqHost" . | quote }}
+            - name: RabbitMQ__Username
+              value: {{ .Values.rabbitmq.user | quote }}
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: rabbitmq-password
+          {{- with .Values.logService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+{{- end }}

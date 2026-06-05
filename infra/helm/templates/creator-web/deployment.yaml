@@ -1,0 +1,44 @@
+{{- if .Values.creatorWeb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-creator-web
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: creator-web
+spec:
+  replicas: {{ .Values.creatorWeb.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: creator-web
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: creator-web
+    spec:
+      containers:
+        - name: creator-web
+          image: {{ printf "%s:%s" .Values.creatorWeb.image.repository .Values.creatorWeb.image.tag | quote }}
+          imagePullPolicy: {{ .Values.creatorWeb.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+              name: http
+          {{- with .Values.creatorWeb.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+{{- end }}

@@ -1,0 +1,78 @@
+{{- if .Values.hydra.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-hydra
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hydra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: hydra
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: hydra
+    spec:
+      containers:
+        - name: hydra
+          image: {{ .Values.hydra.image }}
+          args: ["serve", "all", "--dev"]
+          env:
+            - name: DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: hydra-dsn
+            - name: URLS_SELF_ISSUER
+              value: {{ printf "%shydra/" .Values.config.externalUrl | quote }}
+            - name: URLS_LOGIN
+              value: {{ printf "%slogin" .Values.config.authPageUrl | quote }}
+            - name: URLS_CONSENT
+              value: {{ printf "%sconsent" .Values.config.authPageUrl | quote }}
+            - name: URLS_LOGOUT
+              value: {{ printf "%slogout" .Values.config.authPageUrl | quote }}
+            - name: SECRETS_SYSTEM
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: hydra-system-secret
+            - name: OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES
+              value: {{ .Values.hydra.oidc.subjectIdentifiers | quote }}
+            - name: OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: hydra-pairwise-salt
+            - name: TTL_AUTH_CODE
+              value: {{ .Values.hydra.ttl.authCode | quote }}
+            - name: TTL_LOGIN_CONSENT_REQUEST
+              value: {{ .Values.hydra.ttl.loginConsentRequest | quote }}
+            - name: LOG_LEAK_SENSITIVE_VALUES
+              value: "false"
+            - name: SERVE_PUBLIC_CORS_ALLOWED_ORIGINS
+              value: {{ .Values.hydra.cors.allowedOrigins | quote }}
+            - name: LOG_LEVEL
+              value: info
+          ports:
+            - containerPort: 4444
+              name: public
+            - containerPort: 4445
+              name: admin
+          readinessProbe:
+            httpGet:
+              path: /health/alive
+              port: admin
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/alive
+              port: admin
+            initialDelaySeconds: 30
+            periodSeconds: 15
+{{- end }}

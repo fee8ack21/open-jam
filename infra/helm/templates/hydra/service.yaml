@@ -1,0 +1,20 @@
+{{- if .Values.hydra.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "open-jam.fullname" . }}-hydra
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hydra
+spec:
+  ports:
+    - port: 4444
+      targetPort: public
+      name: public
+    - port: 4445
+      targetPort: admin
+      name: admin
+  selector:
+    {{- include "open-jam.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: hydra
+{{- end }}

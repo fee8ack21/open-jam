@@ -1,0 +1,52 @@
+{{- if .Values.emailService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-email-service
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: email-service
+spec:
+  replicas: {{ .Values.emailService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: email-service
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: email-service
+    spec:
+      containers:
+        - name: email-service
+          image: {{ printf "%s:%s" .Values.emailService.image.repository .Values.emailService.image.tag | quote }}
+          imagePullPolicy: {{ .Values.emailService.image.pullPolicy }}
+          env:
+            - name: ConnectionStrings__Postgres
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: email-service-connection-string
+            - name: RabbitMQ__Host
+              value: {{ include "open-jam.rabbitmqHost" . | quote }}
+            - name: RabbitMQ__Username
+              value: {{ .Values.rabbitmq.user | quote }}
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: rabbitmq-password
+            - name: Smtp__Host
+              value: {{ include "open-jam.smtpHost" . | quote }}
+            - name: Smtp__Port
+              value: {{ .Values.smtp.port | quote }}
+            - name: Smtp__UseSsl
+              value: {{ .Values.smtp.enableSsl | quote }}
+            - name: Smtp__FromAddress
+              value: {{ .Values.smtp.fromAddress | quote }}
+          {{- with .Values.emailService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

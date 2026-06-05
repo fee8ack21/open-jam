@@ -1,0 +1,15 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "open-jam.fullname" . }}-postgres-init
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+data:
+  init.sql: |
+    CREATE DATABASE {{ .Values.dbNamePrefix }}_auth;
+    CREATE DATABASE {{ .Values.dbNamePrefix }}_log;
+    CREATE DATABASE {{ .Values.dbNamePrefix }}_email;
+    CREATE DATABASE {{ .Values.dbNamePrefix }}_hydra;
+{{- end }}

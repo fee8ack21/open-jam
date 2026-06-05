@@ -1,0 +1,20 @@
+{{- if .Values.mailpit.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "open-jam.fullname" . }}-mailpit
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mailpit
+spec:
+  ports:
+    - port: 1025
+      targetPort: smtp
+      name: smtp
+    - port: 8025
+      targetPort: ui
+      name: ui
+  selector:
+    {{- include "open-jam.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: mailpit
+{{- end }}

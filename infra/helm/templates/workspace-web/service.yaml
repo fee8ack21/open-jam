@@ -1,0 +1,17 @@
+{{- if .Values.workspaceWeb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "open-jam.fullname" . }}-workspace-web
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: workspace-web
+spec:
+  ports:
+    - port: 80
+      targetPort: http
+      name: http
+  selector:
+    {{- include "open-jam.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: workspace-web
+{{- end }}

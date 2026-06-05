@@ -1,0 +1,149 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# ── 全域 URL 設定 ─────────────────────────────────────────────────────────────
+config:
+  externalUrl: "https://openjam.co/"
+  authPageUrl: "https://openjam.co/auth/"
+
+# 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
+dbNamePrefix: open_jam
+
+# ── Secrets（敏感值請由 --set 或外部 Secret Manager 覆蓋）─────────────────────
+secrets:
+  postgres:
+    password: "changeme"
+  redis:
+    password: "changeme"
+  rabbitmq:
+    password: "changeme"
+  hydra:
+    systemSecret: "changeme-at-least-32-chars-long!!"
+    pairwiseSalt: "changeme-pairwise-salt"
+
+# ── Infrastructure ────────────────────────────────────────────────────────────
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  user: postgres
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 10Gi
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 1Gi
+
+rabbitmq:
+  enabled: true
+  image: rabbitmq:3.13-management-alpine
+  user: guest
+  virtualHost: open-jam
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 2Gi
+
+hydra:
+  enabled: true
+  image: oryd/hydra:v2.2
+  ttl:
+    authCode: "10m"
+    loginConsentRequest: "10m"
+  oidc:
+    subjectIdentifiers: "pairwise,public"
+  cors:
+    allowedOrigins: "*"
+
+# Mailpit：本地 / Staging 用；Production 請設 enabled: false 並配置外部 SMTP
+mailpit:
+  enabled: true
+  image: axllent/mailpit:latest
+
+smtp:
+  # 若 mailpit.enabled=true 則以下設定自動被 mailpit service 覆蓋
+  host: ""
+  port: 1025
+  enableSsl: false
+  fromAddress: "noreply@open-jam.tw"
+
+# ── Application Services ──────────────────────────────────────────────────────
+
+auth:
+  enabled: true
+  image:
+    repository: open-jam/auth
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+
+logService:
+  enabled: true
+  image:
+    repository: open-jam/log-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+
+emailService:
+  enabled: true
+  image:
+    repository: open-jam/email-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+
+creatorWeb:
+  enabled: true
+  image:
+    repository: open-jam/creator-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+
+marketWeb:
+  enabled: true
+  image:
+    repository: open-jam/market-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+
+workspaceWeb:
+  enabled: true
+  image:
+    repository: open-jam/workspace-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+
+docs:
+  enabled: true
+  image:
+    repository: open-jam/docs
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+
+# ── One-time Seed Job ─────────────────────────────────────────────────────────
+
+bootstrap:
+  enabled: true
+  image:
+    repository: open-jam/bootstrap
+    tag: latest
+    pullPolicy: IfNotPresent
+  ttlSecondsAfterFinished: 300
