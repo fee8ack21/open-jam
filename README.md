@@ -25,10 +25,12 @@ src/
   Bootstrap/        # 平台初始化 seed（一次性執行）
   Shared/           # 共用：BaseDbContext、ExceptionMiddleware、Audit 介面、Events
 apps/
-  workspace-web/    # 用戶後台 SPA
-  creator-web/      # 創作者商品空間 SPA
-  market-web/       # 平台首頁 SPA
-docs/               # VitePress 文件站
+  workspace-web/    # 用戶後台 SPA，port 5175
+  creator-web/      # 創作者商品空間 SPA，port 5173
+  market-web/       # 平台首頁 SPA，port 5174
+docs/               # VitePress 文件站，port 5176
+infra/
+  docker/           # Docker Compose 配置與環境設定
 ```
 
 ## 前置需求
@@ -36,9 +38,43 @@ docs/               # VitePress 文件站
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 18+](https://nodejs.org/) + [pnpm](https://pnpm.io/)
 - PostgreSQL
+- Redis
 - RabbitMQ
 
-## 後端服務
+## Docker Compose（建議方式）
+
+所有服務（基礎設施 + 應用）皆已收錄於 `infra/docker/docker-compose.yaml`。
+
+```bash
+cd infra/docker
+
+# 複製並填寫環境設定
+cp .env.example .env
+
+# 啟動所有服務
+docker compose up -d
+
+# 初次執行：seed Hydra client 與郵件模板
+docker compose --profile seed run --rm bootstrap
+```
+
+### Port 一覽
+
+| 服務 | Port | 說明 |
+|------|------|------|
+| auth | 5169 | 登入 / 註冊 MVC |
+| log-service | 5170 | Audit Log API / Swagger |
+| creator-web | 5173 | 創作者商品空間 |
+| market-web | 5174 | 平台探索首頁 |
+| workspace-web | 5175 | 用戶後台 |
+| docs | 5176 | VitePress 文件站 |
+| postgres | 5432 | PostgreSQL |
+| redis | 6379 | Redis |
+| rabbitmq | 5672 / 15672 | RabbitMQ（15672 管理 UI） |
+| hydra | 4444 / 4445 | Ory Hydra（4445 Admin API） |
+| mailpit | 1025 / 8025 | SMTP（8025 郵件 Web UI） |
+
+## 後端服務（本地開發）
 
 從 `src/<Service>/` 執行：
 
@@ -48,19 +84,6 @@ dotnet build                            # 建置
 dotnet publish -c Release               # 發佈
 dotnet ef migrations add <Name>         # 新增 EF Core Migration（需 dotnet-ef tool）
 dotnet ef database update               # 套用 Migration
-```
-
-| 服務 | 說明 | 開發 URL |
-|------|------|----------|
-| Auth | MVC 登入 / 註冊 / 忘記密碼 | http://localhost:5169 |
-| LogService | Audit Log REST API | http://localhost:5170 / Swagger: `/swagger` |
-| EmailService | Worker（無 HTTP port） | — |
-| Bootstrap | Seed，一次性執行後結束 | — |
-
-Docker（從 `src/` 執行）：
-
-```bash
-docker build -f Auth/Dockerfile -t open-jam-auth .
 ```
 
 ### 環境設定
@@ -108,7 +131,7 @@ docker build -f Auth/Dockerfile -t open-jam-auth .
 }
 ```
 
-## 前端應用
+## 前端應用（本地開發）
 
 從 `apps/<app>/` 執行：
 
@@ -119,11 +142,11 @@ pnpm build  # 建置
 
 | 應用 | 說明 |
 |------|------|
-| workspace-web | 用戶後台 |
 | creator-web | 創作者商品空間 |
 | market-web | 平台探索首頁 |
+| workspace-web | 用戶後台 |
 
-## 文件站
+## 文件站（本地開發）
 
 從 `docs/` 執行：
 
@@ -131,13 +154,6 @@ pnpm build  # 建置
 pnpm dev      # http://localhost:5173
 pnpm build
 pnpm preview
-```
-
-Docker：
-
-```bash
-docker build -t open-jam-docs .
-docker run -p 8080:80 open-jam-docs
 ```
 
 ## 架構慣例
