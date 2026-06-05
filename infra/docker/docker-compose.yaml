@@ -185,6 +185,14 @@ services:
     ports:
       - "5175:80"
 
+  docs:
+    container_name: ${PROJECT_NAME}-docs
+    build:
+      context: ../../docs
+    restart: unless-stopped
+    ports:
+      - "5176:80"
+
   bootstrap:
     container_name: ${PROJECT_NAME}-bootstrap
     build:
