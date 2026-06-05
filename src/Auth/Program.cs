@@ -1,6 +1,9 @@
 using Auth.Data;
 using Auth.Options;
 using Auth.Services;
+using Auth.Services.Hydra;
+using Auth.Services.Security;
+using Auth.Services.Users;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;

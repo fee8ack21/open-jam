@@ -1,4 +1,4 @@
-namespace Auth.Services;
+namespace Auth.Services.Security;
 
 /// <summary>密碼雜湊服務介面，封裝雜湊演算法，使業務層與具體實作解耦。</summary>
 public interface IPasswordHasher

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Html;
 using System.Globalization;
 
-namespace Auth.Helpers;
+namespace Auth.Common;
 
 public static class IconHelper
 {

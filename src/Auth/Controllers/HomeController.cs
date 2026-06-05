@@ -1,5 +1,6 @@
 using Auth.Models;
-using Auth.Services;
+using Auth.Services.Hydra;
+using Auth.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Auth.Controllers;

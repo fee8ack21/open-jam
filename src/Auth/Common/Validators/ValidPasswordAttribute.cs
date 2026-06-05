@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Auth.Common.Validators;
 
-namespace Auth.Models;
+namespace Auth.Common.Validators;
 
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class ValidPasswordAttribute : ValidationAttribute

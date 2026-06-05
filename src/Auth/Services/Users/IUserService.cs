@@ -1,4 +1,4 @@
-namespace Auth.Services;
+namespace Auth.Services.Users;
 
 /// <summary>帳號相關業務邏輯服務介面。</summary>
 public interface IUserService

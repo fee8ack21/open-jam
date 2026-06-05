@@ -3,11 +3,12 @@ using System.Text.Json;
 using Auth.Data;
 using Auth.Data.Entities;
 using Auth.Options;
+using Auth.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shared.Events;
 
-namespace Auth.Services;
+namespace Auth.Services.Users;
 
 /// <summary>帳號相關業務邏輯的具體實作。</summary>
 public class UserService(

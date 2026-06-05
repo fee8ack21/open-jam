@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Konscious.Security.Cryptography;
 
-namespace Auth.Services;
+namespace Auth.Services.Security;
 
 /// <summary>
 /// 以 Argon2id 實作的密碼雜湊服務。

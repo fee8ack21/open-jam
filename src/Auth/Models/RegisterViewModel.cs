@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Auth.Common.Validators;
 
 namespace Auth.Models;
 

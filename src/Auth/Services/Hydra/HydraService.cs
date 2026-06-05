@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
-using Auth.Models;
 
-namespace Auth.Services;
+namespace Auth.Services.Hydra;
 
 public class HydraService(IHttpClientFactory factory) : IHydraService
 {
