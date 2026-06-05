@@ -52,7 +52,7 @@ pnpm preview
 - **時間欄位**：型別 `DateTimeOffset`，命名以 `At` 結尾
 - **資料庫命名**：snake_case；C# Entity 保持 PascalCase，由 `BaseDbContext` 自動套用 EF Core naming convention，不需手動 `[Column]`
 - **XML 文件**：Entity、DTO、Controller Action 皆須 `<summary>`；DTO 屬性另加 `<example>`（影響 Swagger 完整度，強制要求）
-- **錯誤處理**：業務層拋 `AppException` 子類，由 `ExceptionMiddleware` 轉為 RFC 9457 Problem Details
+- **錯誤處理**：業務層拋 `AppException` 子類。REST API 服務（LogService 等）以 `ExceptionMiddleware` 轉為 RFC 9457 Problem Details；MVC 服務（Auth）以 ASP.NET Core 內建 `UseExceptionHandler` 導頁至 Error Page，不掛載 `ExceptionMiddleware`
 - **微服務 Ref Table**：本地保留其他服務資源的參照表，資源變更時發 Event 同步
 
 ## Shared 類別庫（`src/Shared/`）
@@ -65,7 +65,7 @@ pnpm preview
 
 **`AppException` 子類** — `NotFoundException(404)` / `ForbiddenException(403)` / `ConflictException(409)` / `ValidationException(422)` / `UnauthorizedException(401)`。
 
-**`ExceptionMiddleware`** — 在 `Program.cs` 以 `app.UseExceptionMiddleware()` 掛載，需排在所有其他 middleware 之前。
+**`ExceptionMiddleware`** — 僅用於 **REST API 服務**。在 `Program.cs` 以 `app.UseExceptionMiddleware()` 掛載，需排在所有其他 middleware 之前。MVC 服務不使用此 middleware，改以 `app.UseExceptionHandler(...)` 處理。
 
 **Events** — `EmailRequestedEvent`、`AuditLogRequestedEvent`：各服務在業務 transaction 內寫入 Outbox，由 `OutboxRelayService` 排程搬入 RabbitMQ。
 
@@ -83,6 +83,8 @@ ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 - `Argon2idHasher` — 密碼雜湊
 - `OutboxRelayService` — Outbox → RabbitMQ
 
+**錯誤處理**：使用 ASP.NET Core 內建 `app.UseExceptionHandler("/Home/Error")`（非開發環境）導頁至 Error Page。不掛載 `ExceptionMiddleware`（JSON 輸出不適用於 MVC 畫面流程）。
+
 **流程**：所有 POST 使用 `[ValidateAntiForgeryToken]` + PRG pattern（成功 → `RedirectToAction`，失敗 → `return View(model)` 帶 ModelState errors）。Email 透過 `TempData["Email"]` 在 POST → GET 間傳遞。
 
 **前端（無 build step）**：
@@ -92,7 +94,7 @@ script 載入順序（`_Layout.cshtml`）：jQuery → jquery-validation → jqu
 - `validation-setup.js`：自訂驗證規則（`mustbetrue`、`minpasswordstrength`）+ unobtrusive adapters + `$.validator.setDefaults`（`.err` class on `.input-shell`）
 - `auth-core.js`：密碼強度 meter、visibility toggle、checkbox sync、legal modal、resend timer、tweaks panel
 
-`Shared/` 下 `_Field.cshtml`、`_PasswordField.cshtml`、`_Checkbox.cshtml`、`_ValidationScriptsPartial.cshtml` 為舊版遺留，已停用。
+表單欄位一律以內聯 HTML 撰寫，搭配 `IconHelper` 渲染 SVG icon；不使用額外 Partial View 封裝輸入元件。
 
 ## EmailService（`src/EmailService/`）
 
