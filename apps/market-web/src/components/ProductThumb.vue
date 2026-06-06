@@ -1,50 +1,36 @@
-<script>
+<script setup>
 /* ============================================================
    ProductThumb — vibrant gradient + halftone placeholder thumb
    Registered globally as <product-thumb>.
    ============================================================ */
-import { useShopStore } from '@/stores/shop.js';
+import { computed } from 'vue';
 import { CATEGORIES } from '@/data/catalogue.js';
 
-export default {
-  name: 'ProductThumb',
-  props: {
-    product: Object,
-    label: { type: String, default: '' },
-    glyphSize: { type: Number, default: 64 },
-    showCat: { type: Boolean, default: true },
-    hideLabel: { type: Boolean, default: false },
-    seed: { type: Number, default: 0 },
-  },
-  setup() {
-    return { store: useShopStore() };
-  },
-  computed: {
-    hue() {
-      return (this.product.hue + this.seed * 22) % 360;
-    },
-    vars() {
-      const h = this.hue;
-      const h2 = (h + 42) % 360;
-      return {
-        '--c1': `hsl(${h} 88% 62%)`,
-        '--c2': `hsl(${h2} 90% 54%)`,
-        '--c-deep': `hsl(${h} 70% 26%)`,
-      };
-    },
-    catGlyph() {
-      const c = CATEGORIES.find((c) => c.id === this.product.cat);
-      return c ? c.glyph : 'image';
-    },
-    catLabel() {
-      return { music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' }[this.product.cat] || '';
-    },
-    autoLabel() {
-      if (this.label) return this.label;
-      return `${this.product.formats[0]} · ${this.product.totalSize}`;
-    },
-  },
-};
+const props = defineProps({
+  product: Object,
+  label: { type: String, default: '' },
+  glyphSize: { type: Number, default: 64 },
+  showCat: { type: Boolean, default: true },
+  hideLabel: { type: Boolean, default: false },
+  seed: { type: Number, default: 0 },
+});
+
+const hue = computed(() => (props.product.hue + props.seed * 22) % 360);
+const vars = computed(() => {
+  const h = hue.value;
+  const h2 = (h + 42) % 360;
+  return {
+    '--c1': `hsl(${h} 88% 62%)`,
+    '--c2': `hsl(${h2} 90% 54%)`,
+    '--c-deep': `hsl(${h} 70% 26%)`,
+  };
+});
+const catGlyph = computed(() => {
+  const c = CATEGORIES.find((c) => c.id === props.product.cat);
+  return c ? c.glyph : 'image';
+});
+const catLabel = computed(() => ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' }[props.product.cat] || ''));
+const autoLabel = computed(() => props.label || `${props.product.formats[0]} · ${props.product.totalSize}`);
 </script>
 
 <template>

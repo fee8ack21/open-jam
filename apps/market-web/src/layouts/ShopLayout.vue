@@ -1,4 +1,4 @@
-<script>
+<script setup>
 /* ============================================================
    ShopLayout — storefront shell for /shop routes
    Sticky nav (search · cart · follow), tweaks panel, and the
@@ -8,74 +8,62 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '@/stores/shop.js';
 
-export default {
-  name: 'ShopLayout',
-  setup() {
-    const store = useShopStore();
-    const route = useRoute();
-    const router = useRouter();
+const store = useShopStore();
+const route = useRoute();
+const router = useRouter();
 
-    const tweaksOpen = ref(false);
-    const followEmail = ref('');
-    const subscribed = ref(false);
-    const mobileSearchOpen = ref(false);
-    const mobileFollowOpen = ref(false);
+const tweaksOpen = ref(false);
+const followEmail = ref('');
+const subscribed = ref(false);
+const mobileSearchOpen = ref(false);
+const mobileFollowOpen = ref(false);
 
-    const cartCount = computed(() => store.cartCount);
-    const fontClass = computed(() => 'font-' + store.font);
+const cartCount = computed(() => store.cartCount);
+const fontClass = computed(() => 'font-' + store.font);
 
-    const onSearch = (v) => {
-      store.search = v;
-      if (route.name !== 'shop-list') router.push('/shop');
-    };
-    const goHome = () => router.push('/');
-    const goCheckout = () => router.push('/shop/checkout');
+function onSearch(v) {
+  store.search = v;
+  if (route.name !== 'shop-list') router.push('/shop');
+}
+function goHome() { router.push('/'); }
+function goCheckout() { router.push('/shop/checkout'); }
 
-    const subscribe = () => {
-      const v = followEmail.value.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return;
-      subscribed.value = true;
-      mobileFollowOpen.value = false;
-    };
-    const toggleSearch = () => {
-      mobileSearchOpen.value = !mobileSearchOpen.value;
-      mobileFollowOpen.value = false;
-    };
-    const toggleFollow = () => {
-      mobileFollowOpen.value = !mobileFollowOpen.value;
-      mobileSearchOpen.value = false;
-    };
-    const dismissTweaks = () => {
-      tweaksOpen.value = false;
-      window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
-    };
+function subscribe() {
+  const v = followEmail.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return;
+  subscribed.value = true;
+  mobileFollowOpen.value = false;
+}
+function toggleSearch() {
+  mobileSearchOpen.value = !mobileSearchOpen.value;
+  mobileFollowOpen.value = false;
+}
+function toggleFollow() {
+  mobileFollowOpen.value = !mobileFollowOpen.value;
+  mobileSearchOpen.value = false;
+}
+function dismissTweaks() {
+  tweaksOpen.value = false;
+  window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+}
 
-    onMounted(() => {
-      // ---- hydrate filters from deep-link query params ----
-      const q = route.query;
-      if (q.category && ['music', 'photo', 'ebook'].includes(q.category)) store.setCategory(q.category);
-      if (q.tag) store.toggleTag(q.tag);
-      if (q.search) store.search = q.search;
-      if (q.free === '1' || q.free === 'true') store.onlyFree = true;
-      if (q.sort) store.sort = q.sort;
+onMounted(() => {
+  // ---- hydrate filters from deep-link query params ----
+  const q = route.query;
+  if (q.category && ['music', 'photo', 'ebook'].includes(q.category)) store.setCategory(q.category);
+  if (q.tag) store.toggleTag(q.tag);
+  if (q.search) store.search = q.search;
+  if (q.free === '1' || q.free === 'true') store.onlyFree = true;
+  if (q.sort) store.sort = q.sort;
 
-      // ---- host edit-mode (tweaks) bridge ----
-      window.addEventListener('message', (e) => {
-        const t = e && e.data && e.data.type;
-        if (t === '__activate_edit_mode') tweaksOpen.value = true;
-        else if (t === '__deactivate_edit_mode') tweaksOpen.value = false;
-      });
-      window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-    });
-
-    return {
-      store, tweaksOpen, dismissTweaks,
-      followEmail, subscribed, subscribe,
-      mobileSearchOpen, mobileFollowOpen, toggleSearch, toggleFollow,
-      cartCount, fontClass, onSearch, goHome, goCheckout,
-    };
-  },
-};
+  // ---- host edit-mode (tweaks) bridge ----
+  window.addEventListener('message', (e) => {
+    const t = e && e.data && e.data.type;
+    if (t === '__activate_edit_mode') tweaksOpen.value = true;
+    else if (t === '__deactivate_edit_mode') tweaksOpen.value = false;
+  });
+  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+});
 </script>
 
 <template>

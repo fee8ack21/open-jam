@@ -1,150 +1,101 @@
-<script>
+<script setup>
 /* ============================================================
    MarketView — 市場集 hub (home route "/")
    Search-led hero + category / sort / price browse grid.
    Cards deep-link into the storefront detail route.
    ============================================================ */
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
 import { useAuthStore } from '@/stores/auth.js';
 import { PRODUCTS, CATEGORIES } from '@/data/catalogue.js';
 
-const order = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
+const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
 
-export default {
-  name: 'MarketView',
-  setup() {
-    return { store: useShopStore(), auth: useAuthStore() };
-  },
-  data() {
-    return {
-      cats: CATEGORIES,
-      keywords: ['爵士', '京都', '鋼琴', 'Notion', '街拍', '免費'],
-      search: '',
-      category: 'all',
-      sort: 'popular',
-      priceBand: 'all',
-      pageSize: 12,
-      visibleCount: 12,
-      showToTop: false,
-      sortOptions: [
-        { v: 'popular', l: '最熱門' },
-        { v: 'newest', l: '最新上架' },
-        { v: 'rating', l: '評分最高' },
-        { v: 'price-asc', l: '價格低 → 高' },
-        { v: 'price-desc', l: '價格高 → 低' },
-      ],
-      priceOptions: [
-        { v: 'all', l: '不限' },
-        { v: 'free', l: '免費' },
-        { v: 'low', l: '$1–15' },
-        { v: 'mid', l: '$16–30' },
-        { v: 'high', l: '$30+' },
-      ],
-    };
-  },
-  computed: {
-    results() {
-      let list = PRODUCTS.slice();
-      const q = this.search.trim().toLowerCase();
-      if (q) {
-        list = list.filter(
-          (p) =>
-            p.title.toLowerCase().includes(q) ||
-            p.creator.toLowerCase().includes(q) ||
-            p.tags.some((t) => t.toLowerCase().includes(q)),
-        );
-      }
-      if (this.category !== 'all') list = list.filter((p) => p.cat === this.category);
-      list = list.filter((p) => this.inBand(p.price));
-      switch (this.sort) {
-        case 'newest':
-          list.sort((a, b) => order.get(b.id) - order.get(a.id));
-          break;
-        case 'rating':
-          list.sort((a, b) => b.rating - a.rating);
-          break;
-        case 'price-asc':
-          list.sort((a, b) => a.price - b.price);
-          break;
-        case 'price-desc':
-          list.sort((a, b) => b.price - a.price);
-          break;
-        default:
-          list.sort((a, b) => b.sales - a.sales);
-      }
-      return list;
-    },
-    activeCatLabel() {
-      if (this.category === 'all') return '全部作品';
-      return (CATEGORIES.find((c) => c.id === this.category) || {}).label || '全部作品';
-    },
-    visibleResults() {
-      return this.results.slice(0, this.visibleCount);
-    },
-    hasMore() {
-      return this.visibleCount < this.results.length;
-    },
-  },
-  watch: {
-    results() {
-      this.visibleCount = this.pageSize;
-    },
-  },
-  mounted() {
-    window.addEventListener('scroll', this._onScroll);
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this._onScroll);
-  },
-  methods: {
-    catColor(id) {
-      return { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' }[id];
-    },
-    catCount(id) {
-      return id === 'all' ? PRODUCTS.length : PRODUCTS.filter((p) => p.cat === id).length;
-    },
-    inBand(price) {
-      switch (this.priceBand) {
-        case 'free':
-          return price === 0;
-        case 'low':
-          return price > 0 && price <= 15;
-        case 'mid':
-          return price >= 16 && price <= 30;
-        case 'high':
-          return price > 30;
-        default:
-          return true;
-      }
-    },
-    scrollToBrowse() {
-      const el = document.getElementById('browse');
-      if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
-    },
-    pickKeyword(k) {
-      this.search = k;
-      this.scrollToBrowse();
-    },
-    reset() {
-      this.category = 'all';
-      this.sort = 'popular';
-      this.priceBand = 'all';
-      this.search = '';
-    },
-    _onScroll() {
-      this.showToTop = window.scrollY > 300;
-    },
-    scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-    loadMore() {
-      this.visibleCount += this.pageSize;
-    },
-    goWorkspace() {
-      window.location.href = import.meta.env.VITE_WORKSPACE_URL ?? '/';
-    },
-  },
-};
+const store = useShopStore();
+const auth = useAuthStore();
+
+const cats = CATEGORIES;
+const keywords = ['爵士', '京都', '鋼琴', 'Notion', '街拍', '免費'];
+const search = ref('');
+const category = ref('all');
+const sort = ref('popular');
+const priceBand = ref('all');
+const pageSize = 12;
+const visibleCount = ref(12);
+const showToTop = ref(false);
+
+const sortOptions = [
+  { v: 'popular', l: '最熱門' },
+  { v: 'newest', l: '最新上架' },
+  { v: 'rating', l: '評分最高' },
+  { v: 'price-asc', l: '價格低 → 高' },
+  { v: 'price-desc', l: '價格高 → 低' },
+];
+const priceOptions = [
+  { v: 'all', l: '不限' },
+  { v: 'free', l: '免費' },
+  { v: 'low', l: '$1–15' },
+  { v: 'mid', l: '$16–30' },
+  { v: 'high', l: '$30+' },
+];
+
+function inBand(price) {
+  switch (priceBand.value) {
+    case 'free': return price === 0;
+    case 'low':  return price > 0 && price <= 15;
+    case 'mid':  return price >= 16 && price <= 30;
+    case 'high': return price > 30;
+    default:     return true;
+  }
+}
+
+const results = computed(() => {
+  let list = PRODUCTS.slice();
+  const q = search.value.trim().toLowerCase();
+  if (q) {
+    list = list.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.creator.toLowerCase().includes(q) ||
+        p.tags.some((t) => t.toLowerCase().includes(q)),
+    );
+  }
+  if (category.value !== 'all') list = list.filter((p) => p.cat === category.value);
+  list = list.filter((p) => inBand(p.price));
+  switch (sort.value) {
+    case 'newest':     list.sort((a, b) => orderMap.get(b.id) - orderMap.get(a.id)); break;
+    case 'rating':     list.sort((a, b) => b.rating - a.rating); break;
+    case 'price-asc':  list.sort((a, b) => a.price - b.price); break;
+    case 'price-desc': list.sort((a, b) => b.price - a.price); break;
+    default:           list.sort((a, b) => b.sales - a.sales);
+  }
+  return list;
+});
+
+const activeCatLabel = computed(() => {
+  if (category.value === 'all') return '全部作品';
+  return (CATEGORIES.find((c) => c.id === category.value) || {}).label || '全部作品';
+});
+const visibleResults = computed(() => results.value.slice(0, visibleCount.value));
+const hasMore = computed(() => visibleCount.value < results.value.length);
+
+watch(results, () => { visibleCount.value = pageSize; });
+
+function catColor(id) { return { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' }[id]; }
+function catCount(id) { return id === 'all' ? PRODUCTS.length : PRODUCTS.filter((p) => p.cat === id).length; }
+function scrollToBrowse() {
+  const el = document.getElementById('browse');
+  if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
+}
+function pickKeyword(k) { search.value = k; scrollToBrowse(); }
+function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.value = 'all'; search.value = ''; }
+function onScroll() { showToTop.value = window.scrollY > 300; }
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function loadMore() { visibleCount.value += pageSize; }
+function goWorkspace() { window.location.href = import.meta.env.VITE_WORKSPACE_URL ?? '/'; }
+
+onMounted(() => window.addEventListener('scroll', onScroll));
+onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
 </script>
 
 <template>

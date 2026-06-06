@@ -1,13 +1,10 @@
-<script>
+<script setup>
 /* Stars — star rating label. Registered globally as <stars>. */
-export default {
-  name: 'Stars',
-  props: {
-    value: Number,
-    count: Number,
-    size: { type: Number, default: 13 },
-  },
-};
+defineProps({
+  value: Number,
+  count: Number,
+  size: { type: Number, default: 13 },
+});
 </script>
 
 <template>

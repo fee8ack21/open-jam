@@ -1,20 +1,14 @@
-<script>
+<script setup>
 /* ============================================================
    MktCard — marketplace-hub catalogue card. Registered as <mkt-card>.
    Links into the storefront detail route via <router-link>.
    ============================================================ */
-export default {
-  name: 'MktCard',
-  props: { product: Object },
-  computed: {
-    to() {
-      return `/shop/product/${this.product.id}`;
-    },
-    initials() {
-      return this.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join('');
-    },
-  },
-};
+import { computed } from 'vue';
+
+const props = defineProps({ product: Object });
+
+const to = computed(() => `/shop/product/${props.product.id}`);
+const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
 </script>
 
 <template>

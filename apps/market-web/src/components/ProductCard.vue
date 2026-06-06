@@ -1,37 +1,23 @@
-<script>
+<script setup>
 /* ============================================================
    ProductCard — storefront grid card. Registered as <product-card>.
    Click opens the detail route; heart toggles favorite.
    ============================================================ */
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useShopStore } from '@/stores/shop.js';
 
-export default {
-  name: 'ProductCard',
-  props: { product: Object },
-  setup() {
-    return { store: useShopStore() };
-  },
-  computed: {
-    fav() {
-      return this.store.isFav(this.product.id);
-    },
-    accent() {
-      return `hsl(${this.product.hue} 85% 58%)`;
-    },
-    initials() {
-      return this.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join('');
-    },
-  },
-  methods: {
-    open() {
-      this.$router.push(`/shop/product/${this.product.id}`);
-    },
-    toggleFav(e) {
-      e.stopPropagation();
-      this.store.toggleFav(this.product.id);
-    },
-  },
-};
+const props = defineProps({ product: Object });
+
+const store = useShopStore();
+const router = useRouter();
+
+const fav = computed(() => store.isFav(props.product.id));
+const accent = computed(() => `hsl(${props.product.hue} 85% 58%)`);
+const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
+
+function open() { router.push(`/shop/product/${props.product.id}`); }
+function toggleFav(e) { e.stopPropagation(); store.toggleFav(props.product.id); }
 </script>
 
 <template>

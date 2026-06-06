@@ -1,9 +1,11 @@
-<script>
+<script setup>
 /* ============================================================
    DetailView — product detail (route "/shop/product/:id")
    gallery / preview · file contents · add to cart.
    The product is resolved from the :id route param.
    ============================================================ */
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '@/stores/shop.js';
 import { CATEGORIES } from '@/data/catalogue.js';
 
@@ -13,59 +15,29 @@ const FILE_COLORS = {
   EPUB: '#8b5cf6', GP: '#d65a3a', TXT: '#888', NOTION: '#444', FIG: '#e0573e', DEFAULT: '#6151f0',
 };
 
-export default {
-  name: 'DetailView',
-  setup() {
-    return { store: useShopStore() };
-  },
-  data() {
-    return { active: 0 };
-  },
-  computed: {
-    p() {
-      return this.store.product(this.$route.params.id);
-    },
-    fav() {
-      return this.store.isFav(this.p.id);
-    },
-    inCart() {
-      return this.store.inCart(this.p.id);
-    },
-    initials() {
-      return this.p.creator.split(' ').map((s) => s[0]).slice(0, 2).join('');
-    },
-    catLabel() {
-      return (CATEGORIES.find((c) => c.id === this.p.cat) || {}).label;
-    },
-    totalFiles() {
-      return this.p.files.reduce((n, f) => n + f.count, 0);
-    },
-  },
-  watch: {
-    '$route.params.id'() {
-      this.active = 0;
-      window.scrollTo({ top: 0 });
-    },
-  },
-  methods: {
-    fileColor(t) {
-      return FILE_COLORS[t] || FILE_COLORS.DEFAULT;
-    },
-    addCart() {
-      this.store.addToCart(this.p.id);
-    },
-    buyNow() {
-      if (!this.inCart) this.store.addToCart(this.p.id);
-      this.$router.push('/shop/checkout');
-    },
-    goCart() {
-      this.$router.push('/shop/checkout');
-    },
-    goList() {
-      this.$router.push('/shop');
-    },
-  },
-};
+const store = useShopStore();
+const route = useRoute();
+const router = useRouter();
+
+const active = ref(0);
+
+const p = computed(() => store.product(route.params.id));
+const fav = computed(() => store.isFav(p.value.id));
+const inCart = computed(() => store.inCart(p.value.id));
+const initials = computed(() => p.value.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
+const catLabel = computed(() => (CATEGORIES.find((c) => c.id === p.value.cat) || {}).label);
+const totalFiles = computed(() => p.value.files.reduce((n, f) => n + f.count, 0));
+
+watch(() => route.params.id, () => {
+  active.value = 0;
+  window.scrollTo({ top: 0 });
+});
+
+function fileColor(t) { return FILE_COLORS[t] || FILE_COLORS.DEFAULT; }
+function addCart() { store.addToCart(p.value.id); }
+function buyNow() { if (!inCart.value) store.addToCart(p.value.id); router.push('/shop/checkout'); }
+function goCart() { router.push('/shop/checkout'); }
+function goList() { router.push('/shop'); }
 </script>
 
 <template>

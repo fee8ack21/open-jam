@@ -1,70 +1,40 @@
-<script>
+<script setup>
 /* ============================================================
    ListView — storefront explore (route "/shop")
    sort · tag filter · price range · favorites · card grid.
    Filter state lives in the Pinia shop store.
    ============================================================ */
+import { computed } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
 import { PRODUCTS, CATEGORIES, TAGS } from '@/data/catalogue.js';
 
-export default {
-  name: 'ListView',
-  setup() {
-    return { store: useShopStore() };
-  },
-  data() {
-    return {
-      cats: CATEGORIES,
-      sortOptions: [
-        { label: '最熱門', value: 'popular' },
-        { label: '最新上架', value: 'newest' },
-        { label: '評分最高', value: 'rating' },
-        { label: '價格：低 → 高', value: 'price-asc' },
-        { label: '價格：高 → 低', value: 'price-desc' },
-      ],
-    };
-  },
-  computed: {
-    results() {
-      return this.store.filtered;
-    },
-    total() {
-      return PRODUCTS.length;
-    },
-    availableTags() {
-      if (this.store.category !== 'all') return TAGS[this.store.category];
-      return [...new Set(Object.values(TAGS).flat())];
-    },
-    filterCount() {
-      return this.store.activeFilterCount;
-    },
-    priceRange: {
-      get() {
-        return this.store.priceRange;
-      },
-      set(v) {
-        this.store.priceRange = v;
-      },
-    },
-  },
-  methods: {
-    setCat(c) {
-      this.store.setCategory(c);
-    },
-    catColor(id) {
-      return { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' }[id];
-    },
-    toggleTag(t) {
-      this.store.toggleTag(t);
-    },
-    clear() {
-      this.store.clearFilters();
-    },
-    priceLabel(v) {
-      return v === 0 ? '免費' : '$' + v;
-    },
-  },
-};
+const store = useShopStore();
+
+const cats = CATEGORIES;
+const sortOptions = [
+  { label: '最熱門', value: 'popular' },
+  { label: '最新上架', value: 'newest' },
+  { label: '評分最高', value: 'rating' },
+  { label: '價格：低 → 高', value: 'price-asc' },
+  { label: '價格：高 → 低', value: 'price-desc' },
+];
+
+const results = computed(() => store.filtered);
+const total = computed(() => PRODUCTS.length);
+const availableTags = computed(() =>
+  store.category !== 'all' ? TAGS[store.category] : [...new Set(Object.values(TAGS).flat())],
+);
+const filterCount = computed(() => store.activeFilterCount);
+const priceRange = computed({
+  get: () => store.priceRange,
+  set: (v) => { store.priceRange = v; },
+});
+
+function setCat(c) { store.setCategory(c); }
+function catColor(id) { return { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' }[id]; }
+function toggleTag(t) { store.toggleTag(t); }
+function clear() { store.clearFilters(); }
+function priceLabel(v) { return v === 0 ? '免費' : '$' + v; }
 </script>
 
 <template>
