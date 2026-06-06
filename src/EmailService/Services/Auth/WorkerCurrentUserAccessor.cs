@@ -1,6 +1,6 @@
 using Shared.Auth;
 
-namespace EmailService.Services;
+namespace EmailService.Services.Auth;
 
 /// <summary>
 /// Worker 服務用的 ICurrentUserAccessor 實作，永遠回傳 null。

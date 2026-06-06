@@ -1,6 +1,6 @@
 using EmailService.Data;
 using EmailService.Data.Entities;
-using EmailService.Services;
+using EmailService.Services.Sending;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Events;

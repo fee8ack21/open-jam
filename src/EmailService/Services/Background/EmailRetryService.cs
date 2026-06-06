@@ -1,10 +1,11 @@
 using EmailService.Data;
 using EmailService.Data.Entities;
 using EmailService.Options;
+using EmailService.Services.Sending;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace EmailService.Services;
+namespace EmailService.Services.Background;
 
 /// <summary>
 /// 補償重試背景服務，定期掃描 Failed 且未達最大重試次數的紀錄並補發。

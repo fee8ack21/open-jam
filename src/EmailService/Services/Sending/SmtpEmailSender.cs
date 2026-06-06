@@ -3,7 +3,7 @@ using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace EmailService.Services;
+namespace EmailService.Services.Sending;
 
 /// <summary>以 MailKit SMTP 寄信的 IEmailSender 實作（地端開發，對接 SMTP catcher 如 Mailpit）。</summary>
 public class SmtpEmailSender(IOptions<SmtpOptions> options) : IEmailSender

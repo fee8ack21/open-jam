@@ -1,7 +1,9 @@
 using EmailService.Consumers;
 using EmailService.Data;
 using EmailService.Options;
-using EmailService.Services;
+using EmailService.Services.Auth;
+using EmailService.Services.Background;
+using EmailService.Services.Sending;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;

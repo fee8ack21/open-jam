@@ -1,4 +1,4 @@
-namespace EmailService.Services;
+namespace EmailService.Services.Sending;
 
 /// <summary>信件寄送抽象介面，封裝底層寄信實作（正式環境 SendGrid、地端 SMTP catcher）。</summary>
 public interface IEmailSender
