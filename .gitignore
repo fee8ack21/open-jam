@@ -500,3 +500,4 @@ $RECYCLE.BIN/
 infra/docker/volumes/postgres/data/
 infra/docker/volumes/rabbitmq/
 infra/docker/volumes/redis/
+infra/docker/volumes/minio/data/

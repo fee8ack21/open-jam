@@ -1,14 +1,19 @@
 using Bootstrap.Seeders;
 using EmailService.Data;
+using EmailService.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shared.Auth;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((ctx, services) =>
     {
+        services.AddScoped<ICurrentUserAccessor, WorkerCurrentUserAccessor>();
+
         services.AddDbContext<EmailDbContext>(opts =>
-            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:Postgres"]));
+            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:Postgres"])
+                .UseSnakeCaseNamingConvention());
 
         var hydraUrl = (ctx.Configuration["Hydra:AdminUrl"] ?? "http://localhost:4445").TrimEnd('/') + "/";
         services.AddHttpClient("hydra", client => client.BaseAddress = new Uri(hydraUrl));
