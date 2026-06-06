@@ -131,7 +131,10 @@ public class HomeController(IHydraService hydra, IUserService userService) : Con
     [HttpGet("register-sent")]
     public IActionResult RegisterSent()
     {
-        ViewBag.Email = TempData["Email"] as string ?? "";
+        var email = TempData["Email"] as string;
+        if (string.IsNullOrEmpty(email))
+            return RedirectToAction(nameof(Login));
+        ViewBag.Email = email;
         return View();
     }
 

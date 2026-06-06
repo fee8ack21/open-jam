@@ -23,10 +23,9 @@
                 <div class="email-chip">@IconHelper.Render("mail", 16) @email</div>
                 <p class="form-sub" style="margin-top:18px">打開信件並點擊連結即可設定新密碼。沒看到？記得檢查垃圾信匣。</p>
                 <div class="form-body">
-                    <a class="btn-pop violet" asp-action="ResetPassword">
-                        @IconHelper.Render("arrowRight", 17) 我收到連結了，去重置
+                    <a class="btn-pop violet" asp-action="Login">
+                        @IconHelper.Render("arrowRight", 17) 返回登入
                     </a>
-                    <a class="btn-ghost" asp-action="ForgotPassword">換一個信箱</a>
                 </div>
                 <p class="resend" style="text-align:center" data-resend-screen="forgot-sent" data-resend-email="@email">
                     沒收到？<span class="resend-slot"></span>

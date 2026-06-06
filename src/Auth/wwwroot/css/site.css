@@ -658,6 +658,7 @@ input {
 .btn-pop {
   width: 100%;
   cursor: pointer;
+  text-decoration: none;
   border: 1.5px solid var(--text);
   font-family: var(--june-font);
   font-weight: 700;
@@ -698,6 +699,7 @@ input {
 .btn-ghost {
   width: 100%;
   cursor: pointer;
+  text-decoration: none;
   border: 1.5px solid var(--border-strong);
   font-family: var(--june-font);
   font-weight: 700;

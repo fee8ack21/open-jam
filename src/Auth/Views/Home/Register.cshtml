@@ -56,7 +56,7 @@
                             <label class="field-label" asp-for="ConfirmPassword">確認密碼</label>
                             <div class="input-shell @(ViewData.ModelState["ConfirmPassword"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("lock", 18)</span>
-                                <input asp-for="ConfirmPassword" type="password" data-input="ConfirmPassword"
+                                <input asp-for="ConfirmPassword" type="password" data-input="ConfirmPassword" data-pw="1"
                                        placeholder="再輸入一次密碼" autocomplete="new-password">
                                 <button type="button" class="pw-toggle" data-pwtoggle="ConfirmPassword" title="顯示密碼">
                                     @IconHelper.Render("eye", 18)
