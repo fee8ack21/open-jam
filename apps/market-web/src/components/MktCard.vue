@@ -1,18 +1,19 @@
 <script setup>
 /* ============================================================
    MktCard — marketplace-hub catalogue card. Registered as <mkt-card>.
-   Links into the storefront detail route via <router-link>.
+   Links out to the creator's storefront (creator-web) on their subdomain.
    ============================================================ */
 import { computed } from 'vue';
 
 const props = defineProps({ product: Object });
 
-const to = computed(() => `/shop/product/${props.product.id}`);
+const BASE = import.meta.env.VITE_CREATOR_BASE_URL ?? 'http://localhost:5174';
+const href = computed(() => `${BASE}/product/${props.product.id}`);
 const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
 </script>
 
 <template>
-  <router-link class="mc" :to="to">
+  <a class="mc" :href="href">
     <product-thumb :product="product" />
     <div class="mc-body">
       <h3 class="mc-title">{{ product.title }}</h3>
@@ -27,5 +28,5 @@ const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]
         <stars :value="product.rating" :count="product.ratingCount" />
       </div>
     </div>
-  </router-link>
+  </a>
 </template>

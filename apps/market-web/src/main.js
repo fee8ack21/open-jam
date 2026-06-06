@@ -17,7 +17,6 @@ import './assets/css/market.css';
 import JIcon from './components/JIcon.vue';
 import Stars from './components/Stars.vue';
 import ProductThumb from './components/ProductThumb.vue';
-import ProductCard from './components/ProductCard.vue';
 import MktCard from './components/MktCard.vue';
 
 const app = createApp(App);
@@ -29,7 +28,6 @@ app.use(naive);
 app.component('JIcon', JIcon);
 app.component('Stars', Stars);
 app.component('ProductThumb', ProductThumb);
-app.component('ProductCard', ProductCard);
 app.component('MktCard', MktCard);
 
 app.mount('#app');
