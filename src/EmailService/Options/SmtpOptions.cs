@@ -18,7 +18,7 @@ public class SmtpOptions
     public SecureSocketOptions SecureSocket { get; set; } = SecureSocketOptions.Auto;
 
     /// <summary>SMTP 認證帳號；本地開發可留空。</summary>
-    /// <example>no-reply@openjam.co</example>
+    /// <example>noreply@openjam.co</example>
     public string Username { get; set; } = "";
 
     /// <summary>SMTP 認證密碼；正式環境應透過 Secret 注入。</summary>

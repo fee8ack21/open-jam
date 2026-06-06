@@ -115,7 +115,7 @@ dotnet ef database update               # 套用 Migration
     "Host": "localhost",
     "Port": 1025,
     "UseSsl": false,
-    "FromAddress": "noreply@open-jam.tw"
+    "FromAddress": "noreply@openjam.co"
   }
 }
 ```

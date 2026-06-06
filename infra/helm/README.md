@@ -193,7 +193,7 @@ infra/helm/
 | `smtp.host` | `""` | SMTP 伺服器主機 |
 | `smtp.port` | `1025` | SMTP port |
 | `smtp.enableSsl` | `false` | 是否啟用 TLS |
-| `smtp.fromAddress` | `noreply@open-jam.tw` | 寄件者地址 |
+| `smtp.fromAddress` | `noreply@openjam.co` | 寄件者地址 |
 
 ### 應用服務（auth / logService / emailService / creatorWeb / marketWeb / workspaceWeb / docs）
 
