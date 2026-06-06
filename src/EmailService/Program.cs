@@ -15,10 +15,19 @@ builder.Services.AddDbContext<EmailDbContext>(opts =>
             o => o.MigrationsHistoryTable("__ef_migrations_history"))
         .UseSnakeCaseNamingConvention());
 
-// SMTP
-builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+// 寄信：有 SendGrid:ApiKey → SendGridEmailSender（正式）；否則 → SmtpEmailSender（地端開發）
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
-builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+var sendGridApiKey = builder.Configuration["SendGrid:ApiKey"];
+if (!string.IsNullOrWhiteSpace(sendGridApiKey))
+{
+    builder.Services.Configure<SendGridOptions>(builder.Configuration.GetSection("SendGrid"));
+    builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
+}
+else
+{
+    builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+    builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+}
 
 // MassTransit + RabbitMQ（consumer + 指數退避重試）
 builder.Services.AddMassTransit(x =>

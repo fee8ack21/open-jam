@@ -1,6 +1,6 @@
 namespace EmailService.Services;
 
-/// <summary>信件寄送抽象介面，封裝底層寄信實作（SMTP / Gmail API 等）。</summary>
+/// <summary>信件寄送抽象介面，封裝底層寄信實作（正式環境 SendGrid、地端 SMTP catcher）。</summary>
 public interface IEmailSender
 {
     /// <summary>發送一封 HTML 信件。</summary>
