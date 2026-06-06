@@ -5,6 +5,7 @@
    Cards deep-link into the storefront detail route.
    ============================================================ */
 import { useShopStore } from '@/stores/shop.js';
+import { useAuthStore } from '@/stores/auth.js';
 import { PRODUCTS, CATEGORIES } from '@/data/catalogue.js';
 
 const order = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
@@ -12,7 +13,7 @@ const order = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order →
 export default {
   name: 'MarketView',
   setup() {
-    return { store: useShopStore() };
+    return { store: useShopStore(), auth: useAuthStore() };
   },
   data() {
     return {
@@ -110,9 +111,8 @@ export default {
       this.priceBand = 'all';
       this.search = '';
     },
-    goAdmin() {
-      // Placeholder — wire to the creator/admin backend route on migration.
-      // e.g. this.$router.push('/admin')
+    goWorkspace() {
+      window.location.href = import.meta.env.VITE_WORKSPACE_URL ?? '/';
     },
   },
 };
@@ -136,10 +136,18 @@ export default {
         <div class="nav-spacer"></div>
 
         <div class="nav-actions">
-          <!-- 後台入口：實際 SPA 中應導向創作者 / 管理後台路由（如 /admin） -->
-          <a class="nav-admin" href="#" title="前往後台" @click.prevent="goAdmin">
-            <j-icon name="user" :size="18" /> 前往後台
-          </a>
+          <template v-if="auth.isAuthenticated">
+            <span class="nav-user-email">{{ auth.userEmail }}</span>
+            <a class="nav-admin" href="#" title="前往後台" @click.prevent="goWorkspace">
+              <j-icon name="user" :size="18" /> 前往後台
+            </a>
+            <a class="nav-logout" href="#" title="登出" @click.prevent="auth.logout()">登出</a>
+          </template>
+          <template v-else>
+            <a class="nav-admin" href="#" title="登入" @click.prevent="auth.login()">
+              <j-icon name="user" :size="18" /> 登入
+            </a>
+          </template>
         </div>
       </div>
     </header>

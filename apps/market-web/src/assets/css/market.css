@@ -22,7 +22,7 @@
 .nav-xsearch.open input { width: 248px; opacity: 1; padding: 0 14px; margin-right: 6px; border-color: var(--border-strong); }
 .nav-xsearch.open input:focus { border-color: var(--c-violet); box-shadow: 0 0 0 3px var(--oj-wash); }
 
-/* 創作者後台 button */
+/* 後台入口 / 登入 button */
 .nav-admin {
   display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px;
   font-family: var(--oj-display); font-weight: 700; font-size: 14.5px; color: #fff;
@@ -32,6 +32,17 @@
 }
 .nav-admin:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--text); }
 .nav-admin:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--text); }
+
+.nav-user-email {
+  font-size: 13.5px; font-weight: 600; color: var(--text-soft);
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nav-logout {
+  font-size: 13.5px; font-weight: 600; color: var(--text-soft);
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: color .14s;
+}
+.nav-logout:hover { color: var(--text); }
 
 
 .mkt-nav-links a {

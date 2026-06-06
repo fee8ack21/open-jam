@@ -1,6 +1,7 @@
 <script>
 /* App root — Naive UI providers wrap the router outlet so
    message / dialog hooks are available app-wide. */
+import { useAuthStore } from '@/stores/auth.js';
 
 // Naive UI theme overrides — align the component primary with the brand violet.
 const themeOverrides = {
@@ -17,6 +18,9 @@ export default {
   name: 'App',
   data() {
     return { themeOverrides };
+  },
+  async created() {
+    await useAuthStore().getUserIdentity();
   },
 };
 </script>
