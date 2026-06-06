@@ -1,13 +1,13 @@
 # 電子郵件服務 EmailService
 
-EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[[Order]] 等）將要寄的信透過 **Outbox → RabbitMQ** 投遞，由 EmailService 統一渲染模板、寄送、記錄結果並處理失敗重試。寄送層以 `IEmailSender` 抽象封裝，正式環境接 Gmail、地端開發用 SMTP catcher。
+EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[[Order]] 等）將要寄的信透過 **Outbox → RabbitMQ** 投遞，由 EmailService 統一渲染模板、寄送、記錄結果並處理失敗重試。寄送層以 `IEmailSender` 抽象封裝，正式環境接 SendGrid、地端開發用 SMTP catcher。
 
 ## 服務範圍
 
 - **交易信（MVP）**：一對一、事件觸發的信（帳號開通、重置密碼、訂單確認等）。
 - **大量群發（bulk，預留）**：創作者 → 追蹤者的群發（見 [[Product]] 訂閱 / 追蹤）。MVP 不實作，但於架構上預留批次與退訂管理擴充點。
 
-> **⚠️ 寄送量限制**：Gmail（Workspace）有每日寄信上限，且不適合 bulk 群發、缺退信 webhook。因此寄送層以 `IEmailSender` 抽象隔離，未來要 bulk 時可無痛改接 SES / SendGrid，不影響其他邏輯。
+> **寄送層以 `IEmailSender` 抽象隔離**：正式環境接 SendGrid（支援退信 webhook、投訴回報，適合 bulk 擴充），地端開發改接 SMTP catcher，兩者切換不影響其他邏輯。
 
 ## 處理流程
 
@@ -16,7 +16,7 @@ EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[
 3. EmailService 的 **Consumer（MassTransit）** 收到 email message。
 4. **冪等去重**：以業務維度鍵將一筆 `EmailRecord` claim 插入（撞 unique 即代表寄過 → 跳過並照樣回報成功）。
 5. 依訊息攜帶的**模板類型 + locale** 取對應模板，套入資料 payload 渲染。
-6. 透過 `IEmailSender` 寄出（正式為 Gmail）。
+6. 透過 `IEmailSender` 寄出（正式為 SendGrid）。
 7. 更新 `EmailRecord` 結果（成功 / 失敗、provider 訊息 id、錯誤等）。
 8. 向 RabbitMQ 回報 ack。
 
@@ -33,9 +33,10 @@ EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[
 ## 寄送（IEmailSender 抽象）
 
 - 以 `IEmailSender` 介面封裝寄送，實作可替換。
-- **正式環境**：Gmail（Google Workspace），寄件位址 `no-reply@openjam.co`。
+- **正式環境**：SendGrid API，寄件位址 `noreply@openjam.co`。API Key 以 GCP Secret Manager 注入，支援退信（bounce）/ 投訴（complaint）webhook。
 - **地端開發**：SMTP catcher（如 Mailpit），不實際外送。
-- 寄件網域需於 Cloudflare DNS 設定 **SPF / DKIM / DMARC** 以確保送達率（見 [[Infra]]）。
+- 寄件網域需於 Cloudflare DNS 設定 **SPF / DKIM / DMARC**（含 SendGrid 的 CNAME 網域驗證記錄）以確保送達率（見 [[Infra]]）。
+- **收信路由**：`openjam.co` 網域收到的信（如 `support@openjam.co`）以 **Cloudflare Email Routing** 轉發至內部信箱，與寄出路徑獨立。
 
 ## 模板與多國語系
 
@@ -83,7 +84,7 @@ EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[
 
 ## 退信 / 投訴 / 退訂（預留）
 
-- Gmail 缺少退信（bounce）/ 投訴（complaint）webhook，MVP 階段退信處理能力有限，先預留。
+- SendGrid 提供退信（bounce）/ 投訴（complaint）webhook，可串接退訂與黑名單處理，MVP 階段先預留實作。
 - bulk / 訂閱信需支援 `List-Unsubscribe` 標頭與退訂管理（對應 [[Product]] 訂閱 / 追蹤），隨 bulk 功能一併實作。
 
 ## 技術與架構

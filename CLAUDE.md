@@ -98,7 +98,7 @@ script 載入順序（`_Layout.cshtml`）：jQuery → jquery-validation → jqu
 
 ## EmailService（`src/EmailService/`）
 
-RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以 SMTP 寄出。失敗採指數退避重試（最多 5 次），並有 `EmailRetryService` 補償排程。
+RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以 SendGrid API 寄出（地端開發用 SMTP catcher）。失敗採指數退避重試（最多 5 次），並有 `EmailRetryService` 補償排程。
 
 ## LogService（`src/LogService/`）
 
@@ -123,8 +123,9 @@ RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以
   "Hydra": { "AdminUrl": "http://localhost:4445" },
   "App": { "BaseUrl": "https://localhost:7280" }
 }
-// EmailService 額外需要
+// EmailService 額外需要（地端開發用 SMTP catcher；正式以 SendGrid API Key 替換）
 {
-  "Smtp": { "Host": "localhost", "Port": 1025, "UseSsl": false, "FromAddress": "noreply@open-jam.tw" }
+  "Smtp": { "Host": "localhost", "Port": 1025, "UseSsl": false, "FromAddress": "noreply@openjam.co" },
+  "SendGrid": { "ApiKey": "<prod-only，由 GCP Secret Manager 注入>" }
 }
 ```

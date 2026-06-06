@@ -7,6 +7,7 @@
 - 於 Cloudflare 承租網域 **openjam.co**。
 - Cloudflare DNS 設定，含 **wildcard `*.openjam.co`**（對應動態的創作者子網域）。
 - Cloudflare Turnstile 作為 CAPTCHA（見 [[Auth]]）。
+- **Cloudflare Email Routing**：網域收信路由，將 `support@openjam.co` 等地址轉發至內部信箱（僅收信路由，寄出由 SendGrid 負責，見 [[Email]]）。
 
 ## 站點
 
@@ -75,7 +76,7 @@
 
 ## 環境
 
-- **地端開發**：docker-compose 起本機依賴（MinIO、SMTP catcher、RabbitMQ、Redis、PostgreSQL 等，見 [[Develop]]）。
+- **地端開發**：docker-compose 起本機依賴（MinIO、SMTP catcher（Mailpit，代替 SendGrid）、RabbitMQ、Redis、PostgreSQL 等，見 [[Develop]]）。
 - **正式（prod）**：GKE。
 - （MVP 不設獨立 staging，先以地端 + prod 兩套。）
 
