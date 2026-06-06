@@ -1,3 +1,5 @@
+using MailKit.Security;
+
 namespace EmailService.Options;
 
 /// <summary>SMTP 連線設定。</summary>
@@ -11,9 +13,9 @@ public class SmtpOptions
     /// <example>587</example>
     public int Port { get; set; } = 587;
 
-    /// <summary>是否使用 SSL/TLS。</summary>
-    /// <example>false</example>
-    public bool UseSsl { get; set; } = false;
+    /// <summary>MailKit 連線安全模式。Auto = 依 port 自動選擇（587 → StartTls、465 → SslOnConnect、其他 → None）。</summary>
+    /// <example>StartTls</example>
+    public SecureSocketOptions SecureSocket { get; set; } = SecureSocketOptions.Auto;
 
     /// <summary>SMTP 認證帳號；本地開發可留空。</summary>
     /// <example>no-reply@openjam.co</example>

@@ -23,7 +23,7 @@ public class SmtpEmailSender(IOptions<SmtpOptions> options) : IEmailSender
         message.Body    = new TextPart("html") { Text = bodyHtml };
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(opts.Host, opts.Port, opts.UseSsl, ct);
+        await client.ConnectAsync(opts.Host, opts.Port, opts.SecureSocket, ct);
 
         if (!string.IsNullOrEmpty(opts.Username))
             await client.AuthenticateAsync(opts.Username, opts.Password, ct);
