@@ -23,6 +23,9 @@ export default {
       category: 'all',
       sort: 'popular',
       priceBand: 'all',
+      pageSize: 12,
+      visibleCount: 12,
+      showToTop: false,
       sortOptions: [
         { v: 'popular', l: '最熱門' },
         { v: 'newest', l: '最新上架' },
@@ -75,6 +78,23 @@ export default {
       if (this.category === 'all') return '全部作品';
       return (CATEGORIES.find((c) => c.id === this.category) || {}).label || '全部作品';
     },
+    visibleResults() {
+      return this.results.slice(0, this.visibleCount);
+    },
+    hasMore() {
+      return this.visibleCount < this.results.length;
+    },
+  },
+  watch: {
+    results() {
+      this.visibleCount = this.pageSize;
+    },
+  },
+  mounted() {
+    window.addEventListener('scroll', this._onScroll);
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this._onScroll);
   },
   methods: {
     catColor(id) {
@@ -110,6 +130,15 @@ export default {
       this.sort = 'popular';
       this.priceBand = 'all';
       this.search = '';
+    },
+    _onScroll() {
+      this.showToTop = window.scrollY > 300;
+    },
+    scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    loadMore() {
+      this.visibleCount += this.pageSize;
     },
     goWorkspace() {
       window.location.href = import.meta.env.VITE_WORKSPACE_URL ?? '/';
@@ -232,9 +261,15 @@ export default {
         </div>
 
         <div v-if="results.length" class="grid">
-          <mkt-card v-for="p in results" :key="p.id" :product="p" />
+          <mkt-card v-for="p in visibleResults" :key="p.id" :product="p" />
         </div>
-        <div v-else class="empty">
+        <div v-if="hasMore" class="load-more-wrap">
+          <button class="load-more-btn" @click="loadMore">
+            載入更多
+            <span class="load-more-count">（還有 {{ results.length - visibleCount }} 件）</span>
+          </button>
+        </div>
+        <div v-if="!results.length" class="empty">
           <j-icon name="search" :size="40" style="margin-bottom: 14px; opacity: 0.5" />
           <p style="font-size: 17px; font-weight: 600; color: var(--text-soft)">找不到符合的作品</p>
           <p style="margin-top: 6px">試著放寬篩選條件或清除搜尋關鍵字。</p>
@@ -257,5 +292,11 @@ export default {
         <div class="mkt-foot-copy">© 2026 Open Jam · 創作者數位市集</div>
       </footer>
     </main>
+
+    <Transition name="to-top">
+      <button v-if="showToTop" class="to-top-btn" @click="scrollToTop" aria-label="回到頂部">
+        <j-icon name="chevronU" :size="22" />
+      </button>
+    </Transition>
   </div>
 </template>

@@ -15,6 +15,7 @@ const PATHS = {
   download: 'M12 3v12M7 11l5 4 5-4M5 21h14',
   chevron: 'M9 6l6 6-6 6',
   chevronD: 'M6 9l6 6 6-6',
+  chevronU: 'M18 15l-6-6-6 6',
   file: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5',
   shield: 'M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3z',
   close: 'M6 6l12 12M18 6L6 18',

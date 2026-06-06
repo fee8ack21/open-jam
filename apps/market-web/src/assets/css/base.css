@@ -22,7 +22,6 @@
   --oj-font: 'Space Grotesk', 'Noto Sans TC', sans-serif;
   --oj-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  --maxw: 1240px;
   --nav-h: 72px;
   --r-lg: 22px;
   --r-md: 16px;
@@ -88,7 +87,7 @@ body {
     var(--bg);
 }
 
-.page { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+.page { padding: 0 28px; }
 .page-pad { padding-top: 22px; padding-bottom: 96px; }
 
 /* ---------- top nav ---------- */
@@ -98,7 +97,7 @@ body {
   background: color-mix(in srgb, var(--surface) 72%, transparent);
   border-bottom: 1.5px solid var(--border);
 }
-.nav-inner { max-width: var(--maxw); margin: 0 auto; height: 100%; padding: 0 28px; display: flex; align-items: center; gap: 22px; }
+.nav-inner { height: 100%; padding: 0 28px; display: flex; align-items: center; gap: 22px; }
 .brand { display: flex; align-items: center; gap: 11px; cursor: pointer; user-select: none; flex: none; }
 .brand-mark {
   width: 34px; height: 34px; border-radius: 11px;

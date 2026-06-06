@@ -319,10 +319,37 @@
 .fb-card { position: relative; z-index: 1; }
 .fb-card .mc { box-shadow: 5px 5px 0 rgba(20,16,32,.25); border-color: var(--text); }
 
+/* ---------- to top ---------- */
+.to-top-btn {
+  position: fixed; right: 28px; bottom: 32px; z-index: 90;
+  width: 48px; height: 48px; border-radius: 14px;
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--text); background: var(--surface);
+  border: 2px solid var(--text); box-shadow: 4px 4px 0 var(--text);
+  transition: transform .14s, box-shadow .14s;
+}
+.to-top-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--text); }
+.to-top-btn:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--text); }
+.to-top-enter-active, .to-top-leave-active { transition: opacity .2s, transform .2s; }
+.to-top-enter-from, .to-top-leave-to { opacity: 0; transform: translateY(12px); }
+
+/* ---------- load more ---------- */
+.load-more-wrap { margin-top: 40px; text-align: center; }
+.load-more-btn {
+  display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 36px;
+  font-family: var(--oj-display); font-weight: 700; font-size: 16px;
+  color: var(--text); background: var(--surface);
+  border: 2px solid var(--text); border-radius: 14px; box-shadow: 4px 4px 0 var(--text);
+  cursor: pointer; transition: transform .14s, box-shadow .14s;
+}
+.load-more-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--text); }
+.load-more-btn:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--text); }
+.load-more-count { font-family: var(--oj-mono); font-size: 12px; font-weight: 500; opacity: .6; }
+
 /* ---------- footer ---------- */
 .mkt-foot {
   margin-top: 96px; border-top: 1.5px solid var(--border); padding: 40px 0 60px;
-  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: center; gap: 32px; flex-wrap: wrap;
 }
 .mkt-foot .brand-name { font-size: 19px; }
 .mkt-foot-links { display: flex; gap: 22px; flex-wrap: wrap; }
