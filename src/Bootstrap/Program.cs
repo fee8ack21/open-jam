@@ -12,7 +12,8 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<ICurrentUserAccessor, WorkerCurrentUserAccessor>();
 
         services.AddDbContext<EmailDbContext>(opts =>
-            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:Postgres"])
+            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:Postgres"],
+                    o => o.MigrationsHistoryTable("__ef_migrations_history"))
                 .UseSnakeCaseNamingConvention());
 
         var hydraUrl = (ctx.Configuration["Hydra:AdminUrl"] ?? "http://localhost:4445").TrimEnd('/') + "/";

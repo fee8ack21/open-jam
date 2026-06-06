@@ -18,7 +18,8 @@ var storageOpts = builder.Configuration.GetSection("Storage").Get<StorageOptions
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 builder.Services.AddDbContext<StorageDbContext>(opts =>
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"))
+    opts.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"),
+            o => o.MigrationsHistoryTable("__ef_migrations_history"))
         .UseSnakeCaseNamingConvention());
 
 // MinIO
