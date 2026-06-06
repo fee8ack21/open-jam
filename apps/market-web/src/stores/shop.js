@@ -2,7 +2,7 @@
    Open Jam — shop store (Pinia)
    Ported 1:1 from the prototype's hand-rolled store. Navigation
    state (view / currentId) is gone — Vue Router owns that now.
-   Catalogue filters, cart, favorites, order & theme live here.
+   Catalogue filters, cart, favorites, and order live here.
    ============================================================ */
 import { defineStore } from 'pinia';
 import { PRODUCTS } from '@/data/catalogue.js';
@@ -25,8 +25,6 @@ const save = (k, v) => {
 
 export const useShopStore = defineStore('shop', {
   state: () => ({
-    // theme / display
-    theme: load('theme', 'light'), // 'light' | 'dark'
     font: load('font', 'sora'), // 'sora' (Bricolage) | 'grotesk' (Unbounded)
     search: '',
 
@@ -109,14 +107,6 @@ export const useShopStore = defineStore('shop', {
   },
 
   actions: {
-    // ---- theme / display ----
-    setTheme(t) {
-      this.theme = t;
-      save('theme', t);
-    },
-    toggleTheme() {
-      this.setTheme(this.theme === 'light' ? 'dark' : 'light');
-    },
     setFont(f) {
       this.font = f;
       save('font', f);
@@ -135,11 +125,6 @@ export const useShopStore = defineStore('shop', {
       const item = this.cart.find((c) => c.id === id);
       if (item) item.qty += qty;
       else this.cart.push({ id, qty });
-      save('cart', this.cart);
-    },
-    setQty(id, qty) {
-      const item = this.cart.find((c) => c.id === id);
-      if (item) item.qty = Math.max(1, qty);
       save('cart', this.cart);
     },
     removeFromCart(id) {

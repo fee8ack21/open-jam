@@ -99,7 +99,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
 </script>
 
 <template>
-  <div class="oj-root" :class="[store.theme, 'font-' + store.font]" data-screen-label="市場集首頁">
+  <div class="oj-root" :class="'font-' + store.font" data-screen-label="市場集首頁">
     <!-- ============ NAV ============ -->
     <header class="nav">
       <div class="nav-inner">

@@ -31,7 +31,7 @@
 /* font switch — toggles the display face */
 .font-grotesk { --oj-display: 'Unbounded', 'Noto Sans TC', sans-serif; }
 
-.oj-root.light {
+.oj-root {
   --bg: #faf6ee;
   --surface: #ffffff;
   --surface-2: #faf7f1;
@@ -42,18 +42,6 @@
   --border-strong: #1a1626;
   --shadow: 0 2px 0 rgba(26,22,38,.04), 0 10px 30px -14px rgba(54,38,120,.20);
   --shadow-hover: 0 16px 0 -8px color-mix(in srgb, var(--accent, #6c4cf1) 30%, transparent), 0 26px 50px -18px color-mix(in srgb, var(--accent, #6c4cf1) 55%, transparent);
-}
-.oj-root.dark {
-  --bg: #100d18;
-  --surface: #1a1626;
-  --surface-2: #221d33;
-  --text: #f4f1fb;
-  --text-soft: #aaa3bd;
-  --text-faint: #726a85;
-  --border: #2c2640;
-  --border-strong: #4a4166;
-  --shadow: 0 2px 0 rgba(0,0,0,.3), 0 14px 34px -16px rgba(0,0,0,.7);
-  --shadow-hover: 0 16px 0 -8px color-mix(in srgb, var(--accent, #8a72ff) 36%, transparent), 0 30px 56px -18px color-mix(in srgb, var(--accent, #8a72ff) 60%, transparent);
 }
 
 * { box-sizing: border-box; }
@@ -77,14 +65,6 @@ body {
   font-family: var(--oj-font);
   transition: background .35s ease, color .35s ease;
   overflow-x: clip;
-}
-.oj-root.dark {
-  background:
-    radial-gradient(640px 420px at 6% -4%, rgba(138,114,255,.26), transparent 60%),
-    radial-gradient(560px 380px at 98% -6%, rgba(255,77,157,.20), transparent 56%),
-    radial-gradient(720px 560px at 82% 34%, rgba(31,214,198,.16), transparent 60%),
-    radial-gradient(520px 460px at 12% 80%, rgba(255,200,58,.12), transparent 60%),
-    var(--bg);
 }
 
 .page { padding: 0 28px; }

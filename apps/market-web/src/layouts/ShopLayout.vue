@@ -67,7 +67,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="oj-root" :class="[store.theme, fontClass]">
+  <div class="oj-root" :class="fontClass">
     <!-- ============ NAV ============ -->
     <header class="nav">
       <div class="nav-inner">
