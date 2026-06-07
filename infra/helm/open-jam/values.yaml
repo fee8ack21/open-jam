@@ -44,7 +44,7 @@ rabbitmq:
   enabled: true
   image: rabbitmq:3.13-management-alpine
   user: guest
-  virtualHost: open-jam
+  virtualHost: /
   persistence:
     enabled: true
     storageClass: ""

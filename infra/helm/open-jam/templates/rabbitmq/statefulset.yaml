@@ -50,8 +50,10 @@ spec:
           livenessProbe:
             exec:
               command: ["rabbitmq-diagnostics", "ping"]
-            initialDelaySeconds: 60
-            periodSeconds: 15
+            initialDelaySeconds: 90
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 6
       {{- if not .Values.rabbitmq.persistence.enabled }}
       volumes:
         - name: data
