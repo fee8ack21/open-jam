@@ -501,3 +501,7 @@ infra/docker/volumes/postgres/data/
 infra/docker/volumes/rabbitmq/
 infra/docker/volumes/redis/
 infra/docker/volumes/minio/data/
+
+# Helm 正式環境機敏設定值，不納入版控
+infra/helm/open-jam/values.prod.yaml
+infra/helm/infra/values.prod.yaml
