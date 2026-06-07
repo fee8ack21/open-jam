@@ -5,20 +5,17 @@ metadata:
   name: {{ include "open-jam-infra.fullname" . }}
   labels:
     {{- include "open-jam-infra.labels" . | nindent 4 }}
-  {{- if or .Values.ingress.staticIpName .Values.certManager.enabled .Values.ingress.annotations }}
   annotations:
+    # GKE 內建 GCE Ingress controller 不採用 spec.ingressClassName，
+    # 而是依此 annotation 判斷（gce = 外部 ALB，gce-internal = 內部 ALB）
+    kubernetes.io/ingress.class: {{ .Values.ingress.className | quote }}
     {{- if .Values.ingress.staticIpName }}
     kubernetes.io/ingress.global-static-ip-name: {{ .Values.ingress.staticIpName | quote }}
-    {{- end }}
-    {{- if .Values.certManager.enabled }}
-    cert-manager.io/cluster-issuer: {{ .Values.certManager.clusterIssuerName | quote }}
     {{- end }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-  {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
   tls:
     - secretName: {{ .Values.ingress.tls.secretName }}
       hosts:
