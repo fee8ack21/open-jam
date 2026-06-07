@@ -1,6 +1,7 @@
 using Bootstrap.Seeders;
 using EmailService.Data;
 using EmailService.Services;
+using EmailService.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
