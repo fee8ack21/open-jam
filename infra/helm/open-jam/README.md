@@ -27,7 +27,7 @@ docker build -f docs/Dockerfile               -t open-jam/docs:latest          d
 ### 2. 安裝 Chart
 
 ```bash
-helm install open-jam infra/helm \
+helm install open-jam infra/helm/open-jam \
   --namespace open-jam --create-namespace \
   --set secrets.postgres.password=<強密碼> \
   --set secrets.redis.password=<強密碼> \
@@ -41,7 +41,7 @@ helm install open-jam infra/helm \
 ### 3. 升級
 
 ```bash
-helm upgrade open-jam infra/helm \
+helm upgrade open-jam infra/helm/open-jam \
   --namespace open-jam \
   -f my-values.yaml
 ```
@@ -91,7 +91,7 @@ helm uninstall open-jam --namespace open-jam
 ## 目錄結構
 
 ```
-infra/helm/
+infra/helm/open-jam/
 ├── Chart.yaml
 ├── values.yaml
 └── templates/
@@ -112,6 +112,8 @@ infra/helm/
     ├── docs/             deployment.yaml · service.yaml
     └── bootstrap/        job.yaml
 ```
+
+> **Ingress / TLS（GKE Ingress、cert-manager + Let's Encrypt）已拆分至獨立的 [`infra`](../infra) chart**，與本 chart 分開管理生命週期（`ClusterIssuer` 為叢集級資源，不適合綁在 namespace 範圍的應用 release 上）。請先部署本 chart，再部署 `infra/helm/infra`（其 Ingress backend 會指向本 release 建立的 Service）。
 
 ---
 
@@ -255,4 +257,4 @@ infra/helm/
          memory: 512Mi
    ```
 
-5. **Ingress**：Chart 目前未包含 Ingress 資源，請依使用的 Ingress Controller 自行建立，將流量導向各 Service。
+5. **Ingress / TLS**：本 chart 不含 Ingress 資源，請另外部署 [`infra/helm/infra`](../infra) chart（GKE Ingress + cert-manager / Let's Encrypt wildcard 憑證），其 backend Service 會指向本 release 建立的 Service，需部署於同一 namespace。

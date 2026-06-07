@@ -1,0 +1,12 @@
+apiVersion: v2
+name: open-jam-infra
+description: Open Jam 叢集層基礎設施 Helm Chart（GKE Ingress、cert-manager / Let's Encrypt）
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - open-jam
+  - ingress
+  - cert-manager
+  - lets-encrypt
+home: https://openjam.co

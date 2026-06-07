@@ -1,0 +1,26 @@
+{{- if .Values.certManager.enabled }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.certManager.clusterIssuerName }}
+  labels:
+    {{- include "open-jam-infra.labels" . | nindent 4 }}
+spec:
+  acme:
+    server: {{ .Values.certManager.acmeServer | quote }}
+    email: {{ .Values.certManager.email | quote }}
+    privateKeySecretRef:
+      name: {{ printf "%s-account-key" .Values.certManager.clusterIssuerName }}
+    solvers:
+      - dns01:
+          # ClusterIssuer 為叢集級資源，apiTokenSecretRef 會在 cert-manager 所在
+          # namespace（預設 cert-manager，由其 --cluster-resource-namespace 決定）
+          # 中查找，請確認該 Secret 已建立於正確 namespace。
+          cloudflare:
+            apiTokenSecretRef:
+              name: {{ .Values.certManager.cloudflare.apiTokenSecretName }}
+              key: {{ .Values.certManager.cloudflare.apiTokenSecretKey }}
+        selector:
+          dnsZones:
+            - {{ .Values.certManager.dnsZone | quote }}
+{{- end }}

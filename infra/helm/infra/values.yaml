@@ -1,0 +1,59 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# ── Ingress（GKE）────────────────────────────────────────────────────────────
+# 以 GKE 原生 Ingress（GCE Ingress Controller）做 host 路由，
+# wildcard `*.openjam.co`（除已列出的固定子網域外）導向 creator-web。
+#
+# 注意：Ingress 的 backend Service 須與 Ingress 同 namespace，且本 chart 與
+# open-jam 應用 chart 為各自獨立的 release，因此以下直接填入「open-jam chart
+# 實際建立的 Service 名稱」（預設對應 release name = open-jam 的命名慣例：
+# <release>-<component>）。若 release 名稱不同，請對應調整。
+# `api.openjam.co` 對應 docs/infra.md 所述「功能 API」服務，目前 chart 中尚無
+# 對應元件，請依實際部署的 Service 名稱調整 serviceName。
+
+ingress:
+  enabled: false
+  className: gce
+  # GKE 全域靜態 IP 名稱（gcloud compute addresses create ... --global）
+  staticIpName: ""
+  annotations: {}
+  tls:
+    # cert-manager 簽發的 wildcard 憑證會寫入此 Secret（需與 certManager.dnsNames 對應）
+    secretName: open-jam-tls
+  hosts:
+    - host: openjam.co
+      serviceName: open-jam-market-web
+    - host: auth.openjam.co
+      serviceName: open-jam-auth
+    - host: workspace.openjam.co
+      serviceName: open-jam-workspace-web
+    - host: api.openjam.co
+      serviceName: open-jam-api
+    - host: "*.openjam.co"
+      serviceName: open-jam-creator-web
+
+# ── TLS 憑證（cert-manager + Let's Encrypt）───────────────────────────────────
+# 透過 Cloudflare DNS-01 challenge 簽發 / 續期 wildcard 憑證，涵蓋所有子網域。
+#
+# 前置需求：
+#   - 叢集已安裝 cert-manager（含 CRDs）
+#   - 已建立內含 Cloudflare API Token 的 Secret（見 cloudflare.apiTokenSecretName，
+#     建議由 External Secrets Operator 從 GCP Secret Manager 同步，避免明文進 git）
+#
+# 注意：ClusterIssuer 為叢集級資源（非 namespaced）；Certificate 為 namespaced
+# 資源，會與本 chart（Ingress）部署於同一 release namespace（helm install -n ...），
+# 確保與 TLS Secret / Ingress 對齊。
+
+certManager:
+  enabled: false
+  acmeServer: https://acme-v02.api.letsencrypt.org/directory
+  email: ""
+  clusterIssuerName: letsencrypt-cloudflare
+  dnsZone: openjam.co
+  dnsNames:
+    - openjam.co
+    - "*.openjam.co"
+  cloudflare:
+    apiTokenSecretName: cloudflare-api-token
+    apiTokenSecretKey: api-token

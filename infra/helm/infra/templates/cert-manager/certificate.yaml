@@ -1,0 +1,17 @@
+{{- if and .Values.certManager.enabled .Values.ingress.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "open-jam-infra.fullname" . }}-wildcard
+  labels:
+    {{- include "open-jam-infra.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.ingress.tls.secretName }}
+  issuerRef:
+    name: {{ .Values.certManager.clusterIssuerName }}
+    kind: ClusterIssuer
+  dnsNames:
+    {{- range .Values.certManager.dnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+{{- end }}
