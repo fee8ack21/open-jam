@@ -90,3 +90,85 @@
 - 每月流量評估。
 - 成本計算（GKE 資源、Cloud SQL、GCS / Cloud CDN、Transcoder 用量）。
 - 規格評估（node 規格、DB 規格）。
+
+## 部署流程（Runbook）
+
+以下記錄正式環境（GKE）從零部署的可重現步驟，依目前已驗證可行的順序排列。
+
+### 1. Cloudflare 購買網域並設定 DNS
+
+1. 於 Cloudflare 購買網域 **openjam.co**。
+2. 先建立暫定 DNS 記錄（待第 4 步取得 GCLB 外部 IP 後回填正確值）：
+   - `openjam.co`（A）
+   - `*.openjam.co`（A，wildcard，涵蓋 `auth` / `workspace` / `docs` / `<creator>` 等子網域）
+3. **Proxy 狀態請設為「僅 DNS」（灰雲）**：cert-manager 走 Cloudflare DNS-01 challenge 簽發憑證、且 GKE Ingress 本身已處理 TLS，若開啟 Cloudflare Proxy（橘雲）會干擾驗證與憑證綁定。
+
+### 2. 建立 GKE 叢集與全域靜態 IP
+
+```bash
+# 建立 GKE 叢集（依規格評估調整 node pool，省略細節）
+gcloud container clusters create open-jam ...
+
+# 建立全域靜態 IP，供 GCE Ingress 使用
+gcloud compute addresses create open-jam-ip --global
+```
+
+### 3. 部署 open-jam 應用 chart
+
+```bash
+helm install open-jam infra/helm/open-jam \
+  --namespace open-jam --create-namespace \
+  -f infra/helm/open-jam/values.prod.yaml
+```
+
+> `infra` chart 的 Ingress 直接以 Service 名稱（`open-jam-<component>`）指向本 release 建立的 backend，故須先部署本 chart。
+
+### 4. 建立 Cloudflare API Token Secret 並部署 infra chart（Ingress + cert-manager）
+
+```bash
+# Token 需具備該 zone 的 Zone:DNS:Edit 權限；ClusterIssuer 為叢集級資源，
+# cert-manager 會在其自身所在 namespace（預設 cert-manager）查找此 Secret
+kubectl create secret generic cloudflare-api-token \
+  --namespace cert-manager \
+  --from-literal=api-token=<Cloudflare API Token>
+
+helm install open-jam-infra infra/helm/infra \
+  --namespace open-jam \
+  --set ingress.enabled=true \
+  --set ingress.staticIpName=open-jam-ip \
+  --set certManager.enabled=true \
+  --set certManager.email=support@openjam.co
+```
+
+### 5. 取得外部 IP，回填 Cloudflare DNS
+
+```bash
+kubectl get ingress -n open-jam
+```
+
+將第 1 步建立的 `openjam.co` / `*.openjam.co` A 記錄指向此處取得的外部 IP（應與 `open-jam-ip` 相同）。
+
+### 6. 驗證 cert-manager 簽發 wildcard 憑證
+
+```bash
+kubectl get certificate -n open-jam
+kubectl describe certificaterequest -n open-jam
+```
+
+確認 `letsencrypt-cloudflare` ClusterIssuer 透過 DNS-01 challenge 成功簽出涵蓋 `openjam.co` / `*.openjam.co` 的憑證，並寫入 `open-jam-tls` Secret。
+
+### 7. 已知問題與排查紀錄
+
+部署過程中遇到並修正的問題，記錄於此供日後重建環境時參考：
+
+| 問題 | 原因 | 解法 |
+|------|------|------|
+| GKE Ingress 路由未生效 | GKE 內建 GCE Ingress controller 不採用 `spec.ingressClassName`，須改用 `kubernetes.io/ingress.class` annotation（`gce` / `gce-internal`） | 改以 annotation 指定 ingress class（見 `infra/helm/infra/templates/ingress/ingress.yaml`） |
+| Auth 服務 502 Bad Gateway | GCLB 預設探測 `/` 且僅接受 200，但 Auth（MVC）的 `/` 會 302 導向 `/login`，被判定 UNHEALTHY | 新增 `BackendConfig`，將健康檢查路徑改為固定回 200 的 `/favicon.ico`，並透過 `cloud.google.com/backend-config` annotation 套用至 Service（見 `infra/helm/open-jam/templates/auth/backend-config.yaml`） |
+| RabbitMQ Pod 啟動後被誤判 unhealthy 而重啟 | liveness probe 時間門檻過緊，叢集啟動較慢時來不及就緒 | 放寬 `livenessProbe`（`initialDelaySeconds: 90`、`periodSeconds: 20`、`timeoutSeconds: 10`、`failureThreshold: 6`），並將 `virtualHost` 改回預設值 `/` 以符合服務連線設定 |
+| `api.openjam.co` 路由 | 對應「功能 API」服務尚未就緒 | 暫時於 `infra/helm/infra/values.prod.yaml` 中註解該 host 路由，待服務部署後再啟用 |
+
+### 後續待辦
+
+- `api.openjam.co`：待「功能 API」服務的 Helm chart / Service 就緒後，於 `infra/helm/infra/values.prod.yaml` 取消該路由的註解並調整 `serviceName`。
+- 將 Cloudflare API Token 與其他正式環境機密改由 External Secrets Operator 從 GCP Secret Manager 同步，避免明文存於 git（見上方「Secrets 管理」）。
