@@ -36,9 +36,10 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+              subPath: postgres
             - name: init-sql
-              mountPath: /docker-entrypoint-initdb.d
-              readOnly: true
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
           readinessProbe:
             exec:
               command: ["pg_isready", "-U", {{ .Values.postgres.user | quote }}]
