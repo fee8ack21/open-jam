@@ -4,7 +4,7 @@ fullnameOverride: ""
 # ── 全域 URL 設定 ─────────────────────────────────────────────────────────────
 config:
   externalUrl: "https://openjam.co/"
-  authPageUrl: "https://openjam.co/auth/"
+  authPageUrl: "https://auth.openjam.co/"
 
 # 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
 dbNamePrefix: open_jam
