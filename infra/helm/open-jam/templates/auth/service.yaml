@@ -6,6 +6,8 @@ metadata:
   labels:
     {{- include "open-jam.labels" . | nindent 4 }}
     app.kubernetes.io/component: auth
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"8080": "{{ include "open-jam.fullname" . }}-auth"}}'
 spec:
   ports:
     - port: 8080

@@ -1,0 +1,16 @@
+{{- if .Values.auth.enabled }}
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: {{ include "open-jam.fullname" . }}-auth
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: auth
+spec:
+  # GCLB 預設對 / 探測且僅接受 200，但 Auth（MVC）的 / 會 302 導向 /login，
+  # 導致健康檢查判定為 UNHEALTHY、Ingress 回 502 Bad Gateway。
+  # 改探測一律回 200 的靜態資源路徑。
+  healthCheck:
+    requestPath: /favicon.ico
+    port: 8080
+{{- end }}
