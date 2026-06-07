@@ -30,6 +30,8 @@ ingress:
       serviceName: open-jam-workspace-web
     - host: api.openjam.co
       serviceName: open-jam-api
+    - host: docs.openjam.co
+      serviceName: open-jam-docs
     - host: "*.openjam.co"
       serviceName: open-jam-creator-web
 
