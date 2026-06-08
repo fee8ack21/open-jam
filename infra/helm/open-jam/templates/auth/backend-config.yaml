@@ -9,8 +9,8 @@ metadata:
 spec:
   # GCLB 預設對 / 探測且僅接受 200，但 Auth（MVC）的 / 會 302 導向 /login，
   # 導致健康檢查判定為 UNHEALTHY、Ingress 回 502 Bad Gateway。
-  # 改探測一律回 200 的靜態資源路徑。
+  # 改探測 /healthz（與 K8s readiness/liveness probe 共用，固定回 200）。
   healthCheck:
-    requestPath: /favicon.ico
+    requestPath: /healthz
     port: 8080
 {{- end }}

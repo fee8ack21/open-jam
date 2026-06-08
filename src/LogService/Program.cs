@@ -66,5 +66,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// K8s liveness/readiness probe 用
+app.MapGet("/healthz", () => Results.Ok());
+
 app.MapControllers();
 app.Run();

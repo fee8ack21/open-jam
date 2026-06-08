@@ -53,4 +53,20 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - >
+              /wait-for-it.sh {{ include "open-jam.postgresHost" . }}:5432 --timeout=60 --strict &&
+              /wait-for-it.sh {{ include "open-jam.rabbitmqHost" . }}:5672 --timeout=60 --strict &&
+              dotnet EmailService.dll
+          volumeMounts:
+            - name: wait-for-it
+              mountPath: /wait-for-it.sh
+              subPath: wait-for-it.sh
+      volumes:
+        - name: wait-for-it
+          configMap:
+            name: {{ include "open-jam.fullname" . }}-wait-for-it
+            defaultMode: 0755
 {{- end }}

@@ -26,6 +26,8 @@ spec:
             - redis-server
             - "--requirepass"
             - "$(REDIS_PASSWORD)"
+            - "--loglevel"
+            - "warning"
           env:
             - name: REDIS_PASSWORD
               valueFrom:
@@ -35,6 +37,10 @@ spec:
           ports:
             - containerPort: 6379
               name: redis
+          {{- with .Values.redis.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: data
               mountPath: /data

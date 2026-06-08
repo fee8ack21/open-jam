@@ -31,6 +31,13 @@ postgres:
     enabled: true
     storageClass: ""
     size: 10Gi
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
 
 redis:
   enabled: true
@@ -39,6 +46,13 @@ redis:
     enabled: true
     storageClass: ""
     size: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 rabbitmq:
   enabled: true
@@ -49,6 +63,13 @@ rabbitmq:
     enabled: true
     storageClass: ""
     size: 2Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 hydra:
   enabled: true
@@ -64,11 +85,25 @@ hydra:
     subjectIdentifiers: "pairwise,public"
   cors:
     allowedOrigins: "*"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 # Mailpit：本地 / Staging 用；Production 請設 enabled: false 並配置外部 SMTP
 mailpit:
   enabled: true
   image: axllent/mailpit:latest
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
 
 smtp:
   # 若 mailpit.enabled=true 則以下設定自動被 mailpit service 覆蓋
@@ -86,7 +121,13 @@ auth:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
-  resources: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
 
 logService:
   enabled: true
@@ -95,7 +136,13 @@ logService:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
-  resources: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
 
 emailService:
   enabled: true
@@ -104,7 +151,13 @@ emailService:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
-  resources: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
 
 creatorWeb:
   enabled: true
@@ -113,7 +166,13 @@ creatorWeb:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
-  resources: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
 
 marketWeb:
   enabled: true
@@ -122,7 +181,13 @@ marketWeb:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
-  resources: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
 
 workspaceWeb:
   enabled: true
@@ -131,7 +196,13 @@ workspaceWeb:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
-  resources: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
 
 docs:
   enabled: true
@@ -140,7 +211,13 @@ docs:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
-  resources: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
 
 # ── One-time Seed Job ─────────────────────────────────────────────────────────
 
@@ -151,3 +228,10 @@ bootstrap:
     tag: latest
     pullPolicy: IfNotPresent
   ttlSecondsAfterFinished: 300
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi

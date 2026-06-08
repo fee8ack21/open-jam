@@ -68,6 +68,9 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
+// K8s liveness/readiness probe 用，固定回 200，避免 MVC `/` 302 導頁誤判為 unhealthy
+app.MapGet("/healthz", () => Results.Ok());
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

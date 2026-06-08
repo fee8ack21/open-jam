@@ -26,6 +26,10 @@ spec:
               name: smtp
             - containerPort: 8025
               name: ui
+          {{- with .Values.mailpit.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           readinessProbe:
             httpGet:
               path: /

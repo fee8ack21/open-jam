@@ -31,4 +31,8 @@ spec:
                   key: email-service-connection-string
             - name: Hydra__AdminUrl
               value: {{ include "open-jam.hydraAdminUrl" . | quote }}
+          {{- with .Values.bootstrap.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 {{- end }}
