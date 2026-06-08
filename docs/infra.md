@@ -116,31 +116,47 @@ gcloud compute addresses create open-jam-ip --global
 ### 3. 部署 open-jam 應用 chart
 
 ```bash
-helm install open-jam infra/helm/open-jam \
-  --namespace open-jam --create-namespace \
+helm upgrade --install open-jam infra/helm/open-jam `
+  --namespace open-jam `
+  --create-namespace `
   -f infra/helm/open-jam/values.prod.yaml
 ```
 
 > `infra` chart 的 Ingress 直接以 Service 名稱（`open-jam-<component>`）指向本 release 建立的 backend，故須先部署本 chart。
 
-### 4. 建立 Cloudflare API Token Secret 並部署 infra chart（Ingress + cert-manager）
+### 4. 安裝 cert-manager
+
+`infra` chart 的 `ClusterIssuer` / `Certificate` 依賴叢集已安裝 cert-manager（含 CRDs）。以官方 Helm chart 安裝至獨立的 `cert-manager` namespace（與應用 release 分開管理生命週期）：
+
+```bash
+helm repo add jetstack https://charts.jetstack.io
+helm repo update jetstack
+
+helm install cert-manager jetstack/cert-manager `
+  --namespace cert-manager `
+  --create-namespace `
+  --version v1.20.2 `
+  --set crds.enabled=true
+```
+
+> 若叢集中已殘留同名孤兒 CRD / webhook（例如 namespace 曾被直接刪除而非 `helm uninstall`），只要沿用相同的 release 名稱（`cert-manager`）與 namespace（`cert-manager`），Helm 會辨識既有資源上的 `meta.helm.sh/release-name` 標記並接管（adopt），而非報錯衝突。
+
+### 5. 建立 Cloudflare API Token Secret 並部署 infra chart（Ingress + cert-manager）
 
 ```bash
 # Token 需具備該 zone 的 Zone:DNS:Edit 權限；ClusterIssuer 為叢集級資源，
 # cert-manager 會在其自身所在 namespace（預設 cert-manager）查找此 Secret
-kubectl create secret generic cloudflare-api-token \
-  --namespace cert-manager \
+kubectl create secret generic cloudflare-api-token `
+  --namespace cert-manager `
   --from-literal=api-token=<Cloudflare API Token>
 
-helm install open-jam-infra infra/helm/infra \
-  --namespace open-jam \
-  --set ingress.enabled=true \
-  --set ingress.staticIpName=open-jam-ip \
-  --set certManager.enabled=true \
-  --set certManager.email=support@openjam.co
+helm upgrade --install open-jam-infra infra/helm/infra `
+  --namespace open-jam `
+  --create-namespace `
+  -f infra/helm/infra/values.prod.yaml
 ```
 
-### 5. 取得外部 IP，回填 Cloudflare DNS
+### 6. 取得外部 IP，回填 Cloudflare DNS
 
 ```bash
 kubectl get ingress -n open-jam
@@ -148,7 +164,7 @@ kubectl get ingress -n open-jam
 
 將第 1 步建立的 `openjam.co` / `*.openjam.co` A 記錄指向此處取得的外部 IP（應與 `open-jam-ip` 相同）。
 
-### 6. 驗證 cert-manager 簽發 wildcard 憑證
+### 7. 驗證 cert-manager 簽發 wildcard 憑證
 
 ```bash
 kubectl get certificate -n open-jam
@@ -157,7 +173,7 @@ kubectl describe certificaterequest -n open-jam
 
 確認 `letsencrypt-cloudflare` ClusterIssuer 透過 DNS-01 challenge 成功簽出涵蓋 `openjam.co` / `*.openjam.co` 的憑證，並寫入 `open-jam-tls` Secret。
 
-### 7. 已知問題與排查紀錄
+### 8. 已知問題與排查紀錄
 
 部署過程中遇到並修正的問題，記錄於此供日後重建環境時參考：
 
