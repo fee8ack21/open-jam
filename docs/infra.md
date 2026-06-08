@@ -173,7 +173,55 @@ kubectl describe certificaterequest -n open-jam
 
 確認 `letsencrypt-cloudflare` ClusterIssuer 透過 DNS-01 challenge 成功簽出涵蓋 `openjam.co` / `*.openjam.co` 的憑證，並寫入 `open-jam-tls` Secret。
 
-### 8. 已知問題與排查紀錄
+### 8. 移除資源（Teardown）
+
+依序刪除，避免殘留 finalizer 卡住 namespace 刪除：
+
+```bash
+# 1. 刪 Open Jam Helm Release
+helm uninstall open-jam -n open-jam
+helm uninstall open-jam-infra -n open-jam
+
+# 確認
+kubectl get all -n open-jam
+```
+
+```bash
+# 2. 刪 cert-manager 資源
+kubectl delete certificate --all -n open-jam
+kubectl delete certificaterequest --all -n open-jam
+kubectl delete order --all -n open-jam
+kubectl delete challenge --all -n open-jam
+```
+
+如果 Challenge 卡住，編輯該資源移除 finalizer：
+
+```bash
+kubectl edit challenge <name> -n open-jam
+```
+
+刪除以下欄位：
+
+```yaml
+finalizers:
+- acme.cert-manager.io/finalizer
+```
+
+```bash
+# 3. 刪 Secret
+kubectl delete secret open-jam-tls -n open-jam
+kubectl delete secret cloudflare-api-token -n open-jam
+```
+
+```bash
+# 4. 刪 Namespace（最後才刪）
+kubectl delete namespace open-jam
+
+# 確認沒有 open-jam
+kubectl get ns
+```
+
+### 9. 已知問題與排查紀錄
 
 部署過程中遇到並修正的問題，記錄於此供日後重建環境時參考：
 
