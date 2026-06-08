@@ -26,8 +26,5 @@ spec:
           args: ["migrate", "sql", "-e", "--yes"]
           env:
             - name: DSN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "open-jam.secretName" . }}
-                  key: hydra-dsn
+              value: {{ printf "postgres://%s:%s@%s:5432/%s_hydra" .Values.postgres.user .Values.secrets.postgres.password (include "open-jam.postgresHost" .) .Values.dbNamePrefix | quote }}
 {{- end }}
