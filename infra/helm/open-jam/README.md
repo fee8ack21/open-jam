@@ -14,14 +14,14 @@ Open Jam 台灣數位商品平台的 Kubernetes 部署套件，對應 `infra/doc
 
 ```bash
 # 從專案根目錄執行
-docker build -f src/Auth/Dockerfile        -t open-jam/auth:v0.0.3        src/
-docker build -f src/LogService/Dockerfile  -t open-jam/log-service:v0.0.2 src/
-docker build -f src/EmailService/Dockerfile -t open-jam/email-service:v0.0.2 src/
-docker build -f src/Bootstrap/Dockerfile   -t open-jam/bootstrap:v0.0.4   src/
-docker build -f apps/creator-web/Dockerfile   -t open-jam/creator-web:v0.0.2   apps/creator-web/
-docker build -f apps/market-web/Dockerfile    -t open-jam/market-web:v0.0.2    apps/market-web/
-docker build -f apps/workspace-web/Dockerfile -t open-jam/workspace-web:v0.0.2 apps/workspace-web/
-docker build -f docs/Dockerfile               -t open-jam/docs:v0.0.2          docs/
+docker build -f src/Auth/Dockerfile        -t open-jam/auth:latest        src/
+docker build -f src/LogService/Dockerfile  -t open-jam/log-service:latest src/
+docker build -f src/EmailService/Dockerfile -t open-jam/email-service:latest src/
+docker build -f src/Bootstrap/Dockerfile   -t open-jam/bootstrap:latest   src/
+docker build -f apps/creator-web/Dockerfile   -t open-jam/creator-web:latest   apps/creator-web/
+docker build -f apps/market-web/Dockerfile    -t open-jam/market-web:latest    apps/market-web/
+docker build -f apps/workspace-web/Dockerfile -t open-jam/workspace-web:latest apps/workspace-web/
+docker build -f docs/Dockerfile               -t open-jam/docs:latest          docs/
 ```
 
 ### 2. 安裝 Chart
