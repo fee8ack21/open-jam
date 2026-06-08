@@ -23,6 +23,10 @@ spec:
           image: {{ printf "%s:%s" .Values.emailService.image.repository .Values.emailService.image.tag | quote }}
           imagePullPolicy: {{ .Values.emailService.image.pullPolicy }}
           env:
+            - name: Logging__LogLevel__Default
+              value: "Warning"
+            - name: Logging__LogLevel__Microsoft
+              value: "Warning"
             - name: ConnectionStrings__Postgres
               valueFrom:
                 secretKeyRef:
