@@ -53,6 +53,10 @@ rabbitmq:
 hydra:
   enabled: true
   image: oryd/hydra:v2.2
+  migrateJob:
+    enabled: true
+    ttlSecondsAfterFinished: 300
+    backoffLimit: 10
   ttl:
     authCode: "10m"
     loginConsentRequest: "10m"

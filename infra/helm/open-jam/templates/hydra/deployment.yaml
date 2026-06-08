@@ -18,16 +18,6 @@ spec:
         {{- include "open-jam.labels" . | nindent 8 }}
         app.kubernetes.io/component: hydra
     spec:
-      initContainers:
-        - name: hydra-migrate
-          image: {{ .Values.hydra.image }}
-          args: ["migrate", "sql", "-e", "--yes"]
-          env:
-            - name: DSN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "open-jam.secretName" . }}
-                  key: hydra-dsn
       containers:
         - name: hydra
           image: {{ .Values.hydra.image }}
