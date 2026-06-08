@@ -57,7 +57,7 @@ spec:
             - name: SERVE_PUBLIC_CORS_ALLOWED_ORIGINS
               value: {{ .Values.hydra.cors.allowedOrigins | quote }}
             - name: LOG_LEVEL
-              value: info
+              value: warn
           ports:
             - containerPort: 4444
               name: public
