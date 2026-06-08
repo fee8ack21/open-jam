@@ -34,6 +34,8 @@ spec:
               value: "Warning"
             - name: Logging__LogLevel__Microsoft
               value: "Warning"
+            - name: Logging__LogLevel__Microsoft.Hosting.Lifetime
+              value: "Warning"
             - name: ConnectionStrings__Postgres
               valueFrom:
                 secretKeyRef:
