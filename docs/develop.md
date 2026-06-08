@@ -106,6 +106,8 @@ chore(release): 發佈新版本
 
 > 服務名稱對應：`.csproj` 專案名稱（如 `EmailService`）轉為 kebab-case（`email-service`）；`package.json` 的 `name` 欄位（如 `open-jam-docs`）統一以 `docs` 表示。
 
+> **不必每次都全服務升版**：條列清單只列出「自上次升版以來確實有異動」的服務，逐一比對該服務目錄自己上次版本提交至今的 `git log`。也要留意**間接異動**——若 `Shared/`（或其他共用類別庫）在此期間有變更，所有引用它的服務即視為有異動，即便該服務自身檔案未動到。
+
 ## 後端注意事項
 
 - **列表 API 分頁採 `offset` / `limit`**（非 `page` / `rowsPerPage`）。
