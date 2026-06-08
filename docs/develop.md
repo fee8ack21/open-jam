@@ -32,6 +32,80 @@ infra/
 docs/
 ```
 
+## Commit 規範
+
+採用 [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) 規範。
+
+### 格式
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Type 列表
+
+| Type | 用途 |
+|------|------|
+| `feat` | 新功能（SemVer MINOR） |
+| `fix` | 修正錯誤（SemVer PATCH） |
+| `refactor` | 既非修正也非新增功能的程式碼異動 |
+| `docs` | 僅文件異動 |
+| `style` | 格式調整、補分號等（不影響邏輯） |
+| `test` | 新增或修正測試 |
+| `chore` | 建置流程、工具鏈、依賴套件升級 |
+| `ci` | CI/CD 設定 |
+| `perf` | 效能優化 |
+| `build` | 影響建置系統的異動 |
+
+### 規則
+
+1. Type 必填，須為名詞（`feat`、`fix` 等）。
+2. Scope 選填，以括號標註受影響範圍，例如 `feat(auth):`。
+3. type/scope 後須接冒號與空白。
+4. Description 必填，使用祈使句簡述異動內容。
+5. Body 選填，與 description 間以一行空白分隔。
+6. Footer 選填，與 body 間以一行空白分隔。
+7. 重大變更：在冒號前加 `!` 與／或在 footer 加註 `BREAKING CHANGE: <description>`。
+8. `BREAKING CHANGE` 須全大寫；其餘關鍵字大小寫不拘。
+
+### 範例
+
+```
+feat(auth): 新增信箱驗證流程
+
+fix(log): 修正分頁查詢邊界條件造成的例外
+
+refactor(shared): 重構 OutboxRelayService 排程邏輯
+
+chore: 升級 dotnet 至 8.0.6
+
+docs(infra): 補充正式環境部署 Runbook
+```
+
+### Release Commit
+
+跨服務統一升版時，使用固定 subject `chore(release): 發佈新版本`，body 以 `service-name@version`（kebab-case）條列各服務異動版本，不使用敘述段落：
+
+```
+chore(release): 發佈新版本
+
+- auth@0.0.2
+- bootstrap@0.0.3
+- email-service@0.0.2
+- log-service@0.0.2
+- storage-service@0.0.2
+- creator-web@0.0.2
+- market-web@0.0.2
+- workspace-web@0.0.2
+- docs@0.0.2
+```
+
+> 服務名稱對應：`.csproj` 專案名稱（如 `EmailService`）轉為 kebab-case（`email-service`）；`package.json` 的 `name` 欄位（如 `open-jam-docs`）統一以 `docs` 表示。
+
 ## 後端注意事項
 
 - **列表 API 分頁採 `offset` / `limit`**（非 `page` / `rowsPerPage`）。
