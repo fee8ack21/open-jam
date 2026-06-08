@@ -160,12 +160,13 @@ public class UserService(
         var tokenStr  = GenerateToken();
         var baseUrl   = appOptions.Value.BaseUrl.TrimEnd('/');
         var verifyUrl = $"{baseUrl}/verify-email?token={tokenStr}";
+        var expiresIn = TimeSpan.FromHours(24);
 
         var token = new EmailVerificationToken
         {
             UserId    = userId,
             Token     = tokenStr,
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+            ExpiresAt = DateTimeOffset.UtcNow.Add(expiresIn),
         };
 
         var outbox = new OutboxMessage { EventType = "email.verification" };
@@ -173,7 +174,7 @@ public class UserService(
             OutboxMessageId: outbox.Id,
             To:              email,
             TemplateKey:     "email.verification",
-            Params:          new() { ["VerifyUrl"] = verifyUrl, ["ExpiresInHours"] = "24" },
+            Params:          new() { ["activation_url"] = verifyUrl, ["expires_in_hours"] = expiresIn.TotalHours.ToString("0") },
             Locale:          "zh-TW",
             EventType:       "email.verification"
         ));
@@ -186,12 +187,13 @@ public class UserService(
         var tokenStr = GenerateToken();
         var baseUrl  = appOptions.Value.BaseUrl.TrimEnd('/');
         var resetUrl = $"{baseUrl}/reset?token={tokenStr}";
+        var expiresIn = TimeSpan.FromMinutes(30);
 
         var token = new PasswordResetToken
         {
             UserId    = userId,
             Token     = tokenStr,
-            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30),
+            ExpiresAt = DateTimeOffset.UtcNow.Add(expiresIn),
         };
 
         var outbox = new OutboxMessage { EventType = "email.password_reset" };
@@ -199,7 +201,7 @@ public class UserService(
             OutboxMessageId: outbox.Id,
             To:              email,
             TemplateKey:     "email.password_reset",
-            Params:          new() { ["ResetUrl"] = resetUrl, ["ExpiresInHours"] = "0.5" },
+            Params:          new() { ["reset_url"] = resetUrl, ["expires_in_minutes"] = expiresIn.TotalMinutes.ToString("0") },
             Locale:          "zh-TW",
             EventType:       "email.password_reset"
         ));
