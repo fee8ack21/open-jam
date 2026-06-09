@@ -1,6 +1,7 @@
 <script>
 import { ref } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useAuthStore } from '@/stores/auth'
 import { JFmt } from '@/utils/format'
 import { ME } from '@/data'
 
@@ -21,8 +22,10 @@ export default {
   name: 'App',
   setup() {
     const store = useDashboardStore()
+    const authStore = useAuthStore()
     return {
       store,
+      authStore,
       tweaksOpen: ref(false),
       drawerOpen: ref(false),
       userMenuOpen: ref(false),
@@ -174,15 +177,15 @@ export default {
                 <transition name="um">
                   <div v-if="userMenuOpen" class="user-pop">
                     <div class="um-head">
-                      <span class="avatar" :style="{ background: me.avatar }">{{ initials(me.name) }}</span>
+                      <span class="avatar" :style="{ background: me.avatar }">{{ initials(authStore.userName ?? me.name) }}</span>
                       <div style="min-width:0;">
-                        <div class="um-name">{{ me.name }}</div>
-                        <div class="um-handle">{{ me.handle }}</div>
+                        <div class="um-name">{{ authStore.userName ?? me.name }}</div>
+                        <div class="um-handle">{{ authStore.userEmail ?? me.handle }}</div>
                       </div>
                     </div>
                     <div class="um-sep"></div>
                     <button class="um-item" @click="nav('settings'); userMenuOpen = false"><j-icon name="gear" :size="17" /> 帳號設定</button>
-                    <button class="um-item danger" @click="userMenuOpen = false"><j-icon name="logout" :size="17" /> 登出</button>
+                    <button class="um-item danger" @click="authStore.logout()"><j-icon name="logout" :size="17" /> 登出</button>
                   </div>
                 </transition>
               </div>

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.js'
 
 const routes = [
   { path: '/', name: 'overview', component: () => import('@/views/OverviewView.vue'), meta: { title: '儀表板' } },
@@ -15,6 +16,20 @@ export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior() { return { top: 0 } },
+})
+
+let userLoaded = false
+
+router.beforeEach(async () => {
+  const auth = useAuthStore()
+  if (!userLoaded) {
+    await auth.getUserIdentity()
+    userLoaded = true
+  }
+  if (!auth.isAuthenticated) {
+    auth.login(window.location.href)
+    return false
+  }
 })
 
 export default router
