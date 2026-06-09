@@ -1,18 +1,24 @@
-<script setup>
+<script setup lang="ts">
 /* ============================================================
    ProductThumb — vibrant gradient + halftone placeholder thumb
    Registered globally as <product-thumb>.
    ============================================================ */
 import { computed } from 'vue';
-import { CATEGORIES } from '@/data/catalogue.js';
+import { CATEGORIES, type Product } from '@/data/catalogue.js';
 
-const props = defineProps({
-  product: Object,
-  label: { type: String, default: '' },
-  glyphSize: { type: Number, default: 64 },
-  showCat: { type: Boolean, default: true },
-  hideLabel: { type: Boolean, default: false },
-  seed: { type: Number, default: 0 },
+const props = withDefaults(defineProps<{
+  product: Product;
+  label?: string;
+  glyphSize?: number;
+  showCat?: boolean;
+  hideLabel?: boolean;
+  seed?: number;
+}>(), {
+  label: '',
+  glyphSize: 64,
+  showCat: true,
+  hideLabel: false,
+  seed: 0,
 });
 
 const hue = computed(() => (props.product.hue + props.seed * 22) % 360);
@@ -29,7 +35,10 @@ const catGlyph = computed(() => {
   const c = CATEGORIES.find((c) => c.id === props.product.cat);
   return c ? c.glyph : 'image';
 });
-const catLabel = computed(() => ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' }[props.product.cat] || ''));
+const catLabel = computed((): string => {
+  const map: Record<string, string> = { music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' };
+  return map[props.product.cat] ?? '';
+});
 const autoLabel = computed(() => props.label || `${props.product.formats[0]} · ${props.product.totalSize}`);
 </script>
 

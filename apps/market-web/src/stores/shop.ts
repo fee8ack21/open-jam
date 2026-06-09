@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
 
-const load = (k, fb) => {
+type Font = 'sora' | 'grotesk';
+
+const load = (k: string, fb: Font): Font => {
   try {
     const v = localStorage.getItem('openjam.shop.' + k);
-    return v ? JSON.parse(v) : fb;
+    return v ? (JSON.parse(v) as Font) : fb;
   } catch {
     return fb;
   }
@@ -11,10 +13,10 @@ const load = (k, fb) => {
 
 export const useShopStore = defineStore('shop', {
   state: () => ({
-    font: load('font', 'sora'), // 'sora' (Bricolage) | 'grotesk' (Unbounded)
+    font: load('font', 'sora'),
   }),
   actions: {
-    setFont(f) {
+    setFont(f: Font): void {
       this.font = f;
       localStorage.setItem('openjam.shop.font', JSON.stringify(f));
     },

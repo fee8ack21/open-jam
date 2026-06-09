@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 /* ============================================================
    JIcon — simple UI line-icon set
-   Registered globally as <j-icon> in main.js
+   Registered globally as <j-icon> in main.ts
    ============================================================ */
 import { computed } from 'vue';
 
-const PATHS = {
+const PATHS: Record<string, string> = {
   heart: 'M12 20s-7-4.3-9.3-8.2C1.2 9 2.3 5.8 5.3 5.1 7.2 4.6 9 5.4 10 6.8c.5.6.7 1 1 1 .3 0 .5-.4 1-1 1-1.4 2.8-2.2 4.7-1.7 3 .7 4.1 3.9 2.6 6.7C19 15.7 12 20 12 20z',
   cart: 'M2 3h1.4a1 1 0 0 1 .98.8l.42 2.2m0 0l1.5 7.9a2 2 0 0 0 1.96 1.6h8.2a2 2 0 0 0 1.96-1.58l1.4-6.4a1 1 0 0 0-.98-1.22H5.2M10 20.5a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0zM18.5 20.5a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0z',
   search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
@@ -29,11 +29,15 @@ const PATHS = {
   bag:'M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 0 1 6 0v2',
 };
 
-const props = defineProps({
-  name: String,
-  size: { type: [Number, String], default: 20 },
-  fill: Boolean,
-  stroke: { type: Number, default: 1.8 },
+const props = withDefaults(defineProps<{
+  name: string;
+  size?: number | string;
+  fill?: boolean;
+  stroke?: number;
+}>(), {
+  size: 20,
+  fill: false,
+  stroke: 1.8,
 });
 
 const d = computed(() => PATHS[props.name] || '');

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 /* ============================================================
    MarketView — 市場集 hub (home route "/")
    Search-led hero + category / sort / price browse grid.
@@ -40,7 +40,7 @@ const priceOptions = [
   { v: 'high', l: '$30+' },
 ];
 
-function inBand(price) {
+function inBand(price: number): boolean {
   switch (priceBand.value) {
     case 'free': return price === 0;
     case 'low':  return price > 0 && price <= 15;
@@ -64,7 +64,7 @@ const results = computed(() => {
   if (category.value !== 'all') list = list.filter((p) => p.cat === category.value);
   list = list.filter((p) => inBand(p.price));
   switch (sort.value) {
-    case 'newest':     list.sort((a, b) => orderMap.get(b.id) - orderMap.get(a.id)); break;
+    case 'newest':     list.sort((a, b) => (orderMap.get(b.id) ?? 0) - (orderMap.get(a.id) ?? 0)); break;
     case 'rating':     list.sort((a, b) => b.rating - a.rating); break;
     case 'price-asc':  list.sort((a, b) => a.price - b.price); break;
     case 'price-desc': list.sort((a, b) => b.price - a.price); break;
@@ -75,20 +75,23 @@ const results = computed(() => {
 
 const activeCatLabel = computed(() => {
   if (category.value === 'all') return '全部作品';
-  return (CATEGORIES.find((c) => c.id === category.value) || {}).label || '全部作品';
+  return CATEGORIES.find((c) => c.id === category.value)?.label ?? '全部作品';
 });
 const visibleResults = computed(() => results.value.slice(0, visibleCount.value));
 const hasMore = computed(() => visibleCount.value < results.value.length);
 
 watch(results, () => { visibleCount.value = pageSize; });
 
-function catColor(id) { return { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' }[id]; }
-function catCount(id) { return id === 'all' ? PRODUCTS.length : PRODUCTS.filter((p) => p.cat === id).length; }
+function catColor(id: string): string {
+  const map: Record<string, string> = { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' };
+  return map[id] ?? '';
+}
+function catCount(id: string): number { return id === 'all' ? PRODUCTS.length : PRODUCTS.filter((p) => p.cat === id).length; }
 function scrollToBrowse() {
   const el = document.getElementById('browse');
   if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
 }
-function pickKeyword(k) { search.value = k; scrollToBrowse(); }
+function pickKeyword(k: string) { search.value = k; scrollToBrowse(); }
 function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.value = 'all'; search.value = ''; }
 function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }

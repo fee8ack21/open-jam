@@ -1,5 +1,5 @@
 /* ============================================================
-   main.js — app bootstrap
+   main.ts — app bootstrap
    Vue 3 · Pinia · Vue Router · Naive UI · global icon set
    ============================================================ */
 import { createApp } from 'vue';
@@ -9,11 +9,9 @@ import naive from 'naive-ui';
 import App from './App.vue';
 import router from './router';
 
-// global design-system CSS
 import './assets/css/base.css';
 import './assets/css/market.css';
 
-// globally-registered shared components
 import JIcon from './components/JIcon.vue';
 import Stars from './components/Stars.vue';
 import ProductThumb from './components/ProductThumb.vue';

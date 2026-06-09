@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 /* App root — Naive UI providers wrap the router outlet so
    message / dialog hooks are available app-wide. */
+import type { GlobalThemeOverrides } from 'naive-ui';
 import { useAuthStore } from '@/stores/auth.js';
 
-const themeOverrides = {
+const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#6151f0',
     primaryColorHover: '#7264f5',

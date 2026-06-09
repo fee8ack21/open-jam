@@ -1,7 +1,7 @@
 import { createUserManager } from './auth.js';
 import { env } from '@/environment.js';
 
-async function load() {
+async function load(): Promise<void> {
   const manager = createUserManager();
   try {
     const user = await manager.signinRedirectCallback();

@@ -1,12 +1,13 @@
-<script setup>
+<script setup lang="ts">
 /* ============================================================
    MktCard — marketplace-hub catalogue card. Registered as <mkt-card>.
    Links out to the creator's storefront (creator-web) on their subdomain.
    ============================================================ */
 import { computed } from 'vue';
 import { env } from '@/environment.js';
+import type { Product } from '@/data/catalogue.js';
 
-const props = defineProps({ product: Object });
+const props = defineProps<{ product: Product }>();
 
 const BASE = env.CREATOR_BASE_URL;
 const href = computed(() => `${BASE}/product/${props.product.id}`);

@@ -1,10 +1,11 @@
-import { UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
+import { UserManager, WebStorageStateStore, Log, type User } from 'oidc-client-ts';
 import { env } from '@/environment.js';
 
 Log.setLogger(console);
 Log.setLevel(Log.WARN);
 
-const authChannel = 'BroadcastChannel' in window ? new BroadcastChannel('auth') : null;
+const authChannel: BroadcastChannel | null =
+  'BroadcastChannel' in window ? new BroadcastChannel('auth') : null;
 
 const config = {
   authority: import.meta.env.VITE_HYDRA_PUBLIC_URL ?? 'http://localhost:4444',
@@ -25,17 +26,17 @@ const config = {
   monitorSession: true,
 };
 
-export function createUserManager() {
+export function createUserManager(): UserManager {
   const manager = new UserManager(config);
 
   if (authChannel) {
-    authChannel.onmessage = (msg) => {
+    authChannel.onmessage = (msg: MessageEvent<string>) => {
       if (msg.data === 'logout') {
         manager.removeUser().then(() => window.location.replace('/'));
       }
     };
   } else {
-    window.addEventListener('storage', (event) => {
+    window.addEventListener('storage', (event: StorageEvent) => {
       if (event.key === 'logout-event') {
         manager.removeUser().then(() => window.location.replace('/'));
       }
@@ -47,12 +48,12 @@ export function createUserManager() {
 
 export const userManager = createUserManager();
 
-export function login(redirectPath) {
+export function login(redirectPath?: string): void {
   const target = redirectPath ?? env.WORKSPACE_URL;
   userManager.signinRedirect({ state: target }).catch(console.error);
 }
 
-export async function logout() {
+export async function logout(): Promise<void> {
   const user = await userManager.getUser();
   if (!user) return;
 
@@ -69,6 +70,6 @@ export async function logout() {
   }
 }
 
-export async function getUser() {
+export async function getUser(): Promise<User | null> {
   return await userManager.getUser();
 }

@@ -1,9 +1,11 @@
-<script setup>
+<script setup lang="ts">
 /* Stars — star rating label. Registered globally as <stars>. */
-defineProps({
-  value: Number,
-  count: Number,
-  size: { type: Number, default: 13 },
+withDefaults(defineProps<{
+  value: number;
+  count?: number;
+  size?: number;
+}>(), {
+  size: 13,
 });
 </script>
 
