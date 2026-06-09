@@ -52,6 +52,8 @@ spec:
               value: {{ include "open-jam.hydraAdminUrl" . | quote }}
             - name: App__BaseUrl
               value: {{ .Values.config.authPageUrl | quote }}
+            - name: App__WorkspaceUrl
+              value: {{ .Values.config.workspaceUrl | quote }}
           {{- with .Values.auth.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

@@ -5,6 +5,7 @@ fullnameOverride: ""
 config:
   externalUrl: "https://openjam.co/"
   authPageUrl: "https://auth.openjam.co/"
+  workspaceUrl: "https://workspace.openjam.co/"
 
 # 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
 dbNamePrefix: open_jam
