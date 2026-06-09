@@ -1,6 +1,4 @@
 class AppEnv {
-  HYDRA_PUBLIC_URL = 'http://localhost:4444'
-  OIDC_CLIENT_ID = 'open-jam-web'
   WORKSPACE_URL = 'http://localhost:5174'
   CREATOR_BASE_URL = 'http://localhost:5174'
 

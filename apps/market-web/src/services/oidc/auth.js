@@ -7,8 +7,8 @@ Log.setLevel(Log.WARN);
 const authChannel = 'BroadcastChannel' in window ? new BroadcastChannel('auth') : null;
 
 const config = {
-  authority: env.HYDRA_PUBLIC_URL,
-  client_id: env.OIDC_CLIENT_ID,
+  authority: import.meta.env.VITE_HYDRA_PUBLIC_URL ?? 'http://localhost:4444',
+  client_id: import.meta.env.VITE_OIDC_CLIENT_ID ?? 'open-jam-web',
   redirect_uri: new URL(
     'callback.html',
     new URL(import.meta.env.BASE_URL, document.location.origin),
