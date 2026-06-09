@@ -34,6 +34,8 @@ spec:
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: OIDC_CLIENT_ID
               value: {{ .Values.config.oidcClientId | quote }}
+            - name: AUTH_PAGE_URL
+              value: {{ .Values.config.authPageUrl | quote }}
           {{- with .Values.marketWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

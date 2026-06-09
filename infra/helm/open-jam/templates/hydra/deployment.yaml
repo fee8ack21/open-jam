@@ -36,6 +36,8 @@ spec:
               value: {{ printf "%sconsent" .Values.config.authPageUrl | quote }}
             - name: URLS_LOGOUT
               value: {{ printf "%slogout" .Values.config.authPageUrl | quote }}
+            - name: URLS_ERROR
+              value: {{ printf "%serror" .Values.config.authPageUrl | quote }}
             - name: SECRETS_SYSTEM
               valueFrom:
                 secretKeyRef:

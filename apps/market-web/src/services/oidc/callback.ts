@@ -11,7 +11,7 @@ async function load(): Promise<void> {
     window.location.replace(redirect);
   } catch (error) {
     console.error('OIDC callback error:', error);
-    window.location.replace('/');
+    window.location.replace(`${env.AUTH_PAGE_URL}error`);
   }
 }
 
