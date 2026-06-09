@@ -1,12 +1,14 @@
 using Auth.Models;
+using Auth.Options;
 using Auth.Services.Hydra;
 using Auth.Services.Users;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Auth.Controllers;
 
 /// <summary>Auth service 的主要 MVC Controller，處理登入、註冊、信箱驗證、忘記密碼及重置密碼流程。</summary>
-public class HomeController(IHydraService hydra, IUserService userService) : Controller
+public class HomeController(IHydraService hydra, IUserService userService, IOptions<AppOptions> appOptions) : Controller
 {
     /// <summary>根路徑，導向登入頁。</summary>
     [HttpGet("/")]
@@ -17,12 +19,13 @@ public class HomeController(IHydraService hydra, IUserService userService) : Con
     /// <summary>
     /// 登入頁 GET；若帶有 login_challenge 則向 Hydra 查詢，
     /// skip = true 時直接接受（Hydra 已有 session）。
+    /// 無 challenge 時導向 Workspace，由其發起 OIDC flow。
     /// </summary>
     [HttpGet("login")]
     public async Task<IActionResult> Login(string? login_challenge)
     {
         if (string.IsNullOrEmpty(login_challenge))
-            return View(new LoginViewModel());
+            return Redirect(appOptions.Value.WorkspaceUrl);
 
         var info = await hydra.GetLoginInfoAsync(login_challenge);
 
@@ -49,26 +52,12 @@ public class HomeController(IHydraService hydra, IUserService userService) : Con
             return View(model);
         }
 
-        if (!string.IsNullOrEmpty(model.Challenge))
-        {
-            var redirect = await hydra.AcceptLoginAsync(model.Challenge,
-                new HydraAcceptLoginRequest(
-                    Subject:     subject!,
-                    Remember:    model.Remember,
-                    RememberFor: model.Remember ? 3600 * 24 * 30 : 0));
-            return Redirect(redirect);
-        }
-
-        TempData["Email"] = model.Email;
-        return RedirectToAction(nameof(LoginDone));
-    }
-
-    /// <summary>登入完成頁（非 OIDC flow 時顯示）。</summary>
-    [HttpGet("login-done")]
-    public IActionResult LoginDone()
-    {
-        ViewBag.Email = TempData["Email"] as string ?? "";
-        return View();
+        var redirect = await hydra.AcceptLoginAsync(model.Challenge!,
+            new HydraAcceptLoginRequest(
+                Subject:     subject!,
+                Remember:    model.Remember,
+                RememberFor: model.Remember ? 3600 * 24 * 30 : 0));
+        return Redirect(redirect);
     }
 
     // ── Consent (auto-accept for first-party app) ─────────────────────────────
