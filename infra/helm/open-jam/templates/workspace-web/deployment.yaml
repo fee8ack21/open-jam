@@ -25,6 +25,13 @@ spec:
           ports:
             - containerPort: 80
               name: http
+          env:
+            - name: WORKSPACE_URL
+              value: {{ .Values.config.workspaceUrl | quote }}
+            - name: HYDRA_PUBLIC_URL
+              value: {{ include "open-jam.hydraPublicUrl" . | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.config.oidcClientId | quote }}
           {{- with .Values.workspaceWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

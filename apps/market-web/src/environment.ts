@@ -1,6 +1,8 @@
 class AppEnv {
   WORKSPACE_URL = 'http://localhost:5174';
   CREATOR_BASE_URL = 'http://localhost:5174';
+  HYDRA_PUBLIC_URL = 'http://localhost:4444';
+  OIDC_CLIENT_ID = 'open-jam-web';
   [key: string]: string;
 
   constructor() {
