@@ -29,7 +29,7 @@ spec:
                   name: {{ include "open-jam.secretName" . }}
                   key: hydra-dsn
             - name: URLS_SELF_ISSUER
-              value: {{ printf "%shydra/" .Values.config.externalUrl | quote }}
+              value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: URLS_LOGIN
               value: {{ printf "%slogin" .Values.config.authPageUrl | quote }}
             - name: URLS_CONSENT

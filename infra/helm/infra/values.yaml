@@ -26,6 +26,9 @@ ingress:
       serviceName: open-jam-market-web
     - host: auth.openjam.co
       serviceName: open-jam-auth
+    - host: hydra.openjam.co
+      serviceName: open-jam-hydra
+      servicePort: public
     - host: workspace.openjam.co
       serviceName: open-jam-workspace-web
     # - host: api.openjam.co

@@ -33,6 +33,6 @@ spec:
               service:
                 name: {{ .serviceName }}
                 port:
-                  name: http
+                  name: {{ .servicePort | default "http" }}
     {{- end }}
 {{- end }}

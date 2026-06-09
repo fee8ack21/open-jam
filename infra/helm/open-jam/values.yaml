@@ -4,6 +4,7 @@ fullnameOverride: ""
 # ── 全域 URL 設定 ─────────────────────────────────────────────────────────────
 config:
   externalUrl: "https://openjam.co/"
+  hydraPublicUrl: "https://hydra.openjam.co/"
   authPageUrl: "https://auth.openjam.co/"
   workspaceUrl: "https://workspace.openjam.co/"
   creatorBaseUrl: "http://localhost:5174"

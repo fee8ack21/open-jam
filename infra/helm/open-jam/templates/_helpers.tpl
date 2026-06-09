@@ -81,10 +81,10 @@ SMTP host: mailpit service name when mailpit is enabled, otherwise smtp.host.
 {{- end }}
 
 {{/*
-Hydra Public URL (cluster-external, derived from externalUrl).
+Hydra Public URL (cluster-external).
 */}}
 {{- define "open-jam.hydraPublicUrl" -}}
-{{- printf "%shydra" .Values.config.externalUrl }}
+{{- .Values.config.hydraPublicUrl }}
 {{- end }}
 
 {{/*
