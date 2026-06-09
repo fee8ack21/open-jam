@@ -28,4 +28,8 @@ public class RegisterViewModel
     /// <example>true</example>
     [MustBeTrue(ErrorMessage = "請先同意服務條款")]
     public bool Agree { get; set; }
+
+    /// <summary>Hydra 登入挑戰參數，從 Login 頁帶入以供返回時還原 OIDC flow。</summary>
+    /// <example>abc123challenge</example>
+    public string? LoginChallenge { get; set; }
 }

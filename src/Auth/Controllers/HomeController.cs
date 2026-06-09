@@ -94,7 +94,8 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
 
     /// <summary>註冊頁 GET。</summary>
     [HttpGet("register")]
-    public IActionResult Register() => View(new RegisterViewModel());
+    public IActionResult Register(string? login_challenge) =>
+        View(new RegisterViewModel { LoginChallenge = login_challenge });
 
     /// <summary>
     /// 註冊 POST；建立帳號並寄發驗證信。

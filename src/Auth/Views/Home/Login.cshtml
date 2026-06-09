@@ -69,7 +69,7 @@
                         </button>
                     </div>
                 </form>
-                <p class="form-foot">還沒有帳號？<a asp-action="Register" class="link-strong">免費註冊</a></p>
+                <p class="form-foot">還沒有帳號？<a asp-action="Register" asp-route-login_challenge="@Model.Challenge" class="link-strong">免費註冊</a></p>
             </div>
         </div>
     </main>

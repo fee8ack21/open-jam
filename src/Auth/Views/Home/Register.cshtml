@@ -81,7 +81,7 @@
                         </button>
                     </div>
                 </form>
-                <p class="form-foot">已經有帳號了？<a asp-action="Login" class="link-strong">前往登入</a></p>
+                <p class="form-foot">已經有帳號了？<a asp-action="Login" asp-route-login_challenge="@Model.LoginChallenge" class="link-strong">前往登入</a></p>
             </div>
         </div>
     </main>
