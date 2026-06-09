@@ -20,6 +20,11 @@ secrets:
   hydra:
     systemSecret: "changeme-at-least-32-chars-long!!"
     pairwiseSalt: "changeme-pairwise-salt"
+  smtp:
+    username: ""
+    password: ""
+  sendgrid:
+    apiKey: ""
 
 # ── Infrastructure ────────────────────────────────────────────────────────────
 
@@ -110,7 +115,14 @@ smtp:
   host: ""
   port: 1025
   enableSsl: false
-  fromAddress: "noreply@open-jam.tw"
+  fromAddress: "noreply@openjam.co"
+
+sendgrid:
+  fromAddress: "noreply@openjam.co"
+
+email:
+  maxRetryAttempts: 5
+  retryIntervalMinutes: 2
 
 # ── Application Services ──────────────────────────────────────────────────────
 

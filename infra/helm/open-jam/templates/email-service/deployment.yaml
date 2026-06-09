@@ -49,8 +49,29 @@ spec:
               value: {{ .Values.smtp.port | quote }}
             - name: Smtp__UseSsl
               value: {{ .Values.smtp.enableSsl | quote }}
+            - name: Smtp__Username
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: smtp-username
+            - name: Smtp__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: smtp-password
             - name: Smtp__FromAddress
               value: {{ .Values.smtp.fromAddress | quote }}
+            - name: SendGrid__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: sendgrid-api-key
+            - name: SendGrid__FromAddress
+              value: {{ .Values.sendgrid.fromAddress | quote }}
+            - name: Email__MaxRetryAttempts
+              value: {{ .Values.email.maxRetryAttempts | quote }}
+            - name: Email__RetryIntervalMinutes
+              value: {{ .Values.email.retryIntervalMinutes | quote }}
           {{- with .Values.emailService.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
