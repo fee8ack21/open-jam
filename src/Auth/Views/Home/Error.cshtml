@@ -14,7 +14,7 @@
             </span>
             <span class="brand-name">Open Jam</span>
         </div>
-        <div class="form-wrap"></div>
+        <div class="form-wrap"><div class="screen"><div class="success-ring danger">@IconHelper.Render("alert", 42, 2.2)</div><h2 class="form-title">登入沒有完成</h2><p class="form-sub">我們無法完成這次的第三方登入驗證。多半是授權逾時，或瀏覽器在分頁之間遺失了登入狀態所致 — 你的帳號是安全的。</p><div class="callout">@IconHelper.Render("shield", 18)<span><b>請完全關閉瀏覽器</b>，重新開啟後再試一次登入。這會清除殘留的登入狀態，通常就能解決問題。</span></div><div class="form-body"><button class="btn-pop violet" data-go="login"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex:none;"><path d="M5 12h14M13 6l6 6-6 6"></path></svg> 重新登入</button><button class="btn-ghost" data-go="forgot">改用密碼登入</button></div><p class="err-code"><span class="dot"></span>錯誤代碼 <b>OIDC_CORRELATION_FAILED</b></p></div></div>
     </main>
     @await Html.PartialAsync("_TweaksPanel")
     <style id="accent-style"></style>
