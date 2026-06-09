@@ -26,6 +26,7 @@
                 <h2 class="form-title">建立帳號</h2>
                 <p class="form-sub">免費開店、零月費，售出才收 3% 手續費。30 秒就能上手。</p>
                 <form asp-action="Register" method="post" novalidate>
+                    <input type="hidden" asp-for="LoginChallenge">
                     <div class="form-body">
 
                         <div class="field" data-field="Email">
