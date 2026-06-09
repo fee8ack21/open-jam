@@ -41,7 +41,7 @@
                         <div class="field" data-field="Password">
                             <label class="field-label">
                                 <span>密碼</span>
-                                <a href="/forgot" class="link-strong">忘記密碼？</a>
+                                <a asp-action="ForgotPassword" asp-route-login_challenge="@Model.Challenge" class="link-strong">忘記密碼？</a>
                             </label>
                             <div class="input-shell @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("lock", 18)</span>

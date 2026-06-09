@@ -157,7 +157,8 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
 
     /// <summary>忘記密碼頁 GET。</summary>
     [HttpGet("forgot")]
-    public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
+    public IActionResult ForgotPassword(string? login_challenge) =>
+        View(new ForgotPasswordViewModel { LoginChallenge = login_challenge });
 
     /// <summary>忘記密碼 POST；寄出重置信（無論信箱是否存在皆回同一畫面，防帳號列舉）。</summary>
     [HttpPost("forgot"), ValidateAntiForgeryToken]
