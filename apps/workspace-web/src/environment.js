@@ -2,6 +2,7 @@ class AppEnv {
   WORKSPACE_URL = 'http://localhost:5174';
   HYDRA_PUBLIC_URL = 'http://localhost:4444';
   OIDC_CLIENT_ID = 'open-jam-web';
+  AUTH_PAGE_URL = 'http://localhost:5169/';
 
   constructor() {
     Object.keys(this).forEach((key) => {

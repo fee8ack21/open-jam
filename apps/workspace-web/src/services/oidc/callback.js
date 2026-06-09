@@ -1,4 +1,5 @@
 import { createUserManager } from './auth.js';
+import { env } from '@/environment.js';
 
 async function load() {
   const manager = createUserManager();
@@ -11,7 +12,7 @@ async function load() {
     window.location.replace(redirect);
   } catch (error) {
     console.error('OIDC callback error:', error);
-    window.location.replace('/');
+    window.location.replace(`${env.AUTH_PAGE_URL}error`);
   }
 }
 

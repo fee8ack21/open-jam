@@ -75,6 +75,7 @@ services:
       URLS_CONSENT: ${HYDRA_URLS_CONSENT}
       URLS_LOGIN: ${HYDRA_URLS_LOGIN}
       URLS_LOGOUT: ${HYDRA_URLS_LOGOUT}
+      URLS_ERROR: ${HYDRA_URLS_ERROR}
       SECRETS_SYSTEM: ${HYDRA_SECRETS_SYSTEM}
       OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES: ${HYDRA_OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES}
       OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT: ${HYDRA_OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT}
@@ -232,6 +233,12 @@ services:
     build:
       context: ../../apps/market-web
     restart: unless-stopped
+    environment:
+      WORKSPACE_URL: ${WORKSPACE_URL}
+      CREATOR_BASE_URL: ${CREATOR_BASE_URL}
+      HYDRA_PUBLIC_URL: ${HYDRA_PUBLIC_URL}
+      OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
+      AUTH_PAGE_URL: ${AUTH_PAGE_URL}
     ports:
       - "5174:80"
 
@@ -240,6 +247,11 @@ services:
     build:
       context: ../../apps/workspace-web
     restart: unless-stopped
+    environment:
+      WORKSPACE_URL: ${WORKSPACE_URL}
+      HYDRA_PUBLIC_URL: ${HYDRA_PUBLIC_URL}
+      OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
+      AUTH_PAGE_URL: ${AUTH_PAGE_URL}
     ports:
       - "5175:80"
 
