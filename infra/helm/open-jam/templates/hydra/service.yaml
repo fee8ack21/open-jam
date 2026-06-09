@@ -6,6 +6,8 @@ metadata:
   labels:
     {{- include "open-jam.labels" . | nindent 4 }}
     app.kubernetes.io/component: hydra
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"4444": "{{ include "open-jam.fullname" . }}-hydra"}}'
 spec:
   ports:
     - port: 4444

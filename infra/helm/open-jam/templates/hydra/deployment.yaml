@@ -54,6 +54,8 @@ spec:
               value: {{ .Values.hydra.ttl.loginConsentRequest | quote }}
             - name: LOG_LEAK_SENSITIVE_VALUES
               value: "false"
+            - name: SERVE_PUBLIC_CORS_ENABLED
+              value: "true"
             - name: SERVE_PUBLIC_CORS_ALLOWED_ORIGINS
               value: {{ .Values.hydra.cors.allowedOrigins | quote }}
             - name: LOG_LEVEL

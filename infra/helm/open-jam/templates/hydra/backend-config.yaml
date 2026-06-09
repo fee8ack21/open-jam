@@ -1,0 +1,15 @@
+{{- if .Values.hydra.enabled }}
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: {{ include "open-jam.fullname" . }}-hydra
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hydra
+spec:
+  # GCLB 預設探測 / 且要求回 200，但 Hydra public port 的 / 回 404。
+  # 改探測 /health/alive（Hydra public port 4444 支援，固定回 200）。
+  healthCheck:
+    requestPath: /health/alive
+    port: 4444
+{{- end }}
