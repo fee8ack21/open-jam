@@ -685,6 +685,9 @@ input {
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 var(--text);
 }
+a.btn-pop {
+  text-decoration: none;
+}
 .btn-pop.violet {
   background: linear-gradient(135deg, var(--c-violet), var(--c-pink));
   color: #fff;
