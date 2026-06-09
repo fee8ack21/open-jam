@@ -8,6 +8,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
 import { useAuthStore } from '@/stores/auth.js';
 import { PRODUCTS, CATEGORIES } from '@/data/catalogue.js';
+import { env } from '@/environment.js';
 
 const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
 
@@ -92,7 +93,7 @@ function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.val
 function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function loadMore() { visibleCount.value += pageSize; }
-function goWorkspace() { window.location.href = import.meta.env.VITE_WORKSPACE_URL ?? '/'; }
+function goWorkspace() { window.location.href = env.WORKSPACE_URL; }
 
 onMounted(() => window.addEventListener('scroll', onScroll));
 onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));

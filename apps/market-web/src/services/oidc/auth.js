@@ -1,4 +1,5 @@
 import { UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
+import { env } from '@/environment.js';
 
 Log.setLogger(console);
 Log.setLevel(Log.WARN);
@@ -6,8 +7,8 @@ Log.setLevel(Log.WARN);
 const authChannel = 'BroadcastChannel' in window ? new BroadcastChannel('auth') : null;
 
 const config = {
-  authority: import.meta.env.VITE_HYDRA_PUBLIC_URL ?? 'http://localhost:4444',
-  client_id: import.meta.env.VITE_OIDC_CLIENT_ID ?? 'open-jam-web',
+  authority: env.HYDRA_PUBLIC_URL,
+  client_id: env.OIDC_CLIENT_ID,
   redirect_uri: new URL(
     'callback.html',
     new URL(import.meta.env.BASE_URL, document.location.origin),
@@ -47,7 +48,7 @@ export function createUserManager() {
 export const userManager = createUserManager();
 
 export function login(redirectPath) {
-  const target = redirectPath ?? import.meta.env.VITE_WORKSPACE_URL ?? window.location.origin;
+  const target = redirectPath ?? env.WORKSPACE_URL;
   userManager.signinRedirect({ state: target }).catch(console.error);
 }
 

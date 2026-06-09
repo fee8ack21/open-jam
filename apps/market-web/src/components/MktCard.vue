@@ -4,10 +4,11 @@
    Links out to the creator's storefront (creator-web) on their subdomain.
    ============================================================ */
 import { computed } from 'vue';
+import { env } from '@/environment.js';
 
 const props = defineProps({ product: Object });
 
-const BASE = import.meta.env.VITE_CREATOR_BASE_URL ?? 'http://localhost:5174';
+const BASE = env.CREATOR_BASE_URL;
 const href = computed(() => `${BASE}/product/${props.product.id}`);
 const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
 </script>
