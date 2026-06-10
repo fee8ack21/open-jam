@@ -73,3 +73,16 @@ export async function logout(): Promise<void> {
 export async function getUser(): Promise<User | null> {
   return await userManager.getUser();
 }
+
+/**
+ * 向 Hydra 進行 prompt=none 的 silent check，確認 SSO session 是否仍然存在。
+ * 用於偵測「在其他子網域登出」的情況：本地 token 雖未過期，但 Hydra session 已被銷毀。
+ */
+export async function validateSession(): Promise<User | null> {
+  try {
+    return await userManager.signinSilent();
+  } catch {
+    await userManager.removeUser();
+    return null;
+  }
+}
