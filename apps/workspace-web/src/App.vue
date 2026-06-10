@@ -26,7 +26,6 @@ export default {
     return {
       store,
       authStore,
-      tweaksOpen: ref(false),
       drawerOpen: ref(false),
       userMenuOpen: ref(false),
     }
@@ -163,9 +162,6 @@ export default {
             <div class="tb-spacer"></div>
 
             <div class="tb-actions">
-              <button class="icon-btn" title="外觀設定" @click="tweaksOpen = !tweaksOpen">
-                <j-icon name="sliders" :size="20" />
-              </button>
               <div class="icon-btn" title="通知">
                 <j-icon name="bell" :size="20" />
                 <span class="cart-badge">3</span>
@@ -207,31 +203,6 @@ export default {
           {{ it.label }}
         </button>
       </nav>
-
-      <!-- ============ TWEAKS ============ -->
-      <div v-show="tweaksOpen" class="tweaks-panel">
-        <div class="tweaks-head">
-          <span>Tweaks</span>
-          <button class="tweaks-x" @click="tweaksOpen = false"><j-icon name="close" :size="16" /></button>
-        </div>
-        <div class="tweaks-body">
-          <div class="tweaks-section">外觀</div>
-          <div class="tweaks-row" style="margin-bottom:12px;">
-            <span>版面密度</span>
-            <div class="seg">
-              <button :class="{ on: store.density === 'comfy' }" @click="store.setDensity('comfy')">寬鬆</button>
-              <button :class="{ on: store.density === 'compact' }" @click="store.setDensity('compact')">緊湊</button>
-            </div>
-          </div>
-          <div class="tweaks-row">
-            <span>標題字型</span>
-            <div class="seg">
-              <button :class="{ on: store.font === 'sora' }" @click="store.setFont('sora')">Bricolage</button>
-              <button :class="{ on: store.font === 'grotesk' }" @click="store.setFont('grotesk')">Unbounded</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
     </div>
   </n-message-provider>
