@@ -27,6 +27,7 @@ const PATHS: Record<string, string> = {
   card: 'M2 6h20v12H2zM2 10h20',
   sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z',
   bag:'M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 0 1 6 0v2',
+  logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
 };
 
 const props = withDefaults(defineProps<{

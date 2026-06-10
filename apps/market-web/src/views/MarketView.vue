@@ -125,7 +125,9 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
             <a class="nav-admin" href="#" title="前往後台" @click.prevent="goWorkspace">
               <j-icon name="user" :size="18" /> 前往後台
             </a>
-            <a class="nav-logout" href="#" title="登出" @click.prevent="auth.logout()">登出</a>
+            <a class="nav-logout" href="#" title="登出" @click.prevent="auth.logout()">
+              <j-icon name="logout" :size="17" />
+            </a>
           </template>
           <template v-else>
             <a class="nav-admin" href="#" title="登入" @click.prevent="auth.login()">
