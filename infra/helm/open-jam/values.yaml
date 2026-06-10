@@ -83,6 +83,7 @@ rabbitmq:
 hydra:
   enabled: true
   image: oryd/hydra:v2.2
+  dev: true
   migrateJob:
     enabled: true
     ttlSecondsAfterFinished: 300

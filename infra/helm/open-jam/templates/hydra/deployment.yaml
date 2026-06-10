@@ -21,7 +21,11 @@ spec:
       containers:
         - name: hydra
           image: {{ .Values.hydra.image }}
+          {{- if .Values.hydra.dev }}
           args: ["serve", "all", "--dev"]
+          {{- else }}
+          args: ["serve", "all"]
+          {{- end }}
           env:
             - name: DSN
               valueFrom:
@@ -62,6 +66,14 @@ spec:
               value: {{ .Values.hydra.cors.allowedOrigins | quote }}
             - name: LOG_LEVEL
               value: warn
+            # 跨子網域 SSO（auth / workspace / creator / market）需要 SameSite=None 才能在 silent auth iframe 中送出 cookie
+            - name: SERVE_COOKIES_SAME_SITE_MODE
+              value: "None"
+            {{- if not .Values.hydra.dev }}
+            # GCLB 終止 TLS 後以 HTTP 轉發；需告知 Hydra 信任的來源 CIDR，使其依 X-Forwarded-Proto 正確標記 cookie 為 Secure
+            - name: SERVE_TLS_ALLOW_TERMINATION_FROM
+              value: {{ .Values.hydra.tlsTerminationFrom | quote }}
+            {{- end }}
           ports:
             - containerPort: 4444
               name: public
