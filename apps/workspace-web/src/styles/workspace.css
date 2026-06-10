@@ -9,13 +9,13 @@
 .dash-shell {
   display: grid;
   grid-template-columns: 256px 1fr;
-  min-height: 100vh;
-  align-items: start;
+  height: 100%;
+  align-items: stretch;
 }
 
 /* ---------- sidebar ---------- */
 .side {
-  position: sticky; top: 0; height: 100vh;
+  height: 100%;
   display: flex; flex-direction: column;
   background: color-mix(in srgb, var(--surface) 80%, transparent);
   backdrop-filter: saturate(160%) blur(14px);
@@ -60,9 +60,9 @@
 .side-user .su-handle { font-family: var(--oj-mono); font-size: 11px; color: var(--text-faint); }
 
 /* ---------- main column ---------- */
-.dash-main { min-width: 0; display: flex; flex-direction: column; }
+.dash-main { min-width: 0; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 .topbar {
-  position: sticky; top: 0; z-index: 30; height: var(--nav-h);
+  flex: none; z-index: 30; height: var(--nav-h);
   display: flex; align-items: center; gap: 16px; padding: 0 32px;
   backdrop-filter: saturate(180%) blur(16px);
   background: color-mix(in srgb, var(--bg) 70%, transparent);
@@ -97,7 +97,7 @@
 .um-enter-active, .um-leave-active { transition: opacity .15s, transform .15s; }
 .um-enter-from, .um-leave-to { opacity: 0; transform: translateY(-6px); }
 
-.dash-body { padding: 28px 32px 110px; max-width: 1180px; width: 100%; }
+.dash-body { flex: 1; overflow-y: auto; padding: 28px 32px 110px; max-width: 1180px; width: 100%; }
 .page-intro { margin-bottom: 26px; }
 
 /* ---------- KPI cards ---------- */
@@ -361,6 +361,9 @@
    soft diffuse shadows (no brutalist hard offsets), flat bg.
    ============================================================ */
 .oj-root.dash-theme {
+  height: 100vh;
+  overflow: hidden;
+
   /* deepened, cooler neutral system */
   --bg: #e6e8f0;
   --surface: #ffffff;
