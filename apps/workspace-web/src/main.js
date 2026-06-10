@@ -13,20 +13,32 @@ import TrendChart from '@/components/TrendChart.vue'
 import '@/styles/base.css'
 import '@/styles/workspace.css'
 
-const pinia = createPinia()
-// make the router available inside store actions as `this.router`
-pinia.use(({ store }) => { store.router = markRaw(router) })
+import { getUser, login } from '@/services/oidc/auth.js'
 
-const app = createApp(App)
+async function bootstrap() {
+  const user = await getUser().catch(() => null)
+  if (!user || user.expired) {
+    login(window.location.href)
+    return
+  }
 
-app.use(pinia)
-app.use(router)
-app.use(naive)
+  const pinia = createPinia()
+  // make the router available inside store actions as `this.router`
+  pinia.use(({ store }) => { store.router = markRaw(router) })
 
-// global UI components (kebab tags used throughout the templates)
-app.component('j-icon', JIcon)
-app.component('product-thumb', ProductThumb)
-app.component('stars', Stars)
-app.component('trend-chart', TrendChart)
+  const app = createApp(App)
 
-app.mount('#app')
+  app.use(pinia)
+  app.use(router)
+  app.use(naive)
+
+  // global UI components (kebab tags used throughout the templates)
+  app.component('j-icon', JIcon)
+  app.component('product-thumb', ProductThumb)
+  app.component('stars', Stars)
+  app.component('trend-chart', TrendChart)
+
+  app.mount('#app')
+}
+
+bootstrap()
