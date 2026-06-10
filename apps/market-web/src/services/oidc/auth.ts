@@ -49,7 +49,7 @@ export function createUserManager(): UserManager {
 export const userManager = createUserManager();
 
 export function login(redirectPath?: string): void {
-  const target = redirectPath ?? env.WORKSPACE_URL;
+  const target = redirectPath ?? window.location.href;
   userManager.signinRedirect({ state: target }).catch(console.error);
 }
 

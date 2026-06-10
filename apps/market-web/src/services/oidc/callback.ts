@@ -5,9 +5,10 @@ async function load(): Promise<void> {
   const manager = createUserManager();
   try {
     const user = await manager.signinRedirectCallback();
-    const workspaceUrl = env.WORKSPACE_URL;
     const redirect =
-      user.state && typeof user.state === 'string' ? user.state : workspaceUrl;
+      user.state && typeof user.state === 'string'
+        ? user.state
+        : new URL(import.meta.env.BASE_URL, document.location.origin).href;
     window.location.replace(redirect);
   } catch (error) {
     console.error('OIDC callback error:', error);
