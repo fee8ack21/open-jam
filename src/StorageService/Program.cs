@@ -61,6 +61,9 @@ builder.Services.AddSwaggerGen(opts =>
     if (File.Exists(xmlPath)) opts.IncludeXmlComments(xmlPath);
 });
 
+// JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
+builder.Services.AddOpenJamJwtAuth(builder.Configuration);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -68,6 +71,10 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider
         .GetRequiredService<StorageDbContext>()
         .Database.MigrateAsync();
+
+    await scope.ServiceProvider
+        .GetRequiredService<IStorageProvider>()
+        .EnsurePublicReadPolicyAsync();
 }
 
 app.UseExceptionMiddleware();
@@ -77,6 +84,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.Run();

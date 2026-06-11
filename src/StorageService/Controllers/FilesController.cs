@@ -64,7 +64,9 @@ public class FilesController(
             FileType    = request.FileType,
             IsPreview   = request.IsPreview,
         };
-        file.StorageKey = $"creators/{request.CreatorId}/{file.Id}/{request.OriginalName}";
+        file.StorageKey = request.IsPublic
+            ? $"public/{request.CreatorId}/{file.Id}/{request.OriginalName}"
+            : $"creators/{request.CreatorId}/{file.Id}/{request.OriginalName}";
 
         db.StoredFiles.Add(file);
         await db.SaveChangesAsync(ct);
@@ -72,11 +74,17 @@ public class FilesController(
         var uploadUrl = await storage.GenerateUploadUrlAsync(
             file.StorageKey, request.ContentType, request.SizeBytes, expiry, ct);
 
+        var publicUrl = request.IsPublic
+            ? $"{opts.PublicBaseUrl.TrimEnd('/')}/{file.StorageKey}"
+            : null;
+
         return Ok(new RequestUploadUrlResponse
         {
-            FileId    = file.Id,
-            UploadUrl = uploadUrl,
-            ExpiresAt = expiresAt,
+            FileId     = file.Id,
+            UploadUrl  = uploadUrl,
+            StorageKey = file.StorageKey,
+            PublicUrl  = publicUrl,
+            ExpiresAt  = expiresAt,
         });
     }
 

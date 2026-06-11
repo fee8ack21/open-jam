@@ -32,4 +32,8 @@ public class RequestUploadUrlRequest
     /// <summary>是否為公開預覽衍生檔。</summary>
     /// <example>false</example>
     public bool IsPreview { get; set; }
+
+    /// <summary>是否為公開讀取物件（例如商店 Avatar/Banner）；true 時物件鍵值前綴為 "public/"。</summary>
+    /// <example>false</example>
+    public bool IsPublic { get; set; }
 }

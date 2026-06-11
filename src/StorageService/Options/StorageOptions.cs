@@ -18,6 +18,9 @@ public class StorageOptions
     /// <summary>目標 bucket 名稱。</summary>
     public string Bucket { get; set; } = "open-jam";
 
+    /// <summary>公開讀取物件（`public/*`）的對外存取網址前綴，例如 "http://localhost:9000/open-jam"。</summary>
+    public string PublicBaseUrl { get; set; } = "";
+
     /// <summary>上傳簽章 URL 有效秒數；預設 1 小時。</summary>
     public int UploadUrlExpirySeconds { get; set; } = 3600;
 

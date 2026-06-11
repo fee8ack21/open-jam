@@ -60,4 +60,28 @@ public class MinioStorageProvider(IMinioClient minio, IOptions<StorageOptions> o
             return false;
         }
     }
+
+    /// <inheritdoc/>
+    public async Task EnsurePublicReadPolicyAsync(CancellationToken ct = default)
+    {
+        var policy = $$"""
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {"AWS": ["*"]},
+                  "Action": ["s3:GetObject"],
+                  "Resource": ["arn:aws:s3:::{{_opts.Bucket}}/public/*"]
+                }
+              ]
+            }
+            """;
+
+        var args = new SetPolicyArgs()
+            .WithBucket(_opts.Bucket)
+            .WithPolicy(policy);
+
+        await minio.SetPolicyAsync(args, ct);
+    }
 }

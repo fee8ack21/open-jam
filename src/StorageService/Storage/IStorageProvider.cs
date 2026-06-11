@@ -27,4 +27,9 @@ public interface IStorageProvider
 
     /// <summary>確認物件是否存在於儲存後端（用於上傳狀態驗證）。</summary>
     Task<bool> ObjectExistsAsync(string key, CancellationToken ct = default);
+
+    /// <summary>
+    /// 設定 `public/*` 前綴物件為匿名可讀（idempotent），供 Avatar/Banner 等公開資源使用。
+    /// </summary>
+    Task EnsurePublicReadPolicyAsync(CancellationToken ct = default);
 }
