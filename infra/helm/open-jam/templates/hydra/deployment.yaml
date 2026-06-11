@@ -64,6 +64,8 @@ spec:
               value: "true"
             - name: SERVE_PUBLIC_CORS_ALLOWED_ORIGINS
               value: {{ .Values.hydra.cors.allowedOrigins | quote }}
+            - name: STRATEGIES_ACCESS_TOKEN
+              value: jwt
             - name: LOG_LEVEL
               value: warn
             # 跨子網域 SSO（auth / workspace / creator / market）需要 SameSite=None 才能在 silent auth iframe 中送出 cookie

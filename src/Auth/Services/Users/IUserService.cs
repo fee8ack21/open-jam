@@ -1,3 +1,5 @@
+using Auth.Data.Entities;
+
 namespace Auth.Services.Users;
 
 /// <summary>帳號相關業務邏輯服務介面。</summary>
@@ -45,4 +47,11 @@ public interface IUserService
     /// <param name="newPassword">新的明文密碼。</param>
     /// <returns>(Success, Error)。</returns>
     Task<(bool Success, string? Error)> ResetPasswordAsync(string token, string newPassword);
+
+    /// <summary>
+    /// 取得使用者的 role、email，供 Hydra consent 流程注入 access token claim（ext.role / ext.email）。
+    /// </summary>
+    /// <param name="subject">使用者 ID（Hydra subject）。</param>
+    /// <returns>找不到對應使用者時回傳 null。</returns>
+    Task<Dictionary<string, object>?> GetAccessTokenClaimsAsync(string subject);
 }

@@ -67,13 +67,16 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
     public async Task<IActionResult> Consent(string consent_challenge)
     {
         var info = await hydra.GetConsentInfoAsync(consent_challenge);
+
+        var accessTokenClaims = await userService.GetAccessTokenClaimsAsync(info.Subject);
+
         var redirect = await hydra.AcceptConsentAsync(consent_challenge,
             new HydraAcceptConsentRequest(
                 GrantScope:    info.RequestedScope,
                 GrantAudience: info.RequestedAudience,
                 Remember:      true,
                 RememberFor:   3600,
-                Session:       new HydraConsentSession(IdToken: null)));
+                Session:       new HydraConsentSession(IdToken: null, AccessToken: accessTokenClaims)));
         return Redirect(redirect);
     }
 

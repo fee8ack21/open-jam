@@ -83,6 +83,7 @@ services:
       TTL_LOGIN_CONSENT_REQUEST: ${HYDRA_TTL_LOGIN_CONSENT_REQUEST}
       LOG_LEAK_SENSITIVE_VALUES: ${HYDRA_LOG_LEAK_SENSITIVE_VALUES}
       SERVE_PUBLIC_CORS_ALLOWED_ORIGINS: ${HYDRA_SERVE_PUBLIC_CORS_ALLOWED_ORIGINS}
+      STRATEGIES_ACCESS_TOKEN: jwt
       LOG_LEVEL: info
     ports:
       - "${HYDRA_PUBLIC_PORT}:4444"
@@ -161,6 +162,8 @@ services:
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Hydra__Issuer: ${HYDRA_PUBLIC_URL}
+      Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
       - "5170:8080"
     depends_on:
@@ -168,6 +171,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      hydra:
+        condition: service_started
 
   email-service:
     container_name: ${PROJECT_NAME}-email-service
@@ -210,6 +215,9 @@ services:
       Storage__SecretKey: ${MINIO_SECRET_KEY}
       Storage__UseSsl: "false"
       Storage__Bucket: ${MINIO_BUCKET}
+      Storage__PublicBaseUrl: ${MINIO_PUBLIC_URL}
+      Hydra__Issuer: ${HYDRA_PUBLIC_URL}
+      Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
       - "5171:8080"
     depends_on:
@@ -219,6 +227,37 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      hydra:
+        condition: service_started
+
+  store-service:
+    container_name: ${PROJECT_NAME}-store-service
+    build:
+      context: ../../src
+      dockerfile: StoreService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_store;Username=${DB_USER};Password=${DB_PASSWORD}
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Storage__PublicBaseUrl: ${MINIO_PUBLIC_URL}
+      Services__StorageService__BaseUrl: http://${PROJECT_NAME}-storage-service:8080
+      Hydra__Issuer: ${HYDRA_PUBLIC_URL}
+      Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
+    ports:
+      - "5172:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      hydra:
+        condition: service_started
+      storage-service:
+        condition: service_started
 
   creator-web:
     container_name: ${PROJECT_NAME}-creator-web

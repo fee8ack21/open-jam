@@ -17,6 +17,9 @@ public class User : ICreatedAt, IUpdatedAt
     /// <summary>帳號狀態。</summary>
     public UserStatus Status { get; set; } = UserStatus.Pending;
 
+    /// <summary>平台角色，影響跨服務 API 的授權判斷。</summary>
+    public UserRole Role { get; set; } = UserRole.User;
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 

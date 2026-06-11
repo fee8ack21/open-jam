@@ -1,6 +1,6 @@
-using Shared.Auth;
+using Microsoft.AspNetCore.Http;
 
-namespace Auth.Services;
+namespace Shared.Auth;
 
 /// <summary>
 /// 從 JWT Claims 取得目前登入使用者 ID 的實作。

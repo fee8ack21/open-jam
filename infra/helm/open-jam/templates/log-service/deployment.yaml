@@ -50,6 +50,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}
                   key: rabbitmq-password
+            - name: Hydra__Issuer
+              value: {{ include "open-jam.hydraPublicUrl" . | quote }}
+            - name: Hydra__MetadataAddress
+              value: {{ include "open-jam.hydraMetadataAddress" . | quote }}
           {{- with .Values.logService.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

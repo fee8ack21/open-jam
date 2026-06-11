@@ -88,6 +88,20 @@ Hydra Public URL (cluster-external).
 {{- end }}
 
 {{/*
+Hydra OIDC discovery URL (cluster-internal), for JWKS 驗證使用。
+*/}}
+{{- define "open-jam.hydraMetadataAddress" -}}
+{{- printf "http://%s-hydra:4444/.well-known/openid-configuration" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
+StorageService Service URL (cluster-internal).
+*/}}
+{{- define "open-jam.storageServiceUrl" -}}
+{{- printf "http://%s-storage-service:8080" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
 Secret name.
 */}}
 {{- define "open-jam.secretName" -}}

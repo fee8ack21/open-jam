@@ -211,4 +211,21 @@ public class UserService(
 
     private static string GenerateToken() =>
         Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLower();
+
+    /// <inheritdoc/>
+    public async Task<Dictionary<string, object>?> GetAccessTokenClaimsAsync(string subject)
+    {
+        if (!Guid.TryParse(subject, out var userId))
+            return null;
+
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null)
+            return null;
+
+        return new Dictionary<string, object>
+        {
+            ["role"] = user.Role.ToString(),
+            ["email"] = user.Email,
+        };
+    }
 }

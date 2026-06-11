@@ -48,8 +48,10 @@ public record HydraAcceptConsentRequest(
 
 /// <summary>同意 session 中可附加至 token 的自訂 claims。</summary>
 /// <param name="IdToken">要寫入 id_token 的額外 claims；null 表示不附加。</param>
+/// <param name="AccessToken">要寫入 access token（JWT 模式下位於 ext 物件）的額外 claims；null 表示不附加。</param>
 public record HydraConsentSession(
-    [property: JsonPropertyName("id_token")] Dictionary<string, object>? IdToken
+    [property: JsonPropertyName("id_token")]     Dictionary<string, object>? IdToken,
+    [property: JsonPropertyName("access_token")] Dictionary<string, object>? AccessToken = null
 );
 
 /// <summary>向 Hydra 拒絕登入或同意挑戰時送出的請求 body。</summary>

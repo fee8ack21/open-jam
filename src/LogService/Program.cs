@@ -49,6 +49,9 @@ builder.Services.AddSwaggerGen(opts =>
     if (File.Exists(xmlPath)) opts.IncludeXmlComments(xmlPath);
 });
 
+// JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
+builder.Services.AddOpenJamJwtAuth(builder.Configuration);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -65,6 +68,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // K8s liveness/readiness probe 用
 app.MapGet("/healthz", () => Results.Ok());
