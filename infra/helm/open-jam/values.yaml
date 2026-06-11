@@ -9,6 +9,7 @@ config:
   workspaceUrl: "https://workspace.openjam.co/"
   creatorBaseUrl: "http://localhost:5174"
   oidcClientId: "open-jam-web"
+  storagePublicBaseUrl: "https://assets.openjam.co"
 
 # 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
 dbNamePrefix: open_jam
@@ -165,6 +166,21 @@ emailService:
   enabled: true
   image:
     repository: open-jam/email-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+storeService:
+  enabled: true
+  image:
+    repository: open-jam/store-service
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1

@@ -12,4 +12,6 @@ data:
     CREATE DATABASE {{ .Values.dbNamePrefix }}_log;
     CREATE DATABASE {{ .Values.dbNamePrefix }}_email;
     CREATE DATABASE {{ .Values.dbNamePrefix }}_hydra;
+    CREATE DATABASE {{ .Values.dbNamePrefix }}_storage;
+    CREATE DATABASE {{ .Values.dbNamePrefix }}_store;
 {{- end }}
