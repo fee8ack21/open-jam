@@ -18,9 +18,4 @@ public class LogDbContextFactory : IDesignTimeDbContextFactory<LogDbContext>
 
         return new LogDbContext(opts, new NullCurrentUserAccessor());
     }
-
-    private sealed class NullCurrentUserAccessor : ICurrentUserAccessor
-    {
-        public Guid? UserId => null;
-    }
 }

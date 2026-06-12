@@ -16,9 +16,4 @@ public class StorageDbContextFactory : IDesignTimeDbContextFactory<StorageDbCont
 
         return new StorageDbContext(opts, new NullCurrentUserAccessor());
     }
-
-    private sealed class NullCurrentUserAccessor : ICurrentUserAccessor
-    {
-        public Guid? UserId => null;
-    }
 }

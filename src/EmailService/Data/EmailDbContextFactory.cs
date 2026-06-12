@@ -16,9 +16,4 @@ public class EmailDbContextFactory : IDesignTimeDbContextFactory<EmailDbContext>
             .Options;
         return new EmailDbContext(options, new NullCurrentUserAccessor());
     }
-
-    private sealed class NullCurrentUserAccessor : ICurrentUserAccessor
-    {
-        public Guid? UserId => null;
-    }
 }

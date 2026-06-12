@@ -16,9 +16,4 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .Options;
         return new AppDbContext(options, new NullCurrentUserAccessor());
     }
-
-    private sealed class NullCurrentUserAccessor : ICurrentUserAccessor
-    {
-        public Guid? UserId => null;
-    }
 }

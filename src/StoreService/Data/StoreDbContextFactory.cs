@@ -18,9 +18,4 @@ public class StoreDbContextFactory : IDesignTimeDbContextFactory<StoreDbContext>
 
         return new StoreDbContext(opts, new NullCurrentUserAccessor());
     }
-
-    private sealed class NullCurrentUserAccessor : ICurrentUserAccessor
-    {
-        public Guid? UserId => null;
-    }
 }
