@@ -3,7 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
 using Shared.Middleware;
 using StoreService.Data;
+using StoreService.Options;
 using StoreService.Services;
+using StoreService.Services.Background;
+using StoreService.Services.StoreApplications;
+using StoreService.Services.StoreFollowers;
+using StoreService.Services.Stores;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,10 +37,19 @@ builder.Services.AddMassTransit(x =>
 
 builder.Services.AddHostedService<OutboxRelayService>();
 
+// 強型別設定（Options pattern）
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+
 // StorageService API client（簽發 Avatar/Banner 上傳 URL）
 var storageBaseUrl = (builder.Configuration["Services:StorageService:BaseUrl"] ?? "http://localhost:5171").TrimEnd('/') + "/";
 builder.Services.AddHttpClient("storage", client => client.BaseAddress = new Uri(storageBaseUrl));
 builder.Services.AddScoped<StorageServiceClient>();
+
+// 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
+builder.Services.AddScoped<AuditLogPublisher>();
+builder.Services.AddScoped<IStoreManager, StoreManager>();
+builder.Services.AddScoped<IStoreApplicationService, StoreApplicationService>();
+builder.Services.AddScoped<IStoreFollowerService, StoreFollowerService>();
 
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);

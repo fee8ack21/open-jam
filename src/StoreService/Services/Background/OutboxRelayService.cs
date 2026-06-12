@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Shared.Events;
 using StoreService.Data;
 
-namespace StoreService.Services;
+namespace StoreService.Services.Background;
 
 /// <summary>
 /// 背景服務，定期掃描 outbox_messages 資料表並將待處理訊息推送至 RabbitMQ。
