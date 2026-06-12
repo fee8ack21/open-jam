@@ -3,7 +3,7 @@
     var email = ViewBag.Email as string ?? "";
 }
 
-<div class="auth-shell font-bricolage" id="auth-shell" data-screen="forgot-sent">
+<div class="auth-shell" data-screen="forgot-sent">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
         Headline = "別擔心，<br/>我們<span class=\"hl hl-cyan\">幫你</span>。",
         Sub = "輸入註冊信箱，我們會立刻把重置連結寄給你。"
@@ -33,6 +33,4 @@
             </div>
         </div>
     </main>
-    @await Html.PartialAsync("_TweaksPanel")
-    <style id="accent-style"></style>
 </div>

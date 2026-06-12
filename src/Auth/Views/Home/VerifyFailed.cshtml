@@ -2,7 +2,7 @@
     ViewData["Title"] = "Open Jam · 驗證連結無效";
 }
 
-<div class="auth-shell font-bricolage" id="auth-shell" data-screen="verify-failed">
+<div class="auth-shell" data-screen="verify-failed">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
         Headline = "連結<br/><span class=\"hl hl-pink\">已失效</span>。",
         Sub = "驗證連結可能已過期或使用過，請重新申請。"
@@ -28,6 +28,4 @@
             </div>
         </div>
     </main>
-    @await Html.PartialAsync("_TweaksPanel")
-    <style id="accent-style"></style>
 </div>

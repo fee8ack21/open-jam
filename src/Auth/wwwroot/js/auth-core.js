@@ -27,34 +27,6 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  // ---- accent gradients ----
-  var ACCENT_GRAD = {
-    violet: 'radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.42), transparent 58%), radial-gradient(680px 520px at 92% 18%, rgba(255,77,157,.55), transparent 60%), radial-gradient(720px 620px at 78% 96%, rgba(31,214,198,.42), transparent 62%), radial-gradient(820px 720px at 18% 92%, rgba(108,76,241,.55), transparent 64%), linear-gradient(150deg, #6c4cf1, #8a3df1 46%, #c33ad6)',
-    sunset: 'radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.5), transparent 58%), radial-gradient(680px 520px at 92% 18%, rgba(255,77,157,.55), transparent 60%), radial-gradient(720px 520px at 78% 96%, rgba(255,122,47,.5), transparent 62%), radial-gradient(820px 720px at 18% 92%, rgba(255,77,157,.5), transparent 64%), linear-gradient(150deg, #ff7a2f, #ff5a6e 50%, #ff4d9d)',
-    ocean:  'radial-gradient(620px 460px at 12% 6%, rgba(174,240,62,.4), transparent 58%), radial-gradient(680px 520px at 92% 18%, rgba(31,214,198,.55), transparent 60%), radial-gradient(720px 620px at 78% 96%, rgba(108,76,241,.5), transparent 62%), radial-gradient(820px 720px at 18% 92%, rgba(31,214,198,.5), transparent 64%), linear-gradient(150deg, #1fd6c6, #2f8ff1 50%, #6c4cf1)',
-  };
-
-  // ---- prefs (localStorage) ----
-  var prefs = { font: 'bricolage', accent: 'violet' };
-  function loadPrefs() {
-    try {
-      var p = JSON.parse(localStorage.getItem('ojAuthPrefs') || '{}');
-      if (p.font)   prefs.font   = p.font;
-      if (p.accent) prefs.accent = p.accent;
-    } catch (e) { /* ignore */ }
-  }
-  function savePrefs() {
-    try { localStorage.setItem('ojAuthPrefs', JSON.stringify(prefs)); } catch (e) { /* ignore */ }
-  }
-  function applyPrefs() {
-    $('#auth-shell').removeClass('font-bricolage font-unbounded').addClass('font-' + prefs.font);
-    $('#accent-style').html('.brand-panel{background:' + ACCENT_GRAD[prefs.accent] + ' !important;} .mobile-brand .brand-mark svg{color:#fff;}');
-    $('.seg button').removeClass('on');
-    $('.seg button[data-font="' + prefs.font + '"]').addClass('on');
-    $('.swatch').removeClass('on');
-    $('.swatch[data-accent="' + prefs.accent + '"]').addClass('on');
-  }
-
   // ---- password strength meter (visual only; validation enforced by jquery-validation) ----
   function strengthHTML(value) {
     if (!value) return '';
@@ -177,38 +149,10 @@
       });
     }
 
-    // tweaks panel
-    $d.on('click', '[data-tweaks-close]', function () {
-      $('#tweaks-panel').hide();
-      window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
-    });
-    $d.on('click', '[data-font]', function () {
-      prefs.font = $(this).attr('data-font');
-      savePrefs();
-      $('#auth-shell').removeClass('font-bricolage font-unbounded').addClass('font-' + prefs.font);
-      $('.seg button').removeClass('on');
-      $('.seg button[data-font="' + prefs.font + '"]').addClass('on');
-    });
-    $d.on('click', '[data-accent]', function () {
-      prefs.accent = $(this).attr('data-accent');
-      savePrefs();
-      $('#accent-style').html('.brand-panel{background:' + ACCENT_GRAD[prefs.accent] + ' !important;}');
-      $('.swatch').removeClass('on');
-      $('.swatch[data-accent="' + prefs.accent + '"]').addClass('on');
-    });
-
-    window.addEventListener('message', function (e) {
-      var t = e && e.data && e.data.type;
-      if (t === '__activate_edit_mode')        $('#tweaks-panel').css('display', '');
-      else if (t === '__deactivate_edit_mode') $('#tweaks-panel').hide();
-    });
-    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
   }
 
   // ---- init ----
   $(function () {
-    loadPrefs();
-    applyPrefs();
     bind();
   });
 }());

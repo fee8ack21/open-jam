@@ -3,7 +3,7 @@
     var email = ViewBag.Email as string ?? "";
 }
 
-<div class="auth-shell font-bricolage" id="auth-shell" data-screen="register-sent">
+<div class="auth-shell" data-screen="register-sent">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
         Headline = "把作品<br/>變成 <span class=\"hl hl-yellow\">收入</span>。",
         Sub = "加入 12,400+ 創作者，今天就開始在 Open Jam 上架你的數位作品。"
@@ -33,6 +33,4 @@
             </div>
         </div>
     </main>
-    @await Html.PartialAsync("_TweaksPanel")
-    <style id="accent-style"></style>
 </div>

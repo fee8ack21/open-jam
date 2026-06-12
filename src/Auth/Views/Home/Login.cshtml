@@ -3,7 +3,7 @@
     ViewData["Title"] = "Open Jam · 登入";
 }
 
-<div class="auth-shell font-bricolage" id="auth-shell" data-screen="login">
+<div class="auth-shell" data-screen="login">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
         Headline = "歡迎回來，<br/>繼續 <span class=\"hl hl-lime\">創作</span>。",
         Sub = "登入 Open Jam，管理你的作品、追蹤銷售，與全球創作者一起發光。"
@@ -73,6 +73,4 @@
             </div>
         </div>
     </main>
-    @await Html.PartialAsync("_TweaksPanel")
-    <style id="accent-style"></style>
 </div>
