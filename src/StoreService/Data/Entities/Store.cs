@@ -30,5 +30,5 @@ public class Store : ICreatedAt, IUpdatedAt
     public DateTimeOffset CreatedAt { get; private set; }
 
     /// <inheritdoc/>
-    public DateTimeOffset? UpdatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; private set; }
 }

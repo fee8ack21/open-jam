@@ -28,14 +28,14 @@ public interface IUpdatedBy
     Guid? UpdatedBy { get; }
 }
 
-/// <summary>實作此介面的 Entity 支援軟刪除，由業務層呼叫 SoftDelete 方法填入刪除時間。</summary>
+/// <summary>實作此介面的 Entity 支援軟刪除；業務層呼叫 Remove() 時由 BaseDbContext 自動轉為軟刪除並填入刪除時間。</summary>
 public interface IDeletedAt
 {
     /// <summary>軟刪除時間（UTC）；null 表示未刪除。</summary>
     DateTimeOffset? DeletedAt { get; }
 }
 
-/// <summary>實作此介面的 Entity 支援軟刪除，由業務層呼叫 SoftDelete 方法填入刪除者 ID。</summary>
+/// <summary>實作此介面的 Entity 支援軟刪除；業務層呼叫 Remove() 時由 BaseDbContext 自動填入刪除者 ID。</summary>
 public interface IDeletedBy
 {
     /// <summary>軟刪除操作者使用者 ID。</summary>

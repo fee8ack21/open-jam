@@ -60,18 +60,23 @@ public class OrphanCleanupService(
         if (stale.Count > 0)
             await db.SaveChangesAsync(ct);
 
-        // 2. 軟刪除超過保留期 → 永久刪除
+        // 2. 軟刪除超過保留期 → 永久刪除（硬刪除）
+        //    需 IgnoreQueryFilters 才能查到已軟刪除的資料（全域過濾器預設排除 DeletedAt != null）。
         var retentionDeadline = DateTimeOffset.UtcNow.AddDays(-_opts.SoftDeleteRetentionDays);
         var expired = await db.StoredFiles
+            .IgnoreQueryFilters()
+            .AsNoTracking()
             .Where(f => f.DeletedAt != null && f.DeletedAt < retentionDeadline)
             .ToListAsync(ct);
 
+        // 先刪儲存後端，成功者才從 DB 永久移除；失敗者保留紀錄，下個週期重試。
+        var purgedIds = new List<Guid>();
         foreach (var file in expired)
         {
             try
             {
                 await storage.DeleteAsync(file.StorageKey, ct);
-                db.StoredFiles.Remove(file);
+                purgedIds.Add(file.Id);
                 logger.LogInformation("Permanently deleted file {FileId} from storage", file.Id);
             }
             catch (Exception ex)
@@ -80,7 +85,11 @@ public class OrphanCleanupService(
             }
         }
 
-        if (expired.Count > 0)
-            await db.SaveChangesAsync(ct);
+        // ExecuteDelete 直接對資料庫硬刪除，繞過 BaseDbContext 將 Remove() 轉為軟刪除的行為。
+        if (purgedIds.Count > 0)
+            await db.StoredFiles
+                .IgnoreQueryFilters()
+                .Where(f => purgedIds.Contains(f.Id))
+                .ExecuteDeleteAsync(ct);
     }
 }

@@ -109,7 +109,8 @@ public class FileService(
             .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
             ?? throw new NotFoundException($"檔案 {id} 不存在");
 
-        file.SoftDelete();
+        // BaseDbContext 會將 Remove() 自動轉為軟刪除並填入 DeletedAt / DeletedBy。
+        db.StoredFiles.Remove(file);
         await db.SaveChangesAsync(ct);
     }
 

@@ -23,7 +23,7 @@ public class EmailTemplateTranslation : ICreatedAt
     public string BodyHtml { get; set; } = "";
 
     /// <inheritdoc/>
-    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
     /// <summary>關聯的 EmailTemplate。</summary>
     public EmailTemplate EmailTemplate { get; set; } = null!;

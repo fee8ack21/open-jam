@@ -7,8 +7,9 @@ namespace Shared.Data;
 
 /// <summary>
 /// 所有 DbContext 的共用基底，於 SaveChangesAsync 時自動填入 Audit 欄位。
-/// 軟刪除（DeletedAt / DeletedBy）由業務層呼叫 Entity 的 SoftDelete() 方法觸發；
-/// 若呼叫端誤用 Remove()，此處會自動將其轉為軟刪除，避免資料被真正刪除。
+/// 軟刪除（DeletedAt / DeletedBy）由業務層呼叫 Remove() 觸發：此處偵測到實作 IDeletedAt
+/// 的 Entity 被刪除時，自動轉為軟刪除並填入 DeletedAt / DeletedBy，避免資料被真正刪除。
+/// Audit 欄位於各 Entity 一律宣告為 private set，僅能由此自動賦值，不可在外部手動指派。
 /// </summary>
 public abstract class BaseDbContext(DbContextOptions options, ICurrentUserAccessor currentUser)
     : DbContext(options)

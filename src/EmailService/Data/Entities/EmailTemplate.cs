@@ -17,7 +17,7 @@ public class EmailTemplate : ICreatedAt
     public string? Description { get; set; }
 
     /// <inheritdoc/>
-    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
     /// <summary>各語系的模板翻譯清單。</summary>
     public ICollection<EmailTemplateTranslation> Translations { get; set; } = [];

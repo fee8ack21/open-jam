@@ -39,18 +39,11 @@ public class StoredFile : ICreatedAt, IUpdatedAt, IDeletedAt, IDeletedBy
     public DateTimeOffset CreatedAt { get; private set; }
 
     /// <inheritdoc/>
-    public DateTimeOffset? UpdatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; private set; }
 
     /// <inheritdoc/>
-    public DateTimeOffset? DeletedAt { get; set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
 
     /// <inheritdoc/>
-    public Guid? DeletedBy { get; set; }
-
-    /// <summary>軟刪除此檔案；已購買的商品仍保留買家下載權。</summary>
-    public void SoftDelete(Guid? deletedBy = null)
-    {
-        DeletedAt = DateTimeOffset.UtcNow;
-        DeletedBy = deletedBy;
-    }
+    public Guid? DeletedBy { get; private set; }
 }
