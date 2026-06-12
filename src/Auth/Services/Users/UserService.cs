@@ -19,6 +19,7 @@ public class UserService(
     /// <inheritdoc/>
     public async Task<(bool Success, string? Error)> RegisterAsync(string email, string password)
     {
+        email = NormalizeEmail(email);
         var existing = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (existing is not null && existing.Status != UserStatus.Pending)
@@ -83,6 +84,7 @@ public class UserService(
     /// <inheritdoc/>
     public async Task<(bool Success, string? Subject, string? Error)> LoginAsync(string email, string password)
     {
+        email = NormalizeEmail(email);
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user is null || !passwordHasher.Verify(password, user.PasswordHash))
@@ -107,6 +109,7 @@ public class UserService(
     /// <inheritdoc/>
     public async Task<(bool Success, string? Error)> SendPasswordResetAsync(string email)
     {
+        email = NormalizeEmail(email);
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         // 無論信箱是否存在一律成功，防止帳號列舉
@@ -211,6 +214,10 @@ public class UserService(
 
     private static string GenerateToken() =>
         Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLower();
+
+    /// <summary>Email 一律以 trim + 小寫儲存與查詢，避免 Postgres 大小寫敏感造成同信箱重複註冊或登入失敗。</summary>
+    private static string NormalizeEmail(string email) =>
+        email.Trim().ToLowerInvariant();
 
     /// <inheritdoc/>
     public async Task<Dictionary<string, object>?> GetAccessTokenClaimsAsync(string subject)

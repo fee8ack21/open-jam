@@ -10,6 +10,9 @@ namespace Auth.Controllers;
 /// <summary>Auth service 的主要 MVC Controller，處理登入、註冊、信箱驗證、忘記密碼及重置密碼流程。</summary>
 public class HomeController(IHydraService hydra, IUserService userService, IOptions<AppOptions> appOptions) : Controller
 {
+    /// <summary>Hydra session / consent 的記住時長（30 天），login 與 consent 端點共用。</summary>
+    private const int RememberForSeconds = 3600 * 24 * 30;
+
     /// <summary>根路徑，導向登入頁。</summary>
     [HttpGet("/")]
     public IActionResult Index() => RedirectToAction(nameof(Login));
@@ -32,7 +35,7 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
         if (info.Skip)
         {
             var redirect = await hydra.AcceptLoginAsync(login_challenge,
-                new HydraAcceptLoginRequest(info.Subject, Remember: true, RememberFor: 3600));
+                new HydraAcceptLoginRequest(info.Subject, Remember: true, RememberFor: RememberForSeconds));
             return Redirect(redirect);
         }
 
@@ -43,6 +46,10 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
     [HttpPost("login"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
+        // challenge 遺失（過期頁面重送、直接 POST）時無法回應 Hydra，導向 Workspace 重新發起 OIDC flow
+        if (string.IsNullOrEmpty(model.Challenge))
+            return Redirect(appOptions.Value.WorkspaceUrl);
+
         if (!ModelState.IsValid) return View(model);
 
         var (success, subject, error) = await userService.LoginAsync(model.Email, model.Password);
@@ -52,11 +59,11 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
             return View(model);
         }
 
-        var redirect = await hydra.AcceptLoginAsync(model.Challenge!,
+        var redirect = await hydra.AcceptLoginAsync(model.Challenge,
             new HydraAcceptLoginRequest(
                 Subject:     subject!,
                 Remember:    model.Remember,
-                RememberFor: model.Remember ? 3600 * 24 * 30 : 0));
+                RememberFor: model.Remember ? RememberForSeconds : 0));
         return Redirect(redirect);
     }
 
@@ -75,7 +82,7 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
                 GrantScope:    info.RequestedScope,
                 GrantAudience: info.RequestedAudience,
                 Remember:      true,
-                RememberFor:   3600,
+                RememberFor:   RememberForSeconds,
                 Session:       new HydraConsentSession(IdToken: null, AccessToken: accessTokenClaims)));
         return Redirect(redirect);
     }
@@ -178,7 +185,10 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
     [HttpGet("forgot-sent")]
     public IActionResult ForgotSent()
     {
-        ViewBag.Email = TempData["Email"] as string ?? "";
+        var email = TempData["Email"] as string;
+        if (string.IsNullOrEmpty(email))
+            return RedirectToAction(nameof(Login));
+        ViewBag.Email = email;
         return View();
     }
 
@@ -188,8 +198,9 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
     [HttpGet("reset")]
     public IActionResult ResetPassword(string? token)
     {
+        // token 遺失時導向忘記密碼頁重新申請（VerifyFailed 是信箱驗證情境，文案會誤導使用者去重新註冊）
         if (string.IsNullOrWhiteSpace(token))
-            return RedirectToAction(nameof(VerifyFailed));
+            return RedirectToAction(nameof(ForgotPassword));
 
         return View(new ResetPasswordViewModel { Token = token });
     }
