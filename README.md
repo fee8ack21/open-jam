@@ -95,7 +95,7 @@ dotnet ef database update               # 套用 Migration
 ```json
 {
   "ConnectionStrings": {
-    "Postgres": "Host=localhost;Database=open_jam_auth;Username=postgres;Password=postgres"
+    "DefaultConnection": "Host=localhost;Database=open_jam_auth;Username=postgres;Password=postgres"
   },
   "RabbitMQ": { "Host": "localhost", "Username": "guest", "Password": "guest" },
   "Hydra": { "AdminUrl": "http://localhost:4445" },
@@ -108,7 +108,7 @@ dotnet ef database update               # 套用 Migration
 ```json
 {
   "ConnectionStrings": {
-    "Postgres": "Host=localhost;Database=open_jam_email;Username=postgres;Password=postgres"
+    "DefaultConnection": "Host=localhost;Database=open_jam_email;Username=postgres;Password=postgres"
   },
   "RabbitMQ": { "Host": "localhost", "Username": "guest", "Password": "guest" },
   "Smtp": {
@@ -125,7 +125,7 @@ dotnet ef database update               # 套用 Migration
 ```json
 {
   "ConnectionStrings": {
-    "Postgres": "Host=localhost;Database=open_jam_log;Username=postgres;Password=postgres"
+    "DefaultConnection": "Host=localhost;Database=open_jam_log;Username=postgres;Password=postgres"
   },
   "RabbitMQ": { "Host": "localhost", "Username": "guest", "Password": "guest" }
 }

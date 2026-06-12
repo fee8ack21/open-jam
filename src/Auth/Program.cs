@@ -26,7 +26,7 @@ builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 
 // PostgreSQL + EF Core（snake_case 命名慣例）
 builder.Services.AddDbContext<AppDbContext>(opts =>
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"),
+    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
             o => o.MigrationsHistoryTable("__ef_migrations_history"))
         .UseSnakeCaseNamingConvention());
 

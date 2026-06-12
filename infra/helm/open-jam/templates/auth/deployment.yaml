@@ -34,7 +34,7 @@ spec:
               value: "Warning"
             - name: Logging__LogLevel__Microsoft
               value: "Warning"
-            - name: ConnectionStrings__Postgres
+            - name: ConnectionStrings__DefaultConnection
               valueFrom:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}

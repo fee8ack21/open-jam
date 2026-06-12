@@ -132,7 +132,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
-      ConnectionStrings__Postgres: ${AUTH__CONNECTION_STRING}
+      ConnectionStrings__DefaultConnection: ${AUTH__CONNECTION_STRING}
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
@@ -158,7 +158,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: "8080"
-      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_log;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_log;Username=${DB_USER};Password=${DB_PASSWORD}
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
@@ -181,7 +181,7 @@ services:
       dockerfile: EmailService/Dockerfile
     restart: unless-stopped
     environment:
-      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
@@ -206,7 +206,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
-      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_storage;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_storage;Username=${DB_USER};Password=${DB_PASSWORD}
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
@@ -239,7 +239,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
-      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_store;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_store;Username=${DB_USER};Password=${DB_PASSWORD}
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
@@ -308,7 +308,7 @@ services:
       context: ../../src
       dockerfile: Bootstrap/Dockerfile
     environment:
-      ConnectionStrings__Postgres: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
       Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
     depends_on:
       postgres:

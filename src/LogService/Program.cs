@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // PostgreSQL + EF Core（snake_case 命名慣例）
 builder.Services.AddSingleton<ICurrentUserAccessor, WorkerCurrentUserAccessor>();
 builder.Services.AddDbContext<LogDbContext>(opts =>
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"),
+    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
             o => o.MigrationsHistoryTable("__ef_migrations_history"))
         .UseSnakeCaseNamingConvention());
 

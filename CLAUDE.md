@@ -115,7 +115,7 @@ RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以
 ```jsonc
 // Auth / LogService / EmailService 共用結構
 {
-  "ConnectionStrings": { "Postgres": "Host=localhost;Database=open_jam_<service>;Username=postgres;Password=postgres" },
+  "ConnectionStrings": { "DefaultConnection": "Host=localhost;Database=open_jam_<service>;Username=postgres;Password=postgres" },
   "RabbitMQ": { "Host": "localhost", "Username": "guest", "Password": "guest" }
 }
 // Auth 額外需要
