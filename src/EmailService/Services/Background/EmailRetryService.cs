@@ -38,7 +38,7 @@ public class EmailRetryService(
     private async Task RetryFailedAsync(CancellationToken ct)
     {
         using var scope     = scopeFactory.CreateScope();
-        var db              = scope.ServiceProvider.GetRequiredService<EmailDbContext>();
+        var db              = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var emailSender     = scope.ServiceProvider.GetRequiredService<IEmailSender>();
         var maxAttempts     = emailOptions.Value.MaxRetryAttempts;
 

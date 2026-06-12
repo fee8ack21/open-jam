@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace EmailService.Data.Migrations
 {
-    [DbContext(typeof(EmailDbContext))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20260604155231_InitialCreate")]
     partial class InitialCreate
     {

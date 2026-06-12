@@ -5,15 +5,15 @@ using Shared.Auth;
 namespace EmailService.Data;
 
 /// <summary>EF Core design-time factory，供 dotnet ef migrations 使用。</summary>
-public class EmailDbContextFactory : IDesignTimeDbContextFactory<EmailDbContext>
+public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     /// <inheritdoc/>
-    public EmailDbContext CreateDbContext(string[] args)
+    public AppDbContext CreateDbContext(string[] args)
     {
-        var options = new DbContextOptionsBuilder<EmailDbContext>()
+        var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql("Host=localhost;Database=open_jam_email;Username=postgres;Password=postgres")
             .UseSnakeCaseNamingConvention()
             .Options;
-        return new EmailDbContext(options, new NullCurrentUserAccessor());
+        return new AppDbContext(options, new NullCurrentUserAccessor());
     }
 }

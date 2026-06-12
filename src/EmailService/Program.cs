@@ -12,7 +12,7 @@ var builder = Host.CreateApplicationBuilder(args);
 
 // PostgreSQL + EF Core（snake_case 命名慣例）
 builder.Services.AddSingleton<ICurrentUserAccessor, WorkerCurrentUserAccessor>();
-builder.Services.AddDbContext<EmailDbContext>(opts =>
+builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
             o => o.MigrationsHistoryTable("__ef_migrations_history"))
         .UseSnakeCaseNamingConvention());
@@ -64,7 +64,7 @@ var host = builder.Build();
 using (var scope = host.Services.CreateScope())
 {
     await scope.ServiceProvider
-        .GetRequiredService<EmailDbContext>()
+        .GetRequiredService<AppDbContext>()
         .Database.MigrateAsync();
 }
 

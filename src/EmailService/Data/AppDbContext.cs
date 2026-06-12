@@ -8,7 +8,7 @@ namespace EmailService.Data;
 /// <summary>
 /// EmailService 的 EF Core DbContext，繼承 BaseDbContext 取得 Audit 自動填入能力。
 /// </summary>
-public class EmailDbContext(DbContextOptions<EmailDbContext> options, ICurrentUserAccessor currentUser)
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAccessor currentUser)
     : BaseDbContext(options, currentUser)
 {
     /// <summary>信件寄送紀錄資料表。</summary>

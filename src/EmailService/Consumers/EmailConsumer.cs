@@ -12,7 +12,7 @@ namespace EmailService.Consumers;
 /// 採「先寫 claim 再寄」策略：先 INSERT 取得鎖，捕捉 unique constraint 例外判斷是否已處理。
 /// </summary>
 public class EmailConsumer(
-    EmailDbContext db,
+    AppDbContext db,
     IEmailSender emailSender,
     ILogger<EmailConsumer> logger) : IConsumer<EmailRequestedEvent>
 {

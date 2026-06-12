@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Bootstrap.Seeders;
 
-public class EmailTemplateSeeder(EmailDbContext db, ILogger<EmailTemplateSeeder> logger)
+public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> logger)
 {
     private static readonly string ResourcesDir =
         Path.Combine(AppContext.BaseDirectory, "Resources", "email-templates");
