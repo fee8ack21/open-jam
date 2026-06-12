@@ -10,8 +10,9 @@ namespace EmailService.Services.Background;
 /// <summary>
 /// 補償重試背景服務，作為 MassTransit 原生重試之後的最後保險。
 /// 定期掃描未達最大重試次數的：(1) Failed 紀錄；(2) 卡在 Pending 的孤兒紀錄
-/// （consumer claim 後、寫回結果前 crash 所致）。僅處理 LastAttemptAt 早於掃描間隔的紀錄，
-/// 以避開 consumer 進行中的重試與前一輪掃描，降低重複寄送風險。
+/// （consumer claim 後、寫回結果前 crash 所致）。以 FOR UPDATE SKIP LOCKED 在交易內 claim 紀錄，
+/// 跳過 consumer 正持鎖處理中的列；並以 LastAttemptAt 早於掃描間隔為門檻，避開剛被動過的紀錄，
+/// 防止重複寄送。
 /// </summary>
 public class EmailRetryService(
     IServiceScopeFactory scopeFactory,
@@ -44,16 +45,29 @@ public class EmailRetryService(
         var emailSender     = scope.ServiceProvider.GetRequiredService<IEmailSender>();
         var maxAttempts     = emailOptions.Value.MaxRetryAttempts;
 
-        // 只撈最後嘗試早於一個掃描間隔的紀錄，避開 consumer 進行中的重試與前一輪掃描
+        // 只撈最後嘗試早於一個掃描間隔的紀錄，避開剛被動過的紀錄
         var cutoff = DateTimeOffset.UtcNow.AddMinutes(-emailOptions.Value.RetryIntervalMinutes);
 
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+        // FOR UPDATE SKIP LOCKED：claim 本輪要處理的列並鎖住，跳過 consumer 正在處理（持鎖）的列；
+        // 鎖持有至交易 commit，期間 consumer 對同列的 FOR UPDATE 會等待，避免重複寄送
         var pending = await db.EmailRecords
-            .Where(r => r.AttemptCount < maxAttempts
-                     && (r.Status == EmailStatus.Failed || r.Status == EmailStatus.Pending)
-                     && (r.LastAttemptAt == null || r.LastAttemptAt < cutoff))
+            .FromSql($"""
+                SELECT * FROM email_records
+                WHERE attempt_count < {maxAttempts}
+                  AND status IN ('Failed', 'Pending')
+                  AND (last_attempt_at IS NULL OR last_attempt_at < {cutoff})
+                ORDER BY created_at
+                FOR UPDATE SKIP LOCKED
+                """)
             .ToListAsync(ct);
 
-        if (pending.Count == 0) return;
+        if (pending.Count == 0)
+        {
+            await tx.CommitAsync(ct);
+            return;
+        }
 
         logger.LogInformation("EmailRetry: 重試 {Count} 筆待補發記錄", pending.Count);
 
@@ -78,5 +92,6 @@ public class EmailRetryService(
         }
 
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
     }
 }

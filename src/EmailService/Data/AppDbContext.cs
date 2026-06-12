@@ -14,11 +14,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
     /// <summary>信件寄送紀錄資料表。</summary>
     public DbSet<EmailRecord> EmailRecords => Set<EmailRecord>();
 
-    /// <summary>信件模板設定資料表。</summary>
-    public DbSet<EmailConfig> EmailConfigs => Set<EmailConfig>();
+    /// <summary>信件模板資料表。</summary>
+    public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
 
     /// <summary>信件模板語系翻譯資料表。</summary>
-    public DbSet<EmailConfigTranslation> EmailConfigTranslations => Set<EmailConfigTranslation>();
+    public DbSet<EmailTemplateTranslation> EmailTemplateTranslations => Set<EmailTemplateTranslation>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder model)
@@ -32,26 +32,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
             e.Property(r => r.Status).HasConversion<string>().HasMaxLength(20);
         });
 
-        model.Entity<EmailConfig>(e =>
+        model.Entity<EmailTemplate>(e =>
         {
             e.HasKey(c => c.Id);
             e.Property(c => c.Id).ValueGeneratedOnAdd();
-            e.Property(c => c.TemplateKey).HasMaxLength(100).IsRequired();
-            e.HasIndex(c => c.TemplateKey).IsUnique();
+            e.Property(c => c.Key).HasMaxLength(100).IsRequired();
+            e.HasIndex(c => c.Key).IsUnique();
             e.HasMany(c => c.Translations)
-             .WithOne(t => t.EmailConfig)
-             .HasForeignKey(t => t.EmailConfigId);
+             .WithOne(t => t.EmailTemplate)
+             .HasForeignKey(t => t.EmailTemplateId);
         });
 
         // 模板種子資料統一由 Bootstrap 的 EmailTemplateSeeder 從 Resources/email-templates 載入，
         // 不在此以 HasData 重複維護。
-        model.Entity<EmailConfigTranslation>(e =>
+        model.Entity<EmailTemplateTranslation>(e =>
         {
             e.HasKey(t => t.Id);
             e.Property(t => t.Id).ValueGeneratedOnAdd();
             e.Property(t => t.Locale).HasMaxLength(10).IsRequired();
             e.Property(t => t.Subject).HasMaxLength(500).IsRequired();
-            e.HasIndex(t => new { t.EmailConfigId, t.Locale }).IsUnique();
+            e.HasIndex(t => new { t.EmailTemplateId, t.Locale }).IsUnique();
         });
 
         base.OnModelCreating(model);

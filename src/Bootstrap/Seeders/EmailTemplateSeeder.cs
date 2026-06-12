@@ -96,18 +96,18 @@ public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> l
         string description,
         IEnumerable<(string Locale, string Subject, string BodyHtml)> translations)
     {
-        var config = await db.EmailConfigs
+        var config = await db.EmailTemplates
             .Include(c => c.Translations)
-            .FirstOrDefaultAsync(c => c.TemplateKey == templateKey);
+            .FirstOrDefaultAsync(c => c.Key == templateKey);
 
         if (config is null)
         {
-            config = new EmailConfig
+            config = new EmailTemplate
             {
-                TemplateKey = templateKey,
+                Key = templateKey,
                 Description = description,
             };
-            db.EmailConfigs.Add(config);
+            db.EmailTemplates.Add(config);
             logger.LogInformation("Adding email template '{Key}'", templateKey);
         }
         else
@@ -120,7 +120,7 @@ public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> l
             var tr = config.Translations.FirstOrDefault(t => t.Locale == locale);
             if (tr is null)
             {
-                config.Translations.Add(new EmailConfigTranslation
+                config.Translations.Add(new EmailTemplateTranslation
                 {
                     Locale    = locale,
                     Subject   = subject,
