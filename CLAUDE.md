@@ -21,6 +21,8 @@ dotnet ef migrations add <Name>   # 新增 EF Core Migration（需 dotnet-ef too
 |------|------|----------|
 | Auth | MVC 登入 / 註冊 / 忘記密碼 | http://localhost:5169 |
 | LogService | Audit Log REST API | http://localhost:5170，Swagger: `/swagger` |
+| StorageService | 檔案上傳 / 下載 URL 簽發 REST API | http://localhost:5171，Swagger: `/swagger` |
+| StoreService | 開店申請 / 店家 / 追蹤 REST API | http://localhost:5172，Swagger: `/swagger` |
 | EmailService | RabbitMQ Worker（無 HTTP port） | — |
 | Bootstrap | Seed，一次性執行後結束 | — |
 
@@ -32,10 +34,20 @@ docker build -f Auth/Dockerfile -t open-jam-auth .
 
 ### 前端應用（從各 `apps/<app>/` 執行）
 
+皆為 Vue 3 + Vite 5 + Pinia + Vue Router 4 + Naive UI、pnpm 管理的 SPA。
+
+| App | 用途 | 認證 |
+|-----|------|------|
+| market-web | 市集首頁 / landing | OIDC（oidc-client-ts） |
+| creator-web | 創作者店面：商品列表 / 詳情 / 結帳 | 無（消費者免註冊） |
+| workspace-web | 創作者後台：開店、商品 / 訂單管理、上架、設定 | OIDC（oidc-client-ts） |
+
 ```bash
 pnpm dev    # Vite dev server（預設 5173，多個並跑依序遞增）
 pnpm build
 ```
+
+> 前端 API client 一律以 `swagger-typescript-api` 從後端 OpenAPI 自動產生（見 `workspace-web/openapi/`），不手寫；搭配 token 注入 wrapper。
 
 ### 文件站（從 `docs/` 執行）
 
@@ -47,27 +59,30 @@ pnpm preview
 
 ## 架構慣例
 
-- **CQRS / Mediator + 軟體三層 + Service DI**
+- **軟體三層 + Service DI**：Controller 只做 HTTP（路由、model binding、狀態碼），業務邏輯一律下放至 `Services/<Feature>/` 的 `I<Feature>Service` + 實作，於 `Program.cs` 以 `AddScoped` 註冊（詳見 `docs/develop.md`）
+- **API Model**：Request / Response / DTO 依功能集中於 `Models/<Feature>Models.cs`（一功能一檔，非一型別一檔），namespace `<Service>.Models`
 - **分頁**：一律 `offset` / `limit`（非 `page` / `pageSize`）
 - **時間欄位**：型別 `DateTimeOffset`，命名以 `At` 結尾
 - **資料庫命名**：snake_case；C# Entity 保持 PascalCase，由 `BaseDbContext` 自動套用 EF Core naming convention，不需手動 `[Column]`
 - **XML 文件**：Entity、DTO、Controller Action 皆須 `<summary>`；DTO 屬性另加 `<example>`（影響 Swagger 完整度，強制要求）
-- **錯誤處理**：業務層拋 `AppException` 子類。REST API 服務（LogService 等）以 `ExceptionMiddleware` 轉為 RFC 9457 Problem Details；MVC 服務（Auth）以 ASP.NET Core 內建 `UseExceptionHandler` 導頁至 Error Page，不掛載 `ExceptionMiddleware`
+- **錯誤處理**：業務層拋 `AppException` 子類。REST API 服務（LogService / StorageService / StoreService 等）以 `ExceptionMiddleware` 轉為 RFC 9457 Problem Details；MVC 服務（Auth）以 ASP.NET Core 內建 `UseExceptionHandler` 導頁至 Error Page，不掛載 `ExceptionMiddleware`
 - **微服務 Ref Table**：本地保留其他服務資源的參照表，資源變更時發 Event 同步
 
 ## Shared 類別庫（`src/Shared/`）
 
 所有服務共用，不含 HTTP 路由邏輯。
 
-**`BaseDbContext`** — 覆寫 `SaveChangesAsync`，自動填入 Audit 欄位（`ICreatedAt/By`、`IUpdatedAt/By`）。軟刪除（`IDeletedAt/By`）由 Entity 自身的 `SoftDelete()` 方法觸發，DbContext 不自動處理。
+**`BaseDbContext`**（`Shared/Data/`）— 覆寫 `SaveChangesAsync`，自動填入 Audit 欄位（`ICreatedAt/By`、`IUpdatedAt/By`）。Audit 欄位 setter 皆為 `private set`，僅 DbContext 攔截邏輯可寫入。**軟刪除**：業務層照常呼叫 `DbSet.Remove()`，`BaseDbContext` 攔截 `IDeletedAt` entity 的 `Deleted` 狀態轉為 `Modified` 並填入 `DeletedAt/By`；`OnModelCreating` 對所有 `IDeletedAt` 套用全域 Query Filter（預設排除已刪除）。**硬刪除**需 `IgnoreQueryFilters().ExecuteDeleteAsync()` 繞過追蹤（見 `docs/develop.md`）。
 
-**`ICurrentUserAccessor`** — 取得目前使用者 `Guid? UserId`。HTTP 服務注入 `HttpContextUserAccessor`（從 JWT Claims 讀 `sub`）；背景 Worker 注入 `WorkerCurrentUserAccessor`（固定系統帳號）。
+**`ICurrentUserAccessor`**（`Shared/Auth/`）— 取得目前使用者 `Guid? UserId`。HTTP 服務注入 `HttpContextUserAccessor`（從 JWT Claims 讀 `sub`）；design-time / migration 等無 HTTP 情境注入 `NullCurrentUserAccessor`（永遠回傳 null）。
+
+**`AddOpenJamJwtAuth`**（`Shared/Auth/JwtBearerExtensions.cs`）— REST API 服務於 `Program.cs` 呼叫，加入 JwtBearer 驗證（驗 Hydra JWKS）與 `"Admin"` 授權 policy（`RequireRole("Admin")`）。
 
 **`AppException` 子類** — `NotFoundException(404)` / `ForbiddenException(403)` / `ConflictException(409)` / `ValidationException(422)` / `UnauthorizedException(401)`。
 
 **`ExceptionMiddleware`** — 僅用於 **REST API 服務**。在 `Program.cs` 以 `app.UseExceptionMiddleware()` 掛載，需排在所有其他 middleware 之前。MVC 服務不使用此 middleware，改以 `app.UseExceptionHandler(...)` 處理。
 
-**Events** — `EmailRequestedEvent`、`AuditLogRequestedEvent`：各服務在業務 transaction 內寫入 Outbox，由 `OutboxRelayService` 排程搬入 RabbitMQ。
+**Events**（`Shared/Events/`）— `EmailRequestedEvent`、`AuditLogRequestedEvent`、`FileReadyEvent`：各服務在業務 transaction 內寫入 Outbox，由 `OutboxRelayService` 排程搬入 RabbitMQ。
 
 ## Outbox 模式
 
@@ -104,6 +119,22 @@ RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以
 
 消費 `AuditLogRequestedEvent` 寫入 `audit_log` 表，並提供分頁查詢 REST API（`/swagger`）。
 
+## StorageService（`src/StorageService/`）
+
+REST API，簽發上傳 / 下載 URL 並管理檔案生命週期。
+
+- **儲存後端**：`IStorageProvider` 抽象，依 `Storage:Provider` 設定切換地端 `MinioStorageProvider`（S3 相容）或雲端 `GcsStorageProvider`（GCS，signed URL 用服務帳戶金鑰或 GKE Workload Identity 的 IAM SignBlob）。
+- **流程**：`FilesController` 簽發 presigned upload URL → 客戶端直傳後端儲存 → `InternalController` 收 storage 事件（webhook）由 `StorageEventService` 確認 → `FileProcessingService` 處理 → publish `FileReadyEvent`。
+- **背景**：`OrphanCleanupService` 清理保留期過後的孤兒檔案（硬刪除）。
+
+## StoreService（`src/StoreService/`）
+
+REST API，管理開店申請、店家與追蹤。Controller（`StoreApplications` / `Stores` / `StoreFollowers`）僅轉接，業務在 `Services/<Feature>/` 的 `IStoreApplicationService` / `IStoreManager` / `IStoreFollowerService`。
+
+- **`StorageServiceClient`**：以 `HttpClient`（named `"storage"`，BaseUrl 由 `ServiceOptions` 設定）呼叫 StorageService 簽發 Avatar / Banner 上傳 URL。
+- **`StoreSlugValidator` / `StoreAuthorization`**：子網域 slug 驗證與店家成員授權。
+- **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`。
+
 ## Bootstrap（`src/Bootstrap/`）
 
 一次性 seed 工具，執行 `HydraClientSeeder`（註冊 Hydra OIDC client）與 `EmailTemplateSeeder`（寫入郵件模板）後結束。
@@ -127,5 +158,22 @@ RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以
 {
   "Smtp": { "Host": "localhost", "Port": 1025, "SecureSocket": "Auto", "FromAddress": "noreply@openjam.co" },
   "SendGrid": { "ApiKey": "<prod-only，由 GCP Secret Manager 注入>" }
+}
+// StorageService / StoreService 額外需要（REST API，驗 Hydra 簽發的 JWT）
+{
+  "Hydra": { "Issuer": "http://localhost:4444/" }
+}
+// StorageService 額外需要（地端 MinIO；正式切 Provider: "Gcs"）
+{
+  "Storage": {
+    "Provider": "Minio", "Endpoint": "localhost:9000",
+    "AccessKey": "minioadmin", "SecretKey": "minioadmin",
+    "Bucket": "open-jam", "SoftDeleteRetentionDays": 30,
+    "Gcs": { "CredentialsPath": "" }  // 留空走 ADC / Workload Identity
+  }
+}
+// StoreService 額外需要（呼叫 StorageService 簽發頭像 / 橫幅上傳 URL）
+{
+  "Services": { "StorageService": { "BaseUrl": "http://localhost:5171" } }
 }
 ```
