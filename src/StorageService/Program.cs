@@ -1,3 +1,5 @@
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Storage.V1;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Minio;
@@ -6,6 +8,8 @@ using Shared.Middleware;
 using StorageService.Data;
 using StorageService.Options;
 using StorageService.Services;
+using StorageService.Services.Files;
+using StorageService.Services.StorageEvents;
 using StorageService.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,16 +26,31 @@ builder.Services.AddDbContext<StorageDbContext>(opts =>
             o => o.MigrationsHistoryTable("__ef_migrations_history"))
         .UseSnakeCaseNamingConvention());
 
-// MinIO
-builder.Services.AddSingleton<IMinioClient>(_ =>
-    new MinioClient()
-        .WithEndpoint(storageOpts.Endpoint)
-        .WithCredentials(storageOpts.AccessKey, storageOpts.SecretKey)
-        .WithSSL(storageOpts.UseSsl)
-        .Build());
-
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
-builder.Services.AddScoped<IStorageProvider, MinioStorageProvider>();
+
+// 儲存後端：地端 MinIO（S3 相容）/ 雲端 Google Cloud Storage，依設定切換
+if (storageOpts.Provider == StorageProvider.Gcs)
+{
+    // 服務帳戶金鑰可簽章 signed URL；留空則用 ADC（GKE Workload Identity，透過 IAM SignBlob 簽章）
+    var credential = string.IsNullOrWhiteSpace(storageOpts.Gcs.CredentialsPath)
+        ? GoogleCredential.GetApplicationDefault()
+        : CredentialFactory.FromFile<GoogleCredential>(storageOpts.Gcs.CredentialsPath);
+
+    builder.Services.AddSingleton(StorageClient.Create(credential));
+    builder.Services.AddSingleton(UrlSigner.FromCredential(credential));
+    builder.Services.AddScoped<IStorageProvider, GcsStorageProvider>();
+}
+else
+{
+    builder.Services.AddSingleton<IMinioClient>(_ =>
+        new MinioClient()
+            .WithEndpoint(storageOpts.Endpoint)
+            .WithCredentials(storageOpts.AccessKey, storageOpts.SecretKey)
+            .WithSSL(storageOpts.UseSsl)
+            .Build());
+
+    builder.Services.AddScoped<IStorageProvider, MinioStorageProvider>();
+}
 
 // MassTransit + RabbitMQ（publish only，FileReadyEvent）
 builder.Services.AddMassTransit(x =>
@@ -47,6 +66,8 @@ builder.Services.AddMassTransit(x =>
 });
 
 // 業務服務
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IStorageEventService, StorageEventService>();
 builder.Services.AddScoped<FileProcessingService>();
 builder.Services.AddSingleton<OrphanCleanupService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<OrphanCleanupService>());

@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StorageService.Data;
-using StorageService.Services;
+using StorageService.Services.StorageEvents;
 
 namespace StorageService.Controllers;
 
@@ -11,10 +9,7 @@ namespace StorageService.Controllers;
 /// </summary>
 [ApiController]
 [Route("internal")]
-public class InternalController(
-    StorageDbContext db,
-    FileProcessingService processor,
-    ILogger<InternalController> logger) : ControllerBase
+public class InternalController(IStorageEventService storageEvents) : ControllerBase
 {
     /// <summary>
     /// 接收 MinIO S3-compatible bucket event notification（ObjectCreated）。
@@ -40,39 +35,12 @@ public class InternalController(
         if (notification.Records is not { Count: > 0 })
             return BadRequest("no records");
 
-        var objectKey = notification.Records[0].S3?.Object?.Key;
-        if (string.IsNullOrEmpty(objectKey))
+        var s3Object = notification.Records[0].S3?.Object;
+        if (string.IsNullOrEmpty(s3Object?.Key))
             return BadRequest("missing object key");
 
-        // StorageKey 格式：creators/{creatorId}/{fileId}/{originalName}
-        var parts = objectKey.TrimStart('/').Split('/');
-        if (parts.Length < 3 || !Guid.TryParse(parts[2], out var fileId))
-        {
-            logger.LogWarning("Unrecognised storage key format: {Key}", objectKey);
-            return BadRequest("unrecognised key format");
-        }
-
-        var file = await db.StoredFiles
-            .FirstOrDefaultAsync(f => f.Id == fileId && f.DeletedAt == null, ct);
-
-        if (file is null)
-        {
-            logger.LogWarning("Received storage event for unknown file {FileId}", fileId);
-            return NoContent();
-        }
-
-        // 更新 SizeBytes（若 MinIO 提供）
-        var reportedSize = notification.Records[0].S3?.Object?.Size;
-        if (reportedSize.HasValue && file.SizeBytes == null)
-        {
-            file.SizeBytes = reportedSize;
-            await db.SaveChangesAsync(ct);
-        }
-
-        // 在背景執行 pipeline，不阻塞 webhook 回應（MinIO 期望快速回應）
-        _ = Task.Run(() => processor.ProcessAsync(fileId, CancellationToken.None), ct);
-
-        return NoContent();
+        var handled = await storageEvents.HandleObjectCreatedAsync(s3Object.Key, s3Object.Size, ct);
+        return handled ? NoContent() : BadRequest("unrecognised key format");
     }
 }
 

@@ -1,13 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Shared.Exceptions;
-using StorageService.Data;
-using StorageService.Data.Entities;
 using StorageService.Models;
-using StorageService.Options;
-using StorageService.Services;
-using StorageService.Storage;
+using StorageService.Services.Files;
 
 namespace StorageService.Controllers;
 
@@ -20,18 +13,8 @@ namespace StorageService.Controllers;
 /// </summary>
 [ApiController]
 [Route("files")]
-public class FilesController(
-    StorageDbContext db,
-    IStorageProvider storage,
-    IOptions<StorageOptions> storageOptions) : ControllerBase
+public class FilesController(IFileService fileService) : ControllerBase
 {
-    private static readonly HashSet<string> AllowedContentTypes =
-    [
-        "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm",
-        "image/jpeg", "image/png", "image/gif", "image/webp",
-        "application/pdf",
-    ];
-
     /// <summary>申請上傳簽章 URL（presigned PUT）。</summary>
     /// <remarks>
     /// 功能 API 在完成配額檢查後呼叫此端點，取得 presigned URL 交由前端直傳 MinIO / GCS。
@@ -45,48 +28,8 @@ public class FilesController(
     [ProducesResponseType<RequestUploadUrlResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<ActionResult<RequestUploadUrlResponse>> RequestUploadUrlAsync(
-        [FromBody] RequestUploadUrlRequest request, CancellationToken ct)
-    {
-        if (!AllowedContentTypes.Contains(request.ContentType))
-            throw new ValidationException($"不支援的檔案類型：{request.ContentType}");
-
-        var opts    = storageOptions.Value;
-        var expiry  = TimeSpan.FromSeconds(opts.UploadUrlExpirySeconds);
-        var expiresAt = DateTimeOffset.UtcNow.Add(expiry);
-
-        var file = new StoredFile
-        {
-            CreatorId   = request.CreatorId,
-            ProductId   = request.ProductId,
-            OriginalName = request.OriginalName,
-            ContentType = request.ContentType,
-            SizeBytes   = request.SizeBytes,
-            FileType    = request.FileType,
-            IsPreview   = request.IsPreview,
-        };
-        file.StorageKey = request.IsPublic
-            ? $"public/{request.CreatorId}/{file.Id}/{request.OriginalName}"
-            : $"creators/{request.CreatorId}/{file.Id}/{request.OriginalName}";
-
-        db.StoredFiles.Add(file);
-        await db.SaveChangesAsync(ct);
-
-        var uploadUrl = await storage.GenerateUploadUrlAsync(
-            file.StorageKey, request.ContentType, request.SizeBytes, expiry, ct);
-
-        var publicUrl = request.IsPublic
-            ? $"{opts.PublicBaseUrl.TrimEnd('/')}/{file.StorageKey}"
-            : null;
-
-        return Ok(new RequestUploadUrlResponse
-        {
-            FileId     = file.Id,
-            UploadUrl  = uploadUrl,
-            StorageKey = file.StorageKey,
-            PublicUrl  = publicUrl,
-            ExpiresAt  = expiresAt,
-        });
-    }
+        [FromBody] RequestUploadUrlRequest request, CancellationToken ct) =>
+        Ok(await fileService.RequestUploadUrlAsync(request, ct));
 
     /// <summary>查詢檔案元資訊與處理狀態。</summary>
     /// <param name="id">檔案 ID。</param>
@@ -94,15 +37,8 @@ public class FilesController(
     [HttpGet("{id:guid}")]
     [ProducesResponseType<FileDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileDto>> GetAsync(Guid id, CancellationToken ct)
-    {
-        var file = await db.StoredFiles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
-            ?? throw new NotFoundException($"檔案 {id} 不存在");
-
-        return Ok(ToDto(file));
-    }
+    public async Task<ActionResult<FileDto>> GetAsync(Guid id, CancellationToken ct) =>
+        Ok(await fileService.GetAsync(id, ct));
 
     /// <summary>取得已授權的下載簽章 URL（presigned GET）。</summary>
     /// <remarks>
@@ -116,28 +52,8 @@ public class FilesController(
     [ProducesResponseType<GetDownloadUrlResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<ActionResult<GetDownloadUrlResponse>> GetDownloadUrlAsync(Guid id, CancellationToken ct)
-    {
-        var file = await db.StoredFiles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
-            ?? throw new NotFoundException($"檔案 {id} 不存在");
-
-        if (file.Status != FileStatus.Ready)
-            throw new ValidationException($"檔案 {id} 尚未完成處理（狀態：{file.Status}）");
-
-        var opts   = storageOptions.Value;
-        var expiry = TimeSpan.FromSeconds(opts.DownloadUrlExpirySeconds);
-
-        var downloadUrl = await storage.GenerateDownloadUrlAsync(file.StorageKey, expiry, ct);
-
-        return Ok(new GetDownloadUrlResponse
-        {
-            FileId      = file.Id,
-            DownloadUrl = downloadUrl,
-            ExpiresAt   = DateTimeOffset.UtcNow.Add(expiry),
-        });
-    }
+    public async Task<ActionResult<GetDownloadUrlResponse>> GetDownloadUrlAsync(Guid id, CancellationToken ct) =>
+        Ok(await fileService.GetDownloadUrlAsync(id, ct));
 
     /// <summary>軟刪除檔案；已購買的商品仍保留買家下載權。</summary>
     /// <param name="id">檔案 ID。</param>
@@ -147,28 +63,7 @@ public class FilesController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken ct)
     {
-        var file = await db.StoredFiles
-            .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
-            ?? throw new NotFoundException($"檔案 {id} 不存在");
-
-        file.SoftDelete();
-        await db.SaveChangesAsync(ct);
-
+        await fileService.DeleteAsync(id, ct);
         return NoContent();
     }
-
-    private static FileDto ToDto(StoredFile f) => new()
-    {
-        Id          = f.Id,
-        CreatorId   = f.CreatorId,
-        ProductId   = f.ProductId,
-        OriginalName = f.OriginalName,
-        ContentType = f.ContentType,
-        SizeBytes   = f.SizeBytes,
-        FileType    = f.FileType,
-        Status      = f.Status,
-        IsPreview   = f.IsPreview,
-        CreatedAt   = f.CreatedAt,
-        UpdatedAt   = f.UpdatedAt,
-    };
 }
