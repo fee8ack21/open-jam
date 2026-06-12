@@ -8,6 +8,7 @@ import { ME } from '@/data'
 const NAV = {
   sell: [
     { view: 'overview', label: '儀表板', icon: 'grid' },
+    { view: 'open-store', label: '開店', icon: 'rocket' },
     { view: 'products', label: '商品管理', icon: 'box', countKey: 'products' },
     { view: 'upload', label: '上架新作品', icon: 'upload' },
     { view: 'orders', label: '訂單管理', icon: 'receipt', countKey: 'orders' },

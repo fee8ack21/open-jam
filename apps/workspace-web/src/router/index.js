@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth.js'
 
 const routes = [
   { path: '/', name: 'overview', component: () => import('@/views/OverviewView.vue'), meta: { title: '儀表板' } },
+  { path: '/open-store', name: 'open-store', component: () => import('@/views/OpenStoreView.vue'), meta: { title: '開店' } },
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { title: '上架新作品' } },
   { path: '/orders', name: 'orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單管理' } },
