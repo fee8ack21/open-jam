@@ -3,7 +3,7 @@
 }
 
 <div class="auth-shell" data-screen="verify-done">
-    @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
+    @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
         Headline = "你已<br/><span class=\"hl hl-lime\">驗證成功</span>！",
         Sub = "帳號已開通，開始在 Open Jam 上分享你的創作。"
     })

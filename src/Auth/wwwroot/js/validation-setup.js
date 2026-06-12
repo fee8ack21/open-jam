@@ -4,7 +4,7 @@
 (function () {
   var $ = window.jQuery;
 
-  // ---- password strength scorer (shared with auth-core.js) ----
+  // ---- password strength scorer (shared with form-ui.js) ----
   // Rules mirror server-side PasswordValidator:
   //   8–20 chars · uppercase · lowercase · digit · special char · no whitespace
   window.scorePassword = function (pw) {

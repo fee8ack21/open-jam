@@ -3,7 +3,7 @@
 }
 
 <div class="auth-shell" data-screen="login-error">
-    @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
+    @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
         Headline = "讓我們<br/>再試一次。",
         Sub = "帳號或密碼有點問題，確認後再登入一次吧。"
     })

@@ -8,13 +8,13 @@
   --c-cyan: #1fd6c6;
   --c-yellow: #ffc83a;
 
-  --june-primary: #6c4cf1;
-  --june-primary-soft: #8a72ff;
-  --june-primary-wash: rgba(108, 76, 241, 0.1);
+  --oj-primary: #6c4cf1;
+  --oj-primary-soft: #8a72ff;
+  --oj-primary-wash: rgba(108, 76, 241, 0.1);
 
-  --june-display: "Bricolage Grotesque", "Noto Sans TC", sans-serif;
-  --june-font: "Space Grotesk", "Noto Sans TC", sans-serif;
-  --june-mono: "JetBrains Mono", ui-monospace, monospace;
+  --oj-display: "Bricolage Grotesque", "Noto Sans TC", sans-serif;
+  --oj-font: "Space Grotesk", "Noto Sans TC", sans-serif;
+  --oj-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --r-lg: 22px;
   --r-md: 16px;
@@ -42,17 +42,17 @@ body {
   height: 100%;
 }
 body {
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 button {
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
 }
 input {
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
 }
 
 /* ============================================================
@@ -146,7 +146,7 @@ input {
   color: var(--c-violet);
 }
 .brand-name {
-  font-family: var(--june-display);
+  font-family: var(--oj-display);
   font-weight: 800;
   font-size: 26px;
   letter-spacing: -0.6px;
@@ -165,7 +165,7 @@ input {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -178,7 +178,7 @@ input {
   border: 1.5px solid rgba(255, 255, 255, 0.28);
 }
 .brand-headline {
-  font-family: var(--june-display);
+  font-family: var(--oj-display);
   font-weight: 800;
   font-size: clamp(38px, 4.6vw, 62px);
   line-height: 1.02;
@@ -220,7 +220,7 @@ input {
   z-index: 1;
   pointer-events: none;
 }
-.fcard {
+.fc {
   position: absolute;
   width: 168px;
   border-radius: var(--r-md);
@@ -230,11 +230,11 @@ input {
   overflow: hidden;
   opacity: 0.96;
 }
-.fcard .fc-thumb {
+.fc .fc-thumb {
   height: 98px;
   position: relative;
 }
-.fcard .fc-dots {
+.fc .fc-dots {
   position: absolute;
   inset: 0;
   background-image: radial-gradient(
@@ -245,7 +245,7 @@ input {
   opacity: 0.4;
   mix-blend-mode: soft-light;
 }
-.fcard .fc-glyph {
+.fc .fc-glyph {
   position: absolute;
   inset: 0;
   display: grid;
@@ -253,11 +253,11 @@ input {
   color: #fff;
   opacity: 0.92;
 }
-.fcard .fc-cat {
+.fc .fc-cat {
   position: absolute;
   left: 9px;
   top: 9px;
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 8.5px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -267,31 +267,31 @@ input {
   padding: 3px 7px;
   border-radius: 999px;
 }
-.fcard .fc-body {
+.fc .fc-body {
   padding: 9px 11px 11px;
 }
-.fcard .fc-title {
-  font-family: var(--june-display);
+.fc .fc-title {
+  font-family: var(--oj-display);
   font-weight: 700;
   font-size: 13px;
   color: var(--text);
   letter-spacing: -0.2px;
   line-height: 1.2;
 }
-.fcard .fc-foot {
+.fc .fc-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
 }
-.fcard .fc-price {
-  font-family: var(--june-display);
+.fc .fc-price {
+  font-family: var(--oj-display);
   font-weight: 700;
   font-size: 13px;
   color: var(--text);
 }
-.fcard .fc-star {
-  font-family: var(--june-mono);
+.fc .fc-star {
+  font-family: var(--oj-mono);
   font-size: 10.5px;
   color: var(--text-soft);
   display: flex;
@@ -322,12 +322,12 @@ input {
   display: flex;
   align-items: center;
   gap: 18px;
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 12px;
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.82);
 }
-.brand-foot .fdiv {
+.brand-foot .foot-divider {
   width: 4px;
   height: 4px;
   border-radius: 50%;
@@ -362,18 +362,18 @@ input {
 }
 
 .form-eyebrow {
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--june-primary);
+  color: var(--oj-primary);
   margin: 0 0 12px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 .form-title {
-  font-family: var(--june-display);
+  font-family: var(--oj-display);
   font-weight: 800;
   font-size: clamp(30px, 3.6vw, 40px);
   line-height: 1.04;
@@ -407,7 +407,7 @@ input {
   gap: 7px;
 }
 .field-label {
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-weight: 600;
   font-size: 13.5px;
   color: var(--text);
@@ -475,11 +475,11 @@ input {
   transition: color 0.15s;
 }
 .input-shell .pw-toggle:hover {
-  color: var(--june-primary);
+  color: var(--oj-primary);
 }
 
 .field-err {
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-size: 12.5px;
   color: var(--c-pink);
   font-weight: 500;
@@ -530,7 +530,7 @@ input {
   font-size: 12px;
 }
 .pw-label {
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -586,7 +586,7 @@ input {
 }
 .checkbox a,
 .checkbox b {
-  color: var(--june-primary);
+  color: var(--oj-primary);
   font-weight: 600;
 }
 .checkbox.disabled {
@@ -598,7 +598,7 @@ input {
   box-shadow: 1.5px 1.5px 0 var(--border);
 }
 .field-hint {
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-size: 12.5px;
   color: var(--text-faint);
   font-weight: 500;
@@ -612,16 +612,16 @@ input {
   border: 0;
   padding: 0;
   cursor: pointer;
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-size: inherit;
   font-weight: 600;
-  color: var(--june-primary);
+  color: var(--oj-primary);
   text-underline-offset: 3px;
   text-decoration: underline;
   text-decoration-thickness: 1.5px;
   text-decoration-color: color-mix(
     in srgb,
-    var(--june-primary) 40%,
+    var(--oj-primary) 40%,
     transparent
   );
   transition:
@@ -638,10 +638,10 @@ input {
   border: 0;
   cursor: pointer;
   padding: 0;
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--june-primary);
+  color: var(--oj-primary);
   transition: color 0.15s;
   text-decoration: none;
 }
@@ -655,7 +655,7 @@ input {
   cursor: pointer;
   text-decoration: none;
   border: 1.5px solid var(--text);
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-weight: 700;
   font-size: 16px;
   color: #1a1626;
@@ -699,7 +699,7 @@ a.btn-pop {
   cursor: pointer;
   text-decoration: none;
   border: 1.5px solid var(--border-strong);
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-weight: 700;
   font-size: 15px;
   color: var(--text);
@@ -759,7 +759,7 @@ a.btn-pop {
   border: 0;
   padding: 0;
   margin-bottom: 24px;
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-weight: 600;
   font-size: 14px;
   color: var(--text-soft);
@@ -768,7 +768,7 @@ a.btn-pop {
     transform 0.15s;
 }
 .back-link:hover {
-  color: var(--june-primary);
+  color: var(--oj-primary);
   transform: translateX(-3px);
 }
 
@@ -821,7 +821,7 @@ a.btn-pop {
   border: 1.5px solid var(--border-strong);
   border-radius: 14px;
   box-shadow: 3px 3px 0 var(--border-strong);
-  font-family: var(--june-font);
+  font-family: var(--oj-font);
   font-size: 14.5px;
   line-height: 1.55;
   color: var(--text);
@@ -839,7 +839,7 @@ a.btn-pop {
   align-items: center;
   gap: 7px;
   margin-top: 4px;
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 12px;
   letter-spacing: 0.04em;
   color: var(--text-faint);
@@ -866,13 +866,13 @@ a.btn-pop {
   border-radius: 12px;
   box-shadow: 2px 2px 0 var(--border-strong);
   padding: 11px 15px;
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 14px;
   color: var(--text);
   font-weight: 500;
 }
 .email-chip svg {
-  color: var(--june-primary);
+  color: var(--oj-primary);
 }
 
 .resend {
@@ -882,7 +882,7 @@ a.btn-pop {
 }
 .resend b {
   color: var(--text-soft);
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-weight: 600;
 }
 .resend-ok {
@@ -1036,7 +1036,7 @@ a.btn-pop {
   background: linear-gradient(135deg, var(--c-cyan), var(--c-violet));
 }
 .modal-title {
-  font-family: var(--june-display);
+  font-family: var(--oj-display);
   font-weight: 800;
   font-size: 25px;
   letter-spacing: -0.7px;
@@ -1044,7 +1044,7 @@ a.btn-pop {
   color: var(--text);
 }
 .modal-meta {
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 11.5px;
   letter-spacing: 0.06em;
   color: var(--text-faint);
@@ -1082,7 +1082,7 @@ a.btn-pop {
   margin-bottom: 22px;
 }
 .legal-sec h4 {
-  font-family: var(--june-display);
+  font-family: var(--oj-display);
   font-weight: 700;
   font-size: 16px;
   color: var(--text);
@@ -1092,9 +1092,9 @@ a.btn-pop {
   gap: 9px;
 }
 .legal-sec h4 .num {
-  font-family: var(--june-mono);
+  font-family: var(--oj-mono);
   font-size: 12px;
-  color: var(--june-primary);
+  color: var(--oj-primary);
   font-weight: 600;
 }
 .legal-sec p {

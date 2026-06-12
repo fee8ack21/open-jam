@@ -3,7 +3,7 @@
 }
 
 <div class="auth-shell" data-screen="reset-done">
-    @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
+    @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
         Headline = "設定一組<br/><span class=\"hl hl-lime\">新密碼</span>。",
         Sub = "選一組夠強的密碼，好好保護你的創作資產。"
     })

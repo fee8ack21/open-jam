@@ -3,7 +3,7 @@
 }
 
 <div class="auth-shell" data-screen="verify-failed">
-    @await Html.PartialAsync("_BrandPanel", new BrandPanelModel {
+    @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
         Headline = "連結<br/><span class=\"hl hl-pink\">已失效</span>。",
         Sub = "驗證連結可能已過期或使用過，請重新申請。"
     })

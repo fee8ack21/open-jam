@@ -1,4 +1,4 @@
-/* auth-core.js — UI behaviours (validation is handled by jquery-validation unobtrusive) */
+/* form-ui.js — UI behaviours (validation is handled by jquery-validation unobtrusive) */
 (function () {
   var $ = window.jQuery;
 

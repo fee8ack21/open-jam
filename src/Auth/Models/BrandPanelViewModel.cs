@@ -1,7 +1,7 @@
 namespace Auth.Models;
 
 /// <summary>品牌側欄 Partial 的 model。</summary>
-public record BrandPanelModel
+public record BrandPanelViewModel
 {
     /// <summary>主標題文字。</summary>
     /// <example>歡迎回來</example>

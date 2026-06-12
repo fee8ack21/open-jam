@@ -89,10 +89,10 @@ ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 
 **前端（無 build step）**：
 
-script 載入順序（`_Layout.cshtml`）：jQuery → jquery-validation → jquery-validation-unobtrusive → `validation-setup.js` → `auth-core.js`
+script 載入順序（`_Layout.cshtml`）：jQuery → jquery-validation → jquery-validation-unobtrusive → `validation-setup.js` → `form-ui.js`
 
 - `validation-setup.js`：自訂驗證規則（`mustbetrue`、`minpasswordstrength`）+ unobtrusive adapters + `$.validator.setDefaults`（`.err` class on `.input-shell`）
-- `auth-core.js`：密碼強度 meter、visibility toggle、checkbox sync、legal modal、resend timer、tweaks panel
+- `form-ui.js`：密碼強度 meter、visibility toggle、checkbox sync、legal modal、resend timer
 
 表單欄位一律以內聯 HTML 撰寫，搭配 `IconHelper` 渲染 SVG icon；不使用額外 Partial View 封裝輸入元件。
 
