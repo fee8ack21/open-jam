@@ -125,7 +125,7 @@ RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以
 }
 // EmailService 額外需要（地端開發用 SMTP catcher；正式以 SendGrid API Key 替換）
 {
-  "Smtp": { "Host": "localhost", "Port": 1025, "UseSsl": false, "FromAddress": "noreply@openjam.co" },
+  "Smtp": { "Host": "localhost", "Port": 1025, "SecureSocket": "Auto", "FromAddress": "noreply@openjam.co" },
   "SendGrid": { "ApiKey": "<prod-only，由 GCP Secret Manager 注入>" }
 }
 ```

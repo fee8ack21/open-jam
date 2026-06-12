@@ -23,8 +23,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder model)
     {
-        var seedTime = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
-
         model.Entity<EmailRecord>(e =>
         {
             e.HasKey(r => r.Id);
@@ -43,13 +41,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
             e.HasMany(c => c.Translations)
              .WithOne(t => t.EmailConfig)
              .HasForeignKey(t => t.EmailConfigId);
-
-            e.HasData(
-                new EmailConfig { Id = 1, TemplateKey = "email.verification",  Description = "帳號開通驗證信", CreatedAt = seedTime },
-                new EmailConfig { Id = 2, TemplateKey = "email.password_reset", Description = "密碼重置信",    CreatedAt = seedTime }
-            );
         });
 
+        // 模板種子資料統一由 Bootstrap 的 EmailTemplateSeeder 從 Resources/email-templates 載入，
+        // 不在此以 HasData 重複維護。
         model.Entity<EmailConfigTranslation>(e =>
         {
             e.HasKey(t => t.Id);
@@ -57,37 +52,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
             e.Property(t => t.Locale).HasMaxLength(10).IsRequired();
             e.Property(t => t.Subject).HasMaxLength(500).IsRequired();
             e.HasIndex(t => new { t.EmailConfigId, t.Locale }).IsUnique();
-
-            e.HasData(
-                new EmailConfigTranslation
-                {
-                    Id            = 1,
-                    EmailConfigId = 1,
-                    Locale        = "zh-TW",
-                    Subject       = "Open Jam 帳號驗證",
-                    BodyHtml      = """
-                        <p>感謝您註冊 Open Jam！</p>
-                        <p>請點擊以下連結驗證您的電子信箱：</p>
-                        <p><a href="{{VerifyUrl}}" style="display:inline-block;padding:10px 20px;background:#6d28d9;color:#fff;text-decoration:none;border-radius:4px;">驗證帳號</a></p>
-                        <p style="color:#6b7280;font-size:14px;">連結將在 {{ExpiresInHours}} 小時後失效。若非您本人操作，請忽略此信。</p>
-                        """,
-                    CreatedAt     = seedTime,
-                },
-                new EmailConfigTranslation
-                {
-                    Id            = 2,
-                    EmailConfigId = 2,
-                    Locale        = "zh-TW",
-                    Subject       = "Open Jam 密碼重置",
-                    BodyHtml      = """
-                        <p>我們收到了您的密碼重置請求。</p>
-                        <p>請點擊以下連結重置您的密碼：</p>
-                        <p><a href="{{ResetUrl}}" style="display:inline-block;padding:10px 20px;background:#6d28d9;color:#fff;text-decoration:none;border-radius:4px;">重置密碼</a></p>
-                        <p style="color:#6b7280;font-size:14px;">連結將在 {{ExpiresInHours}} 小時後失效。若非您本人操作，請忽略此信。</p>
-                        """,
-                    CreatedAt     = seedTime,
-                }
-            );
         });
 
         base.OnModelCreating(model);

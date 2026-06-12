@@ -14,7 +14,5 @@ public record EmailRequestedEvent(
     /// <summary>模板渲染參數，鍵為佔位符名稱（如 "VerifyUrl"），值為替換字串。</summary>
     Dictionary<string, string> Params,
     /// <summary>語系代碼，如 "zh-TW"、"en"。</summary>
-    string Locale,
-    /// <summary>事件類型，與 TemplateKey 相同，供路由與日誌使用。</summary>
-    string EventType
+    string Locale
 );

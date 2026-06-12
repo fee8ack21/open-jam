@@ -106,7 +106,6 @@ public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> l
             {
                 TemplateKey = templateKey,
                 Description = description,
-                CreatedAt   = DateTime.UtcNow,
             };
             db.EmailConfigs.Add(config);
             logger.LogInformation("Adding email template '{Key}'", templateKey);
@@ -126,7 +125,6 @@ public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> l
                     Locale    = locale,
                     Subject   = subject,
                     BodyHtml  = bodyHtml,
-                    CreatedAt = DateTime.UtcNow,
                 });
             }
             else

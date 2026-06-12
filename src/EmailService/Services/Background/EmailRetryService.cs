@@ -8,8 +8,10 @@ using Microsoft.Extensions.Options;
 namespace EmailService.Services.Background;
 
 /// <summary>
-/// 補償重試背景服務，定期掃描 Failed 且未達最大重試次數的紀錄並補發。
-/// 作為 MassTransit 原生重試之後的最後保險。
+/// 補償重試背景服務，作為 MassTransit 原生重試之後的最後保險。
+/// 定期掃描未達最大重試次數的：(1) Failed 紀錄；(2) 卡在 Pending 的孤兒紀錄
+/// （consumer claim 後、寫回結果前 crash 所致）。僅處理 LastAttemptAt 早於掃描間隔的紀錄，
+/// 以避開 consumer 進行中的重試與前一輪掃描，降低重複寄送風險。
 /// </summary>
 public class EmailRetryService(
     IServiceScopeFactory scopeFactory,
@@ -42,15 +44,20 @@ public class EmailRetryService(
         var emailSender     = scope.ServiceProvider.GetRequiredService<IEmailSender>();
         var maxAttempts     = emailOptions.Value.MaxRetryAttempts;
 
-        var failed = await db.EmailRecords
-            .Where(r => r.Status == EmailStatus.Failed && r.AttemptCount < maxAttempts)
+        // 只撈最後嘗試早於一個掃描間隔的紀錄，避開 consumer 進行中的重試與前一輪掃描
+        var cutoff = DateTimeOffset.UtcNow.AddMinutes(-emailOptions.Value.RetryIntervalMinutes);
+
+        var pending = await db.EmailRecords
+            .Where(r => r.AttemptCount < maxAttempts
+                     && (r.Status == EmailStatus.Failed || r.Status == EmailStatus.Pending)
+                     && (r.LastAttemptAt == null || r.LastAttemptAt < cutoff))
             .ToListAsync(ct);
 
-        if (failed.Count == 0) return;
+        if (pending.Count == 0) return;
 
-        logger.LogInformation("EmailRetry: 重試 {Count} 筆失敗記錄", failed.Count);
+        logger.LogInformation("EmailRetry: 重試 {Count} 筆待補發記錄", pending.Count);
 
-        foreach (var record in failed)
+        foreach (var record in pending)
         {
             record.AttemptCount++;
             record.LastAttemptAt = DateTimeOffset.UtcNow;

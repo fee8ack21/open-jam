@@ -270,8 +270,7 @@ public class StoreApplicationsController(StoreDbContext db, ICurrentUserAccessor
             To:              to,
             TemplateKey:     templateKey,
             Params:          @params,
-            Locale:          "zh-TW",
-            EventType:       eventType));
+            Locale:          "zh-TW"));
 
         db.OutboxMessages.Add(outbox);
     }

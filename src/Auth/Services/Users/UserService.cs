@@ -178,8 +178,7 @@ public class UserService(
             To:              email,
             TemplateKey:     "email.verification",
             Params:          new() { ["activation_url"] = verifyUrl, ["expires_in_hours"] = expiresIn.TotalHours.ToString("0") },
-            Locale:          "zh-TW",
-            EventType:       "email.verification"
+            Locale:          "zh-TW"
         ));
 
         return (token, outbox);
@@ -205,8 +204,7 @@ public class UserService(
             To:              email,
             TemplateKey:     "email.password_reset",
             Params:          new() { ["reset_url"] = resetUrl, ["expires_in_minutes"] = expiresIn.TotalMinutes.ToString("0") },
-            Locale:          "zh-TW",
-            EventType:       "email.password_reset"
+            Locale:          "zh-TW"
         ));
 
         return (token, outbox);
