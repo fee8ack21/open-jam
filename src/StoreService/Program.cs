@@ -39,9 +39,11 @@ builder.Services.AddHostedService<OutboxRelayService>();
 
 // 強型別設定（Options pattern）
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
 
 // StorageService API client（簽發 Avatar/Banner 上傳 URL）
-var storageBaseUrl = (builder.Configuration["Services:StorageService:BaseUrl"] ?? "http://localhost:5171").TrimEnd('/') + "/";
+var services = builder.Configuration.GetSection("Services").Get<ServiceOptions>() ?? new ServiceOptions();
+var storageBaseUrl = (services.StorageService.BaseUrl ?? "http://localhost:5171").TrimEnd('/') + "/";
 builder.Services.AddHttpClient("storage", client => client.BaseAddress = new Uri(storageBaseUrl));
 builder.Services.AddScoped<StorageServiceClient>();
 
