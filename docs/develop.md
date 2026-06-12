@@ -129,9 +129,43 @@ chore(release): 發佈新版本
 - **lodash debounce**：搜尋 / 輸入等場景去抖。
 - **前端多國語系**：i18n。
 
+## Controller 與 Service 分層
+
+REST API 服務遵循「軟體三層 + Service DI」：**Controller 只負責 HTTP（路由、model binding、回傳狀態碼），不得撰寫業務邏輯**；所有業務邏輯下放至 Service 層，Controller 以介面注入呼叫。
+
+- **Controller**：薄薄一層。注入 `I<Feature>Service`，每個 action 將請求轉交 Service 後回傳結果；驗證／查詢／DB 存取一律不寫在 Controller。
+- **Service 組織**：依功能分資料夾，介面與實作成對放置：
+  ```
+  Services/
+    <Feature>/
+      I<Feature>Service.cs   # 介面，撰寫 <summary>
+      <Feature>Service.cs    # 實作，標 <inheritdoc/>
+  ```
+  namespace 為 `<Service>.Services.<Feature>`（如 `StoreService.Services.StoreFollowers`）。
+- **DI 註冊**：於 `Program.cs` 以 `builder.Services.AddScoped<I<Feature>Service, <Feature>Service>()` 註冊。
+- **業務例外**：Service 直接拋 `AppException` 子類（見 [錯誤處理](#錯誤處理)），不回傳錯誤碼或在 Controller 判斷。
+
+```csharp
+// Controller：只做 HTTP，邏輯全部委派給 Service
+[ApiController]
+[Route("stores/{id:guid}")]
+public class StoreFollowersController(IStoreFollowerService followerService) : ControllerBase
+{
+    [HttpPost("follow")]
+    [AllowAnonymous]
+    public async Task<IActionResult> FollowAsync(Guid id, [FromBody] FollowStoreRequest request, CancellationToken ct)
+    {
+        await followerService.FollowAsync(id, request, ct);
+        return NoContent();
+    }
+}
+```
+
+> Webhook / 事件回呼端點同理：Controller 僅做 payload 形狀驗證（如必要欄位缺漏回 400），其餘解析與處理交由 Service（例如 `StorageService` 的 `IStorageEventService`）。
+
 ## Entity Audit 介面
 
-每個 Entity 可選擇實作以下介面，DbContext 在 `SaveChanges` / `SaveChangesAsync` 時自動填入對應欄位。Setter 一律為 `private`，只有 DbContext 攔截邏輯才能寫入，業務層無法直接賦值。
+每個 Entity 可選擇實作以下介面，`BaseDbContext` 在 `SaveChangesAsync` 時自動填入對應欄位。各 audit 欄位的 setter 一律為 `private set`，只有 DbContext 攔截邏輯能寫入，業務層無法直接賦值。
 
 ### 介面定義
 
@@ -193,7 +227,7 @@ public class Product : ICreatedAt, ICreatedBy, IUpdatedAt, IUpdatedBy, IDeletedA
 
 ### DbContext 自動填入
 
-在 `AppDbContext`（或共用基底 `BaseDbContext`）覆寫 `SaveChangesAsync`，依介面偵測 entity 並透過 **EF Core Shadow Property** 或反射填入欄位。需注入 `ICurrentUserAccessor` 取得目前使用者 Id。
+共用基底 `BaseDbContext`（`Shared/Data/BaseDbContext.cs`）覆寫 `SaveChangesAsync`，依介面偵測 entity，透過 EF Core 的 `ChangeTracker` 直接寫入欄位的 `CurrentValue`（即便屬性為 `private set` 也能寫入）。各服務的 `AppDbContext` 繼承自此基底，並注入 `ICurrentUserAccessor` 取得目前使用者 Id。
 
 ```csharp
 public abstract class BaseDbContext(DbContextOptions options, ICurrentUserAccessor currentUser)
@@ -201,38 +235,80 @@ public abstract class BaseDbContext(DbContextOptions options, ICurrentUserAccess
 {
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var now = DateTimeOffset.UtcNow;
+        var now    = DateTimeOffset.UtcNow;
         var userId = currentUser.UserId; // nullable Guid
 
         foreach (var entry in ChangeTracker.Entries())
         {
+            // 軟刪除：將 IDeletedAt entity 的刪除動作攔截轉為 Modified，避免資料被真正刪除
+            if (entry.State == EntityState.Deleted && entry.Entity is IDeletedAt)
+            {
+                entry.State = EntityState.Modified;
+                entry.Property(nameof(IDeletedAt.DeletedAt)).CurrentValue = now;
+
+                if (entry.Entity is IDeletedBy)
+                    entry.Property(nameof(IDeletedBy.DeletedBy)).CurrentValue = userId;
+            }
+
             if (entry.State == EntityState.Added)
             {
-                if (entry.Entity is ICreatedAt ca)
+                if (entry.Entity is ICreatedAt)
                     entry.Property(nameof(ICreatedAt.CreatedAt)).CurrentValue = now;
 
-                if (entry.Entity is ICreatedBy cb && userId.HasValue)
+                if (entry.Entity is ICreatedBy && userId.HasValue)
                     entry.Property(nameof(ICreatedBy.CreatedBy)).CurrentValue = userId.Value;
             }
 
             if (entry.State is EntityState.Added or EntityState.Modified)
             {
-                if (entry.Entity is IUpdatedAt ua)
+                if (entry.Entity is IUpdatedAt)
                     entry.Property(nameof(IUpdatedAt.UpdatedAt)).CurrentValue = now;
 
-                if (entry.Entity is IUpdatedBy ub && userId.HasValue)
+                if (entry.Entity is IUpdatedBy && userId.HasValue)
                     entry.Property(nameof(IUpdatedBy.UpdatedBy)).CurrentValue = userId.Value;
             }
-
-            // IDeletedAt / IDeletedBy 由業務層顯式呼叫軟刪除方法觸發，DbContext 不自動填入
         }
 
         return base.SaveChangesAsync(cancellationToken);
     }
+
+    // 為所有 IDeletedAt entity 自動套用全域 Query Filter，查詢預設排除已軟刪除資料
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (!typeof(IDeletedAt).IsAssignableFrom(entityType.ClrType)) continue;
+            // 對每個型別套用 e => e.DeletedAt == null 的 HasQueryFilter
+        }
+    }
 }
 ```
 
-> **軟刪除**：`DeletedAt` / `DeletedBy` 由 Entity 自身提供 `SoftDelete(Guid operatorId)` 方法填入，DbContext 不自動處理，以避免誤將 `Modified` 狀態的 entity 一律視為刪除。
+> 子類別覆寫 `OnModelCreating` 時，務必先呼叫 `base.OnModelCreating(modelBuilder)`，否則軟刪除全域過濾器不會套用。
+
+### 軟刪除與硬刪除
+
+- **軟刪除**：業務層直接呼叫 `db.Set.Remove(entity)`（或 `DbSet.Remove`），`BaseDbContext` 會把刪除動作攔截轉為 `Modified`，並自動填入 `DeletedAt` / `DeletedBy`（由 `ICurrentUserAccessor` 取得）。**Entity 不提供 `SoftDelete()` 方法**，audit 欄位皆為 `private set`，業務層不可、也不需手動賦值。
+
+  ```csharp
+  var file = await db.StoredFiles.FirstOrDefaultAsync(f => f.Id == id)
+      ?? throw new NotFoundException($"檔案 {id} 不存在");
+
+  db.StoredFiles.Remove(file);       // 由 BaseDbContext 自動轉為軟刪除
+  await db.SaveChangesAsync(ct);
+  ```
+
+- **查詢已軟刪除資料**：全域 Query Filter 預設排除 `DeletedAt != null` 的列，需以 `IgnoreQueryFilters()` 才能查到（例如保留期清理、稽核）。
+
+- **永久硬刪除**：因 `Remove()` 一律被轉為軟刪除，真正的硬刪除需繞過變更追蹤，使用 `ExecuteDeleteAsync()` 直接對資料庫下 `DELETE`（搭配 `IgnoreQueryFilters()`）。
+
+  ```csharp
+  // 保留期過後的永久刪除（StorageService.OrphanCleanupService）
+  await db.StoredFiles
+      .IgnoreQueryFilters()
+      .Where(f => ids.Contains(f.Id))
+      .ExecuteDeleteAsync(ct);
+  ```
 
 ### ICurrentUserAccessor
 
@@ -243,13 +319,20 @@ public interface ICurrentUserAccessor
 }
 ```
 
-實作注入 `IHttpContextAccessor`，從 JWT Claims 取得 `sub`。背景工作（如 Worker / Saga）可提供獨立實作回傳固定的系統帳號 Id。
+內建兩種實作（皆於 `Shared/Auth/`）：
+
+- **`HttpContextUserAccessor`** — HTTP 服務注入，從 JWT Claims 的 `sub` 取得使用者 Id。
+- **`NullCurrentUserAccessor`** — 永遠回傳 `null`，供 EF Core design-time factory（`dotnet ef migrations`）等無 HTTP / 背景情境使用；此時 audit 的 `CreatedBy` / `UpdatedBy` / `DeletedBy` 不會被填入。
+
+背景工作（Worker / Saga）若需固定系統帳號，可另提供回傳固定 Id 的實作。
 
 ## 錯誤處理
 
 ### 設計原則
 
-所有 HTTP API 的錯誤統一由 `Shared` 類別庫的 `ExceptionMiddleware` 攔截，轉換為 [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457) 格式回傳。業務層只需拋出語意明確的自定義 Exception，不需自行組裝 response。
+**REST API 服務**（LogService、StorageService、StoreService 等）的錯誤統一由 `Shared` 類別庫的 `ExceptionMiddleware` 攔截，轉換為 [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457) 格式回傳。業務層只需拋出語意明確的自定義 Exception，不需自行組裝 response。
+
+> **MVC 服務例外**：`Auth` 為 ASP.NET Core MVC（畫面流程），改用內建 `app.UseExceptionHandler("/Home/Error")` 導頁至錯誤頁，**不掛載** `ExceptionMiddleware`（JSON 輸出不適用於畫面）。
 
 ### 自定義 Exception 基底
 
@@ -398,6 +481,21 @@ if (product.OwnerId != currentUser.UserId)
 ```
 
 ## API Model 慣例（CRUD Model）
+
+### 檔案組織
+
+Model（Request / Response / DTO）依**功能**歸類，同一功能的相關型別集中於單一 `<Feature>Models.cs`，置於 `Models/` 資料夾，namespace 為 `<Service>.Models`。不採「一型別一檔」。
+
+```
+Models/
+  StoreFollowerModels.cs   # FollowStoreRequest、GetStoreFollowersRequest/Response、StoreFollowerDto…
+  StoreApplicationModels.cs
+  FileModels.cs            # RequestUploadUrlRequest/Response、GetDownloadUrlResponse、FileDto…
+```
+
+> 註：純資料傳輸的 DTO 屬性使用一般 `get; set;` 即可；audit 欄位的 `private set` 規範只適用於 [Entity](#entity-audit-介面)，不適用於 Model。
+
+### 範例
 
 標準 request / response DTO 範例（分頁採 offset / limit）：
 
