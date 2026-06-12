@@ -1,7 +1,6 @@
 using EmailService.Consumers;
 using EmailService.Data;
 using EmailService.Options;
-using EmailService.Services.Auth;
 using EmailService.Services.Background;
 using EmailService.Services.Sending;
 using MassTransit;
@@ -11,7 +10,7 @@ using Shared.Auth;
 var builder = Host.CreateApplicationBuilder(args);
 
 // PostgreSQL + EF Core（snake_case 命名慣例）
-builder.Services.AddSingleton<ICurrentUserAccessor, WorkerCurrentUserAccessor>();
+builder.Services.AddSingleton<ICurrentUserAccessor, NullCurrentUserAccessor>();
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
             o => o.MigrationsHistoryTable("__ef_migrations_history"))

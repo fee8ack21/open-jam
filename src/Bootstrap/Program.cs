@@ -1,7 +1,6 @@
 using Auth.Services.Security;
 using Bootstrap.Seeders;
 using EmailService.Services;
-using EmailService.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,7 +11,7 @@ using EmailDbContext = EmailService.Data.AppDbContext;
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((ctx, services) =>
     {
-        services.AddScoped<ICurrentUserAccessor, WorkerCurrentUserAccessor>();
+        services.AddScoped<ICurrentUserAccessor, NullCurrentUserAccessor>();
 
         services.AddDbContext<EmailDbContext>(opts =>
             opts.UseNpgsql(ctx.Configuration["ConnectionStrings:DefaultConnection"],

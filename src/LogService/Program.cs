@@ -1,6 +1,5 @@
 using LogService.Consumers;
 using LogService.Data;
-using LogService.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
@@ -9,7 +8,7 @@ using Shared.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 // PostgreSQL + EF Core（snake_case 命名慣例）
-builder.Services.AddSingleton<ICurrentUserAccessor, WorkerCurrentUserAccessor>();
+builder.Services.AddSingleton<ICurrentUserAccessor, NullCurrentUserAccessor>();
 builder.Services.AddDbContext<LogDbContext>(opts =>
     opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
             o => o.MigrationsHistoryTable("__ef_migrations_history"))
