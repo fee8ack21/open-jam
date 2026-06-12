@@ -119,6 +119,7 @@ chore(release): 發佈新版本
 - **後端多國語系**：採 .resx 資源檔。
 - **時間欄位命名**：一律以 `At` 結尾（如 `CreatedAt`、`UpdatedAt`），型別統一宣告為 `DateTimeOffset`。
 - **資料庫命名慣例**：資料庫、資料表、欄位、Migration history 資料表全部採 `snake_case`；C# Entity 仍保持 `PascalCase`，由 `BaseDbContext` 統一套用 `EF Core` naming convention 自動轉換，開發層不需手動指定 `[Column]` 或 `[Table]`。
+- **enum 獨立成檔**：enum 一律單獨一個檔案（一型別一檔），不與 Entity 或其他型別共置同檔，如 `UserStatus.cs`、`EmailStatus.cs`。
 - **XML 文件註解**：Entity、Model（DTO / ViewModel / Request / Response）、Service、公開方法、Controller 及其 Action 皆須撰寫完整 `<summary>`，Model 屬性另加 `<example>`。Controller / Model 缺少註解會直接影響 Swagger 文件完整度，屬強制要求。
 
 ## 前端注意事項

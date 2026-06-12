@@ -15,10 +15,3 @@ public class StoreMember
     /// <summary>成員角色。</summary>
     public StoreMemberRole Role { get; set; }
 }
-
-/// <summary>商店成員角色。</summary>
-public enum StoreMemberRole
-{
-    /// <summary>商店擁有者。</summary>
-    Owner,
-}

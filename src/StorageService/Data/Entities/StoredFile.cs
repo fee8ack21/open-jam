@@ -54,32 +54,3 @@ public class StoredFile : ICreatedAt, IUpdatedAt, IDeletedAt, IDeletedBy
         DeletedBy = deletedBy;
     }
 }
-
-/// <summary>媒體類型分類。</summary>
-public enum FileType
-{
-    /// <summary>影片（支援 HLS 轉碼）。</summary>
-    Video,
-
-    /// <summary>圖片（支援縮圖生成）。</summary>
-    Image,
-
-    /// <summary>PDF 文件（支援預覽頁生成）。</summary>
-    Pdf,
-}
-
-/// <summary>檔案處理狀態。</summary>
-public enum FileStatus
-{
-    /// <summary>已簽發上傳 URL，等待直傳完成。</summary>
-    Uploading,
-
-    /// <summary>Storage 已收到上傳通知，正在進行掃毒 / 轉碼 / 預覽生成。</summary>
-    Processing,
-
-    /// <summary>所有處理完成，可對外提供下載。</summary>
-    Ready,
-
-    /// <summary>處理失敗（掃毒不通過 / 轉碼錯誤）或上傳逾時未確認。</summary>
-    Failed,
-}
