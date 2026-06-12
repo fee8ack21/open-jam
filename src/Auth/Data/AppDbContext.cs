@@ -57,5 +57,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
             e.Property(m => m.EventType).HasMaxLength(100).IsRequired();
             e.Property(m => m.Payload).HasColumnType("jsonb").IsRequired();
         });
+
+        base.OnModelCreating(model);
     }
 }

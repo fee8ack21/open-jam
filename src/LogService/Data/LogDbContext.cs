@@ -31,5 +31,7 @@ public class LogDbContext(DbContextOptions<LogDbContext> options, ICurrentUserAc
             e.Property(a => a.Ip).HasMaxLength(45);
             e.Property(a => a.CorrelationId).HasMaxLength(255);
         });
+
+        base.OnModelCreating(model);
     }
 }

@@ -89,5 +89,7 @@ public class EmailDbContext(DbContextOptions<EmailDbContext> options, ICurrentUs
                 }
             );
         });
+
+        base.OnModelCreating(model);
     }
 }

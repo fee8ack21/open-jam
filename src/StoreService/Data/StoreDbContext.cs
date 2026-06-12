@@ -79,5 +79,7 @@ public class StoreDbContext(DbContextOptions<StoreDbContext> options, ICurrentUs
             e.HasKey(o => o.Id);
             e.HasIndex(o => o.ProcessedAt);
         });
+
+        base.OnModelCreating(model);
     }
 }

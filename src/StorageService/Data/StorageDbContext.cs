@@ -27,5 +27,7 @@ public class StorageDbContext(DbContextOptions<StorageDbContext> options, ICurre
             e.Property(f => f.FileType).HasConversion<string>().HasMaxLength(20);
             e.Property(f => f.Status).HasConversion<string>().HasMaxLength(20);
         });
+
+        base.OnModelCreating(model);
     }
 }
