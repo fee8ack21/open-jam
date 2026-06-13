@@ -75,6 +75,8 @@ helm uninstall open-jam --namespace open-jam
 | auth | Deployment | 8080 | ASP.NET Core MVC 登入 / 註冊 |
 | log-service | Deployment | 8080 | Audit Log REST API |
 | email-service | Deployment | — | RabbitMQ Worker，無 HTTP |
+| storage-service | Deployment | 8080 | 檔案上傳 / 下載 URL 簽發 REST API |
+| store-service | Deployment | 8080 | 開店申請 / 店家 / 追蹤 REST API |
 | creator-web | Deployment | 80 | 創作者前台（Vite + nginx） |
 | market-web | Deployment | 80 | 消費者市集（Vite + nginx） |
 | workspace-web | Deployment | 80 | 工作台（Vite + nginx） |
@@ -106,6 +108,8 @@ infra/helm/open-jam/
     ├── auth/             deployment.yaml · service.yaml
     ├── log-service/      deployment.yaml · service.yaml
     ├── email-service/    deployment.yaml
+    ├── storage-service/  deployment.yaml · service.yaml
+    ├── store-service/    deployment.yaml · service.yaml
     ├── creator-web/      deployment.yaml · service.yaml
     ├── market-web/       deployment.yaml · service.yaml
     ├── workspace-web/    deployment.yaml · service.yaml
@@ -197,7 +201,19 @@ infra/helm/open-jam/
 | `smtp.enableSsl` | `false` | 是否啟用 TLS |
 | `smtp.fromAddress` | `noreply@openjam.co` | 寄件者地址 |
 
-### 應用服務（auth / logService / emailService / creatorWeb / marketWeb / workspaceWeb / docs）
+### 檔案儲存（storage）
+
+| 參數 | 預設值 | 說明 |
+|------|--------|------|
+| `storage.provider` | `Minio` | 儲存後端，`Minio`（地端 S3 相容）或 `Gcs`（雲端） |
+| `storage.endpoint` | `minio:9000` | MinIO endpoint（`Provider: Minio` 時生效） |
+| `storage.useSsl` | `false` | MinIO 連線是否使用 TLS |
+| `storage.bucket` | `open-jam` | 儲存桶名稱 |
+| `storage.softDeleteRetentionDays` | `30` | 軟刪除檔案保留天數，超過後由 `OrphanCleanupService` 硬刪除 |
+| `storage.gcs.credentialsPath` | `""` | GCS 服務帳戶金鑰路徑；留空走 ADC / GKE Workload Identity |
+| `secrets.storage.accessKey` / `secretKey` | `minioadmin` | MinIO Access/Secret Key（`Provider: Gcs` 時不使用） |
+
+### 應用服務（auth / logService / emailService / storageService / storeService / creatorWeb / marketWeb / workspaceWeb / docs）
 
 各服務共用相同參數結構：
 

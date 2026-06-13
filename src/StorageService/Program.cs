@@ -109,5 +109,8 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
+// K8s liveness/readiness probe 用
+app.MapGet("/healthz", () => Results.Ok());
+
 app.MapControllers();
 app.Run();

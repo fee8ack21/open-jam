@@ -31,6 +31,9 @@ secrets:
     password: ""
   sendgrid:
     apiKey: ""
+  storage:
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
 
 # ── Infrastructure ────────────────────────────────────────────────────────────
 
@@ -131,6 +134,17 @@ email:
   maxRetryAttempts: 5
   retryIntervalMinutes: 2
 
+# 檔案儲存後端：地端 MinIO（S3 相容）或雲端 GCS，依 Provider 切換
+storage:
+  provider: Minio
+  endpoint: "minio:9000"
+  useSsl: false
+  bucket: open-jam
+  softDeleteRetentionDays: 30
+  gcs:
+    # 留空走 ADC / GKE Workload Identity
+    credentialsPath: ""
+
 # ── Application Services ──────────────────────────────────────────────────────
 
 auth:
@@ -167,6 +181,21 @@ emailService:
   enabled: true
   image:
     repository: open-jam/email-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+storageService:
+  enabled: true
+  image:
+    repository: open-jam/storage-service
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
