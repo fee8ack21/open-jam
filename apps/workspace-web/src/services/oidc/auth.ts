@@ -8,7 +8,7 @@ Log.setLevel(Log.WARN);
 const authChannel = 'BroadcastChannel' in window ? new BroadcastChannel('auth') : null;
 
 const config: UserManagerSettings = {
-  authority: env.AUTHORITY,
+  authority: env.OIDC_AUTHORITY,
   client_id: env.OIDC_CLIENT_ID,
   redirect_uri: new URL(
     'callback.html',

@@ -9,7 +9,7 @@ import type { Product } from '@/data/catalogue.js';
 
 const props = defineProps<{ product: Product }>();
 
-const BASE = env.CREATOR_BASE_URL;
+const BASE = env.CREATOR_PAGE_BASE_URL;
 const href = computed(() => `${BASE}/product/${props.product.id}`);
 const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
 </script>

@@ -273,9 +273,9 @@ services:
       context: ../../apps/market-web
     restart: unless-stopped
     environment:
-      WORKSPACE_URL: ${WORKSPACE_URL}
-      CREATOR_BASE_URL: ${CREATOR_BASE_URL}
-      AUTHORITY: ${AUTHORITY}
+      WORKSPACE_PAGE_URL: ${WORKSPACE_URL}
+      CREATOR_PAGE_BASE_URL: ${CREATOR_BASE_URL}
+      OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
     ports:
@@ -287,8 +287,8 @@ services:
       context: ../../apps/workspace-web
     restart: unless-stopped
     environment:
-      WORKSPACE_URL: ${WORKSPACE_URL}
-      AUTHORITY: ${AUTHORITY}
+      WORKSPACE_PAGE_URL: ${WORKSPACE_URL}
+      OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
     ports:

@@ -1,7 +1,7 @@
 class AppEnv {
   [key: string]: string;
 
-  MARKET_URL = 'http://localhost:5173'
+  MARKET_PAGE_URL = 'http://localhost:5173'
 
   constructor() {
     Object.keys(this).forEach((key) => {

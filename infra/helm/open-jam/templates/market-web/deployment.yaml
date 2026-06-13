@@ -26,11 +26,11 @@ spec:
             - containerPort: 80
               name: http
           env:
-            - name: WORKSPACE_URL
+            - name: WORKSPACE_PAGE_URL
               value: {{ .Values.config.workspaceUrl | quote }}
-            - name: CREATOR_BASE_URL
+            - name: CREATOR_PAGE_BASE_URL
               value: {{ .Values.config.creatorBaseUrl | quote }}
-            - name: AUTHORITY
+            - name: OIDC_AUTHORITY
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: OIDC_CLIENT_ID
               value: {{ .Values.config.oidcClientId | quote }}

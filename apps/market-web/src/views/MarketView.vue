@@ -96,7 +96,7 @@ function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.val
 function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function loadMore() { visibleCount.value += pageSize; }
-function goWorkspace() { window.location.href = env.WORKSPACE_URL; }
+function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 
 onMounted(() => window.addEventListener('scroll', onScroll));
 onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));

@@ -1,8 +1,8 @@
 class AppEnv {
   [key: string]: string;
 
-  WORKSPACE_URL = 'http://localhost:5174';
-  AUTHORITY = 'http://localhost:4444';
+  WORKSPACE_PAGE_URL = 'http://localhost:5174';
+  OIDC_AUTHORITY = 'http://localhost:4444';
   OIDC_CLIENT_ID = 'open-jam-web';
   AUTH_PAGE_URL = 'http://localhost:5169/';
   STORE_API_URL = 'http://localhost:5172';
