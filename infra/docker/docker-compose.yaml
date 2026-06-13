@@ -275,7 +275,7 @@ services:
     environment:
       WORKSPACE_URL: ${WORKSPACE_URL}
       CREATOR_BASE_URL: ${CREATOR_BASE_URL}
-      HYDRA_PUBLIC_URL: ${HYDRA_PUBLIC_URL}
+      AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
     ports:
@@ -288,7 +288,7 @@ services:
     restart: unless-stopped
     environment:
       WORKSPACE_URL: ${WORKSPACE_URL}
-      HYDRA_PUBLIC_URL: ${HYDRA_PUBLIC_URL}
+      AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
     ports:

@@ -8,7 +8,7 @@ const authChannel: BroadcastChannel | null =
   'BroadcastChannel' in window ? new BroadcastChannel('auth') : null;
 
 const config = {
-  authority: env.HYDRA_PUBLIC_URL,
+  authority: env.AUTHORITY,
   client_id: env.OIDC_CLIENT_ID,
   redirect_uri: new URL(
     'callback.html',

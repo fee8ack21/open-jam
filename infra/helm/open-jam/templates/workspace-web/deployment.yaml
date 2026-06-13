@@ -28,7 +28,7 @@ spec:
           env:
             - name: WORKSPACE_URL
               value: {{ .Values.config.workspaceUrl | quote }}
-            - name: HYDRA_PUBLIC_URL
+            - name: AUTHORITY
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: OIDC_CLIENT_ID
               value: {{ .Values.config.oidcClientId | quote }}
