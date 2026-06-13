@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
@@ -57,7 +58,10 @@ builder.Services.AddScoped<IStoreFollowerService, StoreFollowerService>();
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
 
 // REST API
-builder.Services.AddControllers();
+// enum 一律以名稱（字串）序列化，讓 OpenAPI 產出具名 enum，前端 codegen 不再是 Value0..N
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {
