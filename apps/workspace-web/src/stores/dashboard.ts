@@ -115,10 +115,9 @@ export const useDashboardStore = defineStore('dashboard', {
     },
     setMode(m: string) {
       this.mode = m; save('mode', m)
-      // jump to a sensible default view for the mode
-      const name = this.router?.currentRoute.value.name as string | undefined
-      if (m === 'buy' && ['overview', 'products', 'upload', 'orders'].includes(name ?? '')) this.go('purchases')
-      if (m === 'sell' && ['purchases', 'wishlist'].includes(name ?? '')) this.go('overview')
+      // 切換模式一律進入該模式的第一個 menu item：
+      //   買家 → 購買紀錄；賣家 → 儀表板（未開店時由 router guard 導向「開店」）
+      this.go(m === 'buy' ? 'purchases' : 'overview')
     },
     syncModeToRoute(name: string) {
       if (['purchases', 'wishlist'].includes(name)) { this.mode = 'buy'; save('mode', 'buy') }

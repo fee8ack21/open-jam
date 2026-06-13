@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
-import { JFmt } from '@/utils/format'
+import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { ME } from '@/data'
 
 const NAV = {
@@ -24,9 +24,11 @@ export default {
   setup() {
     const store = useDashboardStore()
     const authStore = useAuthStore()
+    const storeAppStore = useStoreApplicationStore()
     return {
       store,
       authStore,
+      storeAppStore,
       drawerOpen: ref(false),
       userMenuOpen: ref(false),
     }
@@ -57,15 +59,35 @@ export default {
       return ['light', 'dash-theme', 'font-' + this.store.font, this.store.density === 'compact' ? 'is-compact' : '']
     },
     pageTitle() { return this.$route.meta.title || '' },
-    navSell() { return NAV.sell },
+    /** 用戶選單顯示的信箱；access token 僅提供 email，無名稱可用。 */
+    accountEmail() { return this.authStore.userEmail ?? this.me.email },
+    /** 頭像字母：信箱首字母大寫。 */
+    avatarText() { return (this.accountEmail.charAt(0) || '?').toUpperCase() },
+    /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
+    canSell() { return this.authStore.isUser },
+    /** 是否已開店：未開店前賣家選單只露出「開店」。 */
+    hasStore() { return this.storeAppStore.hasStore },
+    navSell() {
+      // 尚未開店：賣家選單只顯示「開店」，開店成功後才顯示其餘項目
+      if (!this.hasStore) return NAV.sell.filter(it => it.view === 'open-store')
+      return NAV.sell
+    },
     navBuy() { return NAV.buy },
     mobileNav() {
+      const buy = { view: 'purchases', label: '已購', icon: 'bag' }
+      const settings = { view: 'settings', label: '設定', icon: 'gear' }
+      if (!this.canSell) {
+        return [buy, { view: 'wishlist', label: '收藏', icon: 'heart' }, settings]
+      }
+      if (!this.hasStore) {
+        return [{ view: 'open-store', label: '開店', icon: 'rocket' }, buy, settings]
+      }
       return [
         { view: 'overview', label: '總覽', icon: 'grid' },
         { view: 'products', label: '商品', icon: 'box' },
         { view: 'upload', label: '上架', icon: 'plus' },
-        { view: 'purchases', label: '已購', icon: 'bag' },
-        { view: 'settings', label: '設定', icon: 'gear' },
+        buy,
+        settings,
       ]
     },
   },
@@ -73,6 +95,11 @@ export default {
     '$route.name': {
       immediate: true,
       handler(name) { if (name) this.store.syncModeToRoute(name) },
+    },
+    // 非賣家角色不應停留在賣家模式
+    canSell: {
+      immediate: true,
+      handler(can) { if (!can && this.store.mode === 'sell') this.store.setMode('buy') },
     },
   },
   mounted() {
@@ -96,7 +123,6 @@ export default {
       }
       return map[key]
     },
-    initials(name: string) { return JFmt.initials(name) },
     nav(view: string) { this.store.go(view); this.drawerOpen = false },
     pickMode(m: string) { this.store.setMode(m) },
     isActive(view: string) { return this.$route.name === view },
@@ -123,7 +149,7 @@ export default {
           </div>
 
           <div class="mode-switch">
-            <button :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><j-icon name="rocket" :size="15" /> 賣家</button>
+            <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><j-icon name="rocket" :size="15" /> 賣家</button>
             <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><j-icon name="bag" :size="15" /> 買家</button>
           </div>
 
@@ -176,11 +202,8 @@ export default {
                 <transition name="um">
                   <div v-if="userMenuOpen" class="user-pop">
                     <div class="um-head">
-                      <span class="avatar" :style="{ background: me.avatar }">{{ initials(authStore.userName ?? me.name) }}</span>
-                      <div style="min-width:0;">
-                        <div class="um-name">{{ authStore.userName ?? me.name }}</div>
-                        <div class="um-handle">{{ authStore.userEmail ?? me.handle }}</div>
-                      </div>
+                      <span class="avatar" :style="{ background: me.avatar }">{{ avatarText }}</span>
+                      <div class="um-email" :title="accountEmail">{{ accountEmail }}</div>
                     </div>
                     <div class="um-sep"></div>
                     <button class="um-item" @click="nav('settings'); userMenuOpen = false"><j-icon name="gear" :size="17" /> 帳號設定</button>
