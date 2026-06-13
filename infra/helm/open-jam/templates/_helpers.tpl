@@ -87,11 +87,10 @@ Hydra Public URL (cluster-external).
 {{- .Values.config.hydraPublicUrl }}
 {{- end }}
 
-{{/*
-Hydra OIDC discovery URL (cluster-internal), for JWKS 驗證使用。
+{{/*Hydra OIDC discovery URL (cluster-external)，for JWKS 驗證使用。
 */}}
 {{- define "open-jam.hydraMetadataAddress" -}}
-{{- printf "http://%s-hydra:4444/.well-known/openid-configuration" (include "open-jam.fullname" .) }}
+{{- printf "%s.well-known/openid-configuration" (include "open-jam.hydraPublicUrl" .) }}
 {{- end }}
 
 {{/*
