@@ -1,15 +1,23 @@
 Open Jam 已部署至 namespace: {{ .Release.Namespace }}
 
 服務端口對照（ClusterIP，需 Ingress 或 port-forward 存取）：
-  auth          :8080  → {{ include "open-jam.fullname" . }}-auth:8080
-  log-service   :8080  → {{ include "open-jam.fullname" . }}-log-service:8080
-  creator-web   :80    → {{ include "open-jam.fullname" . }}-creator-web:80
-  market-web    :80    → {{ include "open-jam.fullname" . }}-market-web:80
-  workspace-web :80    → {{ include "open-jam.fullname" . }}-workspace-web:80
-  docs          :80    → {{ include "open-jam.fullname" . }}-docs:80
-{{- if .Values.mailpit.enabled }}
-  mailpit UI    :8025  → {{ include "open-jam.fullname" . }}-mailpit:8025
+  auth            :8080  → {{ include "open-jam.fullname" . }}-auth:8080
+  log-service     :8080  → {{ include "open-jam.fullname" . }}-log-service:8080
+  storage-service :8080  → {{ include "open-jam.fullname" . }}-storage-service:8080
+  store-service   :8080  → {{ include "open-jam.fullname" . }}-store-service:8080
+  creator-web     :80    → {{ include "open-jam.fullname" . }}-creator-web:80
+  market-web      :80    → {{ include "open-jam.fullname" . }}-market-web:80
+  workspace-web   :80    → {{ include "open-jam.fullname" . }}-workspace-web:80
+  docs            :80    → {{ include "open-jam.fullname" . }}-docs:80
+{{- if .Values.hydra.enabled }}
+  hydra public    :4444  → {{ include "open-jam.fullname" . }}-hydra:4444
+  hydra admin     :4445  → {{ include "open-jam.fullname" . }}-hydra:4445
 {{- end }}
+{{- if .Values.mailpit.enabled }}
+  mailpit UI      :8025  → {{ include "open-jam.fullname" . }}-mailpit:8025
+{{- end }}
+
+  email-service 為 RabbitMQ Worker，無對外服務埠。
 
 快速 port-forward 範例：
   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "open-jam.fullname" . }}-auth 5169:8080
@@ -18,4 +26,5 @@ Open Jam 已部署至 namespace: {{ .Release.Namespace }}
   - Secrets 中的密碼皆為預設值，正式環境請以 --set 或 ExternalSecret 覆蓋。
   - Bootstrap Job 僅在首次安裝時執行（helm.sh/hook: post-install）。
   - Production 請設 mailpit.enabled=false 並配置外部 SMTP。
+  - Production 請設 storage.provider=Gcs 並改用 GCS（地端預設 Minio）。
   - Ingress / TLS 由獨立的 infra/helm/infra chart 提供，請另行部署（見 README）。
