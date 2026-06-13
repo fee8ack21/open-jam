@@ -1,12 +1,13 @@
-<script lang="ts">
-export default {
-  name: 'Stars',
-  props: {
-    value: { type: Number, default: 0 },
-    count: { type: Number, default: 0 },
-    size: { type: Number, default: 13 },
-  },
-}
+<script setup lang="ts">
+withDefaults(defineProps<{
+  value?: number
+  count?: number
+  size?: number
+}>(), {
+  value: 0,
+  count: 0,
+  size: 13,
+})
 </script>
 
 <template>

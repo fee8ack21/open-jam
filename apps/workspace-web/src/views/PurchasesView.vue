@@ -1,16 +1,12 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
-import { JFmt } from '@/utils/format'
+import { JFmt as F } from '@/utils/format'
 
-export default {
-  name: 'PurchasesView',
-  setup() { return { store: useDashboardStore(), F: JFmt } },
-  computed: {
-    list() { return this.store.purchases },
-    spent() { return this.list.reduce((s, p) => s + p.price, 0) },
-    fileCount() { return this.list.reduce((s, p) => s + p.product.contents.length, 0) },
-  },
-}
+const store = useDashboardStore()
+const list = computed(() => store.purchases)
+const spent = computed(() => list.value.reduce((s, p) => s + p.price, 0))
+const fileCount = computed(() => list.value.reduce((s, p) => s + p.product.contents.length, 0))
 </script>
 
 <template>

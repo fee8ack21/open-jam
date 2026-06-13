@@ -1,30 +1,21 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
-import { JFmt, STATUS_LABEL } from '@/utils/format'
-import { ME, REVENUE } from '@/data'
+import { JFmt as F, STATUS_LABEL } from '@/utils/format'
+import { ME as me, REVENUE as revenue } from '@/data'
 
-export default {
-  name: 'OverviewView',
-  setup() { return { store: useDashboardStore(), F: JFmt } },
-  computed: {
-    g() { return this.store },
-    me() { return ME },
-    revenue() { return REVENUE },
-    catMax() { return Math.max(...this.revenue.byCategory.map(c => c.value)) || 1 },
-    kpis() {
-      const g = this.g
-      return [
-        { key: 'rev', label: '本月淨收入', val: this.F.money(g.monthRevenue), ic: 'wallet', bg: 'var(--c-violet)', delta: g.monthDelta, up: g.monthDelta >= 0 },
-        { key: 'sales', label: '總銷售件數', val: g.totalSales.toLocaleString('en-US'), ic: 'bag', bg: 'var(--c-pink)', delta: 12, up: true },
-        { key: 'payout', label: '待結算金額', val: this.F.money(g.pendingPayout), ic: 'dollar', bg: 'var(--c-orange)', delta: null, sub: '6/05 撥款' },
-        { key: 'views', label: '作品總瀏覽', val: this.F.compact(g.totalViews), ic: 'eye', bg: 'var(--c-cyan)', delta: 8, up: true },
-      ]
-    },
-  },
-  methods: {
-    statusLabel(s: string) { return STATUS_LABEL[s] || s },
-  },
-}
+const store = useDashboardStore()
+const g = store
+
+const catMax = computed(() => Math.max(...revenue.byCategory.map(c => c.value)) || 1)
+const kpis = computed(() => [
+  { key: 'rev', label: '本月淨收入', val: F.money(g.monthRevenue), ic: 'wallet', bg: 'var(--c-violet)', delta: g.monthDelta, up: g.monthDelta >= 0 },
+  { key: 'sales', label: '總銷售件數', val: g.totalSales.toLocaleString('en-US'), ic: 'bag', bg: 'var(--c-pink)', delta: 12, up: true },
+  { key: 'payout', label: '待結算金額', val: F.money(g.pendingPayout), ic: 'dollar', bg: 'var(--c-orange)', delta: null, sub: '6/05 撥款' },
+  { key: 'views', label: '作品總瀏覽', val: F.compact(g.totalViews), ic: 'eye', bg: 'var(--c-cyan)', delta: 8, up: true },
+])
+
+function statusLabel(s: string) { return STATUS_LABEL[s] || s }
 </script>
 
 <template>

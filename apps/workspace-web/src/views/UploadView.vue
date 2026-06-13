@@ -1,8 +1,8 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useDashboardStore, type DraftFile } from '@/stores/dashboard'
 import { JFmt } from '@/utils/format'
 import { CATEGORIES, CAT_DESC, TAGS, ME } from '@/data'
-import type { Category } from '@/data'
 
 const STEPS = [
   { n: 1, k: 'STEP 01', l: '基本資訊' },
@@ -20,66 +20,61 @@ const SAMPLE_FILES = [
 ]
 const TYPE_COLOR = { ZIP: '#6c4cf1', XMP: '#1fd6c6', PDF: '#ff4d9d', JPG: '#ff7a2f', PSD: '#3b7fd4', WAV: '#8b5cf6', MP3: '#16a07a', FIG: '#d8a017' }
 
-export default {
-  name: 'UploadView',
-  setup() { return { store: useDashboardStore(), F: JFmt } },
-  data() { return { tagDraft: '', dragging: false, uploadCount: 0 } },
-  computed: {
-    s() { return this.store },
-    step() { return this.s.wizardStep },
-    d() { return this.s.draft },
-    steps() { return STEPS },
-    cats() { return CATEGORIES },
-    catDesc() { return CAT_DESC },
-    suggestedTags() {
-      return (TAGS[this.d.cat] || []).filter(t => !this.d.tags.includes(t)).slice(0, 6)
-    },
-    previewProduct() {
-      return {
-        cat: this.d.cat, hue: this.d.coverHue,
-        title: this.d.title || '你的作品標題會顯示在這裡',
-        creator: ME.name, avatar: ME.avatar,
-        tags: this.d.tags.length ? this.d.tags : ['標籤'],
-        price: this.d.free ? 0 : this.d.price,
-        rating: 0,
-        formats: this.d.files.length ? [...new Set(this.d.files.map(f => f.type))] : ['格式'],
-        totalSize: this.totalSize,
-      }
-    },
-    totalBytes() { return this.d.files.reduce((s, f) => s + (f.bytes || 0), 0) },
-    totalSize() { return this.store.fmtBytes(this.totalBytes) || '—' },
-    step1Valid() { return this.d.title.trim().length >= 2 },
-    step2Valid() { return this.d.files.length > 0 },
-    hueOptions() { return [256, 320, 28, 168, 44, 198, 142, 226] },
-    catColor() { return ({ music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' } as Record<string, string>)[this.d.cat] },
-  },
-  methods: {
-    catGlyph(c: Category) { return c.glyph },
-    addTag() { if (this.tagDraft.trim()) { this.store.addDraftTag(this.tagDraft); this.tagDraft = '' } },
-    fakeDrop() {
-      const f: DraftFile = { ...SAMPLE_FILES[this.uploadCount % SAMPLE_FILES.length], progress: 0 }
-      this.uploadCount++
-      this.store.addDraftFile(f)
-      const idx = this.d.files.length - 1
-      const tick = () => {
-        const file = this.d.files[idx]; if (!file) return
-        file.progress = Math.min(100, (file.progress || 0) + 18 + Math.random() * 22)
-        if (file.progress < 100) setTimeout(tick, 160)
-      }
-      setTimeout(tick, 150)
-    },
-    typeColor(t: string) { return (TYPE_COLOR as Record<string, string>)[t] || 'var(--c-violet)' },
-    goNext() {
-      if (this.step === 1 && !this.step1Valid) return
-      if (this.step === 2 && !this.step2Valid) return
-      this.store.nextStep()
-    },
-    publish() { this.store.publishDraft(); this.store.go('products') },
-    saveDraft() {
-      // keep draft persisted, mark intent
-      this.store.go('products')
-    },
-  },
+const store = useDashboardStore()
+const F = JFmt
+
+const tagDraft = ref('')
+const dragging = ref(false)
+let uploadCount = 0
+
+const step = computed(() => store.wizardStep)
+const d = computed(() => store.draft)
+const steps = STEPS
+const cats = CATEGORIES
+const catDesc = CAT_DESC
+
+const suggestedTags = computed(() =>
+  (TAGS[d.value.cat] || []).filter(t => !d.value.tags.includes(t)).slice(0, 6),
+)
+const totalBytes = computed(() => d.value.files.reduce((s, f) => s + (f.bytes || 0), 0))
+const totalSize = computed(() => store.fmtBytes(totalBytes.value) || '—')
+const previewProduct = computed(() => ({
+  cat: d.value.cat, hue: d.value.coverHue,
+  title: d.value.title || '你的作品標題會顯示在這裡',
+  creator: ME.name, avatar: ME.avatar,
+  tags: d.value.tags.length ? d.value.tags : ['標籤'],
+  price: d.value.free ? 0 : d.value.price,
+  rating: 0,
+  formats: d.value.files.length ? [...new Set(d.value.files.map(f => f.type))] : ['格式'],
+  totalSize: totalSize.value,
+}))
+const step1Valid = computed(() => d.value.title.trim().length >= 2)
+const step2Valid = computed(() => d.value.files.length > 0)
+const hueOptions = [256, 320, 28, 168, 44, 198, 142, 226]
+
+function addTag() { if (tagDraft.value.trim()) { store.addDraftTag(tagDraft.value); tagDraft.value = '' } }
+function fakeDrop() {
+  const f: DraftFile = { ...SAMPLE_FILES[uploadCount % SAMPLE_FILES.length], progress: 0 }
+  uploadCount++
+  store.addDraftFile(f)
+  const idx = d.value.files.length - 1
+  const tick = () => {
+    const file = d.value.files[idx]; if (!file) return
+    file.progress = Math.min(100, (file.progress || 0) + 18 + Math.random() * 22)
+    if (file.progress < 100) setTimeout(tick, 160)
+  }
+  setTimeout(tick, 150)
+}
+function typeColor(t: string) { return (TYPE_COLOR as Record<string, string>)[t] || 'var(--c-violet)' }
+function goNext() {
+  if (step.value === 1 && !step1Valid.value) return
+  if (step.value === 2 && !step2Valid.value) return
+  store.nextStep()
+}
+function publish() { store.publishDraft(); store.go('products') }
+function saveDraft() {
+  // keep draft persisted, mark intent
+  store.go('products')
 }
 </script>
 

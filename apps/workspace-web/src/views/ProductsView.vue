@@ -1,31 +1,25 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
-import { JFmt, STATUS_LABEL } from '@/utils/format'
+import { JFmt as F, STATUS_LABEL } from '@/utils/format'
 import type { Product } from '@/data'
 
-export default {
-  name: 'ProductsView',
-  setup() { return { store: useDashboardStore(), F: JFmt } },
-  computed: {
-    g() { return this.store },
-    s() { return this.store },
-    filters() {
-      return [
-        { key: 'all', label: '全部', n: this.s.products.length },
-        { key: 'live', label: '上架中', n: this.g.statusCount('live') },
-        { key: 'review', label: '審核中', n: this.g.statusCount('review') },
-        { key: 'draft', label: '草稿', n: this.g.statusCount('draft') },
-        { key: 'off', label: '已下架', n: this.g.statusCount('off') },
-      ]
-    },
-    rows() { return this.g.filteredProducts },
-  },
-  methods: {
-    statusLabel(s: string) { return STATUS_LABEL[s] || s },
-    toggle(p: Product) { this.store.togglePublish(p.id) },
-    canToggle(p: Product) { return p.status === 'live' || p.status === 'off' },
-  },
-}
+const store = useDashboardStore()
+const g = store
+const s = store
+
+const filters = computed(() => [
+  { key: 'all', label: '全部', n: s.products.length },
+  { key: 'live', label: '上架中', n: g.statusCount('live') },
+  { key: 'review', label: '審核中', n: g.statusCount('review') },
+  { key: 'draft', label: '草稿', n: g.statusCount('draft') },
+  { key: 'off', label: '已下架', n: g.statusCount('off') },
+])
+const rows = computed(() => g.filteredProducts)
+
+function statusLabel(s: string) { return STATUS_LABEL[s] || s }
+function toggle(p: Product) { store.togglePublish(p.id) }
+function canToggle(p: Product) { return p.status === 'live' || p.status === 'off' }
 </script>
 
 <template>

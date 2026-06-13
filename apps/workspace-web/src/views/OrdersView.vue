@@ -1,28 +1,25 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
-import { JFmt, STATUS_LABEL } from '@/utils/format'
+import { JFmt as F, STATUS_LABEL } from '@/utils/format'
 import type { Product } from '@/data'
 
-export default {
-  name: 'OrdersView',
-  setup() { return { store: useDashboardStore(), F: JFmt } },
-  data() { return { tab: 'all' } },
-  computed: {
-    g() { return this.store },
-    s() { return this.store },
-    rows() {
-      let list = this.s.orders
-      if (this.tab !== 'all') list = list.filter(o => o.status === this.tab)
-      return list
-    },
-    paidTotal() { return this.g.paidOrders.reduce((s, o) => s + o.amount, 0) },
-  },
-  methods: {
-    statusLabel(s: string) { return STATUS_LABEL[s] || s },
-    prod(id: string): Product { return this.store.product(id) || ({} as Product) },
-    dt(iso: string) { const d = new Date(iso); return d.toISOString().slice(5, 10).replace('-', '/') + ' ' + d.toTimeString().slice(0, 5) },
-  },
-}
+const store = useDashboardStore()
+const g = store
+const s = store
+
+const tab = ref('all')
+
+const rows = computed(() => {
+  let list = s.orders
+  if (tab.value !== 'all') list = list.filter(o => o.status === tab.value)
+  return list
+})
+const paidTotal = computed(() => g.paidOrders.reduce((s, o) => s + o.amount, 0))
+
+function statusLabel(s: string) { return STATUS_LABEL[s] || s }
+function prod(id: string): Product { return store.product(id) || ({} as Product) }
+function dt(iso: string) { const d = new Date(iso); return d.toISOString().slice(5, 10).replace('-', '/') + ' ' + d.toTimeString().slice(0, 5) }
 </script>
 
 <template>

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useMessage } from 'naive-ui'
 import { storeToRefs } from 'pinia'
@@ -21,69 +21,56 @@ const STORE_STATUS = {
 // 與後端 StoreSlugValidator 對齊：3–30 字小寫英數 + 連字號，不可開頭/結尾為連字號
 const SLUG_RE = /^[a-z0-9]([a-z0-9-]{1,28}[a-z0-9])?$/
 
-export default {
-  name: 'OpenStoreView',
-  setup() {
-    const message = useMessage()
-    const store = useStoreApplicationStore()
-    const { applications, stores, loading, submitting, latestApplication, hasPending, hasStore } =
-      storeToRefs(store)
+const message = useMessage()
+const store = useStoreApplicationStore()
+const { applications, stores, loading, submitting, latestApplication, hasPending, hasStore } =
+  storeToRefs(store)
 
-    const form = reactive({ storeName: '', storeSlug: '' })
-    const showForm = ref(false)
+const form = reactive({ storeName: '', storeSlug: '' })
+const showForm = ref(false)
 
-    const slugValid = computed(() => SLUG_RE.test(form.storeSlug))
-    const canSubmit = computed(
-      () => form.storeName.trim().length >= 1 && slugValid.value && !submitting.value,
-    )
+const slugValid = computed(() => SLUG_RE.test(form.storeSlug))
+const canSubmit = computed(
+  () => form.storeName.trim().length >= 1 && slugValid.value && !submitting.value,
+)
 
-    // 是否處於「可提交新申請」的狀態（沒有商店、且沒有待審申請）
-    const canApply = computed(() => !hasStore.value && !hasPending.value)
+// 是否處於「可提交新申請」的狀態（沒有商店、且沒有待審申請）
+const canApply = computed(() => !hasStore.value && !hasPending.value)
 
-    function statusOf(s?: StoreApplicationStatus) {
-      return (s != null && APP_STATUS[s]) || { label: '—', type: 'default' }
-    }
-    function storeStatusOf(s?: StoreStatus) {
-      return (s != null && STORE_STATUS[s]) || { label: '—', type: 'default' }
-    }
-    function fmtDate(v?: string | null) {
-      return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
-    }
-
-    async function onSubmit() {
-      if (!canSubmit.value) return
-      const ok = await store.submit({
-        storeName: form.storeName.trim(),
-        storeSlug: form.storeSlug.trim().toLowerCase(),
-      })
-      if (ok) {
-        message.success('開店申請已送出，請等待審核。')
-        form.storeName = ''
-        form.storeSlug = ''
-        showForm.value = false
-      } else {
-        message.error(store.error ?? '提交失敗')
-      }
-    }
-
-    async function onWithdraw(id?: string) {
-      if (!id) return
-      const ok = await store.withdraw(id)
-      if (ok) message.success('已撤回申請。')
-      else message.error(store.error ?? '撤回失敗')
-    }
-
-    onMounted(store.load)
-
-    return {
-      applications, stores, loading, submitting,
-      latestApplication, hasPending, hasStore, canApply,
-      form, showForm, slugValid, canSubmit,
-      statusOf, storeStatusOf, fmtDate, onSubmit, onWithdraw,
-      StoreApplicationStatus,
-    }
-  },
+function statusOf(s?: StoreApplicationStatus) {
+  return (s != null && APP_STATUS[s]) || { label: '—', type: 'default' }
 }
+function storeStatusOf(s?: StoreStatus) {
+  return (s != null && STORE_STATUS[s]) || { label: '—', type: 'default' }
+}
+function fmtDate(v?: string | null) {
+  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
+}
+
+async function onSubmit() {
+  if (!canSubmit.value) return
+  const ok = await store.submit({
+    storeName: form.storeName.trim(),
+    storeSlug: form.storeSlug.trim().toLowerCase(),
+  })
+  if (ok) {
+    message.success('開店申請已送出，請等待審核。')
+    form.storeName = ''
+    form.storeSlug = ''
+    showForm.value = false
+  } else {
+    message.error(store.error ?? '提交失敗')
+  }
+}
+
+async function onWithdraw(id?: string) {
+  if (!id) return
+  const ok = await store.withdraw(id)
+  if (ok) message.success('已撤回申請。')
+  else message.error(store.error ?? '撤回失敗')
+}
+
+onMounted(store.load)
 </script>
 
 <template>

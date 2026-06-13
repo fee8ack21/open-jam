@@ -1,5 +1,5 @@
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 
 /** 折線圖資料點。 */
 interface TrendPoint {
@@ -7,48 +7,49 @@ interface TrendPoint {
   value: number
 }
 
-export default defineComponent({
-  name: 'TrendChart',
-  props: {
-    data: { type: Array as PropType<TrendPoint[]>, default: () => [] },
-    height: { type: Number, default: 220 },
-    currency: { type: Boolean, default: true },
-  },
-  data() { return { hover: -1, W: 720 } },
-  computed: {
-    H() { return this.height },
-    pad() { return { t: 18, r: 14, b: 28, l: 46 } },
-    max() { return Math.max(...this.data.map(d => d.value)) * 1.18 || 1 },
-    pts() {
-      const { t, r, b, l } = this.pad
-      const iw = this.W - l - r, ih = this.H - t - b
-      const n = this.data.length
-      return this.data.map((d, i) => ({
-        x: l + (n === 1 ? iw / 2 : (iw * i) / (n - 1)),
-        y: t + ih - (d.value / this.max) * ih,
-        d,
-      }))
-    },
-    linePath() { return this.pts.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') },
-    areaPath() {
-      const { b } = this.pad; const base = this.H - b
-      return `${this.linePath} L${this.pts[this.pts.length - 1].x.toFixed(1)} ${base} L${this.pts[0].x.toFixed(1)} ${base} Z`
-    },
-    gridLines() {
-      const { t, b, l, r } = this.pad; const ih = this.H - t - b; const rows = 4
-      return Array.from({ length: rows + 1 }, (_, i) => {
-        const y = t + (ih * i) / rows
-        const v = Math.round((this.max * (rows - i)) / rows)
-        return { y, x1: l, x2: this.W - r, label: this.fmt(v) }
-      })
-    },
-  },
-  methods: {
-    fmt(v: number) {
-      if (v >= 1000) return (this.currency ? '$' : '') + (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'k'
-      return (this.currency ? '$' : '') + v
-    },
-  },
+const props = withDefaults(defineProps<{
+  data?: TrendPoint[]
+  height?: number
+  currency?: boolean
+}>(), {
+  data: () => [],
+  height: 220,
+  currency: true,
+})
+
+const hover = ref(-1)
+const W = 720
+
+function fmt(v: number) {
+  if (v >= 1000) return (props.currency ? '$' : '') + (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'k'
+  return (props.currency ? '$' : '') + v
+}
+
+const H = computed(() => props.height)
+const pad = computed(() => ({ t: 18, r: 14, b: 28, l: 46 }))
+const max = computed(() => Math.max(...props.data.map(d => d.value)) * 1.18 || 1)
+const pts = computed(() => {
+  const { t, r, b, l } = pad.value
+  const iw = W - l - r, ih = H.value - t - b
+  const n = props.data.length
+  return props.data.map((d, i) => ({
+    x: l + (n === 1 ? iw / 2 : (iw * i) / (n - 1)),
+    y: t + ih - (d.value / max.value) * ih,
+    d,
+  }))
+})
+const linePath = computed(() => pts.value.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' '))
+const areaPath = computed(() => {
+  const { b } = pad.value; const base = H.value - b
+  return `${linePath.value} L${pts.value[pts.value.length - 1].x.toFixed(1)} ${base} L${pts.value[0].x.toFixed(1)} ${base} Z`
+})
+const gridLines = computed(() => {
+  const { t, b, l, r } = pad.value; const ih = H.value - t - b; const rows = 4
+  return Array.from({ length: rows + 1 }, (_, i) => {
+    const y = t + (ih * i) / rows
+    const v = Math.round((max.value * (rows - i)) / rows)
+    return { y, x1: l, x2: W - r, label: fmt(v) }
+  })
 })
 </script>
 

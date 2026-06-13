@@ -1,23 +1,13 @@
-<script lang="ts">
+<script setup lang="ts">
+import { reactive } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
-import { JFmt } from '@/utils/format'
-import { ME } from '@/data'
+import { JFmt as F } from '@/utils/format'
+import { ME as me } from '@/data'
 
-export default {
-  name: 'SettingsView',
-  setup() { return { store: useDashboardStore(), F: JFmt } },
-  data() {
-    const me = ME
-    return {
-      form: { name: me.name, handle: me.handle, email: me.email, bio: me.bio },
-      notif: { sales: true, weekly: true, promo: false },
-    }
-  },
-  computed: {
-    s() { return this.store },
-    me() { return ME },
-  },
-}
+const store = useDashboardStore()
+
+const form = reactive({ name: me.name, handle: me.handle, email: me.email, bio: me.bio })
+const notif = reactive({ sales: true, weekly: true, promo: false })
 </script>
 
 <template>

@@ -1,9 +1,10 @@
-<script lang="ts">
-import { ref } from 'vue'
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
-import { ME } from '@/data'
+import { ME as me } from '@/data'
 
 const NAV = {
   sell: [
@@ -19,115 +20,94 @@ const NAV = {
   ],
 }
 
-export default {
-  name: 'App',
-  setup() {
-    const store = useDashboardStore()
-    const authStore = useAuthStore()
-    const storeAppStore = useStoreApplicationStore()
-    return {
-      store,
-      authStore,
-      storeAppStore,
-      drawerOpen: ref(false),
-      userMenuOpen: ref(false),
-    }
+const route = useRoute()
+const store = useDashboardStore()
+const authStore = useAuthStore()
+const storeAppStore = useStoreApplicationStore()
+
+const drawerOpen = ref(false)
+const userMenuOpen = ref(false)
+
+const overrides = {
+  common: {
+    primaryColor: '#5639d6', primaryColorHover: '#7a63ee',
+    primaryColorPressed: '#4a30bd', primaryColorSuppl: '#7a63ee',
+    borderRadius: '12px', borderRadiusSmall: '9px',
+    fontFamily: "'Space Grotesk', 'Noto Sans TC', sans-serif",
+    fontWeightStrong: '700',
   },
-  data() {
-    return {
-      me: ME,
-      _outside: null as ((e: MouseEvent) => void) | null,
-      overrides: {
-        common: {
-          primaryColor: '#5639d6', primaryColorHover: '#7a63ee',
-          primaryColorPressed: '#4a30bd', primaryColorSuppl: '#7a63ee',
-          borderRadius: '12px', borderRadiusSmall: '9px',
-          fontFamily: "'Space Grotesk', 'Noto Sans TC', sans-serif",
-          fontWeightStrong: '700',
-        },
-        Button: { fontWeight: '700' },
-        Input: { borderRadius: '12px', heightMedium: '42px', heightLarge: '46px', caretColor: '#6c4cf1' },
-        InternalSelection: { borderRadius: '12px', heightMedium: '42px' },
-        Switch: { railColorActive: '#5639d6' },
-        Popover: { borderRadius: '14px', padding: '6px' },
-      },
-    }
-  },
-  computed: {
-    s() { return this.store },
-    rootClass() {
-      return ['light', 'dash-theme', 'font-' + this.store.font, this.store.density === 'compact' ? 'is-compact' : '']
-    },
-    pageTitle() { return this.$route.meta.title || '' },
-    /** 用戶選單顯示的信箱；access token 僅提供 email，無名稱可用。 */
-    accountEmail() { return this.authStore.userEmail ?? this.me.email },
-    /** 頭像字母：信箱首字母大寫。 */
-    avatarText() { return (this.accountEmail.charAt(0) || '?').toUpperCase() },
-    /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
-    canSell() { return this.authStore.isUser },
-    /** 是否已開店：未開店前賣家選單只露出「開店」。 */
-    hasStore() { return this.storeAppStore.hasStore },
-    navSell() {
-      // 尚未開店：賣家選單只顯示「開店」，開店成功後才顯示其餘項目
-      if (!this.hasStore) return NAV.sell.filter(it => it.view === 'open-store')
-      return NAV.sell
-    },
-    navBuy() { return NAV.buy },
-    mobileNav() {
-      const buy = { view: 'purchases', label: '已購', icon: 'bag' }
-      const settings = { view: 'settings', label: '設定', icon: 'gear' }
-      if (!this.canSell) {
-        return [buy, { view: 'wishlist', label: '收藏', icon: 'heart' }, settings]
-      }
-      if (!this.hasStore) {
-        return [{ view: 'open-store', label: '開店', icon: 'rocket' }, buy, settings]
-      }
-      return [
-        { view: 'overview', label: '總覽', icon: 'grid' },
-        { view: 'products', label: '商品', icon: 'box' },
-        { view: 'upload', label: '上架', icon: 'plus' },
-        buy,
-        settings,
-      ]
-    },
-  },
-  watch: {
-    '$route.name': {
-      immediate: true,
-      handler(name) { if (name) this.store.syncModeToRoute(name) },
-    },
-    // 非賣家角色不應停留在賣家模式
-    canSell: {
-      immediate: true,
-      handler(can) { if (!can && this.store.mode === 'sell') this.store.setMode('buy') },
-    },
-  },
-  mounted() {
-    this._outside = (e: MouseEvent) => {
-      const t = e.target as Element | null
-      if (this.userMenuOpen && !(t && t.closest && t.closest('.user-menu'))) this.userMenuOpen = false
-    }
-    document.addEventListener('click', this._outside)
-  },
-  beforeUnmount() {
-    if (this._outside) document.removeEventListener('click', this._outside)
-  },
-  methods: {
-    count(key?: string) {
-      if (!key) return null
-      const map: Record<string, number> = {
-        products: this.store.products.length,
-        orders: this.store.paidOrders.length,
-        purchases: this.store.purchases.length,
-        wishlist: this.store.wishlist.length,
-      }
-      return map[key]
-    },
-    nav(view: string) { this.store.go(view); this.drawerOpen = false },
-    pickMode(m: string) { this.store.setMode(m) },
-    isActive(view: string) { return this.$route.name === view },
-  },
+  Button: { fontWeight: '700' },
+  Input: { borderRadius: '12px', heightMedium: '42px', heightLarge: '46px', caretColor: '#6c4cf1' },
+  InternalSelection: { borderRadius: '12px', heightMedium: '42px' },
+  Switch: { railColorActive: '#5639d6' },
+  Popover: { borderRadius: '14px', padding: '6px' },
 }
+
+const rootClass = computed(() =>
+  ['light', 'dash-theme', 'font-' + store.font, store.density === 'compact' ? 'is-compact' : ''],
+)
+const pageTitle = computed(() => route.meta.title || '')
+/** 用戶選單顯示的信箱；access token 僅提供 email，無名稱可用。 */
+const accountEmail = computed(() => authStore.userEmail ?? me.email)
+/** 頭像字母：信箱首字母大寫。 */
+const avatarText = computed(() => (accountEmail.value.charAt(0) || '?').toUpperCase())
+/** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
+const canSell = computed(() => authStore.isUser)
+/** 是否已開店：未開店前賣家選單只露出「開店」。 */
+const hasStore = computed(() => storeAppStore.hasStore)
+const navSell = computed(() => {
+  // 尚未開店：賣家選單只顯示「開店」，開店成功後才顯示其餘項目
+  if (!hasStore.value) return NAV.sell.filter(it => it.view === 'open-store')
+  return NAV.sell
+})
+const navBuy = computed(() => NAV.buy)
+const mobileNav = computed(() => {
+  const buy = { view: 'purchases', label: '已購', icon: 'bag' }
+  const settings = { view: 'settings', label: '設定', icon: 'gear' }
+  if (!canSell.value) {
+    return [buy, { view: 'wishlist', label: '收藏', icon: 'heart' }, settings]
+  }
+  if (!hasStore.value) {
+    return [{ view: 'open-store', label: '開店', icon: 'rocket' }, buy, settings]
+  }
+  return [
+    { view: 'overview', label: '總覽', icon: 'grid' },
+    { view: 'products', label: '商品', icon: 'box' },
+    { view: 'upload', label: '上架', icon: 'plus' },
+    buy,
+    settings,
+  ]
+})
+
+watch(() => route.name, (name) => { if (name) store.syncModeToRoute(name as string) }, { immediate: true })
+// 非賣家角色不應停留在賣家模式
+watch(canSell, (can) => { if (!can && store.mode === 'sell') store.setMode('buy') }, { immediate: true })
+
+let outside: ((e: MouseEvent) => void) | null = null
+onMounted(() => {
+  outside = (e: MouseEvent) => {
+    const t = e.target as Element | null
+    if (userMenuOpen.value && !(t && t.closest && t.closest('.user-menu'))) userMenuOpen.value = false
+  }
+  document.addEventListener('click', outside)
+})
+onBeforeUnmount(() => {
+  if (outside) document.removeEventListener('click', outside)
+})
+
+function count(key?: string) {
+  if (!key) return null
+  const map: Record<string, number> = {
+    products: store.products.length,
+    orders: store.paidOrders.length,
+    purchases: store.purchases.length,
+    wishlist: store.wishlist.length,
+  }
+  return map[key]
+}
+function nav(view: string) { store.go(view); drawerOpen.value = false }
+function pickMode(m: string) { store.setMode(m) }
+function isActive(view: string) { return route.name === view }
 </script>
 
 <template>

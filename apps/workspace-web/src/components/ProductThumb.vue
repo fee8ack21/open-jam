@@ -1,5 +1,5 @@
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import { CATEGORIES } from '@/data'
 
 /** ProductThumb 只需要這些欄位，Product / PurchaseProduct / WishlistItem 皆相容。 */
@@ -10,32 +10,34 @@ interface ThumbProduct {
   totalSize: string
 }
 
-export default defineComponent({
-  name: 'ProductThumb',
-  props: {
-    product: { type: Object as PropType<ThumbProduct>, required: true },
-    label: { type: String, default: '' },
-    glyphSize: { type: Number, default: 64 },
-    showCat: { type: Boolean, default: true },
-    hideLabel: { type: Boolean, default: false },
-    seed: { type: Number, default: 0 },
-  },
-  computed: {
-    hue() { return (this.product.hue + this.seed * 22) % 360 },
-    vars() {
-      const h = this.hue, h2 = (h + 42) % 360
-      return { '--c1': `hsl(${h} 88% 62%)`, '--c2': `hsl(${h2} 90% 54%)` }
-    },
-    catGlyph() {
-      const c = CATEGORIES.find(c => c.id === this.product.cat)
-      return c ? c.glyph : 'image'
-    },
-    catLabel() { return ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' } as Record<string, string>)[this.product.cat] || '' },
-    autoLabel() {
-      if (this.label) return this.label
-      return `${this.product.formats[0]} · ${this.product.totalSize}`
-    },
-  },
+const props = withDefaults(defineProps<{
+  product: ThumbProduct
+  label?: string
+  glyphSize?: number
+  showCat?: boolean
+  hideLabel?: boolean
+  seed?: number
+}>(), {
+  label: '',
+  glyphSize: 64,
+  showCat: true,
+  hideLabel: false,
+  seed: 0,
+})
+
+const hue = computed(() => (props.product.hue + props.seed * 22) % 360)
+const vars = computed(() => {
+  const h = hue.value, h2 = (h + 42) % 360
+  return { '--c1': `hsl(${h} 88% 62%)`, '--c2': `hsl(${h2} 90% 54%)` }
+})
+const catGlyph = computed(() => {
+  const c = CATEGORIES.find(c => c.id === props.product.cat)
+  return c ? c.glyph : 'image'
+})
+const catLabel = computed(() => ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' } as Record<string, string>)[props.product.cat] || '')
+const autoLabel = computed(() => {
+  if (props.label) return props.label
+  return `${props.product.formats[0]} · ${props.product.totalSize}`
 })
 </script>
 
