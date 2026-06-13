@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
 using Shared.Middleware;
+using Shared.Web;
 using StoreService.Data;
 using StoreService.Options;
 using StoreService.Services;
@@ -57,6 +58,9 @@ builder.Services.AddScoped<IStoreFollowerService, StoreFollowerService>();
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
 
+// CORS（允許前端 SPA 與本機 dev server 跨來源呼叫）
+builder.Services.AddOpenJamCors(builder.Configuration);
+
 // REST API
 // enum 一律以名稱（字串）序列化，讓 OpenAPI 產出具名 enum，前端 codegen 不再是 Value0..N
 builder.Services.AddControllers()
@@ -86,6 +90,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseOpenJamCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

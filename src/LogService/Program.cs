@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
 using Shared.Middleware;
+using Shared.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +52,9 @@ builder.Services.AddSwaggerGen(opts =>
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
 
+// CORS（允許前端 SPA 與本機 dev server 跨來源呼叫）
+builder.Services.AddOpenJamCors(builder.Configuration);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -67,6 +71,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseOpenJamCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
