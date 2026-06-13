@@ -9,8 +9,10 @@ fullnameOverride: ""
 # open-jam 應用 chart 為各自獨立的 release，因此以下直接填入「open-jam chart
 # 實際建立的 Service 名稱」（預設對應 release name = open-jam 的命名慣例：
 # <release>-<component>）。若 release 名稱不同，請對應調整。
-# `api.openjam.co` 對應 docs/infra.md 所述「功能 API」服務，目前 chart 中尚無
-# 對應元件，請依實際部署的 Service 名稱調整 serviceName。
+# `api.openjam.co` 對應 docs/infra.md 所述「功能 API」服務，目前以 path 路由
+# 逐步對應各微服務（如 `/store-service` → StoreService、`/log-service` →
+# LogService、`/storage-service` → StorageService）；其餘 path 待對應服務的
+# Helm chart / Service 就緒後再依需求新增。
 
 ingress:
   enabled: false
@@ -31,8 +33,14 @@ ingress:
       servicePort: public
     - host: workspace.openjam.co
       serviceName: open-jam-workspace-web
-    # - host: api.openjam.co
-    #   serviceName: open-jam-api
+    - host: api.openjam.co
+      paths:
+        - path: /store-service
+          serviceName: open-jam-store-service
+        - path: /log-service
+          serviceName: open-jam-log-service
+        - path: /storage-service
+          serviceName: open-jam-storage-service
     - host: docs.openjam.co
       serviceName: open-jam-docs
     - host: "*.openjam.co"

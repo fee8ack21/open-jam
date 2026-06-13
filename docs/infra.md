@@ -234,5 +234,5 @@ kubectl get ns
 
 ### 後續待辦
 
-- `api.openjam.co`：待「功能 API」服務的 Helm chart / Service 就緒後，於 `infra/helm/infra/values.prod.yaml` 取消該路由的註解並調整 `serviceName`。
+- `api.openjam.co`：目前已新增 `/store-service`、`/log-service`、`/storage-service` path 路由分別至 StoreService、LogService、StorageService（見 `infra/helm/infra/values.prod.yaml`）。其餘 path（其他「功能 API」服務）待對應 Helm chart / Service 就緒後再依需求新增。
 - 將 Cloudflare API Token 與其他正式環境機密改由 External Secrets Operator 從 GCP Secret Manager 同步，避免明文存於 git（見上方「Secrets 管理」）。

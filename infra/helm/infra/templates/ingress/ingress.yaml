@@ -27,6 +27,17 @@ spec:
     - host: {{ .host | quote }}
       http:
         paths:
+          {{- if .paths }}
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ .serviceName }}
+                port:
+                  name: {{ .servicePort | default "http" }}
+          {{- end }}
+          {{- else }}
           - path: /
             pathType: Prefix
             backend:
@@ -34,5 +45,6 @@ spec:
                 name: {{ .serviceName }}
                 port:
                   name: {{ .servicePort | default "http" }}
+          {{- end }}
     {{- end }}
 {{- end }}
