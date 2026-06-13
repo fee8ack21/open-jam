@@ -1,6 +1,6 @@
 # Open Jam — 創作者數位市集
 
-樂譜、攝影集、電子書的數位作品市集前端。Vue 3 + Vite + Pinia + Vue Router，
+樂譜、攝影集、電子書的數位作品市集前端。Vue 3 + Vite + Pinia + Vue Router + TypeScript，
 搭配 [Naive UI](https://www.naiveui.com/) 元件庫。
 
 ## 技術棧
@@ -8,7 +8,8 @@
 | 層 | 套件 |
 |----|------|
 | 建置 | Vite 5 + `@vitejs/plugin-vue` |
-| 框架 | Vue 3 |
+| 語言 | TypeScript（`vue-tsc` 型別檢查） |
+| 框架 | Vue 3（Options API SFC） |
 | 狀態 | Pinia |
 | 路由 | Vue Router 4 |
 | UI | Naive UI |
@@ -18,38 +19,42 @@
 
 ```bash
 pnpm install
-pnpm dev        # http://localhost:5173
-pnpm build      # 產出 dist/
-pnpm preview    # 預覽 build 結果
+pnpm dev          # http://localhost:5173
+pnpm build        # vue-tsc 型別檢查 + 產出 dist/
+pnpm preview      # 預覽 build 結果
+pnpm type-check   # 只跑型別檢查
 ```
 
 ## 專案結構
 
 ```
 .
-├── index.html              # Vite 進入點（正式用）
-├── preview.html            # 免建置預覽進入點（見下方說明）
-├── vite.config.js
+├── index.html              # Vite 進入點
+├── env.d.ts                # vite/client 型別參照
+├── tsconfig.json
+├── vite.config.ts
 ├── package.json
 └── src/
-    ├── main.js             # createApp → pinia → router → naive → mount
-    ├── App.js              # 根元件：主題 provider、導覽列、<router-view>、Tweaks 面板
+    ├── main.ts             # createApp → pinia → router → naive → mount
+    ├── App.vue             # 根元件：主題 provider、導覽列、<router-view>、Tweaks 面板
+    ├── environment.ts      # 由 <meta> 覆蓋的執行期設定
     ├── router/
-    │   └── index.js        # 路由表：/  /product/:id  /checkout
+    │   └── index.ts        # 路由表：/  /product/:id  /checkout
     ├── stores/
-    │   └── shop.js         # Pinia store（篩選 / 購物車 / 收藏 / 訂單）
+    │   └── shop.ts         # Pinia store（篩選 / 購物車 / 收藏 / 訂單），含領域型別
     ├── data/
-    │   └── products.js      # 範例商品目錄（CATEGORIES / TAGS / PRODUCTS）
+    │   └── products.ts     # 範例商品目錄與型別（Category / Product / ...）
     ├── components/
-    │   ├── JIcon.js         # 線條 icon
-    │   ├── Stars.js         # 星等標籤
-    │   ├── ProductThumb.js  # 漸層佔位縮圖
-    │   ├── ProductCard.js   # 商品卡（連到詳細頁）
-    │   └── AppNav.js        # 頂部導覽列
+    │   ├── icon-paths.ts    # JIcon 的 SVG path 資料
+    │   ├── JIcon.vue        # 線條 icon
+    │   ├── Stars.vue        # 星等標籤
+    │   ├── ProductThumb.vue # 漸層佔位縮圖
+    │   ├── ProductCard.vue  # 商品卡（連到詳細頁）
+    │   └── AppNav.vue       # 頂部導覽列
     ├── views/
-    │   ├── ListView.js      # 列表頁（route /）
-    │   ├── DetailView.js    # 詳細頁（route /product/:id）
-    │   └── CheckoutView.js  # 結帳頁（route /checkout）
+    │   ├── ListView.vue     # 列表頁（route /）
+    │   ├── DetailView.vue   # 詳細頁（route /product/:id）
+    │   └── CheckoutView.vue # 結帳頁（route /checkout）
     └── styles/
         └── base.css         # 全域樣式（"Creative Studio Pop" 設計系統）
 ```
@@ -63,44 +68,13 @@ pnpm preview    # 預覽 build 結果
 | `/checkout` | `checkout` | 購物車 + 結帳 + 完成 |
 
 導覽都透過 `vue-router`（`this.$router.push(...)`、`this.$route.params`），
-不再由 store 控制畫面切換。
+不再由 store 控制畫面切換。History 模式為 `createWebHistory`。
 
-## 兩種執行方式
+## TypeScript 慣例
 
-### 1. 正式開發（推薦）
-
-```bash
-pnpm install && pnpm dev
-```
-
-走 `index.html` → `src/main.js`，所有 `import 'vue' / 'pinia' / ...`
-由 Vite 從 `node_modules` 解析。
-
-### 2. 免建置預覽（`preview.html`）
-
-`preview.html` 讓專案不需安裝任何依賴、直接用靜態檔案就能在瀏覽器
-（或這個工具的預覽窗）中執行。原理：
-
-- 用 `<script>` 從 CDN 載入 Vue / Pinia / Vue Router / Naive UI 的 **全域版**。
-- 透過 `<script type="importmap">` 把 bare specifier（`vue` 等）對應到
-  `preview/shims/*.js`，這些 shim 只是把全域物件重新 `export`。
-- 載入的 **是同一份 `src/` 原始碼**，因此預覽與正式 build 行為一致。
-
-`preview/` 與 `preview.html` 只服務於免建置預覽，正式 build 用不到，
-可在真正部署前刪除。
-
-## 遷移到正式 SPA 的後續步驟
-
-這份程式碼已是可直接使用的 Vite 專案。若要再進一步「標準化」：
-
-1. **History 模式**：`src/router/index.js` 目前用 `createWebHashHistory()`
-   （URL 帶 `#`），讓靜態檔案也能跑。部署到有 SPA fallback 的伺服器後，
-   改成 `createWebHistory(import.meta.env.BASE_URL)`。
-2. **元件改寫為 `.vue` 單檔元件（SFC）**：目前元件是「options 物件 +
-   `template:` 字串」的 `.js` 模組（這樣才能免建置預覽）。要轉成 SFC，
-   把 `template` 字串搬進 `<template>`、其餘搬進 `<script setup>` 或
-   `<script>`，並把 `import './X.js'` 改成 `import './X.vue'`。全部轉完後，
-   即可移除 `vite.config.js` 裡的 `vue` alias，改用 runtime-only 版本。
-3. **CSS import**：可改在 `src/main.js` 內 `import './styles/base.css'`，
-   並移除 `index.html` 的 `<link>`。
-4. 刪除 `preview.html` 與 `preview/`。
+- 各 SFC 維持 Options API，`<script>` 標 `lang="ts"`；需要 prop 型別時以
+  `defineComponent` + `PropType<T>` 標註（如 `ProductCard` / `ProductThumb`）。
+- 領域型別（`Category` / `Product` / `ProductContent` 等）集中在 `src/data/products.ts`
+  並 export；store 的 `CartItem` / `Order` 等型別定義於 `src/stores/shop.ts`。
+- 型別檢查走單一 `tsconfig.json`（`extends @vue/tsconfig/tsconfig.dom.json`、
+  `noEmit`），不使用 project references。

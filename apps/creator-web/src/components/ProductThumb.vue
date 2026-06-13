@@ -1,13 +1,22 @@
-<script>
-import { useShopStore } from '../stores/shop.js';
-import { CATEGORIES } from '../data/products.js';
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue';
+import { useShopStore } from '../stores/shop';
+import { CATEGORIES } from '../data/products';
 import JIcon from './JIcon.vue';
 
-export default {
+/** ProductThumb 只需要這些欄位，Product 與購物車商品皆相容。 */
+interface ThumbProduct {
+  hue: number;
+  cat: string;
+  formats: string[];
+  totalSize: string;
+}
+
+export default defineComponent({
   name: 'ProductThumb',
   components: { JIcon },
   props: {
-    product: Object,
+    product: { type: Object as PropType<ThumbProduct>, required: true },
     label: { type: String, default: '' },
     glyphSize: { type: Number, default: 64 },
     showCat: { type: Boolean, default: true },
@@ -32,14 +41,14 @@ export default {
       return c ? c.glyph : 'image';
     },
     catLabel() {
-      return ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' })[this.product.cat] || '';
+      return ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' } as Record<string, string>)[this.product.cat] || '';
     },
     autoLabel() {
       if (this.label) return this.label;
       return `${this.product.formats[0]} · ${this.product.totalSize}`;
     },
   },
-};
+});
 </script>
 
 <template>

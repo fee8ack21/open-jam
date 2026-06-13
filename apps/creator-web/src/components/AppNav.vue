@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
 import { ref } from 'vue';
-import { useShopStore } from '../stores/shop.js';
+import { useShopStore } from '../stores/shop';
 import JIcon from './JIcon.vue';
 
 export default {
@@ -30,7 +30,7 @@ export default {
   methods: {
     goList() { if (this.$route.name !== 'list') this.$router.push({ name: 'list' }); },
     goCheckout() { this.$router.push({ name: 'checkout' }); },
-    onSearch(v) {
+    onSearch(v: string) {
       this.store.search = v;
       if (this.$route.name !== 'list') this.$router.push({ name: 'list' });
     },
@@ -55,7 +55,7 @@ export default {
         <div class="search-box">
           <span class="follow-icon"><j-icon name="search" :size="17" /></span>
           <input class="search-input" type="text" :value="store.search"
-                 @input="onSearch($event.target.value)"
+                 @input="onSearch(($event.target as HTMLInputElement).value)"
                  placeholder="搜尋作品、創作者或標籤…" aria-label="搜尋" />
           <button v-if="store.search" class="search-clear" type="button"
                   @click="onSearch('')" aria-label="清除"><j-icon name="close" :size="15" /></button>

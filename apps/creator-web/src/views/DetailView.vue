@@ -1,11 +1,11 @@
-<script>
-import { useShopStore } from '../stores/shop.js';
-import { CATEGORIES } from '../data/products.js';
+<script lang="ts">
+import { useShopStore } from '../stores/shop';
+import { CATEGORIES } from '../data/products';
 import ProductThumb from '../components/ProductThumb.vue';
 import JIcon from '../components/JIcon.vue';
 import Stars from '../components/Stars.vue';
 
-const FILE_COLORS = {
+const FILE_COLORS: Record<string, string> = {
   PDF: '#e0573e', MIDI: '#6151f0', MSCZ: '#7a6cff', AUDIO: '#c94f9e', WAV: '#c94f9e',
   JPG: '#2f9e6b', PNG: '#16a07a', RAW: '#3b7fd4', XMP: '#d8a017', XLSX: '#1f9d57',
   EPUB: '#8b5cf6', GP: '#d65a3a', TXT: '#888', NOTION: '#444', FIG: '#e0573e', DEFAULT: '#6151f0',
@@ -17,21 +17,21 @@ export default {
   setup() { return { store: useShopStore() }; },
   data() { return { active: 0 }; },
   computed: {
-    p() { return this.store.product(this.$route.params.id); },
-    fav() { return this.p && this.store.isFav(this.p.id); },
-    inCart() { return this.p && this.store.inCart(this.p.id); },
+    p() { return this.store.product(String(this.$route.params.id)); },
+    fav() { return this.p ? this.store.isFav(this.p.id) : false; },
+    inCart() { return this.p ? this.store.inCart(this.p.id) : false; },
     initials() { return this.p ? this.p.creator.split(' ').map((s) => s[0]).slice(0, 2).join('') : ''; },
-    catLabel() { return this.p ? (CATEGORIES.find((c) => c.id === this.p.cat) || {}).label : ''; },
+    catLabel() { return this.p ? (CATEGORIES.find((c) => c.id === this.p!.cat)?.label ?? '') : ''; },
     totalFiles() { return this.p ? this.p.files.reduce((n, f) => n + f.count, 0) : 0; },
   },
   watch: {
     '$route.params.id'() { this.active = 0; },
   },
   methods: {
-    fileColor(t) { return FILE_COLORS[t] || FILE_COLORS.DEFAULT; },
+    fileColor(t: string) { return FILE_COLORS[t] || FILE_COLORS.DEFAULT; },
     goList() { this.$router.push({ name: 'list' }); },
-    addCart() { this.store.addToCart(this.p.id); },
-    buyNow() { if (!this.inCart) this.store.addToCart(this.p.id); this.$router.push({ name: 'checkout' }); },
+    addCart() { if (this.p) this.store.addToCart(this.p.id); },
+    buyNow() { if (this.p && !this.inCart) this.store.addToCart(this.p.id); this.$router.push({ name: 'checkout' }); },
     goCart() { this.$router.push({ name: 'checkout' }); },
   },
 };

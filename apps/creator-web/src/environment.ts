@@ -1,4 +1,6 @@
 class AppEnv {
+  [key: string]: string;
+
   MARKET_URL = 'http://localhost:5173'
 
   constructor() {

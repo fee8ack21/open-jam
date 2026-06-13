@@ -7,12 +7,12 @@
    SPA rewrite rules). When you move this into a real server with
    history fallback, switch to createWebHistory(import.meta.env.BASE_URL).
    ============================================================ */
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import ListView from '../views/ListView.vue';
 import DetailView from '../views/DetailView.vue';
 import CheckoutView from '../views/CheckoutView.vue';
 
-export const routes = [
+export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'list', component: ListView },
   { path: '/product/:id', name: 'product', component: DetailView },
   { path: '/checkout', name: 'checkout', component: CheckoutView },

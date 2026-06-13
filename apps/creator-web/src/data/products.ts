@@ -4,21 +4,64 @@
    placeholder thumbnail. Categories: music · photo · ebook
    ============================================================ */
 
-export const CATEGORIES = [
+/** 商品分類。 */
+export interface Category {
+  id: string;
+  label: string;
+  glyph: string;
+}
+
+/** 商品內含檔案數量摘要。 */
+export interface ProductFile {
+  type: string;
+  count: number;
+}
+
+/** 商品內含檔案項目。 */
+export interface ProductContent {
+  name: string;
+  type: string;
+  size: string;
+}
+
+/** 市集販售的商品。 */
+export interface Product {
+  id: string;
+  cat: string;
+  hue: number;
+  title: string;
+  creator: string;
+  handle: string;
+  avatar: string;
+  price: number;
+  rating: number;
+  ratingCount: number;
+  sales: number;
+  tags: string[];
+  blurb: string;
+  desc: string[];
+  files: ProductFile[];
+  totalSize: string;
+  formats: string[];
+  contents: ProductContent[];
+  previews: number;
+}
+
+export const CATEGORIES: Category[] = [
   { id: 'music', label: '樂譜 / 音樂', glyph: 'note' },
   { id: 'photo', label: '攝影 / 照片集', glyph: 'image' },
   { id: 'ebook', label: '電子書 / 文件', glyph: 'book' },
 ];
 
-export const TAGS = {
+export const TAGS: Record<string, string[]> = {
   music: ['鋼琴', '爵士', '古典', '流行', '配樂', '吉他'],
   photo: ['風景', '人像', '街拍', '黑白', '旅行', '空拍'],
   ebook: ['設計', '攝影教學', '商業', '寫作', '行銷'],
 };
 
-const F = (type, count) => ({ type, count });
+const F = (type: string, count: number): ProductFile => ({ type, count });
 
-export const PRODUCTS = [
+export const PRODUCTS: Product[] = [
   {
     id: 'p01', cat: 'music', hue: 256,
     title: '午夜爵士鋼琴：12 首即興譜集',

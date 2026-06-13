@@ -1,13 +1,15 @@
-<script>
-import { useShopStore } from '../stores/shop.js';
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue';
+import { useShopStore } from '../stores/shop';
+import { type Product } from '../data/products';
 import JIcon from './JIcon.vue';
 import Stars from './Stars.vue';
 import ProductThumb from './ProductThumb.vue';
 
-export default {
+export default defineComponent({
   name: 'ProductCard',
   components: { ProductThumb, JIcon, Stars },
-  props: { product: Object },
+  props: { product: { type: Object as PropType<Product>, required: true } },
   setup() { return { store: useShopStore() }; },
   computed: {
     fav() { return this.store.isFav(this.product.id); },
@@ -16,9 +18,9 @@ export default {
   },
   methods: {
     open() { this.$router.push({ name: 'product', params: { id: this.product.id } }); },
-    toggleFav(e) { e.stopPropagation(); this.store.toggleFav(this.product.id); },
+    toggleFav(e: MouseEvent) { e.stopPropagation(); this.store.toggleFav(this.product.id); },
   },
-};
+});
 </script>
 
 <template>

@@ -6,18 +6,59 @@
    and the completed-order record only.
    ============================================================ */
 import { defineStore } from 'pinia';
-import { PRODUCTS } from '../data/products.js';
+import { PRODUCTS, type Product } from '../data/products';
 
-const load = (k, fb) => {
-  try { const v = localStorage.getItem('openjam.' + k); return v ? JSON.parse(v) : fb; }
+type Theme = 'light' | 'dark';
+type SortKey = 'popular' | 'newest' | 'price-asc' | 'price-desc' | 'rating';
+
+/** 購物車項目。 */
+interface CartItem {
+  id: string;
+  qty: number;
+}
+
+/** 購物車內展開後的商品（含數量）。 */
+type CartProduct = Product & { qty: number };
+
+/** 購買人資訊。 */
+interface Buyer {
+  name: string;
+  email: string;
+}
+
+/** 完成的訂單紀錄。 */
+interface Order {
+  id: string;
+  items: CartProduct[];
+  total: number;
+  buyer: Buyer;
+  date: Date;
+}
+
+interface ShopState {
+  theme: Theme;
+  font: string;
+  search: string;
+  category: string;
+  activeTags: string[];
+  priceRange: [number, number];
+  sort: SortKey;
+  onlyFree: boolean;
+  favorites: string[];
+  cart: CartItem[];
+  order: Order | null;
+}
+
+const load = <T>(k: string, fb: T): T => {
+  try { const v = localStorage.getItem('openjam.' + k); return v ? JSON.parse(v) as T : fb; }
   catch (e) { return fb; }
 };
-const save = (k, v) => { try { localStorage.setItem('openjam.' + k, JSON.stringify(v)); } catch (e) {} };
+const save = (k: string, v: unknown) => { try { localStorage.setItem('openjam.' + k, JSON.stringify(v)); } catch (e) {} };
 
 export const useShopStore = defineStore('shop', {
-  state: () => ({
+  state: (): ShopState => ({
     // theme / display
-    theme: load('theme', 'light'),
+    theme: load<Theme>('theme', 'light'),
     font: load('font', 'sora'),
 
     // catalogue search & filters
@@ -29,8 +70,8 @@ export const useShopStore = defineStore('shop', {
     onlyFree: false,
 
     // user data (persisted)
-    favorites: load('favorites', []),
-    cart: load('cart', []),   // [{ id, qty }]
+    favorites: load<string[]>('favorites', []),
+    cart: load<CartItem[]>('cart', []),   // [{ id, qty }]
 
     // checkout
     order: null,              // set after successful payment
@@ -38,21 +79,21 @@ export const useShopStore = defineStore('shop', {
 
   getters: {
     // arg-taking getters return a function
-    product: () => (id) => PRODUCTS.find((p) => p.id === id),
-    isFav: (state) => (id) => state.favorites.includes(id),
-    inCart: (state) => (id) => state.cart.some((c) => c.id === id),
+    product: () => (id: string) => PRODUCTS.find((p) => p.id === id),
+    isFav: (state) => (id: string) => state.favorites.includes(id),
+    inCart: (state) => (id: string) => state.cart.some((c) => c.id === id),
 
-    cartProducts(state) {
+    cartProducts(state): CartProduct[] {
       return state.cart
         .map((c) => ({ ...PRODUCTS.find((p) => p.id === c.id), qty: c.qty }))
-        .filter((p) => p.id);
+        .filter((p): p is CartProduct => Boolean(p.id));
     },
     cartCount: (state) => state.cart.reduce((n, c) => n + c.qty, 0),
-    subtotal() {
+    subtotal(): number {
       return this.cartProducts.reduce((s, p) => s + p.price * p.qty, 0);
     },
 
-    filtered(state) {
+    filtered(state): Product[] {
       let list = PRODUCTS.slice();
       const q = state.search.trim().toLowerCase();
       if (q) list = list.filter((p) =>
@@ -82,35 +123,35 @@ export const useShopStore = defineStore('shop', {
   },
 
   actions: {
-    setTheme(t) { this.theme = t; save('theme', t); },
+    setTheme(t: Theme) { this.theme = t; save('theme', t); },
     toggleTheme() { this.setTheme(this.theme === 'light' ? 'dark' : 'light'); },
-    setFont(f) { this.font = f; save('font', f); },
+    setFont(f: string) { this.font = f; save('font', f); },
 
-    toggleFav(id) {
+    toggleFav(id: string) {
       const i = this.favorites.indexOf(id);
       if (i >= 0) this.favorites.splice(i, 1); else this.favorites.push(id);
       save('favorites', this.favorites);
     },
 
-    addToCart(id, qty = 1) {
+    addToCart(id: string, qty = 1) {
       const item = this.cart.find((c) => c.id === id);
       if (item) item.qty += qty; else this.cart.push({ id, qty });
       save('cart', this.cart);
     },
-    setQty(id, qty) {
+    setQty(id: string, qty: number) {
       const item = this.cart.find((c) => c.id === id);
       if (item) item.qty = Math.max(1, qty);
       save('cart', this.cart);
     },
-    removeFromCart(id) {
+    removeFromCart(id: string) {
       const i = this.cart.findIndex((c) => c.id === id);
       if (i >= 0) this.cart.splice(i, 1);
       save('cart', this.cart);
     },
     clearCart() { this.cart = []; save('cart', []); },
 
-    setCategory(c) { this.category = c; this.activeTags = []; },
-    toggleTag(t) {
+    setCategory(c: string) { this.category = c; this.activeTags = []; },
+    toggleTag(t: string) {
       const i = this.activeTags.indexOf(t);
       if (i >= 0) this.activeTags.splice(i, 1); else this.activeTags.push(t);
     },
@@ -121,7 +162,7 @@ export const useShopStore = defineStore('shop', {
 
     // checkout
     startCheckout() { this.order = null; },
-    completeOrder(buyer) {
+    completeOrder(buyer: Buyer) {
       this.order = {
         id: 'JUN-' + Math.random().toString(36).slice(2, 7).toUpperCase(),
         items: this.cartProducts,

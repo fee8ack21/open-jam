@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useShopStore } from './stores/shop.js';
+import { useShopStore } from './stores/shop';
 import AppNav from './components/AppNav.vue';
 import JIcon from './components/JIcon.vue';
 

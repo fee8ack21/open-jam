@@ -1,6 +1,6 @@
-<script>
-import { useShopStore } from '../stores/shop.js';
-import { CATEGORIES, TAGS, PRODUCTS } from '../data/products.js';
+<script lang="ts">
+import { useShopStore } from '../stores/shop';
+import { CATEGORIES, TAGS, PRODUCTS } from '../data/products';
 import ProductCard from '../components/ProductCard.vue';
 import JIcon from '../components/JIcon.vue';
 
@@ -30,16 +30,16 @@ export default {
     },
     filterCount() { return this.store.activeFilterCount; },
     priceRange: {
-      get() { return this.store.priceRange; },
-      set(v) { this.store.priceRange = v; },
+      get(): [number, number] { return this.store.priceRange; },
+      set(v: number | [number, number]) { this.store.priceRange = (Array.isArray(v) ? v : [v, v]) as [number, number]; },
     },
   },
   methods: {
-    setCat(c) { this.store.setCategory(c); },
-    catColor(id) { return ({ music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' })[id]; },
-    toggleTag(t) { this.store.toggleTag(t); },
+    setCat(c: string) { this.store.setCategory(c); },
+    catColor(id: string) { return ({ music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' } as Record<string, string>)[id]; },
+    toggleTag(t: string) { this.store.toggleTag(t); },
     clear() { this.store.clearFilters(); },
-    priceLabel(v) { return v === 0 ? '免費' : '$' + v; },
+    priceLabel(v: number) { return v === 0 ? '免費' : '$' + v; },
   },
 };
 </script>

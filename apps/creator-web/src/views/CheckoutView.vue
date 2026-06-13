@@ -1,5 +1,6 @@
-<script>
-import { useShopStore } from '../stores/shop.js';
+<script lang="ts">
+import type { FormInst, FormRules } from 'naive-ui';
+import { useShopStore } from '../stores/shop';
 import ProductThumb from '../components/ProductThumb.vue';
 import JIcon from '../components/JIcon.vue';
 
@@ -8,20 +9,21 @@ export default {
   components: { ProductThumb, JIcon },
   setup() { return { store: useShopStore() }; },
   data() {
+    const rules: FormRules = {
+      name: { required: true, message: '請輸入姓名', trigger: ['blur', 'input'] },
+      email: [
+        { required: true, message: '請輸入電子信箱', trigger: ['blur', 'input'] },
+        { validator: (_, v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), message: '信箱格式不正確', trigger: ['blur'] },
+      ],
+      cardName: { required: true, message: '請輸入持卡人姓名', trigger: ['blur', 'input'] },
+      cardNumber: { validator: (_, v: string) => (v || '').replace(/\s/g, '').length === 16, message: '請輸入 16 位卡號', trigger: ['blur', 'input'] },
+      expiry: { validator: (_, v: string) => /^\d{2}\/\d{2}$/.test(v || ''), message: 'MM/YY', trigger: ['blur', 'input'] },
+      cvc: { validator: (_, v: string) => /^\d{3,4}$/.test(v || ''), message: '3–4 位', trigger: ['blur', 'input'] },
+    };
     return {
       processing: false,
       model: { name: '', email: '', cardName: '', cardNumber: '', expiry: '', cvc: '' },
-      rules: {
-        name: { required: true, message: '請輸入姓名', trigger: ['blur', 'input'] },
-        email: [
-          { required: true, message: '請輸入電子信箱', trigger: ['blur', 'input'] },
-          { validator: (_, v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), message: '信箱格式不正確', trigger: ['blur'] },
-        ],
-        cardName: { required: true, message: '請輸入持卡人姓名', trigger: ['blur', 'input'] },
-        cardNumber: { validator: (_, v) => (v || '').replace(/\s/g, '').length === 16, message: '請輸入 16 位卡號', trigger: ['blur', 'input'] },
-        expiry: { validator: (_, v) => /^\d{2}\/\d{2}$/.test(v || ''), message: 'MM/YY', trigger: ['blur', 'input'] },
-        cvc: { validator: (_, v) => /^\d{3,4}$/.test(v || ''), message: '3–4 位', trigger: ['blur', 'input'] },
-      },
+      rules,
     };
   },
   computed: {
@@ -40,21 +42,21 @@ export default {
   },
   methods: {
     goList() { this.$router.push({ name: 'list' }); },
-    openProduct(id) { this.$router.push({ name: 'product', params: { id } }); },
-    initials(name) { return name.split(' ').map((s) => s[0]).slice(0, 2).join(''); },
-    onCardInput(v) {
+    openProduct(id: string) { this.$router.push({ name: 'product', params: { id } }); },
+    initials(name: string) { return name.split(' ').map((s) => s[0]).slice(0, 2).join(''); },
+    onCardInput(v: string) {
       const raw = v.replace(/\D/g, '').slice(0, 16);
       this.model.cardNumber = raw.replace(/(.{4})/g, '$1 ').trim();
     },
-    onExpiry(v) {
+    onExpiry(v: string) {
       let raw = v.replace(/\D/g, '').slice(0, 4);
       if (raw.length >= 3) raw = raw.slice(0, 2) + '/' + raw.slice(2);
       this.model.expiry = raw;
     },
-    onCvc(v) { this.model.cvc = v.replace(/\D/g, '').slice(0, 4); },
+    onCvc(v: string) { this.model.cvc = v.replace(/\D/g, '').slice(0, 4); },
     async pay() {
       try {
-        await this.$refs.form.validate();
+        await (this.$refs.form as FormInst).validate();
       } catch (e) { return; }
       this.processing = true;
       setTimeout(() => {
