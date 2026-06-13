@@ -25,6 +25,9 @@ spec:
           ports:
             - containerPort: 80
               name: http
+          env:
+            - name: MARKET_PAGE_URL
+              value: {{ .Values.config.externalUrl | quote }}
           {{- with .Values.creatorWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
