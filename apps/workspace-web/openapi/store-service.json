@@ -1015,14 +1015,13 @@
       },
       "StoreApplicationStatus": {
         "enum": [
-          0,
-          1,
-          2,
-          3
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Withdrawn"
         ],
-        "type": "integer",
-        "description": "開店申請審核狀態。",
-        "format": "int32"
+        "type": "string",
+        "description": "開店申請審核狀態。"
       },
       "StoreDto": {
         "type": "object",
@@ -1107,21 +1106,19 @@
       },
       "StoreMemberRole": {
         "enum": [
-          0
+          "Owner"
         ],
-        "type": "integer",
-        "description": "商店成員角色。",
-        "format": "int32"
+        "type": "string",
+        "description": "商店成員角色。"
       },
       "StoreStatus": {
         "enum": [
-          0,
-          1,
-          2
+          "Active",
+          "Suspended",
+          "Closed"
         ],
-        "type": "integer",
-        "description": "商店狀態。",
-        "format": "int32"
+        "type": "string",
+        "description": "商店狀態。"
       },
       "SubmitStoreApplicationRequest": {
         "type": "object",

@@ -2,40 +2,39 @@
 
 由 HTML 原型遷移而來的單頁應用骨架。
 
-**技術棧**：pnpm + Vite + Vue 3 + Pinia + Vue Router + Naive UI
+**技術棧**：pnpm + Vite + Vue 3 + TypeScript + Pinia + Vue Router + Naive UI
 
 ## 開始開發
 
 ```bash
 pnpm install
-pnpm dev        # 啟動開發伺服器 (http://localhost:5173)
-pnpm build      # 打包到 dist/
-pnpm preview    # 預覽打包結果
+pnpm dev          # 啟動開發伺服器 (http://localhost:5173)
+pnpm type-check   # 以 vue-tsc 做型別檢查
+pnpm build        # 型別檢查 + 打包到 dist/
+pnpm preview      # 預覽打包結果
 ```
-
-> 尚未安裝 Node/pnpm 環境也能預覽：直接開啟根目錄的 **`preview.html`**。
-> 它透過 `vue3-sfc-loader` 在瀏覽器端載入**同一份** `src/` 原始碼（免建置），
-> 僅差在改用 hash 路由、樣式以 `<link>` 直接載入。正式環境一律以 `pnpm dev` / `pnpm build` 為準。
 
 ## 專案結構
 
 ```
 .
 index.html             # Vite 進入點（掛載 #app）
-vite.config.js         # 別名 @ → /src
+vite.config.ts         # 別名 @ → /src
+tsconfig.json          # TypeScript 設定（extends @vue/tsconfig）
+env.d.ts               # Vite client 與 import.meta.env 型別宣告
 package.json           # pnpm 相依與指令
-preview.html           # 免建置預覽用（dev harness，非 SPA 的一部分）
 src/
-  main.js              # 進入點：掛載 Pinia / Router / Naive UI、註冊全域元件
+  main.ts              # 進入點：掛載 Pinia / Router / Naive UI、註冊全域元件
   App.vue              # 應用外殼：側欄、頂欄、抽屜、使用者選單、Tweaks
+  pinia.d.ts           # Pinia 型別擴充（store.router 注入）
   router/
-    index.js           # 路由表（每個頁面一條 named route）
+    index.ts           # 路由表（每個頁面一條 named route）
   stores/
-    dashboard.js       # Pinia store：state / getters / actions（含 localStorage 持久化）
+    dashboard.ts       # Pinia store：state / getters / actions（含 localStorage 持久化）
   data/
-    index.js           # 範例資料（之後可換成 API）
+    index.ts           # 範例資料與領域型別（Product / Order / ... 之後可換成 API）
   utils/
-    format.js          # 金額 / 時間格式化、狀態標籤
+    format.ts          # 金額 / 時間格式化、狀態標籤
   components/
     JIcon.vue          # 線性 icon（全域註冊為 <j-icon>）
     ProductThumb.vue   # 作品縮圖（<product-thumb>）
@@ -58,6 +57,6 @@ src/
 
 - **路由即真相**：目前由 Vue Router 決定顯示哪個頁面；側欄高亮、頁面標題都來自當前 route 名稱。
 - **賣家 / 買家模式**：存在 Pinia (`mode`)，並隨路由所屬群組自動同步。
-- **資料層**：`src/data/index.js` 為靜態範例，正式環境改成在 store action 內呼叫 API 即可。
-- **Naive UI**：在 `main.js` 以 `app.use(naive)` 全域安裝；如需縮小打包體積可改成按需引入。
-- **`preview.html`**：免建置的開發預覽工具，載入與正式版相同的 `src/`；正式部署時可移除。
+- **資料層**：`src/data/index.ts` 為靜態範例（含領域型別），正式環境改成在 store action 內呼叫 API 即可。
+- **Naive UI**：在 `main.ts` 以 `app.use(naive)` 全域安裝；如需縮小打包體積可改成按需引入。
+- **API client**：`src/services/api/store-service.ts` 由 `pnpm gen:api` 從後端 OpenAPI 產生（TS），勿手改。後端 enum 已以 `JsonStringEnumConverter` 序列化為字串，codegen 產出具名字串 enum。

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt, STATUS_LABEL } from '@/utils/format'
 import { ME, REVENUE } from '@/data'
@@ -22,7 +22,7 @@ export default {
     },
   },
   methods: {
-    statusLabel(s) { return STATUS_LABEL[s] || s },
+    statusLabel(s: string) { return STATUS_LABEL[s] || s },
   },
 }
 </script>

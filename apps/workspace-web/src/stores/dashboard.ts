@@ -7,19 +7,55 @@
    ============================================================ */
 import { defineStore } from 'pinia'
 import { MY_PRODUCTS, ORDERS, PURCHASES, WISHLIST, REVENUE, ME } from '@/data'
+import type { Product, ProductStatus, Order, Purchase, WishlistItem } from '@/data'
+
+/** 上架精靈中暫存的檔案。 */
+export interface DraftFile {
+  name: string
+  type: string
+  bytes: number
+  /** 模擬上傳進度（0–100）。 */
+  progress?: number
+}
+
+/** 上架精靈草稿。 */
+interface DraftState {
+  title: string
+  cat: string
+  tags: string[]
+  price: number
+  free: boolean
+  blurb: string
+  files: DraftFile[]
+  coverHue: number
+}
+
+interface DashboardState {
+  mode: string
+  font: string
+  density: string
+  search: string
+  products: Product[]
+  productFilter: string
+  orders: Order[]
+  purchases: Purchase[]
+  wishlist: WishlistItem[]
+  wizardStep: number
+  draft: DraftState
+}
 
 const KEY = 'openjam.dash.'
-const load = (k, fb) => {
-  try { const v = localStorage.getItem(KEY + k); return v ? JSON.parse(v) : fb }
-  catch (e) { return fb }
+const load = <T>(k: string, fb: T): T => {
+  try { const v = localStorage.getItem(KEY + k); return v ? (JSON.parse(v) as T) : fb }
+  catch { return fb }
 }
-const save = (k, v) => { try { localStorage.setItem(KEY + k, JSON.stringify(v)) } catch (e) {} }
+const save = (k: string, v: unknown) => { try { localStorage.setItem(KEY + k, JSON.stringify(v)) } catch { /* ignore */ } }
 
 // hydrate products with persisted status overrides
-const statusOverrides = load('statusOverrides', {})
+const statusOverrides = load<Record<string, ProductStatus>>('statusOverrides', {})
 
 export const useDashboardStore = defineStore('dashboard', {
-  state: () => ({
+  state: (): DashboardState => ({
     mode: load('mode', 'sell'),          // sell | buy
     font: load('font', 'sora'),          // sora | grotesk
     density: load('density', 'comfy'),   // comfy | compact
@@ -33,14 +69,14 @@ export const useDashboardStore = defineStore('dashboard', {
 
     // upload wizard draft
     wizardStep: 1,
-    draft: load('draft', {
+    draft: load<DraftState>('draft', {
       title: '', cat: 'photo', tags: [], price: 12, free: false,
       blurb: '', files: [], coverHue: 256,
     }),
   }),
 
   getters: {
-    product: (state) => (id) => state.products.find(p => p.id === id),
+    product: (state) => (id: string) => state.products.find(p => p.id === id),
     liveProducts: (state) => state.products.filter(p => p.status === 'live'),
     filteredProducts: (state) => {
       let list = state.products.slice()
@@ -49,75 +85,76 @@ export const useDashboardStore = defineStore('dashboard', {
       if (q) list = list.filter(p => p.title.toLowerCase().includes(q) || p.tags.some(t => t.toLowerCase().includes(q)))
       return list
     },
-    statusCount: (state) => (s) => state.products.filter(p => p.status === s).length,
+    statusCount: (state) => (s: string) => state.products.filter(p => p.status === s).length,
     // KPIs
     totalRevenue: (state) => state.products.reduce((s, p) => s + (p.revenue || 0), 0),
     monthRevenue: () => { const m = REVENUE.monthly; return m[m.length - 1].value },
     prevMonthRevenue: () => { const m = REVENUE.monthly; return m[m.length - 2].value },
-    monthDelta() {
+    monthDelta(): number {
       const a = this.monthRevenue, b = this.prevMonthRevenue
       return b ? Math.round(((a - b) / b) * 100) : 0
     },
     totalSales: (state) => state.products.reduce((s, p) => s + (p.sales || 0), 0),
     totalViews: (state) => state.products.reduce((s, p) => s + (p.views || 0), 0),
-    pendingPayout() { return Math.round(this.monthRevenue * 0.7) },
+    pendingPayout(): number { return Math.round(this.monthRevenue * 0.7) },
     topProducts: (state) => state.products.slice().sort((a, b) => b.revenue - a.revenue).slice(0, 5),
     recentOrders: (state) => state.orders.slice(0, 6),
     paidOrders: (state) => state.orders.filter(o => o.status === 'paid'),
-    convRate() {
+    convRate(): string {
       const v = this.totalViews
       return v ? ((this.totalSales / v) * 100).toFixed(1) : '0'
     },
   },
 
   actions: {
-    go(view) {
+    go(view: string) {
       if (this.router && this.router.currentRoute.value.name !== view) {
         this.router.push({ name: view })
       }
       window.scrollTo({ top: 0 })
     },
-    setMode(m) {
+    setMode(m: string) {
       this.mode = m; save('mode', m)
       // jump to a sensible default view for the mode
-      if (m === 'buy' && ['overview', 'products', 'upload', 'orders'].includes(this.router?.currentRoute.value.name)) this.go('purchases')
-      if (m === 'sell' && ['purchases', 'wishlist'].includes(this.router?.currentRoute.value.name)) this.go('overview')
+      const name = this.router?.currentRoute.value.name as string | undefined
+      if (m === 'buy' && ['overview', 'products', 'upload', 'orders'].includes(name ?? '')) this.go('purchases')
+      if (m === 'sell' && ['purchases', 'wishlist'].includes(name ?? '')) this.go('overview')
     },
-    syncModeToRoute(name) {
+    syncModeToRoute(name: string) {
       if (['purchases', 'wishlist'].includes(name)) { this.mode = 'buy'; save('mode', 'buy') }
       else if (['overview', 'products', 'upload', 'orders'].includes(name)) { this.mode = 'sell'; save('mode', 'sell') }
     },
-    setFont(f) { this.font = f; save('font', f) },
-    setDensity(d) { this.density = d; save('density', d) },
-    setProductFilter(f) { this.productFilter = f },
+    setFont(f: string) { this.font = f; save('font', f) },
+    setDensity(d: string) { this.density = d; save('density', d) },
+    setProductFilter(f: string) { this.productFilter = f },
 
-    setStatus(id, status) {
+    setStatus(id: string, status: ProductStatus) {
       const p = this.product(id); if (!p) return
       p.status = status
       statusOverrides[id] = status; save('statusOverrides', statusOverrides)
     },
-    togglePublish(id) {
+    togglePublish(id: string) {
       const p = this.product(id); if (!p) return
       this.setStatus(id, p.status === 'live' ? 'off' : 'live')
     },
 
     // wishlist
-    removeWish(id) { const i = this.wishlist.findIndex(w => w.id === id); if (i >= 0) this.wishlist.splice(i, 1) },
+    removeWish(id: string) { const i = this.wishlist.findIndex(w => w.id === id); if (i >= 0) this.wishlist.splice(i, 1) },
 
     // wizard
-    setStep(n) { this.wizardStep = Math.min(3, Math.max(1, n)) },
+    setStep(n: number) { this.wizardStep = Math.min(3, Math.max(1, n)) },
     nextStep() { this.setStep(this.wizardStep + 1) },
     prevStep() { this.setStep(this.wizardStep - 1) },
-    patchDraft(patch) { Object.assign(this.draft, patch); save('draft', this.draft) },
-    addDraftTag(t) {
+    patchDraft(patch: Partial<DraftState>) { Object.assign(this.draft, patch); save('draft', this.draft) },
+    addDraftTag(t: string) {
       t = (t || '').trim(); if (!t || this.draft.tags.includes(t)) return
       this.draft.tags.push(t); save('draft', this.draft)
     },
-    removeDraftTag(t) {
+    removeDraftTag(t: string) {
       const i = this.draft.tags.indexOf(t); if (i >= 0) this.draft.tags.splice(i, 1); save('draft', this.draft)
     },
-    addDraftFile(f) { this.draft.files.push(f); save('draft', this.draft) },
-    removeDraftFile(i) { this.draft.files.splice(i, 1); save('draft', this.draft) },
+    addDraftFile(f: DraftFile) { this.draft.files.push(f); save('draft', this.draft) },
+    removeDraftFile(i: number) { this.draft.files.splice(i, 1); save('draft', this.draft) },
     resetDraft() {
       this.draft = { title: '', cat: 'photo', tags: [], price: 12, free: false, blurb: '', files: [], coverHue: 256 }
       this.wizardStep = 1; save('draft', this.draft)
@@ -138,7 +175,7 @@ export const useDashboardStore = defineStore('dashboard', {
       })
       this.resetDraft()
     },
-    fmtBytes(b) {
+    fmtBytes(b: number) {
       if (!b) return '—'
       if (b >= 1e9) return (b / 1e9).toFixed(1) + ' GB'
       if (b >= 1e6) return (b / 1e6).toFixed(0) + ' MB'

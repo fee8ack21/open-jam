@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt, STATUS_LABEL } from '@/utils/format'
+import type { Product } from '@/data'
 
 export default {
   name: 'ProductsView',
@@ -20,9 +21,9 @@ export default {
     rows() { return this.g.filteredProducts },
   },
   methods: {
-    statusLabel(s) { return STATUS_LABEL[s] || s },
-    toggle(p) { this.store.togglePublish(p.id) },
-    canToggle(p) { return p.status === 'live' || p.status === 'off' },
+    statusLabel(s: string) { return STATUS_LABEL[s] || s },
+    toggle(p: Product) { this.store.togglePublish(p.id) },
+    canToggle(p: Product) { return p.status === 'live' || p.status === 'off' },
   },
 }
 </script>

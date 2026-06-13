@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
 export default {
   name: 'Stars',
   props: {
-    value: Number,
-    count: Number,
+    value: { type: Number, default: 0 },
+    count: { type: Number, default: 0 },
     size: { type: Number, default: 13 },
   },
 }

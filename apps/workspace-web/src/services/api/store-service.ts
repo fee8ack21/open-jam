@@ -10,32 +10,26 @@
  * ---------------------------------------------------------------
  */
 
-/**
- * 商店狀態。
- * @format int32
- */
-export declare enum StoreStatus {
-  Value0 = 0,
-  Value1 = 1,
-  Value2 = 2,
+/** 商店狀態。 */
+export enum StoreStatus {
+  Active = "Active",
+  Suspended = "Suspended",
+  Closed = "Closed",
 }
-/**
- * 商店成員角色。
- * @format int32
- */
-export declare enum StoreMemberRole {
-  Value0 = 0,
+
+/** 商店成員角色。 */
+export enum StoreMemberRole {
+  Owner = "Owner",
 }
-/**
- * 開店申請審核狀態。
- * @format int32
- */
-export declare enum StoreApplicationStatus {
-  Value0 = 0,
-  Value1 = 1,
-  Value2 = 2,
-  Value3 = 3,
+
+/** 開店申請審核狀態。 */
+export enum StoreApplicationStatus {
+  Pending = "Pending",
+  Approved = "Approved",
+  Rejected = "Rejected",
+  Withdrawn = "Withdrawn",
 }
+
 /** Avatar/Banner 上傳簽章 URL 回應。 */
 export interface AssetUploadUrlResponse {
   /**
@@ -60,6 +54,7 @@ export interface AssetUploadUrlResponse {
    */
   expiresAt?: string;
 }
+
 /** 追蹤／取消追蹤商店請求。 */
 export interface FollowStoreRequest {
   /**
@@ -68,6 +63,7 @@ export interface FollowStoreRequest {
    */
   email?: string | null;
 }
+
 /** 開店申請分頁查詢回應。 */
 export interface GetStoreApplicationsResponse {
   /**
@@ -79,6 +75,7 @@ export interface GetStoreApplicationsResponse {
   /** 本頁開店申請清單。 */
   items?: StoreApplicationDto[] | null;
 }
+
 /** 商店追蹤者分頁查詢回應。 */
 export interface GetStoreFollowersResponse {
   /**
@@ -90,6 +87,7 @@ export interface GetStoreFollowersResponse {
   /** 本頁追蹤者清單。 */
   items?: StoreFollowerDto[] | null;
 }
+
 /** 登入使用者所屬商店資訊。 */
 export interface MyStoreDto {
   /** 商店基本資訊回應。 */
@@ -97,6 +95,7 @@ export interface MyStoreDto {
   /** 商店成員角色。 */
   role?: StoreMemberRole;
 }
+
 /** 駁回開店申請請求。 */
 export interface RejectStoreApplicationRequest {
   /**
@@ -105,6 +104,7 @@ export interface RejectStoreApplicationRequest {
    */
   reviewComment?: string | null;
 }
+
 /** 申請 Avatar/Banner 上傳簽章 URL 請求。 */
 export interface RequestAssetUploadUrlRequest {
   /**
@@ -124,6 +124,7 @@ export interface RequestAssetUploadUrlRequest {
    */
   sizeBytes?: number;
 }
+
 /** 單筆開店申請回應。 */
 export interface StoreApplicationDto {
   /**
@@ -176,6 +177,7 @@ export interface StoreApplicationDto {
    */
   reviewComment?: string | null;
 }
+
 /** 商店基本資訊回應。 */
 export interface StoreDto {
   /**
@@ -222,6 +224,7 @@ export interface StoreDto {
    */
   updatedAt?: string | null;
 }
+
 /** 單筆商店追蹤者回應。 */
 export interface StoreFollowerDto {
   /**
@@ -240,6 +243,7 @@ export interface StoreFollowerDto {
    */
   createdAt?: string;
 }
+
 /** 提交開店申請請求。 */
 export interface SubmitStoreApplicationRequest {
   /**
@@ -253,6 +257,7 @@ export interface SubmitStoreApplicationRequest {
    */
   storeSlug?: string | null;
 }
+
 /** 更新商店資料請求（部分欄位，未提供者不變更）。 */
 export interface UpdateStoreRequest {
   /**
@@ -266,8 +271,10 @@ export interface UpdateStoreRequest {
    */
   description?: string | null;
 }
+
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
+
 export interface FullRequestParams extends Omit<RequestInit, "body"> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
@@ -286,10 +293,12 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
   /** request cancellation token */
   cancelToken?: CancelToken;
 }
+
 export type RequestParams = Omit<
   FullRequestParams,
   "body" | "method" | "query" | "path"
 >;
+
 export interface ApiConfig<SecurityDataType = unknown> {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
@@ -298,43 +307,155 @@ export interface ApiConfig<SecurityDataType = unknown> {
   ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
+
 export interface HttpResponse<D extends unknown, E extends unknown = unknown>
   extends Response {
   data: D;
   error: E;
 }
+
 type CancelToken = Symbol | string | number;
-export declare enum ContentType {
+
+export enum ContentType {
   Json = "application/json",
   JsonApi = "application/vnd.api+json",
   FormData = "multipart/form-data",
   UrlEncoded = "application/x-www-form-urlencoded",
   Text = "text/plain",
 }
-export declare class HttpClient<SecurityDataType = unknown> {
-  baseUrl: string;
-  private securityData;
-  private securityWorker?;
-  private abortControllers;
-  private customFetch;
-  private baseApiParams;
-  constructor(apiConfig?: ApiConfig<SecurityDataType>);
-  setSecurityData: (data: SecurityDataType | null) => void;
-  protected encodeQueryParam(key: string, value: any): string;
-  protected addQueryParam(query: QueryParamsType, key: string): string;
-  protected addArrayQueryParam(query: QueryParamsType, key: string): any;
-  protected toQueryString(rawQuery?: QueryParamsType): string;
-  protected addQueryParams(rawQuery?: QueryParamsType): string;
-  private contentFormatters;
+
+export class HttpClient<SecurityDataType = unknown> {
+  public baseUrl: string = "";
+  private securityData: SecurityDataType | null = null;
+  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private abortControllers = new Map<CancelToken, AbortController>();
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
+    fetch(...fetchParams);
+
+  private baseApiParams: RequestParams = {
+    credentials: "same-origin",
+    headers: {},
+    redirect: "follow",
+    referrerPolicy: "no-referrer",
+  };
+
+  constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
+    Object.assign(this, apiConfig);
+  }
+
+  public setSecurityData = (data: SecurityDataType | null) => {
+    this.securityData = data;
+  };
+
+  protected encodeQueryParam(key: string, value: any) {
+    const encodedKey = encodeURIComponent(key);
+    return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
+  }
+
+  protected addQueryParam(query: QueryParamsType, key: string) {
+    return this.encodeQueryParam(key, query[key]);
+  }
+
+  protected addArrayQueryParam(query: QueryParamsType, key: string) {
+    const value = query[key];
+    return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
+  }
+
+  protected toQueryString(rawQuery?: QueryParamsType): string {
+    const query = rawQuery || {};
+    const keys = Object.keys(query).filter(
+      (key) => "undefined" !== typeof query[key],
+    );
+    return keys
+      .map((key) =>
+        Array.isArray(query[key])
+          ? this.addArrayQueryParam(query, key)
+          : this.addQueryParam(query, key),
+      )
+      .join("&");
+  }
+
+  protected addQueryParams(rawQuery?: QueryParamsType): string {
+    const queryString = this.toQueryString(rawQuery);
+    return queryString ? `?${queryString}` : "";
+  }
+
+  private contentFormatters: Record<ContentType, (input: any) => any> = {
+    [ContentType.Json]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.JsonApi]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.Text]: (input: any) =>
+      input !== null && typeof input !== "string"
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.FormData]: (input: any) => {
+      if (input instanceof FormData) {
+        return input;
+      }
+
+      return Object.keys(input || {}).reduce((formData, key) => {
+        const property = input[key];
+        formData.append(
+          key,
+          property instanceof Blob
+            ? property
+            : typeof property === "object" && property !== null
+              ? JSON.stringify(property)
+              : `${property}`,
+        );
+        return formData;
+      }, new FormData());
+    },
+    [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
+  };
+
   protected mergeRequestParams(
     params1: RequestParams,
     params2?: RequestParams,
-  ): RequestParams;
-  protected createAbortSignal: (
+  ): RequestParams {
+    return {
+      ...this.baseApiParams,
+      ...params1,
+      ...(params2 || {}),
+      headers: {
+        ...(this.baseApiParams.headers || {}),
+        ...(params1.headers || {}),
+        ...((params2 && params2.headers) || {}),
+      },
+    };
+  }
+
+  protected createAbortSignal = (
     cancelToken: CancelToken,
-  ) => AbortSignal | undefined;
-  abortRequest: (cancelToken: CancelToken) => void;
-  request: <T = any, E = any>({
+  ): AbortSignal | undefined => {
+    if (this.abortControllers.has(cancelToken)) {
+      const abortController = this.abortControllers.get(cancelToken);
+      if (abortController) {
+        return abortController.signal;
+      }
+      return void 0;
+    }
+
+    const abortController = new AbortController();
+    this.abortControllers.set(cancelToken, abortController);
+    return abortController.signal;
+  };
+
+  public abortRequest = (cancelToken: CancelToken) => {
+    const abortController = this.abortControllers.get(cancelToken);
+
+    if (abortController) {
+      abortController.abort();
+      this.abortControllers.delete(cancelToken);
+    }
+  };
+
+  public request = async <T = any, E = any>({
     body,
     secure,
     path,
@@ -344,16 +465,80 @@ export declare class HttpClient<SecurityDataType = unknown> {
     baseUrl,
     cancelToken,
     ...params
-  }: FullRequestParams) => Promise<HttpResponse<T, E>>;
+  }: FullRequestParams): Promise<HttpResponse<T, E>> => {
+    const secureParams =
+      ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
+        this.securityWorker &&
+        (await this.securityWorker(this.securityData))) ||
+      {};
+    const requestParams = this.mergeRequestParams(params, secureParams);
+    const queryString = query && this.toQueryString(query);
+    const payloadFormatter = this.contentFormatters[type || ContentType.Json];
+    const responseFormat = format || requestParams.format;
+
+    return this.customFetch(
+      `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
+      {
+        ...requestParams,
+        headers: {
+          ...(requestParams.headers || {}),
+          ...(type && type !== ContentType.FormData
+            ? { "Content-Type": type }
+            : {}),
+        },
+        signal:
+          (cancelToken
+            ? this.createAbortSignal(cancelToken)
+            : requestParams.signal) || null,
+        body:
+          typeof body === "undefined" || body === null
+            ? null
+            : payloadFormatter(body),
+      },
+    ).then(async (response) => {
+      const r = response as HttpResponse<T, E>;
+      r.data = null as unknown as T;
+      r.error = null as unknown as E;
+
+      const responseToParse = responseFormat ? response.clone() : response;
+      const data = !responseFormat
+        ? r
+        : await responseToParse[responseFormat]()
+            .then((data) => {
+              if (r.ok) {
+                r.data = data;
+              } else {
+                r.error = data;
+              }
+              return r;
+            })
+            .catch((e) => {
+              r.error = e;
+              return r;
+            });
+
+      if (cancelToken) {
+        this.abortControllers.delete(cancelToken);
+      }
+
+      if (!response.ok) throw data;
+      return data;
+    });
+  };
 }
+
 /**
  * @title StoreService
  * @version v1
  */
-export declare class Api<SecurityDataType extends unknown> {
+export class Api<SecurityDataType extends unknown> {
   http: HttpClient<SecurityDataType>;
-  constructor(http: HttpClient<SecurityDataType>);
-  storeApplications: {
+
+  constructor(http: HttpClient<SecurityDataType>) {
+    this.http = http;
+  }
+
+  storeApplications = {
     /**
      * No description
      *
@@ -364,8 +549,17 @@ export declare class Api<SecurityDataType extends unknown> {
      */
     storeApplicationsCreate: (
       data: SubmitStoreApplicationRequest,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<StoreApplicationDto, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StoreApplicationDto, any>({
+        path: `/store-applications`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -391,8 +585,16 @@ export declare class Api<SecurityDataType extends unknown> {
         /** 過濾審核狀態。 */
         Status?: StoreApplicationStatus;
       },
-      params?: RequestParams,
-    ) => Promise<HttpResponse<GetStoreApplicationsResponse, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<GetStoreApplicationsResponse, any>({
+        path: `/store-applications`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -418,8 +620,16 @@ export declare class Api<SecurityDataType extends unknown> {
         /** 過濾審核狀態。 */
         Status?: StoreApplicationStatus;
       },
-      params?: RequestParams,
-    ) => Promise<HttpResponse<GetStoreApplicationsResponse, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<GetStoreApplicationsResponse, any>({
+        path: `/store-applications/me`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -428,10 +638,13 @@ export declare class Api<SecurityDataType extends unknown> {
      * @summary 撤回自己的待審核申請（Pending → Withdrawn），可重新提交。
      * @request POST:/store-applications/{id}/withdraw
      */
-    withdrawCreate: (
-      id: string,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<void, any>>;
+    withdrawCreate: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/store-applications/${id}/withdraw`,
+        method: "POST",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -440,10 +653,14 @@ export declare class Api<SecurityDataType extends unknown> {
      * @summary 核准開店申請（Pending → Approved），建立 Store 與 StoreMember(Owner)。
      * @request POST:/store-applications/{id}/approve
      */
-    approveCreate: (
-      id: string,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<StoreApplicationDto, any>>;
+    approveCreate: (id: string, params: RequestParams = {}) =>
+      this.http.request<StoreApplicationDto, any>({
+        path: `/store-applications/${id}/approve`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -455,10 +672,18 @@ export declare class Api<SecurityDataType extends unknown> {
     rejectCreate: (
       id: string,
       data: RejectStoreApplicationRequest,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<StoreApplicationDto, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StoreApplicationDto, any>({
+        path: `/store-applications/${id}/reject`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
-  stores: {
+  stores = {
     /**
      * No description
      *
@@ -470,8 +695,16 @@ export declare class Api<SecurityDataType extends unknown> {
     followCreate: (
       id: string,
       data: FollowStoreRequest,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<void, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<void, any>({
+        path: `/stores/${id}/follow`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -483,8 +716,16 @@ export declare class Api<SecurityDataType extends unknown> {
     followDelete: (
       id: string,
       data: FollowStoreRequest,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<void, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<void, any>({
+        path: `/stores/${id}/follow`,
+        method: "DELETE",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -509,8 +750,16 @@ export declare class Api<SecurityDataType extends unknown> {
          */
         Limit?: number;
       },
-      params?: RequestParams,
-    ) => Promise<HttpResponse<GetStoreFollowersResponse, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<GetStoreFollowersResponse, any>({
+        path: `/stores/${id}/followers`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -519,10 +768,14 @@ export declare class Api<SecurityDataType extends unknown> {
      * @summary 查詢商店基本資訊（公開）。
      * @request GET:/stores/{idOrSlug}
      */
-    storesDetail: (
-      idOrSlug: string,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<StoreDto, any>>;
+    storesDetail: (idOrSlug: string, params: RequestParams = {}) =>
+      this.http.request<StoreDto, any>({
+        path: `/stores/${idOrSlug}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -531,9 +784,14 @@ export declare class Api<SecurityDataType extends unknown> {
      * @summary 查詢登入使用者所屬的商店列表。
      * @request GET:/stores/me
      */
-    getStores: (
-      params?: RequestParams,
-    ) => Promise<HttpResponse<MyStoreDto[], any>>;
+    getStores: (params: RequestParams = {}) =>
+      this.http.request<MyStoreDto[], any>({
+        path: `/stores/me`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -545,8 +803,17 @@ export declare class Api<SecurityDataType extends unknown> {
     storesPartialUpdate: (
       id: string,
       data: UpdateStoreRequest,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<StoreDto, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StoreDto, any>({
+        path: `/stores/${id}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -555,10 +822,13 @@ export declare class Api<SecurityDataType extends unknown> {
      * @summary 平台停權商店（Active → Suspended）。僅 Admin 可操作。
      * @request POST:/stores/{id}/suspend
      */
-    suspendCreate: (
-      id: string,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<void, any>>;
+    suspendCreate: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/stores/${id}/suspend`,
+        method: "POST",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -567,10 +837,13 @@ export declare class Api<SecurityDataType extends unknown> {
      * @summary 解除商店停權（Suspended → Active）。僅 Admin 可操作。
      * @request POST:/stores/{id}/unsuspend
      */
-    unsuspendCreate: (
-      id: string,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<void, any>>;
+    unsuspendCreate: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/stores/${id}/unsuspend`,
+        method: "POST",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -579,10 +852,13 @@ export declare class Api<SecurityDataType extends unknown> {
      * @summary 關閉商店（Active/Suspended → Closed，終態不可逆）。Owner 或 Admin 可操作。
      * @request POST:/stores/{id}/close
      */
-    closeCreate: (
-      id: string,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<void, any>>;
+    closeCreate: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/stores/${id}/close`,
+        method: "POST",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -594,8 +870,17 @@ export declare class Api<SecurityDataType extends unknown> {
     avatarUploadUrlCreate: (
       id: string,
       data: RequestAssetUploadUrlRequest,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<AssetUploadUrlResponse, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<AssetUploadUrlResponse, any>({
+        path: `/stores/${id}/avatar/upload-url`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -607,10 +892,18 @@ export declare class Api<SecurityDataType extends unknown> {
     bannerUploadUrlCreate: (
       id: string,
       data: RequestAssetUploadUrlRequest,
-      params?: RequestParams,
-    ) => Promise<HttpResponse<AssetUploadUrlResponse, any>>;
+      params: RequestParams = {},
+    ) =>
+      this.http.request<AssetUploadUrlResponse, any>({
+        path: `/stores/${id}/banner/upload-url`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
-  healthz: {
+  healthz = {
     /**
      * No description
      *
@@ -618,7 +911,11 @@ export declare class Api<SecurityDataType extends unknown> {
      * @name HealthzList
      * @request GET:/healthz
      */
-    healthzList: (params?: RequestParams) => Promise<HttpResponse<void, any>>;
+    healthzList: (params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/healthz`,
+        method: "GET",
+        ...params,
+      }),
   };
 }
-export {};

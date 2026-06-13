@@ -1,13 +1,14 @@
-<script>
+<script lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt } from '@/utils/format'
+import type { WishlistItem } from '@/data'
 
 export default {
   name: 'WishlistView',
   setup() { return { store: useDashboardStore(), F: JFmt } },
   computed: { list() { return this.store.wishlist } },
   methods: {
-    accent(p) { return `hsl(${p.hue} 85% 58%)` },
+    accent(p: WishlistItem) { return `hsl(${p.hue} 85% 58%)` },
   },
 }
 </script>

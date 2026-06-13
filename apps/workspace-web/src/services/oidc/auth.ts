@@ -1,12 +1,13 @@
 import { UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
-import { env } from '@/environment.js';
+import type { UserManagerSettings } from 'oidc-client-ts';
+import { env } from '@/environment';
 
 Log.setLogger(console);
 Log.setLevel(Log.WARN);
 
 const authChannel = 'BroadcastChannel' in window ? new BroadcastChannel('auth') : null;
 
-const config = {
+const config: UserManagerSettings = {
   authority: env.HYDRA_PUBLIC_URL,
   client_id: env.OIDC_CLIENT_ID,
   redirect_uri: new URL(
@@ -47,7 +48,7 @@ export function createUserManager() {
 
 export const userManager = createUserManager();
 
-export function login(redirectPath) {
+export function login(redirectPath?: string) {
   const target = redirectPath ?? window.location.href;
   userManager.signinRedirect({ state: target }).catch(console.error);
 }

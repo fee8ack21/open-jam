@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt, STATUS_LABEL } from '@/utils/format'
+import type { Product } from '@/data'
 
 export default {
   name: 'OrdersView',
@@ -17,9 +18,9 @@ export default {
     paidTotal() { return this.g.paidOrders.reduce((s, o) => s + o.amount, 0) },
   },
   methods: {
-    statusLabel(s) { return STATUS_LABEL[s] || s },
-    prod(id) { return this.store.product(id) || {} },
-    dt(iso) { const d = new Date(iso); return d.toISOString().slice(5, 10).replace('-', '/') + ' ' + d.toTimeString().slice(0, 5) },
+    statusLabel(s: string) { return STATUS_LABEL[s] || s },
+    prod(id: string): Product { return this.store.product(id) || ({} as Product) },
+    dt(iso: string) { const d = new Date(iso); return d.toISOString().slice(5, 10).replace('-', '/') + ' ' + d.toTimeString().slice(0, 5) },
   },
 }
 </script>

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { ref } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
@@ -34,6 +34,7 @@ export default {
   data() {
     return {
       me: ME,
+      _outside: null as ((e: MouseEvent) => void) | null,
       overrides: {
         common: {
           primaryColor: '#5639d6', primaryColorHover: '#7a63ee',
@@ -75,18 +76,19 @@ export default {
     },
   },
   mounted() {
-    this._outside = (e) => {
-      if (this.userMenuOpen && !(e.target.closest && e.target.closest('.user-menu'))) this.userMenuOpen = false
+    this._outside = (e: MouseEvent) => {
+      const t = e.target as Element | null
+      if (this.userMenuOpen && !(t && t.closest && t.closest('.user-menu'))) this.userMenuOpen = false
     }
     document.addEventListener('click', this._outside)
   },
   beforeUnmount() {
-    document.removeEventListener('click', this._outside)
+    if (this._outside) document.removeEventListener('click', this._outside)
   },
   methods: {
-    count(key) {
+    count(key?: string) {
       if (!key) return null
-      const map = {
+      const map: Record<string, number> = {
         products: this.store.products.length,
         orders: this.store.paidOrders.length,
         purchases: this.store.purchases.length,
@@ -94,10 +96,10 @@ export default {
       }
       return map[key]
     },
-    initials(name) { return JFmt.initials(name) },
-    nav(view) { this.store.go(view); this.drawerOpen = false },
-    pickMode(m) { this.store.setMode(m) },
-    isActive(view) { return this.$route.name === view },
+    initials(name: string) { return JFmt.initials(name) },
+    nav(view: string) { this.store.go(view); this.drawerOpen = false },
+    pickMode(m: string) { this.store.setMode(m) },
+    isActive(view: string) { return this.$route.name === view },
   },
 }
 </script>

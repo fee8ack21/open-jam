@@ -1,5 +1,5 @@
-import { createUserManager } from './auth.js';
-import { env } from '@/environment.js';
+import { createUserManager } from './auth';
+import { env } from '@/environment';
 
 async function load() {
   const manager = createUserManager();

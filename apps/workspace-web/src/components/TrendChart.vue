@@ -1,8 +1,16 @@
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+/** 折線圖資料點。 */
+interface TrendPoint {
+  label: string
+  value: number
+}
+
+export default defineComponent({
   name: 'TrendChart',
   props: {
-    data: Array,            // [{ label, value }]
+    data: { type: Array as PropType<TrendPoint[]>, default: () => [] },
     height: { type: Number, default: 220 },
     currency: { type: Boolean, default: true },
   },
@@ -36,12 +44,12 @@ export default {
     },
   },
   methods: {
-    fmt(v) {
+    fmt(v: number) {
       if (v >= 1000) return (this.currency ? '$' : '') + (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'k'
       return (this.currency ? '$' : '') + v
     },
   },
-}
+})
 </script>
 
 <template>

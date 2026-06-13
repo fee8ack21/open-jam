@@ -1,9 +1,10 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
-import { getUser, login, logout, validateSession } from '@/services/oidc/auth.js';
+import type { User } from 'oidc-client-ts';
+import { getUser, login, logout, validateSession } from '@/services/oidc/auth';
 
 export const useAuthStore = defineStore('auth', () => {
-  const userIdentity = ref(null);
+  const userIdentity = ref<User | null>(null);
 
   const isAuthenticated = computed(() => !!userIdentity.value && !userIdentity.value.expired);
   const userEmail = computed(() => userIdentity.value?.profile?.email ?? null);

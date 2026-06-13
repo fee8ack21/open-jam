@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { ICON_PATHS } from './icon-paths'
 
 export default {
@@ -10,7 +10,7 @@ export default {
     stroke: { type: Number, default: 1.8 },
   },
   computed: {
-    d() { return ICON_PATHS[this.name] || '' },
+    d() { return ICON_PATHS[this.name ?? ''] || '' },
   },
 }
 </script>

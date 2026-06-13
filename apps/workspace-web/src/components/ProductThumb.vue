@@ -1,10 +1,19 @@
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
 import { CATEGORIES } from '@/data'
 
-export default {
+/** ProductThumb 只需要這些欄位，Product / PurchaseProduct / WishlistItem 皆相容。 */
+interface ThumbProduct {
+  hue: number
+  cat: string
+  formats: string[]
+  totalSize: string
+}
+
+export default defineComponent({
   name: 'ProductThumb',
   props: {
-    product: Object,
+    product: { type: Object as PropType<ThumbProduct>, required: true },
     label: { type: String, default: '' },
     glyphSize: { type: Number, default: 64 },
     showCat: { type: Boolean, default: true },
@@ -21,13 +30,13 @@ export default {
       const c = CATEGORIES.find(c => c.id === this.product.cat)
       return c ? c.glyph : 'image'
     },
-    catLabel() { return ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' })[this.product.cat] || '' },
+    catLabel() { return ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' } as Record<string, string>)[this.product.cat] || '' },
     autoLabel() {
       if (this.label) return this.label
       return `${this.product.formats[0]} · ${this.product.totalSize}`
     },
   },
-}
+})
 </script>
 
 <template>

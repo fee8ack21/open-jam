@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useMessage } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
-import { StoreApplicationStatus, StoreStatus } from '@/services/api/store-service.js'
+import { StoreApplicationStatus, StoreStatus } from '@/services/api/store-service'
 
 // 申請審核狀態 → 顯示用標籤
 const APP_STATUS = {
@@ -40,13 +40,13 @@ export default {
     // 是否處於「可提交新申請」的狀態（沒有商店、且沒有待審申請）
     const canApply = computed(() => !hasStore.value && !hasPending.value)
 
-    function statusOf(s) {
-      return APP_STATUS[s] ?? { label: '—', type: 'default' }
+    function statusOf(s?: StoreApplicationStatus) {
+      return (s != null && APP_STATUS[s]) || { label: '—', type: 'default' }
     }
-    function storeStatusOf(s) {
-      return STORE_STATUS[s] ?? { label: '—', type: 'default' }
+    function storeStatusOf(s?: StoreStatus) {
+      return (s != null && STORE_STATUS[s]) || { label: '—', type: 'default' }
     }
-    function fmtDate(v) {
+    function fmtDate(v?: string | null) {
       return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
     }
 
@@ -66,7 +66,8 @@ export default {
       }
     }
 
-    async function onWithdraw(id) {
+    async function onWithdraw(id?: string) {
+      if (!id) return
       const ok = await store.withdraw(id)
       if (ok) message.success('已撤回申請。')
       else message.error(store.error ?? '撤回失敗')
@@ -79,6 +80,7 @@ export default {
       latestApplication, hasPending, hasStore, canApply,
       form, showForm, slugValid, canSubmit,
       statusOf, storeStatusOf, fmtDate, onSubmit, onWithdraw,
+      StoreApplicationStatus,
     }
   },
 }
@@ -98,18 +100,18 @@ export default {
 
         <!-- 已擁有商店 -->
         <template v-if="hasStore">
-        <div v-for="m in stores" :key="m.store.id" class="card-pad">
+        <div v-for="m in stores" :key="m.store?.id" class="card-pad">
           <div style="display:flex; align-items:center; gap:14px;">
             <span class="kpi-ic" style="background:var(--c-violet)"><j-icon name="box" :size="20" /></span>
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:10px;">
-                <div style="font-weight:700; font-size:15px;">{{ m.store.storeName }}</div>
-                <n-tag :type="storeStatusOf(m.store.status).type" size="small" round>
-                  {{ storeStatusOf(m.store.status).label }}
+                <div style="font-weight:700; font-size:15px;">{{ m.store?.storeName }}</div>
+                <n-tag :type="storeStatusOf(m.store?.status).type" size="small" round>
+                  {{ storeStatusOf(m.store?.status).label }}
                 </n-tag>
               </div>
               <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:3px;">
-                {{ m.store.storeSlug }}.openjam.co
+                {{ m.store?.storeSlug }}.openjam.co
               </div>
             </div>
           </div>
@@ -147,7 +149,7 @@ export default {
             </div>
             <div>
               <n-alert
-                v-if="latestApplication && latestApplication.status === 2 && latestApplication.reviewComment"
+                v-if="latestApplication && latestApplication.status === StoreApplicationStatus.Rejected && latestApplication.reviewComment"
                 type="error" :show-icon="true" style="margin-bottom:16px;" title="上次申請被駁回">
                 {{ latestApplication.reviewComment }}
               </n-alert>

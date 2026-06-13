@@ -5,26 +5,137 @@
    up a real backend.
    ============================================================ */
 
-export const CATEGORIES = [
+/** 商品上架狀態。 */
+export type ProductStatus = 'live' | 'draft' | 'off' | 'review'
+
+/** 商品分類。 */
+export interface Category {
+  id: string
+  label: string
+  glyph: string
+}
+
+/** 登入中的創作者。 */
+export interface Creator {
+  name: string
+  handle: string
+  avatar: string
+  bio: string
+  email: string
+  joined: string
+  followers: number
+}
+
+/** 商品內含檔案項目。 */
+export interface ProductContent {
+  name: string
+  type: string
+  size: string
+}
+
+/** 我販售的商品。 */
+export interface Product {
+  id: string
+  cat: string
+  hue: number
+  status: ProductStatus
+  title: string
+  creator: string
+  handle: string
+  avatar: string
+  price: number
+  rating: number
+  ratingCount: number
+  sales: number
+  revenue: number
+  views: number
+  tags: string[]
+  formats: string[]
+  totalSize: string
+  created: string
+  updated: string
+  contents: ProductContent[]
+  previews: number
+}
+
+/** 我商品的訂單。 */
+export interface Order {
+  id: string
+  productId: string
+  buyer: string
+  buyerHandle: string
+  avatar: string
+  amount: number
+  status: string
+  date: string
+}
+
+/** 購買紀錄中的商品快照。 */
+export interface PurchaseProduct {
+  id: string
+  cat: string
+  hue: number
+  title: string
+  creator: string
+  handle: string
+  avatar: string
+  formats: string[]
+  totalSize: string
+  rating: number
+  contents: ProductContent[]
+}
+
+/** 我向其他創作者購買的紀錄。 */
+export interface Purchase {
+  orderId: string
+  date: string
+  price: number
+  product: PurchaseProduct
+}
+
+/** 願望清單項目。 */
+export interface WishlistItem {
+  id: string
+  cat: string
+  hue: number
+  title: string
+  creator: string
+  handle: string
+  avatar: string
+  price: number
+  rating: number
+  ratingCount: number
+  tags: string[]
+  formats: string[]
+  totalSize: string
+}
+
+/** 營收分析資料。 */
+export interface Revenue {
+  monthly: { label: string; value: number }[]
+  byCategory: { label: string; value: number; color: string }[]
+}
+
+export const CATEGORIES: Category[] = [
   { id: 'music', label: '樂譜 / 音樂', glyph: 'note' },
   { id: 'photo', label: '攝影 / 照片集', glyph: 'image' },
   { id: 'ebook', label: '電子書 / 文件', glyph: 'book' },
 ]
 
-export const CAT_DESC = {
+export const CAT_DESC: Record<string, string> = {
   music: '樂譜、配樂、分軌音檔',
   photo: '照片集、RAW、預設',
   ebook: '電子書、範本、文件',
 }
 
-export const TAGS = {
+export const TAGS: Record<string, string[]> = {
   music: ['鋼琴', '爵士', '古典', '流行', '配樂', '吉他', '電子'],
   photo: ['風景', '人像', '街拍', '黑白', '旅行', '空拍', '微距'],
   ebook: ['設計', '攝影教學', '商業', '寫作', '行銷', '生產力'],
 }
 
 // ---- the signed-in creator ----
-export const ME = {
+export const ME: Creator = {
   name: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
   bio: '視覺設計師與攝影創作者，分享可商用的素材與模板。',
   email: 'mira@studiomail.co',
@@ -33,7 +144,7 @@ export const ME = {
 }
 
 // ---- products I sell (status: live | draft | off | review) ----
-export const MY_PRODUCTS = [
+export const MY_PRODUCTS: Product[] = [
   {
     id: 'm01', cat: 'photo', hue: 256, status: 'live',
     title: '城市清晨・極簡建築攝影集 40 張',
@@ -111,7 +222,7 @@ export const MY_PRODUCTS = [
 ]
 
 // ---- incoming orders (sales of my products) ----
-export const ORDERS = [
+export const ORDERS: Order[] = [
   { id: 'JUN-8FK2A', productId: 'm02', buyer: 'Diego Ramos', buyerHandle: '@diego.night', avatar: '#3b7fd4', amount: 14, status: 'paid', date: '2026-05-29T14:22:00' },
   { id: 'JUN-7QW1B', productId: 'm01', buyer: 'Astrid Holm', buyerHandle: '@astrid.space', avatar: '#2f9e6b', amount: 26, status: 'paid', date: '2026-05-29T09:10:00' },
   { id: 'JUN-7M5C9', productId: 'm02', buyer: 'Yuki Sato', buyerHandle: '@yuki.writes', avatar: '#8b5cf6', amount: 14, status: 'paid', date: '2026-05-28T20:48:00' },
@@ -124,7 +235,7 @@ export const ORDERS = [
 ]
 
 // ---- products I bought from other creators ----
-export const PURCHASES = [
+export const PURCHASES: Purchase[] = [
   {
     orderId: 'JUN-PB12K', date: '2026-05-20', price: 24,
     product: {
@@ -176,7 +287,7 @@ export const PURCHASES = [
 ]
 
 // ---- wishlist (saved from storefront, not yet bought) ----
-export const WISHLIST = [
+export const WISHLIST: WishlistItem[] = [
   { id: 'w1', cat: 'photo', hue: 210, title: '城市夜行・霓虹街拍 RAW 套組', creator: 'Diego Ramos', handle: '@diego.night', avatar: '#3b7fd4', price: 21, rating: 4.6, ratingCount: 144, tags: ['街拍', '黑白'], formats: ['RAW', 'JPG', '調色筆記'], totalSize: '2.4 GB' },
   { id: 'w2', cat: 'music', hue: 256, title: '午夜爵士鋼琴：12 首即興譜集', creator: 'Lena Okafor', handle: '@lenakeys', avatar: '#6151f0', price: 18, rating: 4.9, ratingCount: 312, tags: ['爵士', '鋼琴'], formats: ['PDF', 'MIDI', 'MuseScore'], totalSize: '184 MB' },
   { id: 'w3', cat: 'ebook', hue: 44, title: '手機攝影構圖 30 講', creator: 'Priya Nair', handle: '@priya.shoots', avatar: '#d8a017', price: 12, rating: 4.8, ratingCount: 376, tags: ['攝影教學', '設計'], formats: ['PDF', 'EPUB'], totalSize: '96 MB' },
@@ -185,7 +296,7 @@ export const WISHLIST = [
 ]
 
 // ---- revenue analytics ----
-export const REVENUE = {
+export const REVENUE: Revenue = {
   // last 8 months net revenue
   monthly: [
     { label: '10月', value: 3120 }, { label: '11月', value: 4280 },

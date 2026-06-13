@@ -1,7 +1,8 @@
-<script>
-import { useDashboardStore } from '@/stores/dashboard'
+<script lang="ts">
+import { useDashboardStore, type DraftFile } from '@/stores/dashboard'
 import { JFmt } from '@/utils/format'
 import { CATEGORIES, CAT_DESC, TAGS, ME } from '@/data'
+import type { Category } from '@/data'
 
 const STEPS = [
   { n: 1, k: 'STEP 01', l: '基本資訊' },
@@ -50,15 +51,14 @@ export default {
     step1Valid() { return this.d.title.trim().length >= 2 },
     step2Valid() { return this.d.files.length > 0 },
     hueOptions() { return [256, 320, 28, 168, 44, 198, 142, 226] },
-    catColor() { return ({ music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' })[this.d.cat] },
+    catColor() { return ({ music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' } as Record<string, string>)[this.d.cat] },
   },
   methods: {
-    catGlyph(c) { return c.glyph },
+    catGlyph(c: Category) { return c.glyph },
     addTag() { if (this.tagDraft.trim()) { this.store.addDraftTag(this.tagDraft); this.tagDraft = '' } },
     fakeDrop() {
-      const f = { ...SAMPLE_FILES[this.uploadCount % SAMPLE_FILES.length] }
+      const f: DraftFile = { ...SAMPLE_FILES[this.uploadCount % SAMPLE_FILES.length], progress: 0 }
       this.uploadCount++
-      f.progress = 0
       this.store.addDraftFile(f)
       const idx = this.d.files.length - 1
       const tick = () => {
@@ -68,7 +68,7 @@ export default {
       }
       setTimeout(tick, 150)
     },
-    typeColor(t) { return TYPE_COLOR[t] || 'var(--c-violet)' },
+    typeColor(t: string) { return (TYPE_COLOR as Record<string, string>)[t] || 'var(--c-violet)' },
     goNext() {
       if (this.step === 1 && !this.step1Valid) return
       if (this.step === 2 && !this.step2Valid) return
@@ -113,7 +113,7 @@ export default {
           <div class="form-block">
             <h4 class="fb-title">作品標題</h4>
             <p class="fb-sub">清楚描述買家會得到什麼，最吸睛的關鍵字放前面。</p>
-            <n-input :value="d.title" @update:value="v => store.patchDraft({ title: v })"
+            <n-input :value="d.title" @update:value="(v: string) => store.patchDraft({ title: v })"
                      placeholder="例如：城市清晨・極簡建築攝影集 40 張" size="large" maxlength="60" show-count />
           </div>
 
@@ -150,7 +150,7 @@ export default {
           <div class="form-block">
             <h4 class="fb-title">定價</h4>
             <div class="price-input">
-              <n-input-number :value="d.price" @update:value="v => store.patchDraft({ price: v || 0 })"
+              <n-input-number :value="d.price" @update:value="(v: number | null) => store.patchDraft({ price: v || 0 })"
                               :disabled="d.free" :min="0" :max="999" :step="1" size="large" style="width:180px;">
                 <template #prefix>$</template>
               </n-input-number>
@@ -163,7 +163,7 @@ export default {
 
           <div class="form-block">
             <h4 class="fb-title">一句話簡介</h4>
-            <n-input :value="d.blurb" @update:value="v => store.patchDraft({ blurb: v })"
+            <n-input :value="d.blurb" @update:value="(v: string) => store.patchDraft({ blurb: v })"
                      type="textarea" placeholder="用一句話打動買家…" :autosize="{ minRows: 2, maxRows: 4 }" maxlength="80" show-count />
           </div>
         </template>

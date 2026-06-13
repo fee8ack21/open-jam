@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt } from '@/utils/format'
 import { ME } from '@/data'

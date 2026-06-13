@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth.js'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   { path: '/', name: 'overview', component: () => import('@/views/OverviewView.vue'), meta: { title: '儀表板' } },
   { path: '/open-store', name: 'open-store', component: () => import('@/views/OpenStoreView.vue'), meta: { title: '開店' } },
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },

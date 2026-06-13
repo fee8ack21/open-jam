@@ -6,9 +6,10 @@
   "packageManager": "pnpm@9.7.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "gen:api": "swagger-typescript-api generate -p http://localhost:5172/swagger/v1/swagger.json -o src/services/api -n store-service.ts --js --single-http-client"
+    "type-check": "vue-tsc --noEmit",
+    "gen:api": "swagger-typescript-api generate -p http://localhost:5172/swagger/v1/swagger.json -o src/services/api -n store-service.ts --single-http-client"
   },
   "dependencies": {
     "naive-ui": "^2.40.1",
@@ -18,8 +19,13 @@
     "vue-router": "^4.4.3"
   },
   "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
+    "@types/node": "^20.14.0",
     "@vitejs/plugin-vue": "^5.1.2",
+    "@vue/tsconfig": "^0.5.1",
     "swagger-typescript-api": "^13.12.2",
-    "vite": "^5.4.2"
+    "typescript": "~5.5.4",
+    "vite": "^5.4.2",
+    "vue-tsc": "^2.0.29"
   }
 }

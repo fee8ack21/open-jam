@@ -13,7 +13,7 @@ import TrendChart from '@/components/TrendChart.vue'
 import '@/styles/base.css'
 import '@/styles/workspace.css'
 
-import { getUser, login } from '@/services/oidc/auth.js'
+import { getUser, login } from '@/services/oidc/auth'
 
 async function bootstrap() {
   const user = await getUser().catch(() => null)
