@@ -291,6 +291,7 @@ services:
       OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
+      STORE_API_URL: ${STORE_API_URL}
     ports:
       - "5175:80"
 

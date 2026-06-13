@@ -34,6 +34,8 @@ spec:
               value: {{ .Values.config.oidcClientId | quote }}
             - name: AUTH_PAGE_URL
               value: {{ .Values.config.authPageUrl | quote }}
+            - name: STORE_API_URL
+              value: {{ .Values.config.storeApiUrl | quote }}
           {{- with .Values.workspaceWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
