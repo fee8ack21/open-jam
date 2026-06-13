@@ -14,7 +14,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<ICurrentUserAccessor, NullCurrentUserAccessor>();
 
         services.AddDbContext<EmailDbContext>(opts =>
-            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:DefaultConnection"],
+            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:EmailConnection"],
                     o => o.MigrationsHistoryTable("__ef_migrations_history"))
                 .UseSnakeCaseNamingConvention());
 
