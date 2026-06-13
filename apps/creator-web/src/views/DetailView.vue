@@ -1,4 +1,6 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '../stores/shop';
 import { CATEGORIES } from '../data/products';
 import ProductThumb from '../components/ProductThumb.vue';
@@ -11,30 +13,26 @@ const FILE_COLORS: Record<string, string> = {
   EPUB: '#8b5cf6', GP: '#d65a3a', TXT: '#888', NOTION: '#444', FIG: '#e0573e', DEFAULT: '#6151f0',
 };
 
-export default {
-  name: 'DetailView',
-  components: { ProductThumb, JIcon, Stars },
-  setup() { return { store: useShopStore() }; },
-  data() { return { active: 0 }; },
-  computed: {
-    p() { return this.store.product(String(this.$route.params.id)); },
-    fav() { return this.p ? this.store.isFav(this.p.id) : false; },
-    inCart() { return this.p ? this.store.inCart(this.p.id) : false; },
-    initials() { return this.p ? this.p.creator.split(' ').map((s) => s[0]).slice(0, 2).join('') : ''; },
-    catLabel() { return this.p ? (CATEGORIES.find((c) => c.id === this.p!.cat)?.label ?? '') : ''; },
-    totalFiles() { return this.p ? this.p.files.reduce((n, f) => n + f.count, 0) : 0; },
-  },
-  watch: {
-    '$route.params.id'() { this.active = 0; },
-  },
-  methods: {
-    fileColor(t: string) { return FILE_COLORS[t] || FILE_COLORS.DEFAULT; },
-    goList() { this.$router.push({ name: 'list' }); },
-    addCart() { if (this.p) this.store.addToCart(this.p.id); },
-    buyNow() { if (this.p && !this.inCart) this.store.addToCart(this.p.id); this.$router.push({ name: 'checkout' }); },
-    goCart() { this.$router.push({ name: 'checkout' }); },
-  },
-};
+const store = useShopStore();
+const route = useRoute();
+const router = useRouter();
+
+const active = ref(0);
+
+const p = computed(() => store.product(String(route.params.id)));
+const fav = computed(() => (p.value ? store.isFav(p.value.id) : false));
+const inCart = computed(() => (p.value ? store.inCart(p.value.id) : false));
+const initials = computed(() => (p.value ? p.value.creator.split(' ').map((s) => s[0]).slice(0, 2).join('') : ''));
+const catLabel = computed(() => (p.value ? (CATEGORIES.find((c) => c.id === p.value!.cat)?.label ?? '') : ''));
+const totalFiles = computed(() => (p.value ? p.value.files.reduce((n, f) => n + f.count, 0) : 0));
+
+watch(() => route.params.id, () => { active.value = 0; });
+
+const fileColor = (t: string) => FILE_COLORS[t] || FILE_COLORS.DEFAULT;
+const goList = () => router.push({ name: 'list' });
+const addCart = () => { if (p.value) store.addToCart(p.value.id); };
+const buyNow = () => { if (p.value && !inCart.value) store.addToCart(p.value.id); router.push({ name: 'checkout' }); };
+const goCart = () => router.push({ name: 'checkout' });
 </script>
 
 <template>

@@ -1,18 +1,18 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from 'vue';
 import { ICON_PATHS } from './icon-paths';
 
-export default {
-  name: 'JIcon',
-  props: {
-    name: String,
-    size: { type: [Number, String], default: 20 },
-    fill: Boolean,
-    stroke: { type: Number, default: 1.8 },
-  },
-  computed: {
-    d() { return ICON_PATHS[this.name ?? ''] || ''; },
-  },
-};
+const props = withDefaults(defineProps<{
+  name?: string
+  size?: number | string
+  fill?: boolean
+  stroke?: number
+}>(), {
+  size: 20,
+  stroke: 1.8,
+});
+
+const d = computed(() => ICON_PATHS[props.name ?? ''] || '');
 </script>
 
 <template>

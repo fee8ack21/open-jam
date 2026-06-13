@@ -1,40 +1,34 @@
-<script lang="ts">
-import { ref } from 'vue';
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '../stores/shop';
 import JIcon from './JIcon.vue';
 
-export default {
-  name: 'AppNav',
-  components: { JIcon },
-  setup() {
-    const store = useShopStore();
-    const followEmail = ref('');
-    const subscribed = ref(false);
-    const mobileSearchOpen = ref(false);
-    const mobileFollowOpen = ref(false);
+const store = useShopStore();
+const route = useRoute();
+const router = useRouter();
 
-    const subscribe = () => {
-      const v = followEmail.value.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return;
-      subscribed.value = true;
-      mobileFollowOpen.value = false;
-    };
-    const toggleSearch = () => { mobileSearchOpen.value = !mobileSearchOpen.value; mobileFollowOpen.value = false; };
-    const toggleFollow = () => { mobileFollowOpen.value = !mobileFollowOpen.value; mobileSearchOpen.value = false; };
+const followEmail = ref('');
+const subscribed = ref(false);
+const mobileSearchOpen = ref(false);
+const mobileFollowOpen = ref(false);
 
-    return { store, followEmail, subscribed, subscribe, mobileSearchOpen, mobileFollowOpen, toggleSearch, toggleFollow };
-  },
-  computed: {
-    cartCount() { return this.store.cartCount; },
-  },
-  methods: {
-    goList() { if (this.$route.name !== 'list') this.$router.push({ name: 'list' }); },
-    goCheckout() { this.$router.push({ name: 'checkout' }); },
-    onSearch(v: string) {
-      this.store.search = v;
-      if (this.$route.name !== 'list') this.$router.push({ name: 'list' });
-    },
-  },
+const cartCount = computed(() => store.cartCount);
+
+const subscribe = () => {
+  const v = followEmail.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return;
+  subscribed.value = true;
+  mobileFollowOpen.value = false;
+};
+const toggleSearch = () => { mobileSearchOpen.value = !mobileSearchOpen.value; mobileFollowOpen.value = false; };
+const toggleFollow = () => { mobileFollowOpen.value = !mobileFollowOpen.value; mobileSearchOpen.value = false; };
+
+const goList = () => { if (route.name !== 'list') router.push({ name: 'list' }); };
+const goCheckout = () => router.push({ name: 'checkout' });
+const onSearch = (v: string) => {
+  store.search = v;
+  if (route.name !== 'list') router.push({ name: 'list' });
 };
 </script>
 

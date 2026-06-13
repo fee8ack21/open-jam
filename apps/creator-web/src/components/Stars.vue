@@ -1,15 +1,15 @@
-<script lang="ts">
+<script setup lang="ts">
 import JIcon from './JIcon.vue';
 
-export default {
-  name: 'Stars',
-  components: { JIcon },
-  props: {
-    value: { type: Number, default: 0 },
-    count: { type: Number, default: 0 },
-    size: { type: Number, default: 13 },
-  },
-};
+withDefaults(defineProps<{
+  value?: number
+  count?: number
+  size?: number
+}>(), {
+  value: 0,
+  count: 0,
+  size: 13,
+});
 </script>
 
 <template>

@@ -1,26 +1,23 @@
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useShopStore } from '../stores/shop';
 import { type Product } from '../data/products';
 import JIcon from './JIcon.vue';
 import Stars from './Stars.vue';
 import ProductThumb from './ProductThumb.vue';
 
-export default defineComponent({
-  name: 'ProductCard',
-  components: { ProductThumb, JIcon, Stars },
-  props: { product: { type: Object as PropType<Product>, required: true } },
-  setup() { return { store: useShopStore() }; },
-  computed: {
-    fav() { return this.store.isFav(this.product.id); },
-    accent() { return `hsl(${this.product.hue} 85% 58%)`; },
-    initials() { return this.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''); },
-  },
-  methods: {
-    open() { this.$router.push({ name: 'product', params: { id: this.product.id } }); },
-    toggleFav(e: MouseEvent) { e.stopPropagation(); this.store.toggleFav(this.product.id); },
-  },
-});
+const props = defineProps<{ product: Product }>();
+
+const store = useShopStore();
+const router = useRouter();
+
+const fav = computed(() => store.isFav(props.product.id));
+const accent = computed(() => `hsl(${props.product.hue} 85% 58%)`);
+const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
+
+const open = () => router.push({ name: 'product', params: { id: props.product.id } });
+const toggleFav = (e: MouseEvent) => { e.stopPropagation(); store.toggleFav(props.product.id); };
 </script>
 
 <template>

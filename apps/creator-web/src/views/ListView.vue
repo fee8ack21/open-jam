@@ -1,47 +1,39 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from 'vue';
 import { useShopStore } from '../stores/shop';
 import { CATEGORIES, TAGS, PRODUCTS } from '../data/products';
 import ProductCard from '../components/ProductCard.vue';
 import JIcon from '../components/JIcon.vue';
 
-export default {
-  name: 'ListView',
-  components: { ProductCard, JIcon },
-  setup() { return { store: useShopStore() }; },
-  data() {
-    return {
-      sortOptions: [
-        { label: '最熱門', value: 'popular' },
-        { label: '最新上架', value: 'newest' },
-        { label: '評分最高', value: 'rating' },
-        { label: '價格：低 → 高', value: 'price-asc' },
-        { label: '價格：高 → 低', value: 'price-desc' },
-      ],
-    };
-  },
-  computed: {
-    s() { return this.store; },
-    cats() { return CATEGORIES; },
-    results() { return this.store.filtered; },
-    total() { return PRODUCTS.length; },
-    availableTags() {
-      if (this.store.category !== 'all') return TAGS[this.store.category];
-      return [...new Set(Object.values(TAGS).flat())];
-    },
-    filterCount() { return this.store.activeFilterCount; },
-    priceRange: {
-      get(): [number, number] { return this.store.priceRange; },
-      set(v: number | [number, number]) { this.store.priceRange = (Array.isArray(v) ? v : [v, v]) as [number, number]; },
-    },
-  },
-  methods: {
-    setCat(c: string) { this.store.setCategory(c); },
-    catColor(id: string) { return ({ music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' } as Record<string, string>)[id]; },
-    toggleTag(t: string) { this.store.toggleTag(t); },
-    clear() { this.store.clearFilters(); },
-    priceLabel(v: number) { return v === 0 ? '免費' : '$' + v; },
-  },
-};
+const store = useShopStore();
+const s = store;
+
+const sortOptions = [
+  { label: '最熱門', value: 'popular' },
+  { label: '最新上架', value: 'newest' },
+  { label: '評分最高', value: 'rating' },
+  { label: '價格：低 → 高', value: 'price-asc' },
+  { label: '價格：高 → 低', value: 'price-desc' },
+];
+
+const cats = CATEGORIES;
+const results = computed(() => store.filtered);
+const total = PRODUCTS.length;
+const availableTags = computed(() => {
+  if (store.category !== 'all') return TAGS[store.category];
+  return [...new Set(Object.values(TAGS).flat())];
+});
+const filterCount = computed(() => store.activeFilterCount);
+const priceRange = computed<[number, number]>({
+  get() { return store.priceRange; },
+  set(v: number | [number, number]) { store.priceRange = (Array.isArray(v) ? v : [v, v]) as [number, number]; },
+});
+
+const setCat = (c: string) => store.setCategory(c);
+const catColor = (id: string) => ({ music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' } as Record<string, string>)[id];
+const toggleTag = (t: string) => store.toggleTag(t);
+const clear = () => store.clearFilters();
+const priceLabel = (v: number) => (v === 0 ? '免費' : '$' + v);
 </script>
 
 <template>

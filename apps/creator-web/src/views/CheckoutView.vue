@@ -1,71 +1,67 @@
-<script lang="ts">
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import type { FormInst, FormRules } from 'naive-ui';
 import { useShopStore } from '../stores/shop';
 import ProductThumb from '../components/ProductThumb.vue';
 import JIcon from '../components/JIcon.vue';
 
-export default {
-  name: 'CheckoutView',
-  components: { ProductThumb, JIcon },
-  setup() { return { store: useShopStore() }; },
-  data() {
-    const rules: FormRules = {
-      name: { required: true, message: '請輸入姓名', trigger: ['blur', 'input'] },
-      email: [
-        { required: true, message: '請輸入電子信箱', trigger: ['blur', 'input'] },
-        { validator: (_, v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), message: '信箱格式不正確', trigger: ['blur'] },
-      ],
-      cardName: { required: true, message: '請輸入持卡人姓名', trigger: ['blur', 'input'] },
-      cardNumber: { validator: (_, v: string) => (v || '').replace(/\s/g, '').length === 16, message: '請輸入 16 位卡號', trigger: ['blur', 'input'] },
-      expiry: { validator: (_, v: string) => /^\d{2}\/\d{2}$/.test(v || ''), message: 'MM/YY', trigger: ['blur', 'input'] },
-      cvc: { validator: (_, v: string) => /^\d{3,4}$/.test(v || ''), message: '3–4 位', trigger: ['blur', 'input'] },
-    };
-    return {
-      processing: false,
-      model: { name: '', email: '', cardName: '', cardNumber: '', expiry: '', cvc: '' },
-      rules,
-    };
-  },
-  computed: {
-    items() { return this.store.cartProducts; },
-    subtotal() { return this.store.subtotal; },
-    fee() { return this.subtotal === 0 ? 0 : Math.round(this.subtotal * 0.03 * 100) / 100; },
-    total() { return this.subtotal + this.fee; },
-    order() { return this.store.order; },
-    cardMasked() {
-      const raw = this.model.cardNumber.replace(/\s/g, '');
-      return raw.padEnd(16, '•').replace(/(.{4})/g, '$1 ').trim();
-    },
-  },
-  mounted() {
-    this.store.startCheckout();
-  },
-  methods: {
-    goList() { this.$router.push({ name: 'list' }); },
-    openProduct(id: string) { this.$router.push({ name: 'product', params: { id } }); },
-    initials(name: string) { return name.split(' ').map((s) => s[0]).slice(0, 2).join(''); },
-    onCardInput(v: string) {
-      const raw = v.replace(/\D/g, '').slice(0, 16);
-      this.model.cardNumber = raw.replace(/(.{4})/g, '$1 ').trim();
-    },
-    onExpiry(v: string) {
-      let raw = v.replace(/\D/g, '').slice(0, 4);
-      if (raw.length >= 3) raw = raw.slice(0, 2) + '/' + raw.slice(2);
-      this.model.expiry = raw;
-    },
-    onCvc(v: string) { this.model.cvc = v.replace(/\D/g, '').slice(0, 4); },
-    async pay() {
-      try {
-        await (this.$refs.form as FormInst).validate();
-      } catch (e) { return; }
-      this.processing = true;
-      setTimeout(() => {
-        this.store.completeOrder({ name: this.model.name, email: this.model.email });
-        this.processing = false;
-        window.scrollTo({ top: 0 });
-      }, 1300);
-    },
-  },
+const store = useShopStore();
+const router = useRouter();
+
+const form = ref<FormInst | null>(null);
+const processing = ref(false);
+const model = reactive({ name: '', email: '', cardName: '', cardNumber: '', expiry: '', cvc: '' });
+
+const rules: FormRules = {
+  name: { required: true, message: '請輸入姓名', trigger: ['blur', 'input'] },
+  email: [
+    { required: true, message: '請輸入電子信箱', trigger: ['blur', 'input'] },
+    { validator: (_, v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), message: '信箱格式不正確', trigger: ['blur'] },
+  ],
+  cardName: { required: true, message: '請輸入持卡人姓名', trigger: ['blur', 'input'] },
+  cardNumber: { validator: (_, v: string) => (v || '').replace(/\s/g, '').length === 16, message: '請輸入 16 位卡號', trigger: ['blur', 'input'] },
+  expiry: { validator: (_, v: string) => /^\d{2}\/\d{2}$/.test(v || ''), message: 'MM/YY', trigger: ['blur', 'input'] },
+  cvc: { validator: (_, v: string) => /^\d{3,4}$/.test(v || ''), message: '3–4 位', trigger: ['blur', 'input'] },
+};
+
+const items = computed(() => store.cartProducts);
+const subtotal = computed(() => store.subtotal);
+const fee = computed(() => (subtotal.value === 0 ? 0 : Math.round(subtotal.value * 0.03 * 100) / 100));
+const total = computed(() => subtotal.value + fee.value);
+const order = computed(() => store.order);
+const cardMasked = computed(() => {
+  const raw = model.cardNumber.replace(/\s/g, '');
+  return raw.padEnd(16, '•').replace(/(.{4})/g, '$1 ').trim();
+});
+
+onMounted(() => {
+  store.startCheckout();
+});
+
+const goList = () => router.push({ name: 'list' });
+const openProduct = (id: string) => router.push({ name: 'product', params: { id } });
+const initials = (name: string) => name.split(' ').map((s) => s[0]).slice(0, 2).join('');
+const onCardInput = (v: string) => {
+  const raw = v.replace(/\D/g, '').slice(0, 16);
+  model.cardNumber = raw.replace(/(.{4})/g, '$1 ').trim();
+};
+const onExpiry = (v: string) => {
+  let raw = v.replace(/\D/g, '').slice(0, 4);
+  if (raw.length >= 3) raw = raw.slice(0, 2) + '/' + raw.slice(2);
+  model.expiry = raw;
+};
+const onCvc = (v: string) => { model.cvc = v.replace(/\D/g, '').slice(0, 4); };
+const pay = async () => {
+  try {
+    await form.value!.validate();
+  } catch (e) { return; }
+  processing.value = true;
+  setTimeout(() => {
+    store.completeOrder({ name: model.name, email: model.email });
+    processing.value = false;
+    window.scrollTo({ top: 0 });
+  }, 1300);
 };
 </script>
 
