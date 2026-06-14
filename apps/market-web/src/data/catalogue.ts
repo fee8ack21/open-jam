@@ -8,6 +8,12 @@
 import thumbSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
 import thumbLicks from '@/assets/images/mock/products/9cigyxdf9nhxhnueksa2pv17fwih.webp';
 import thumbColorful from '@/assets/images/mock/products/misi5oskyotvume2a5869wcca0f0.webp';
+import thumbAutumn from '@/assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
+import thumbSurf from '@/assets/images/mock/products/6u49mdf7jaizziz1ts6u9smeymsi.webp';
+import thumbInterior from '@/assets/images/mock/products/ccbnhspiu9ljrv2mrf0q051xbts9.webp';
+import thumbDragonTales from '@/assets/images/mock/products/9egb3vtgm6w1cbt814ua9modb43d.webp';
+import thumbBloodFamily from '@/assets/images/mock/products/p09nkc7x9namoz8q894vyf6j5k0g.webp';
+import thumbGoodDeeds from '@/assets/images/mock/products/qxm27a5sv3xag01kvbvlta249g2a.webp';
 
 export interface FileEntry {
   type: string;
@@ -102,6 +108,7 @@ export const PRODUCTS: Product[] = [
       { name: '列印建議與授權說明', type: 'PDF', size: '4 MB' },
     ],
     previews: 6,
+    image: thumbAutumn,
   },
   {
     id: 'p03', cat: 'ebook', hue: 168,
@@ -120,6 +127,7 @@ export const PRODUCTS: Product[] = [
       { name: '定價試算表', type: 'XLSX', size: '2 MB' },
     ],
     previews: 4,
+    image: thumbDragonTales,
   },
   {
     id: 'p04', cat: 'music', hue: 320,
@@ -156,6 +164,7 @@ export const PRODUCTS: Product[] = [
       { name: '調色思路筆記', type: 'PDF', size: '8 MB' },
     ],
     previews: 6,
+    image: thumbSurf,
   },
   {
     id: 'p06', cat: 'ebook', hue: 44,
@@ -172,6 +181,7 @@ export const PRODUCTS: Product[] = [
       { name: 'EPUB 行動版', type: 'EPUB', size: '8 MB' },
     ],
     previews: 4,
+    image: thumbBloodFamily,
   },
   {
     id: 'p07', cat: 'music', hue: 12,
@@ -206,6 +216,7 @@ export const PRODUCTS: Product[] = [
       { name: '授權與使用說明', type: 'PDF', size: '3 MB' },
     ],
     previews: 6,
+    image: thumbInterior,
   },
   {
     id: 'p09', cat: 'ebook', hue: 286,
@@ -222,6 +233,7 @@ export const PRODUCTS: Product[] = [
       { name: '設定指南', type: 'PDF', size: '5 MB' },
     ],
     previews: 3,
+    image: thumbGoodDeeds,
   },
   {
     id: 'p10', cat: 'music', hue: 198,
