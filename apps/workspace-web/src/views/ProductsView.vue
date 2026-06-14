@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt as F, STATUS_LABEL } from '@/utils/format'
-import type { Product } from '@/data'
+import type { Product } from '@/data/products'
 
 const store = useDashboardStore()
 const g = store

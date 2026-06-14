@@ -8,10 +8,10 @@
    history fallback, switch to createWebHistory(import.meta.env.BASE_URL).
    ============================================================ */
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
-import ListView from '../views/ListView.vue';
-import DetailView from '../views/DetailView.vue';
-import CheckoutView from '../views/CheckoutView.vue';
-import NotFoundView from '../views/NotFoundView.vue';
+import ListView from '@/views/ListView.vue';
+import DetailView from '@/views/DetailView.vue';
+import CheckoutView from '@/views/CheckoutView.vue';
+import NotFoundView from '@/views/NotFoundView.vue';
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'list', component: ListView },

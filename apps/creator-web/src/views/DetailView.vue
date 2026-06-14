@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useShopStore } from '../stores/shop';
-import { CATEGORIES } from '../data/products';
-import ProductThumb from '../components/ProductThumb.vue';
-import AppIcon from '../components/app-icon';
-import Stars from '../components/Stars.vue';
+import { useShopStore } from '@/stores/shop';
+import { CATEGORIES } from '@/data/products';
+import ProductThumb from '@/components/ProductThumb.vue';
+import AppIcon from '@/components/app-icon';
+import Stars from '@/components/Stars.vue';
 
 const FILE_COLORS: Record<string, string> = {
   PDF: '#e0573e', MIDI: '#6151f0', MSCZ: '#7a6cff', AUDIO: '#c94f9e', WAV: '#c94f9e',

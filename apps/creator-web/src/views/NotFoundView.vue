@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { env } from '../environment';
-import AppIcon from '../components/app-icon';
+import { env } from '@/environment';
+import AppIcon from '@/components/app-icon';
 
 const goMarket = () => { window.location.href = env.MARKET_PAGE_URL; };
 </script>

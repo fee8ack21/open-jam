@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useShopStore } from '../stores/shop';
-import { CATEGORIES, TAGS, PRODUCTS } from '../data/products';
-import ProductCard from '../components/ProductCard.vue';
-import AppIcon from '../components/app-icon';
+import { useShopStore } from '@/stores/shop';
+import { CATEGORIES, TAGS, PRODUCTS } from '@/data/products';
+import ProductCard from '@/components/ProductCard.vue';
+import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const s = store;

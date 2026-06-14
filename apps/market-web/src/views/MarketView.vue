@@ -6,7 +6,7 @@
    ============================================================ */
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
-import { PRODUCTS, CATEGORIES } from '@/data/catalogue.js';
+import { PRODUCTS, CATEGORIES } from '@/data/products';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 
@@ -210,7 +210,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
         </div>
 
         <div v-if="results.length" class="grid">
-          <mkt-card v-for="p in visibleResults" :key="p.id" :product="p" />
+          <product-card v-for="p in visibleResults" :key="p.id" :product="p" />
         </div>
         <div v-if="hasMore" class="load-more-wrap">
           <button class="load-more-btn" @click="loadMore">

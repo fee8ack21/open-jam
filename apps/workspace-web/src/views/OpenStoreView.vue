@@ -34,9 +34,6 @@ const canSubmit = computed(
   () => form.storeName.trim().length >= 1 && slugValid.value && !submitting.value,
 )
 
-// 是否處於「可提交新申請」的狀態（沒有商店、且沒有待審申請）
-const canApply = computed(() => !hasStore.value && !hasPending.value)
-
 function statusOf(s?: StoreApplicationStatus) {
   return (s != null && APP_STATUS[s]) || { label: '—', type: 'default' }
 }

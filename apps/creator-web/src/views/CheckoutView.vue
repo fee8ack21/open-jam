@@ -2,9 +2,9 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { FormInst, FormRules } from 'naive-ui';
-import { useShopStore } from '../stores/shop';
-import ProductThumb from '../components/ProductThumb.vue';
-import AppIcon from '../components/app-icon';
+import { useShopStore } from '@/stores/shop';
+import ProductThumb from '@/components/ProductThumb.vue';
+import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const router = useRouter();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CATEGORIES } from '@/data'
+import { CATEGORIES } from '@/data/products'
 
 /** ProductThumb 只需要這些欄位，Product / PurchaseProduct / WishlistItem 皆相容。 */
 interface ThumbProduct {

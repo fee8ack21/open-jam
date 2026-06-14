@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt as F } from '@/utils/format'
-import type { WishlistItem } from '@/data'
+import type { WishlistItem } from '@/data/products'
 
 const store = useDashboardStore()
 const list = computed(() => store.wishlist)

@@ -15,7 +15,7 @@ import './assets/styles/market.css';
 import AppIcon from './components/app-icon';
 import Stars from './components/Stars.vue';
 import ProductThumb from './components/ProductThumb.vue';
-import MktCard from './components/MktCard.vue';
+import ProductCard from './components/ProductCard.vue';
 
 const app = createApp(App);
 
@@ -24,8 +24,8 @@ app.use(router);
 app.use(naive);
 
 app.component('app-icon', AppIcon);
-app.component('Stars', Stars);
-app.component('ProductThumb', ProductThumb);
-app.component('MktCard', MktCard);
+app.component('stars', Stars);
+app.component('product-thumb', ProductThumb);
+app.component('product-card', ProductCard);
 
 app.mount('#app');

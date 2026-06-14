@@ -4,7 +4,7 @@
    Registered globally as <product-thumb>.
    ============================================================ */
 import { computed } from 'vue';
-import { CATEGORIES, type Product } from '@/data/catalogue.js';
+import { CATEGORIES, type Product } from '@/data/products';
 
 const props = withDefaults(defineProps<{
   product: Product;

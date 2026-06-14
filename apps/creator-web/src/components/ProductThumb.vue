@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { CATEGORIES } from '../data/products';
+import { CATEGORIES } from '@/data/products';
 import AppIcon from './app-icon';
 
 /** ProductThumb 只需要這些欄位，Product 與購物車商品皆相容。 */

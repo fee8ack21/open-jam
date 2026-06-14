@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useShopStore } from '../stores/shop';
-import { type Product } from '../data/products';
+import { useShopStore } from '@/stores/shop';
+import { type Product } from '@/data/products';
 import AppIcon from './app-icon';
 import Stars from './Stars.vue';
 import ProductThumb from './ProductThumb.vue';

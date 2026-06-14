@@ -6,7 +6,7 @@
    ============================================================ */
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import { PRODUCTS, type Product } from '../data/products';
+import { PRODUCTS, type Product } from '@/data/products';
 
 type Theme = 'light' | 'dark';
 type SortKey = 'popular' | 'newest' | 'price-asc' | 'price-desc' | 'rating';

@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
-import { ME as me } from '@/data'
+import { ME as me } from '@/data/products'
 
 /** open-drawer：點擊行動版選單鈕時通知父層展開抽屜。 */
 const emit = defineEmits<{ 'open-drawer': [] }>()

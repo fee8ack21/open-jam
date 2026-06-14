@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useShopStore } from '../stores/shop';
-import AppIcon from '../components/app-icon';
+import { useShopStore } from '@/stores/shop';
+import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const route = useRoute();

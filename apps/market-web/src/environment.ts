@@ -1,6 +1,6 @@
 class AppEnv {
-  WORKSPACE_PAGE_URL = 'http://localhost:5174';
-  CREATOR_PAGE_BASE_URL = 'http://localhost:5174';
+  WORKSPACE_PAGE_URL = 'http://localhost:5175';
+  CREATOR_PAGE_BASE_URL = 'http://localhost:5173';
   OIDC_AUTHORITY = 'https://hydra.openjam.co';
   OIDC_CLIENT_ID = 'open-jam-web';
   AUTH_PAGE_URL = 'http://localhost:5169/';

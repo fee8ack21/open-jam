@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useDashboardStore, type DraftFile } from '@/stores/dashboard'
 import { JFmt } from '@/utils/format'
-import { CATEGORIES, CAT_DESC, TAGS, ME } from '@/data'
+import { CATEGORIES, CAT_DESC, TAGS, ME } from '@/data/products'
 
 const STEPS = [
   { n: 1, k: 'STEP 01', l: '基本資訊' },

@@ -6,8 +6,8 @@
    Pinia plugin (store.router).
    ============================================================ */
 import { defineStore } from 'pinia'
-import { MY_PRODUCTS, ORDERS, PURCHASES, WISHLIST, REVENUE, ME } from '@/data'
-import type { Product, ProductStatus, Order, Purchase, WishlistItem } from '@/data'
+import { MY_PRODUCTS, ORDERS, PURCHASES, WISHLIST, REVENUE, ME } from '@/data/products'
+import type { Product, ProductStatus, Order, Purchase, WishlistItem } from '@/data/products'
 
 /** 上架精靈中暫存的檔案。 */
 export interface DraftFile {

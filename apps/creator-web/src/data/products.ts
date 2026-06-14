@@ -5,15 +5,15 @@
    Categories: music · photo · ebook
    ============================================================ */
 
-import thumbSilver from '../assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
-import thumbLicks from '../assets/images/mock/products/9cigyxdf9nhxhnueksa2pv17fwih.webp';
-import thumbColorful from '../assets/images/mock/products/misi5oskyotvume2a5869wcca0f0.webp';
-import thumbAutumn from '../assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
-import thumbTypewriter from '../assets/images/mock/products/ccbnhspiu9ljrv2mrf0q051xbts9.webp';
-import thumbSurf from '../assets/images/mock/products/6u49mdf7jaizziz1ts6u9smeymsi.webp';
-import thumbBookSnips from '../assets/images/mock/products/9egb3vtgm6w1cbt814ua9modb43d.webp';
-import thumbBookBlood from '../assets/images/mock/products/p09nkc7x9namoz8q894vyf6j5k0g.webp';
-import thumbBookDeeds from '../assets/images/mock/products/qxm27a5sv3xag01kvbvlta249g2a.webp';
+import thumbSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
+import thumbLicks from '@/assets/images/mock/products/9cigyxdf9nhxhnueksa2pv17fwih.webp';
+import thumbColorful from '@/assets/images/mock/products/misi5oskyotvume2a5869wcca0f0.webp';
+import thumbAutumn from '@/assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
+import thumbTypewriter from '@/assets/images/mock/products/ccbnhspiu9ljrv2mrf0q051xbts9.webp';
+import thumbSurf from '@/assets/images/mock/products/6u49mdf7jaizziz1ts6u9smeymsi.webp';
+import thumbBookSnips from '@/assets/images/mock/products/9egb3vtgm6w1cbt814ua9modb43d.webp';
+import thumbBookBlood from '@/assets/images/mock/products/p09nkc7x9namoz8q894vyf6j5k0g.webp';
+import thumbBookDeeds from '@/assets/images/mock/products/qxm27a5sv3xag01kvbvlta249g2a.webp';
 
 /** 商品分類。 */
 export interface Category {
