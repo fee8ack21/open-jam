@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using LogService.Data;
 using LogService.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,8 @@ namespace LogService.Controllers;
 ///   - 創作者：應限制只查自己的 tenant = currentTenantId
 /// </summary>
 [ApiController]
-[Route("audit-logs")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/audit-logs")]
 public class AuditLogController(LogDbContext db) : ControllerBase
 {
     /// <summary>查詢稽核事件（分頁，支援多條件篩選）。</summary>

@@ -81,41 +81,43 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 
 ## API 端點
 
+> 所有端點皆以 API 版本前綴 `/v1` 開頭（URL segment versioning，見 `Shared/Web/ApiVersioningExtensions.cs`）。下表路徑已含前綴。
+
 ### 開店申請（StoreApplications）
 
 | Method/Path | 權限 | 說明 |
 |---|---|---|
-| `POST /store-applications` | 登入使用者 | 提交申請 `{StoreName, StoreSlug}`；驗證 slug 格式/保留字/唯一性，檢查無 Pending 申請 |
-| `GET /store-applications/me` | 登入使用者 | 自己的申請紀錄（分頁，offset/limit） |
-| `POST /store-applications/{id}/withdraw` | 申請人本人 | `Pending` → `Withdrawn` |
-| `GET /store-applications` | Admin | 全平台申請列表，可依 Status 篩選（分頁） |
-| `POST /store-applications/{id}/approve` | Admin | `Pending` → `Approved`；建立 Store + StoreMember(Owner)；寫入 ReviewedAt/ReviewedBy |
-| `POST /store-applications/{id}/reject` | Admin | `Pending` → `Rejected`；body 含 ReviewComment |
+| `POST /v1/store-applications` | 登入使用者 | 提交申請 `{StoreName, StoreSlug}`；驗證 slug 格式/保留字/唯一性，檢查無 Pending 申請 |
+| `GET /v1/store-applications/me` | 登入使用者 | 自己的申請紀錄（分頁，offset/limit） |
+| `POST /v1/store-applications/{id}/withdraw` | 申請人本人 | `Pending` → `Withdrawn` |
+| `GET /v1/store-applications` | Admin | 全平台申請列表，可依 Status 篩選（分頁） |
+| `POST /v1/store-applications/{id}/approve` | Admin | `Pending` → `Approved`；建立 Store + StoreMember(Owner)；寫入 ReviewedAt/ReviewedBy |
+| `POST /v1/store-applications/{id}/reject` | Admin | `Pending` → `Rejected`；body 含 ReviewComment |
 
 ### 商店（Stores）
 
 | Method/Path | 權限 | 說明 |
 |---|---|---|
-| `GET /stores/{idOrSlug}` | 公開 | 商店基本資訊（含 Avatar/Banner 公開 URL） |
-| `GET /stores/me` | 登入使用者 | 透過 StoreMembers 查自己所屬商店 |
-| `PATCH /stores/{id}` | Owner | 更新 StoreName / Description |
-| `POST /stores/{id}/suspend` `/unsuspend` | Admin | 平台停權 / 解除停權 |
-| `POST /stores/{id}/close` | Owner 或 Admin | `Active`/`Suspended` → `Closed`（終態，不可逆） |
+| `GET /v1/stores/{idOrSlug}` | 公開 | 商店基本資訊（含 Avatar/Banner 公開 URL） |
+| `GET /v1/stores/me` | 登入使用者 | 透過 StoreMembers 查自己所屬商店 |
+| `PATCH /v1/stores/{id}` | Owner | 更新 StoreName / Description |
+| `POST /v1/stores/{id}/suspend` `/unsuspend` | Admin | 平台停權 / 解除停權 |
+| `POST /v1/stores/{id}/close` | Owner 或 Admin | `Active`/`Suspended` → `Closed`（終態，不可逆） |
 
 ### Avatar / Banner 上傳
 
 | Method/Path | 權限 | 說明 |
 |---|---|---|
-| `POST /stores/{id}/avatar/upload-url` | Owner | 申請上傳 URL，建立 Asset，設定 `AvatarAssetId` |
-| `POST /stores/{id}/banner/upload-url` | Owner | 同上，設定 `BannerAssetId` |
+| `POST /v1/stores/{id}/avatar/upload-url` | Owner | 申請上傳 URL，建立 Asset，設定 `AvatarAssetId` |
+| `POST /v1/stores/{id}/banner/upload-url` | Owner | 同上，設定 `BannerAssetId` |
 
 ### 追蹤者（StoreFollowers）
 
 | Method/Path | 權限 | 說明 |
 |---|---|---|
-| `POST /stores/{id}/follow` | 公開 | body `{Email}`；登入使用者另帶 UserId。已存在則 no-op（204） |
-| `DELETE /stores/{id}/follow` | 公開 | body `{Email}`，依 `(StoreId, Email)` 取消追蹤 |
-| `GET /stores/{id}/followers` | Owner | 分頁列表（offset/limit），回傳 Email/UserId/CreatedAt |
+| `POST /v1/stores/{id}/follow` | 公開 | body `{Email}`；登入使用者另帶 UserId。已存在則 no-op（204） |
+| `DELETE /v1/stores/{id}/follow` | 公開 | body `{Email}`，依 `(StoreId, Email)` 取消追蹤 |
+| `GET /v1/stores/{id}/followers` | Owner | 分頁列表（offset/limit），回傳 Email/UserId/CreatedAt |
 
 ## 業務規則與 Outbox 事件
 
@@ -149,14 +151,14 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 
 ### 上傳流程（以 Avatar 為例）
 
-1. 前端呼叫 `POST /stores/{id}/avatar/upload-url`，body `{FileName, ContentType, SizeBytes}`。
+1. 前端呼叫 `POST /v1/stores/{id}/avatar/upload-url`，body `{FileName, ContentType, SizeBytes}`。
 2. StoreService 驗證呼叫者為該 Store 的 Owner，且 ContentType 為允許的圖片格式（jpeg/png/gif/webp）。
-3. StoreService 呼叫 StorageService `POST /files/upload-url`：`CreatorId=ownerId, ProductId=null, FileType=Image, IsPreview=false, IsPublic=true, OriginalName, ContentType, SizeBytes`。
+3. StoreService 呼叫 StorageService `POST /v1/files/upload-url`：`CreatorId=ownerId, ProductId=null, FileType=Image, IsPreview=false, IsPublic=true, OriginalName, ContentType, SizeBytes`。
 4. StorageService 回傳 `FileId, UploadUrl, StorageKey, PublicUrl, ExpiresAt`。
 5. StoreService 寫入 `Assets`：`Id=FileId, CreatedBy=ownerId, StorageKey, FileName, ContentType, FileSize=SizeBytes, CreatedAt=now`，並設 `Stores.AvatarAssetId = Asset.Id`。
 6. 回傳 `{AssetId, UploadUrl, PublicUrl, ExpiresAt}` 給前端，前端以 `UploadUrl` 直接 PUT 至 MinIO。
 
-`GET /stores/{idOrSlug}` 回傳的 `AvatarUrl` / `BannerUrl` = `{PublicBaseUrl}/{Asset.StorageKey}`（StoreService 自行組字串，需設定 `Storage:PublicBaseUrl`，與 StorageService 同值）。
+`GET /v1/stores/{idOrSlug}` 回傳的 `AvatarUrl` / `BannerUrl` = `{PublicBaseUrl}/{Asset.StorageKey}`（StoreService 自行組字串，需設定 `Storage:PublicBaseUrl`，與 StorageService 同值）。
 
 舊 Avatar/Banner 的 Asset 記錄與 MinIO 物件**不主動清除**（MVP 不做孤兒清理，留待未來）。
 

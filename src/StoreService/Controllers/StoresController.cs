@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StoreService.Models;
@@ -7,7 +8,8 @@ namespace StoreService.Controllers;
 
 /// <summary>商店 API：查詢、更新基本資料、狀態管理（停權／解除停權／關閉）、Avatar/Banner 上傳。</summary>
 [ApiController]
-[Route("stores")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/stores")]
 [Authorize]
 public class StoresController(IStoreManager storeManager) : ControllerBase
 {

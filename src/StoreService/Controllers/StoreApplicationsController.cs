@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StoreService.Models;
@@ -7,7 +8,8 @@ namespace StoreService.Controllers;
 
 /// <summary>開店申請 API：提交、查詢、撤回，以及 Admin 審核（核准／駁回）。</summary>
 [ApiController]
-[Route("store-applications")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/store-applications")]
 [Authorize]
 public class StoreApplicationsController(IStoreApplicationService applicationService) : ControllerBase
 {

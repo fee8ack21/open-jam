@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StoreService.Models;
@@ -7,7 +8,8 @@ namespace StoreService.Controllers;
 
 /// <summary>商店追蹤者 API：追蹤／取消追蹤（公開）、追蹤者列表（Owner）。</summary>
 [ApiController]
-[Route("stores/{id:guid}")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/stores/{id:guid}")]
 public class StoreFollowersController(IStoreFollowerService followerService) : ControllerBase
 {
     /// <summary>追蹤商店。已追蹤則 no-op。</summary>

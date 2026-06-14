@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using StorageService.Models;
 using StorageService.Services.Files;
@@ -12,7 +13,8 @@ namespace StorageService.Controllers;
 /// 授權說明（MVP 暫無 JWT 驗證，待功能 API 整合後補上 service token 驗證）。
 /// </summary>
 [ApiController]
-[Route("files")]
+[ApiVersion("1.0")]
+[Route("v{version:apiVersion}/files")]
 public class FilesController(IFileService fileService) : ControllerBase
 {
     /// <summary>申請上傳簽章 URL（presigned PUT）。</summary>

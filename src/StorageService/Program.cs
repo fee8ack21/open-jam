@@ -75,6 +75,7 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<OrphanCleanupServi
 
 // REST API
 builder.Services.AddControllers();
+builder.Services.AddOpenJamApiVersioning();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {

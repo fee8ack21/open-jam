@@ -41,6 +41,7 @@ builder.Services.AddMassTransit(x =>
 
 // REST API
 builder.Services.AddControllers();
+builder.Services.AddOpenJamApiVersioning();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {

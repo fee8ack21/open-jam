@@ -16,7 +16,7 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
     {
         var client = httpClientFactory.CreateClient("storage");
 
-        var response = await client.PostAsJsonAsync("files/upload-url", new
+        var response = await client.PostAsJsonAsync("v1/files/upload-url", new
         {
             CreatorId = creatorId,
             ProductId = (Guid?)null,
@@ -42,7 +42,7 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
     }
 }
 
-/// <summary>StorageService <c>POST /files/upload-url</c> 回應。</summary>
+/// <summary>StorageService <c>POST /v1/files/upload-url</c> 回應。</summary>
 public class StorageUploadUrlResult
 {
     /// <summary>已建立的檔案紀錄 ID。</summary>
