@@ -9,6 +9,8 @@ interface ThumbProduct {
   cat: string;
   formats: string[];
   totalSize: string;
+  /** 實際商品縮圖；有值時取代程式產生的佔位縮圖。 */
+  image?: string;
 }
 
 const props = withDefaults(defineProps<{
@@ -48,11 +50,27 @@ const autoLabel = computed(() => {
 </script>
 
 <template>
-  <div class="thumb" :style="vars">
-    <div class="thumb-dots"></div>
-    <div class="thumb-blob"></div>
-    <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
-    <div class="thumb-glyph"><j-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
-    <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
+  <div class="thumb" :class="{ 'has-image': !!product.image }" :style="vars">
+    <template v-if="product.image">
+      <img class="thumb-img" :src="product.image" alt="" loading="lazy" />
+    </template>
+    <template v-else>
+      <div class="thumb-dots"></div>
+      <div class="thumb-blob"></div>
+      <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
+      <div class="thumb-glyph"><j-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
+      <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
+    </template>
   </div>
 </template>
+
+<style scoped>
+.thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+</style>

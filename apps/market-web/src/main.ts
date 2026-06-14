@@ -9,8 +9,8 @@ import naive from 'naive-ui';
 import App from './App.vue';
 import router from './router';
 
-import './assets/css/base.css';
-import './assets/css/market.css';
+import './assets/styles/base.css';
+import './assets/styles/market.css';
 
 import JIcon from './components/JIcon.vue';
 import Stars from './components/Stars.vue';

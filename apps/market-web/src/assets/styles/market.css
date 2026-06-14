@@ -239,7 +239,7 @@
   transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s, border-color .22s;
 }
 .mc:hover { transform: translateY(-7px) rotate(-.5deg); box-shadow: var(--shadow-hover); border-color: var(--border-strong); }
-.mc .thumb { height: 158px; border-radius: 0; }
+.mc .thumb { aspect-ratio: 4 / 3; height: auto; border-radius: 0; }
 .mc-body { padding: 15px 16px 16px; }
 .mc-title {
   font-family: var(--oj-display); font-weight: 700; font-size: 16.5px; line-height: 1.22;

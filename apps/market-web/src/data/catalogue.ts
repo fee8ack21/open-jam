@@ -1,8 +1,13 @@
 /* ============================================================
    Open Jam — sample catalogue
    Each product carries a `hue` used to tint its striped
-   placeholder thumbnail. Categories: music · photo · ebook
+   placeholder thumbnail.若帶 `image` 則改用實際商品縮圖。
+   Categories: music · photo · ebook
    ============================================================ */
+
+import thumbSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
+import thumbLicks from '@/assets/images/mock/products/9cigyxdf9nhxhnueksa2pv17fwih.webp';
+import thumbColorful from '@/assets/images/mock/products/misi5oskyotvume2a5869wcca0f0.webp';
 
 export interface FileEntry {
   type: string;
@@ -35,6 +40,8 @@ export interface Product {
   formats: string[];
   contents: ContentItem[];
   previews: number;
+  /** 實際商品縮圖（webp import URL）；未設定時退回程式產生的佔位縮圖。 */
+  image?: string;
 }
 
 export interface Category {
@@ -76,6 +83,7 @@ export const PRODUCTS: Product[] = [
       { name: '練習錄音 Demo（mp3）', type: 'AUDIO', size: '124 MB' },
     ],
     previews: 5,
+    image: thumbSilver,
   },
   {
     id: 'p02', cat: 'photo', hue: 28,
@@ -130,6 +138,7 @@ export const PRODUCTS: Product[] = [
       { name: '商用授權書', type: 'PDF', size: '1 MB' },
     ],
     previews: 5,
+    image: thumbLicks,
   },
   {
     id: 'p05', cat: 'photo', hue: 210,
@@ -180,6 +189,7 @@ export const PRODUCTS: Product[] = [
       { name: '示範影片連結清單', type: 'TXT', size: '1 MB' },
     ],
     previews: 5,
+    image: thumbColorful,
   },
   {
     id: 'p08', cat: 'photo', hue: 142,
