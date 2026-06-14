@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import type { FormInst, FormRules } from 'naive-ui';
 import { useShopStore } from '../stores/shop';
 import ProductThumb from '../components/ProductThumb.vue';
-import JIcon from '../components/JIcon.vue';
+import AppIcon from '../components/app-icon';
 
 const store = useShopStore();
 const router = useRouter();
@@ -70,7 +70,7 @@ const pay = async () => {
 
     <!-- SUCCESS -->
     <div v-if="order" class="success-wrap">
-      <div class="success-ring"><j-icon name="check" :size="44" :stroke="2.4" /></div>
+      <div class="success-ring"><app-icon name="check" :size="44" :stroke="2.4" /></div>
       <p class="h-eyebrow" style="text-align:center">訂單 {{ order.id }}</p>
       <h1 class="h-title" style="text-align:center">購買完成</h1>
       <p class="h-sub" style="text-align:center">
@@ -86,7 +86,7 @@ const pay = async () => {
             <div class="cart-item-foot">
               <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono)">{{ it.formats.join(' · ') }}</span>
               <n-button size="small" type="primary" secondary>
-                <template #icon><j-icon name="download" :size="15" /></template>
+                <template #icon><app-icon name="download" :size="15" /></template>
                 下載
               </n-button>
             </div>
@@ -97,7 +97,7 @@ const pay = async () => {
       <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
         <n-button size="large" @click="goList">繼續探索</n-button>
         <n-button size="large" type="primary">
-          <template #icon><j-icon name="download" :size="18" /></template>
+          <template #icon><app-icon name="download" :size="18" /></template>
           下載全部
         </n-button>
       </div>
@@ -105,7 +105,7 @@ const pay = async () => {
 
     <!-- EMPTY -->
     <div v-else-if="!items.length" class="empty">
-      <j-icon name="cart" :size="44" style="margin-bottom:14px; opacity:.5;" />
+      <app-icon name="cart" :size="44" style="margin-bottom:14px; opacity:.5;" />
       <p style="font-size:18px; font-weight:600; color:var(--text-soft);">購物車是空的</p>
       <p style="margin-top:6px;">挑幾件喜歡的作品，回來這裡結帳吧。</p>
       <n-button type="primary" style="margin-top:18px" @click="goList">去逛逛</n-button>
@@ -115,7 +115,7 @@ const pay = async () => {
     <template v-else>
       <div class="breadcrumb">
         <a @click="goList">探索</a>
-        <j-icon name="chevron" :size="14" />
+        <app-icon name="chevron" :size="14" />
         <span style="color:var(--text-soft)">結帳</span>
       </div>
       <h1 class="h-title" style="margin-bottom:26px">結帳</h1>
@@ -138,7 +138,7 @@ const pay = async () => {
                   <div class="cart-item-creator">{{ it.creator }} · {{ it.formats.join(' · ') }}</div>
                   <div class="cart-item-foot">
                     <button class="link-btn" @click="store.removeFromCart(it.id)">
-                      <j-icon name="trash" :size="14" /> 移除
+                      <app-icon name="trash" :size="14" /> 移除
                     </button>
                     <span class="price" style="font-size:15px">{{ it.price === 0 ? '免費' : '$' + it.price }}</span>
                   </div>
@@ -161,7 +161,7 @@ const pay = async () => {
                 </n-form-item>
               </div>
               <div style="display:flex; align-items:center; gap:8px; color:var(--text-faint); font-size:12.5px; margin-top:-4px;">
-                <j-icon name="mail" :size="14" /> 下載連結與收據會寄到這個信箱
+                <app-icon name="mail" :size="14" /> 下載連結與收據會寄到這個信箱
               </div>
             </div>
 
@@ -173,7 +173,7 @@ const pay = async () => {
               </div>
 
               <div class="cc-visual">
-                <j-icon name="card" :size="26" />
+                <app-icon name="card" :size="26" />
                 <div class="cc-num">{{ cardMasked }}</div>
                 <div class="cc-bottom">
                   <div><span class="lab">持卡人</span>{{ model.cardName || 'YOUR NAME' }}</div>
@@ -188,7 +188,7 @@ const pay = async () => {
                 <n-form-item label="卡號" path="cardNumber">
                   <n-input :value="model.cardNumber" @update:value="onCardInput"
                            placeholder="1234 5678 9012 3456" size="large">
-                    <template #suffix><j-icon name="card" :size="18" style="color:var(--text-faint)" /></template>
+                    <template #suffix><app-icon name="card" :size="18" style="color:var(--text-faint)" /></template>
                   </n-input>
                 </n-form-item>
                 <div class="field-grid two">
@@ -213,12 +213,12 @@ const pay = async () => {
 
               <n-button type="primary" size="large" block strong style="margin-top:22px;"
                         :loading="processing" :disabled="processing" @click="pay">
-                <template #icon v-if="!processing"><j-icon name="lock" :size="17" /></template>
+                <template #icon v-if="!processing"><app-icon name="lock" :size="17" /></template>
                 {{ processing ? '安全付款中…' : '確認付款 $' + total }}
               </n-button>
 
               <div class="trust" style="margin-top:16px;">
-                <j-icon name="shield" :size="14" /> 256-bit 加密 · 7 天不滿意退款
+                <app-icon name="shield" :size="14" /> 256-bit 加密 · 7 天不滿意退款
               </div>
             </div>
           </div>

@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useShopStore } from '../stores/shop';
 import { CATEGORIES, TAGS, PRODUCTS } from '../data/products';
 import ProductCard from '../components/ProductCard.vue';
-import JIcon from '../components/JIcon.vue';
+import AppIcon from '../components/app-icon';
 
 const store = useShopStore();
 const s = store;
@@ -44,7 +44,7 @@ const priceLabel = (v: number) => (v === 0 ? '免費' : '$' + v);
         <span class="shape s2"></span>
         <span class="shape s3"></span>
       </div>
-      <p class="hero-eyebrow"><j-icon name="sparkle" :size="14" /> OPEN JAM · 創作者數位市集</p>
+      <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · 創作者數位市集</p>
       <h1 class="hero-title">把你的<span class="hl hl-lime">創造力</span><br>變成可以<span class="hl hl-pink">販售</span>的作品</h1>
       <p class="hero-sub">樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。</p>
       <div class="hero-cats">
@@ -104,7 +104,7 @@ const priceLabel = (v: number) => (v === 0 ? '免費' : '$' + v);
 
         <div class="filter-block" v-if="filterCount">
           <n-button quaternary block size="small" @click="clear">
-            <template #icon><j-icon name="close" :size="15" /></template>
+            <template #icon><app-icon name="close" :size="15" /></template>
             清除全部篩選（{{ filterCount }}）
           </n-button>
         </div>
@@ -122,7 +122,7 @@ const priceLabel = (v: number) => (v === 0 ? '免費' : '$' + v);
 
         <div v-if="s.activeTags.length" class="active-filters">
           <span v-for="t in s.activeTags" :key="t" class="tag-toggle on" @click="toggleTag(t)" style="cursor:pointer;">
-            {{ t }} <j-icon name="close" :size="13" />
+            {{ t }} <app-icon name="close" :size="13" />
           </span>
         </div>
 
@@ -130,7 +130,7 @@ const priceLabel = (v: number) => (v === 0 ? '免費' : '$' + v);
           <product-card v-for="p in results" :key="p.id" :product="p" />
         </div>
         <div v-else class="empty">
-          <j-icon name="search" :size="40" style="margin-bottom:14px; opacity:.5;" />
+          <app-icon name="search" :size="40" style="margin-bottom:14px; opacity:.5;" />
           <p style="font-size:17px; font-weight:600; color:var(--text-soft);">找不到符合的作品</p>
           <p style="margin-top:6px;">試著放寬篩選條件或清除搜尋關鍵字。</p>
           <n-button style="margin-top:16px" @click="clear">清除篩選</n-button>

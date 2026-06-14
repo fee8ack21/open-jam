@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { env } from '../environment';
-import JIcon from '../components/JIcon.vue';
+import AppIcon from '../components/app-icon';
 
 const goMarket = () => { window.location.href = env.MARKET_PAGE_URL; };
 </script>
@@ -20,7 +20,7 @@ const goMarket = () => { window.location.href = env.MARKET_PAGE_URL; };
 
       <div class="nf-actions">
         <n-button type="primary" size="large" strong @click="goMarket">
-          <template #icon><j-icon name="arrowLeft" :size="18" /></template>
+          <template #icon><app-icon name="arrowLeft" :size="18" /></template>
           回到 Open Jam 市集
         </n-button>
       </div>

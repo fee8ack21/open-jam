@@ -38,7 +38,7 @@ function nav(view: string) { store.go(view) }
 <template>
   <header class="topbar">
     <button class="mobile-menu icon-btn" @click="emit('open-drawer')" title="開啟選單">
-      <j-icon name="menu" :size="22" />
+      <app-icon name="menu" :size="22" />
     </button>
     <h2 class="tb-title">{{ pageTitle }}</h2>
 
@@ -46,12 +46,12 @@ function nav(view: string) { store.go(view) }
 
     <div class="tb-actions">
       <div class="icon-btn" title="通知">
-        <j-icon name="bell" :size="20" />
+        <app-icon name="bell" :size="20" />
         <span class="cart-badge">3</span>
       </div>
       <div class="user-menu">
         <button class="icon-btn user-trigger" :class="{ on: userMenuOpen }" @click="userMenuOpen = !userMenuOpen" title="選單">
-          <j-icon name="menu" :size="20" />
+          <app-icon name="menu" :size="20" />
         </button>
         <transition name="um">
           <div v-if="userMenuOpen" class="user-pop">
@@ -60,8 +60,8 @@ function nav(view: string) { store.go(view) }
               <div class="um-email" :title="accountEmail">{{ accountEmail }}</div>
             </div>
             <div class="um-sep"></div>
-            <button class="um-item" @click="nav('settings'); userMenuOpen = false"><j-icon name="gear" :size="17" /> 帳號設定</button>
-            <button class="um-item danger" @click="authStore.logout()"><j-icon name="logout" :size="17" /> 登出</button>
+            <button class="um-item" @click="nav('settings'); userMenuOpen = false"><app-icon name="gear" :size="17" /> 帳號設定</button>
+            <button class="um-item danger" @click="authStore.logout()"><app-icon name="logout" :size="17" /> 登出</button>
           </div>
         </transition>
       </div>

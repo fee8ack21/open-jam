@@ -6,14 +6,13 @@
    ============================================================ */
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
-import { useAuthStore } from '@/stores/auth.js';
 import { PRODUCTS, CATEGORIES } from '@/data/catalogue.js';
-import { env } from '@/environment.js';
+import AppNav from '@/layout/AppNav.vue';
+import AppFooter from '@/layout/AppFooter.vue';
 
 const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
 
 const store = useShopStore();
-const auth = useAuthStore();
 
 const cats = CATEGORIES;
 const keywords = ['爵士', '京都', '鋼琴', 'Notion', '街拍', '免費'];
@@ -110,7 +109,6 @@ function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.val
 function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function loadMore() { visibleCount.value += pageSize; }
-function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 
 onMounted(() => window.addEventListener('scroll', onScroll));
 onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
@@ -119,38 +117,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
 <template>
   <div class="oj-root" :class="'font-' + store.font" data-screen-label="市場集首頁">
     <!-- ============ NAV ============ -->
-    <header class="nav">
-      <div class="nav-inner">
-        <router-link class="brand" to="/">
-          <span class="brand-mark">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-              <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-              <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-            </svg>
-          </span>
-          <span class="brand-name">Open Jam</span>
-        </router-link>
-
-        <div class="nav-spacer"></div>
-
-        <div class="nav-actions">
-          <template v-if="auth.isAuthenticated">
-            <span class="nav-user-email">{{ auth.userEmail }}</span>
-            <a class="nav-admin" href="#" title="前往後台" @click.prevent="goWorkspace">
-              <j-icon name="user" :size="18" /> 前往後台
-            </a>
-            <a class="nav-logout" href="#" title="登出" @click.prevent="auth.logout()">
-              <j-icon name="logout" :size="17" />
-            </a>
-          </template>
-          <template v-else>
-            <a class="nav-admin" href="#" title="登入" @click.prevent="auth.login()">
-              <j-icon name="user" :size="18" /> 登入
-            </a>
-          </template>
-        </div>
-      </div>
-    </header>
+    <app-nav />
 
     <main class="page" id="top">
       <!-- ============ HERO ============ -->
@@ -161,13 +128,13 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
           <span class="shape s3"></span>
         </div>
         <div class="mkt-hero-inner">
-          <p class="hero-eyebrow"><j-icon name="sparkle" :size="14" /> OPEN JAM · 創作者數位市集</p>
+          <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · 創作者數位市集</p>
           <h1 class="mkt-hero-title">發現值得<span class="hl hl-lime">收藏</span>的<br>創作者<span class="hl hl-pink">數位作品</span></h1>
 
           <form class="mkt-search" @submit.prevent="scrollToBrowse">
-            <span class="s-ic"><j-icon name="search" :size="22" /></span>
+            <span class="s-ic"><app-icon name="search" :size="22" /></span>
             <input v-model="search" type="text" placeholder="搜尋作品、創作者或標籤…" aria-label="搜尋市集" />
-            <button type="submit"><j-icon name="search" :size="17" /> 搜尋</button>
+            <button type="submit"><app-icon name="search" :size="17" /> 搜尋</button>
           </form>
 
           <div class="kw-row">
@@ -237,7 +204,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
           <span class="active-chips-lab">篩選中</span>
           <button v-for="f in activeFilters" :key="f.key" type="button" class="fchip" @click="f.clear()">
             {{ f.label }}
-            <span class="fchip-x"><j-icon name="close" :size="13" :stroke="2.4" /></span>
+            <span class="fchip-x"><app-icon name="close" :size="13" :stroke="2.4" /></span>
           </button>
           <button type="button" class="fchip-clear" @click="reset">清除全部</button>
         </div>
@@ -252,7 +219,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
           </button>
         </div>
         <div v-if="!results.length" class="empty">
-          <j-icon name="search" :size="40" style="margin-bottom: 14px; opacity: 0.5" />
+          <app-icon name="search" :size="40" style="margin-bottom: 14px; opacity: 0.5" />
           <p style="font-size: 17px; font-weight: 600; color: var(--text-soft)">找不到符合的作品</p>
           <p style="margin-top: 6px">試著放寬篩選條件或清除搜尋關鍵字。</p>
           <span class="kw" style="display: inline-block; margin-top: 18px; cursor: pointer" @click="reset">清除全部篩選</span>
@@ -260,29 +227,12 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
       </section>
 
       <!-- ============ FOOTER ============ -->
-      <footer class="mkt-foot">
-        <div class="brand" style="cursor: default">
-          <span class="brand-mark">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-              <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-              <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-            </svg>
-          </span>
-          <span class="brand-name">Open Jam</span>
-        </div>
-        <nav class="mkt-foot-links" aria-label="頁尾連結">
-          <a href="#" @click.prevent>關於 Open Jam</a>
-          <a href="#" @click.prevent="goWorkspace">成為創作者</a>
-          <router-link to="/privacy">隱私權政策</router-link>
-          <router-link to="/terms">服務條款</router-link>
-        </nav>
-        <div class="mkt-foot-copy">© 2026 Open Jam · 創作者數位市集</div>
-      </footer>
+      <app-footer />
     </main>
 
     <Transition name="to-top">
       <button v-if="showToTop" class="to-top-btn" @click="scrollToTop" aria-label="回到頂部">
-        <j-icon name="chevronU" :size="22" />
+        <app-icon name="chevronU" :size="22" />
       </button>
     </Transition>
   </div>

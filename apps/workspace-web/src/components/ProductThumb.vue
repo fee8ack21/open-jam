@@ -46,7 +46,7 @@ const autoLabel = computed(() => {
     <div class="thumb-dots"></div>
     <div class="thumb-blob"></div>
     <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
-    <div class="thumb-glyph"><j-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
+    <div class="thumb-glyph"><app-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
     <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
   </div>
 </template>

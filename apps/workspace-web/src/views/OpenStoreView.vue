@@ -3,7 +3,7 @@ import { onMounted, reactive, ref, computed } from 'vue'
 import { useMessage } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
-import { StoreApplicationStatus, StoreStatus } from '@/services/api/store-service'
+import { StoreApplicationStatus, StoreStatus } from '@/api/store-service'
 
 // 申請審核狀態 → 顯示用標籤
 const APP_STATUS = {
@@ -89,7 +89,7 @@ onMounted(store.load)
         <template v-if="hasStore">
         <div v-for="m in stores" :key="m.store?.id" class="card-pad">
           <div style="display:flex; align-items:center; gap:14px;">
-            <span class="kpi-ic" style="background:var(--c-violet)"><j-icon name="box" :size="20" /></span>
+            <span class="kpi-ic" style="background:var(--c-violet)"><app-icon name="box" :size="20" /></span>
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:10px;">
                 <div style="font-weight:700; font-size:15px;">{{ m.store?.storeName }}</div>
@@ -108,7 +108,7 @@ onMounted(store.load)
         <!-- 審核中的申請 -->
         <div v-else-if="hasPending && latestApplication" class="card-pad">
           <div style="display:flex; align-items:center; gap:14px;">
-            <span class="kpi-ic" style="background:var(--c-amber, #f0a020)"><j-icon name="receipt" :size="20" /></span>
+            <span class="kpi-ic" style="background:var(--c-amber, #f0a020)"><app-icon name="receipt" :size="20" /></span>
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:10px;">
                 <div style="font-weight:700; font-size:15px;">{{ latestApplication.storeName }}</div>

@@ -7,9 +7,9 @@
 //   2. 以 customFetch 注入 OIDC Bearer token
 // 業務程式碼一律 import 這裡匯出的實例，不直接 new 產生出來的 class。
 // ============================================================
-import { Api, HttpClient } from '@/services/api/store-service';
+import { Api, HttpClient } from '@/api/store-service';
 import { env } from '@/environment';
-import { userManager } from '@/services/oidc/auth';
+import { userManager } from '@/oidc/auth';
 
 /**
  * 包一層 fetch，於每個請求帶上目前 OIDC 使用者的 access token。

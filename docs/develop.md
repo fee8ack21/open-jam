@@ -4,7 +4,6 @@
 
 ## 架構慣例
 
-- **CQRS / Mediator**。
 - **軟體三層 + Service DI**。
 
 ## 專案結構
@@ -122,9 +121,12 @@ chore(release): 發佈新版本
 - **DbContext 命名**：各服務的 DbContext 一律命名為 `AppDbContext`（置於 `<Service>.Data` namespace），不以服務名稱前綴（如 ~~`EmailDbContext`~~）；服務歸屬由 namespace 表達。Design-time factory 與 Migration snapshot 同步命名為 `AppDbContextFactory`、`AppDbContextModelSnapshot`。若單一專案（如 `Bootstrap`）需同時引用多個服務的 DbContext，以 using alias 區分，例如 `using AuthDbContext = Auth.Data.AppDbContext;`。
 - **enum 獨立成檔**：enum 一律單獨一個檔案（一型別一檔），不與 Entity 或其他型別共置同檔，如 `UserStatus.cs`、`EmailStatus.cs`。
 - **XML 文件註解**：Entity、Model（DTO / ViewModel / Request / Response）、Service、公開方法、Controller 及其 Action 皆須撰寫完整 `<summary>`，Model 屬性另加 `<example>`。Controller / Model 缺少註解會直接影響 Swagger 文件完整度，屬強制要求。
+- **API 版本（ApiVersion）**：後端 REST API 皆須定義 API 版本，路由以版本前綴呈現（如 `/v1/...`）。新增或破壞性變更端點時遞增版本，舊版本維持並行直到下線；版本前綴由各服務統一掛載，Controller 不個別硬寫。
 
 ## 前端注意事項
 
+- **Composition API**：前端專案（market-web / creator-web / workspace-web）一律使用 Vue 3 Composition API（`<script setup>`），不使用 Options API。
+- **Pinia setup store**：store 一律採 setup 函式寫法（`defineStore('id', () => { ... })`），與 Composition API 一致；不使用 `state` / `getters` / `actions` options 物件寫法。state 以 `ref`、getter 以 `computed`、action 為一般函式，最後在 `return` 中明確匯出要對外公開的 state / getter / action。需傳參數的 getter 以 `computed(() => (arg) => ...)` 回傳函式。
 - **API promise singleton**：同一請求進行中時共用同一個 promise，避免重複發送；搭配 with-pending 狀態機制。
 - **lodash debounce**：搜尋 / 輸入等場景去抖。
 - **前端多國語系**：i18n。

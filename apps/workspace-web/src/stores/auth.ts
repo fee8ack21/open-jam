@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { User } from 'oidc-client-ts';
-import { getUser, login, logout, validateSession } from '@/services/oidc/auth';
+import { getUser, login, logout, validateSession } from '@/oidc/auth';
 
 /** 解碼 JWT payload（base64url），失敗回傳 null。 */
 function decodeJwtPayload(token: string): Record<string, unknown> | null {

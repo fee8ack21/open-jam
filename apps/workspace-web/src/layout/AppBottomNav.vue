@@ -41,7 +41,7 @@ function isActive(view: string) { return route.name === view }
   <nav class="bottom-nav">
     <button v-for="it in mobileNav" :key="it.view" class="bn-item" :class="{ on: isActive(it.view) }"
             @click="nav(it.view)">
-      <j-icon :name="it.icon" :size="21" />
+      <app-icon :name="it.icon" :size="21" />
       {{ it.label }}
     </button>
   </nav>

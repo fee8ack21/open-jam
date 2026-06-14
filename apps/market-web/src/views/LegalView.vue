@@ -6,49 +6,32 @@
 import { computed } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
 import { LEGAL, type LegalKey } from '@/data/legal.js';
-import { env } from '@/environment.js';
+import AppNav from '@/layout/AppNav.vue';
+import AppFooter from '@/layout/AppFooter.vue';
 
 const props = defineProps<{ doc: LegalKey }>();
 
 const store = useShopStore();
 const current = computed(() => LEGAL[props.doc]);
 const other = computed(() => LEGAL[props.doc === 'terms' ? 'privacy' : 'terms']);
-
-function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 </script>
 
 <template>
   <div class="oj-root" :class="'font-' + store.font" :data-screen-label="current.title">
     <!-- ============ NAV ============ -->
-    <header class="nav">
-      <div class="nav-inner">
-        <router-link class="brand" to="/">
-          <span class="brand-mark">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-              <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-              <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-            </svg>
-          </span>
-          <span class="brand-name">Open Jam</span>
-        </router-link>
-        <div class="nav-spacer"></div>
-        <div class="nav-actions">
-          <router-link class="nav-admin" to="/">返回市集</router-link>
-        </div>
-      </div>
-    </header>
+    <app-nav />
 
     <main class="page legal-page">
       <nav class="breadcrumb" aria-label="麵包屑">
         <router-link to="/">市集</router-link>
-        <j-icon name="chevron" :size="14" />
+        <app-icon name="chevron" :size="14" />
         <span>{{ current.title }}</span>
       </nav>
 
       <article class="legal-card">
         <header class="legal-head">
           <div class="legal-badge" :class="doc">
-            <j-icon :name="current.icon" :size="24" />
+            <app-icon :name="current.icon" :size="24" />
           </div>
           <h1 class="legal-title">{{ current.title }}</h1>
           <p class="legal-meta">Open Jam · 最後更新 {{ current.updated }}</p>
@@ -64,31 +47,14 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 
         <div class="legal-switch">
           <router-link :to="'/' + other.key">
-            前往閱讀「{{ other.title }}」 <j-icon name="chevron" :size="15" />
+            前往閱讀「{{ other.title }}」 <app-icon name="chevron" :size="15" />
           </router-link>
         </div>
       </article>
     </main>
 
     <!-- ============ FOOTER ============ -->
-    <footer class="mkt-foot">
-      <router-link class="brand" to="/">
-        <span class="brand-mark">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-            <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-            <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-          </svg>
-        </span>
-        <span class="brand-name">Open Jam</span>
-      </router-link>
-      <nav class="mkt-foot-links" aria-label="頁尾連結">
-        <a href="#" @click.prevent>關於 Open Jam</a>
-        <a href="#" @click.prevent="goWorkspace">成為創作者</a>
-        <router-link to="/privacy">隱私權政策</router-link>
-        <router-link to="/terms">服務條款</router-link>
-      </nav>
-      <div class="mkt-foot-copy">© 2026 Open Jam · 創作者數位市集</div>
-    </footer>
+    <app-footer />
   </div>
 </template>
 

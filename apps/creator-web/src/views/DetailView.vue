@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '../stores/shop';
 import { CATEGORIES } from '../data/products';
 import ProductThumb from '../components/ProductThumb.vue';
-import JIcon from '../components/JIcon.vue';
+import AppIcon from '../components/app-icon';
 import Stars from '../components/Stars.vue';
 
 const FILE_COLORS: Record<string, string> = {
@@ -40,9 +40,9 @@ const goCart = () => router.push({ name: 'checkout' });
   <div class="page page-pad" data-screen-label="產品詳細頁" v-if="p">
     <div class="breadcrumb">
       <a @click="goList">探索</a>
-      <j-icon name="chevron" :size="14" />
+      <app-icon name="chevron" :size="14" />
       <a @click="goList">{{ catLabel }}</a>
-      <j-icon name="chevron" :size="14" />
+      <app-icon name="chevron" :size="14" />
       <span style="color:var(--text-soft)">{{ p.title }}</span>
     </div>
 
@@ -69,7 +69,7 @@ const goCart = () => router.push({ name: 'checkout' });
           <div class="preview-locked">
             <div class="lock-veil">
               <div style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--surface);box-shadow:var(--shadow);color:var(--oj-primary)">
-                <j-icon name="lock" :size="22" />
+                <app-icon name="lock" :size="22" />
               </div>
               <span class="lock-txt">完整內容於購買後立即解鎖</span>
             </div>
@@ -88,7 +88,7 @@ const goCart = () => router.push({ name: 'checkout' });
                 <div class="file-name">{{ f.name }}</div>
                 <div class="file-meta">{{ f.type }} · {{ f.size }}</div>
               </div>
-              <j-icon name="lock" :size="16" style="color:var(--text-faint)" />
+              <app-icon name="lock" :size="16" style="color:var(--text-faint)" />
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@ const goCart = () => router.push({ name: 'checkout' });
             <span class="chip">{{ catLabel }}</span>
             <button class="fav" :class="{ on: fav }" style="position:static;"
                     @click="store.toggleFav(p.id)">
-              <j-icon name="heart" :size="18" :fill="fav" />
+              <app-icon name="heart" :size="18" :fill="fav" />
             </button>
           </div>
 
@@ -125,34 +125,34 @@ const goCart = () => router.push({ name: 'checkout' });
               {{ p.price === 0 ? '免費取得' : '立即購買' }}
             </n-button>
             <n-button v-if="!inCart" size="large" block secondary @click="addCart">
-              <template #icon><j-icon name="cart" :size="18" /></template>
+              <template #icon><app-icon name="cart" :size="18" /></template>
               加入購物車
             </n-button>
             <n-button v-else size="large" block secondary @click="goCart">
-              <template #icon><j-icon name="check" :size="18" /></template>
+              <template #icon><app-icon name="check" :size="18" /></template>
               已在購物車 · 前往結帳
             </n-button>
           </div>
 
           <div class="trust">
-            <j-icon name="shield" :size="14" /> 安全付款 · 購買後立即下載
+            <app-icon name="shield" :size="14" /> 安全付款 · 購買後立即下載
           </div>
 
           <div class="spec-list" style="margin-top:22px;">
             <div class="spec-row">
-              <span class="spec-k"><j-icon name="file" :size="16" /> 檔案數量</span>
+              <span class="spec-k"><app-icon name="file" :size="16" /> 檔案數量</span>
               <span class="spec-v">{{ totalFiles }} 個</span>
             </div>
             <div class="spec-row">
-              <span class="spec-k"><j-icon name="bag" :size="16" /> 檔案格式</span>
+              <span class="spec-k"><app-icon name="bag" :size="16" /> 檔案格式</span>
               <span class="spec-v">{{ p.formats.join(' · ') }}</span>
             </div>
             <div class="spec-row">
-              <span class="spec-k"><j-icon name="download" :size="16" /> 總大小</span>
+              <span class="spec-k"><app-icon name="download" :size="16" /> 總大小</span>
               <span class="spec-v">{{ p.totalSize }}</span>
             </div>
             <div class="spec-row">
-              <span class="spec-k"><j-icon name="user" :size="16" /> 已售出</span>
+              <span class="spec-k"><app-icon name="user" :size="16" /> 已售出</span>
               <span class="spec-v">{{ p.sales.toLocaleString() }} 份</span>
             </div>
           </div>

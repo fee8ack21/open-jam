@@ -20,7 +20,7 @@ export interface LegalSection {
 export interface LegalDoc {
   key: LegalKey;
   title: string;
-  /** JIcon 名稱 */
+  /** AppIcon 名稱 */
   icon: string;
   updated: string;
   sections: LegalSection[];

@@ -39,16 +39,16 @@ const fileCount = computed(() => list.value.reduce((s, p) => s + p.product.conte
           <span class="price" style="font-size:16px;">{{ pu.price === 0 ? '免費' : '$' + pu.price }}</span>
           <div style="display:flex; gap:8px;">
             <n-popover trigger="click" placement="bottom-end" :show-arrow="false" to=".oj-root">
-              <template #trigger><n-button size="small" tertiary>{{ pu.product.contents.length }} 個檔案 <template #icon><j-icon name="chevronD" :size="14" /></template></n-button></template>
+              <template #trigger><n-button size="small" tertiary>{{ pu.product.contents.length }} 個檔案 <template #icon><app-icon name="chevronD" :size="14" /></template></n-button></template>
               <div style="display:grid; gap:2px; min-width:240px; padding:2px;">
                 <button v-for="(f, i) in pu.product.contents" :key="i" class="menu-item" style="justify-content:space-between;">
-                  <span style="display:flex; align-items:center; gap:9px; min-width:0;"><j-icon name="file" :size="16" /> <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ f.name }}</span></span>
+                  <span style="display:flex; align-items:center; gap:9px; min-width:0;"><app-icon name="file" :size="16" /> <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ f.name }}</span></span>
                   <span style="font-family:var(--oj-mono); font-size:11px; color:var(--text-faint); flex:none;">{{ f.size }}</span>
                 </button>
               </div>
             </n-popover>
             <n-button size="small" type="primary">
-              <template #icon><j-icon name="download" :size="15" /></template>
+              <template #icon><app-icon name="download" :size="15" /></template>
               下載
             </n-button>
           </div>

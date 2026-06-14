@@ -5,15 +5,15 @@ import naive from 'naive-ui'
 import App from './App.vue'
 import router from './router'
 
-import JIcon from '@/components/JIcon.vue'
+import AppIcon from '@/components/app-icon'
 import ProductThumb from '@/components/ProductThumb.vue'
 import Stars from '@/components/Stars.vue'
 import TrendChart from '@/components/TrendChart.vue'
 
-import '@/styles/base.css'
-import '@/styles/workspace.css'
+import '@/assets/styles/base.css'
+import '@/assets/styles/workspace.css'
 
-import { getUser, login } from '@/services/oidc/auth'
+import { getUser, login } from '@/oidc/auth'
 
 async function bootstrap() {
   const user = await getUser().catch(() => null)
@@ -33,7 +33,7 @@ async function bootstrap() {
   app.use(naive)
 
   // global UI components (kebab tags used throughout the templates)
-  app.component('j-icon', JIcon)
+  app.component('app-icon', AppIcon)
   app.component('product-thumb', ProductThumb)
   app.component('stars', Stars)
   app.component('trend-chart', TrendChart)

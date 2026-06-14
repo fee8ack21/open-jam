@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { User } from 'oidc-client-ts';
-import { getUser, login, logout, validateSession } from '@/services/oidc/auth.js';
+import { getUser, login, logout, validateSession } from '@/oidc/auth.js';
 
 export const useAuthStore = defineStore('auth', () => {
   const userIdentity = ref<User | null>(null);

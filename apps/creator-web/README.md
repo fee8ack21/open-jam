@@ -45,8 +45,10 @@ pnpm type-check   # 只跑型別檢查
     ├── data/
     │   └── products.ts     # 範例商品目錄與型別（Category / Product / ...）
     ├── components/
-    │   ├── icon-paths.ts    # JIcon 的 SVG path 資料
-    │   ├── JIcon.vue        # 線條 icon
+    │   ├── app-icon/        # 線條 icon 元件
+    │   │   ├── AppIcon.vue
+    │   │   ├── icon-paths.ts  # SVG path 資料
+    │   │   └── index.ts       # barrel
     │   ├── Stars.vue        # 星等標籤
     │   ├── ProductThumb.vue # 漸層佔位縮圖
     │   ├── ProductCard.vue  # 商品卡（連到詳細頁）

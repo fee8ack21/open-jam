@@ -69,8 +69,8 @@ function isActive(view: string) { return route.name === view }
     </div>
 
     <div class="mode-switch">
-      <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><j-icon name="rocket" :size="15" /> 賣家</button>
-      <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><j-icon name="bag" :size="15" /> 買家</button>
+      <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><app-icon name="rocket" :size="15" /> 賣家</button>
+      <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><app-icon name="bag" :size="15" /> 買家</button>
     </div>
 
     <nav style="flex:1; overflow-y:auto;">
@@ -78,7 +78,7 @@ function isActive(view: string) { return route.name === view }
         <div class="nav-group">
           <div class="nav-label">賣家工作室</div>
           <div v-for="it in navSell" :key="it.view" class="nav-item" :class="{ on: isActive(it.view) }" @click="nav(it.view)">
-            <span class="nav-ic"><j-icon :name="it.icon" :size="19" /></span>
+            <span class="nav-ic"><app-icon :name="it.icon" :size="19" /></span>
             <span>{{ it.label }}</span>
             <span v-if="count(it.countKey) != null" class="nav-count">{{ count(it.countKey) }}</span>
           </div>
@@ -88,7 +88,7 @@ function isActive(view: string) { return route.name === view }
         <div class="nav-group">
           <div class="nav-label">我的收藏庫</div>
           <div v-for="it in navBuy" :key="it.view" class="nav-item" :class="{ on: isActive(it.view) }" @click="nav(it.view)">
-            <span class="nav-ic"><j-icon :name="it.icon" :size="19" /></span>
+            <span class="nav-ic"><app-icon :name="it.icon" :size="19" /></span>
             <span>{{ it.label }}</span>
             <span v-if="count(it.countKey) != null" class="nav-count">{{ count(it.countKey) }}</span>
           </div>

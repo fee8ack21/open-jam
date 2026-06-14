@@ -85,14 +85,14 @@ function saveDraft() {
         <p class="h-eyebrow">賣家工作室</p>
         <h1 class="h-title">上架新作品</h1>
       </div>
-      <button class="link-btn" style="font-size:14px;" @click="store.go('products')"><j-icon name="arrowLeft" :size="16" /> 回到商品管理</button>
+      <button class="link-btn" style="font-size:14px;" @click="store.go('products')"><app-icon name="arrowLeft" :size="16" /> 回到商品管理</button>
     </div>
 
     <!-- stepper -->
     <div class="stepper">
       <template v-for="(st, i) in steps" :key="st.n">
         <div class="step" :class="{ on: step === st.n, done: step > st.n }" @click="step > st.n && store.setStep(st.n)">
-          <div class="step-bub"><j-icon v-if="step > st.n" name="check" :size="18" :stroke="2.6" /><span v-else>{{ st.n }}</span></div>
+          <div class="step-bub"><app-icon v-if="step > st.n" name="check" :size="18" :stroke="2.6" /><span v-else>{{ st.n }}</span></div>
           <div class="step-txt"><div class="st-k">{{ st.k }}</div><div class="st-l">{{ st.l }}</div></div>
         </div>
         <div v-if="i < steps.length - 1" class="step-link" :class="{ done: step > st.n }"></div>
@@ -117,7 +117,7 @@ function saveDraft() {
             <div class="cat-cards">
               <div v-for="c in cats" :key="c.id" class="cat-card" :class="{ on: d.cat === c.id }"
                    @click="store.patchDraft({ cat: c.id })">
-                <span class="cc-ic" :style="{ background: ({music:'var(--c-violet)',photo:'var(--c-pink)',ebook:'var(--c-cyan)'})[c.id] }"><j-icon :name="c.glyph" :size="20" /></span>
+                <span class="cc-ic" :style="{ background: ({music:'var(--c-violet)',photo:'var(--c-pink)',ebook:'var(--c-cyan)'})[c.id] }"><app-icon :name="c.glyph" :size="20" /></span>
                 <div>
                   <div class="cc-l">{{ c.label }}</div>
                   <div class="cc-d">{{ catDesc[c.id] }}</div>
@@ -132,7 +132,7 @@ function saveDraft() {
             <div class="chip-input">
               <span v-for="t in d.tags" :key="t" class="chip-rm">
                 {{ t }}
-                <button @click="store.removeDraftTag(t)"><j-icon name="close" :size="13" :stroke="2.4" /></button>
+                <button @click="store.removeDraftTag(t)"><app-icon name="close" :size="13" :stroke="2.4" /></button>
               </span>
               <input v-model="tagDraft" :disabled="d.tags.length >= 5" placeholder="輸入後按 Enter…"
                      @keydown.enter.prevent="addTag" />
@@ -150,7 +150,7 @@ function saveDraft() {
                 <template #prefix>$</template>
               </n-input-number>
               <button class="free-toggle" :class="{ on: d.free }" @click="store.patchDraft({ free: !d.free })">
-                <j-icon :name="d.free ? 'check' : 'tag'" :size="16" :stroke="2.2" /> 免費提供
+                <app-icon :name="d.free ? 'check' : 'tag'" :size="16" :stroke="2.2" /> 免費提供
               </button>
               <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono);">平台抽成 3%</span>
             </div>
@@ -171,7 +171,7 @@ function saveDraft() {
             <div class="dropzone" :class="{ drag: dragging }"
                  @click="fakeDrop" @dragover.prevent="dragging = true" @dragleave="dragging = false"
                  @drop.prevent="dragging = false; fakeDrop()">
-              <div class="dz-ic"><j-icon name="upload" :size="28" :stroke="2.2" /></div>
+              <div class="dz-ic"><app-icon name="upload" :size="28" :stroke="2.2" /></div>
               <div class="dz-title">拖曳檔案到這裡，或點擊選擇</div>
               <div class="dz-sub">買家付款後即可下載這些檔案</div>
               <div class="dz-hint">（示範用：點擊會加入一個範例檔案）</div>
@@ -185,7 +185,7 @@ function saveDraft() {
                   <div class="ur-meta">{{ store.fmtBytes(f.bytes) }} · {{ (f.progress || 0) >= 100 ? '上傳完成' : '上傳中 ' + Math.round(f.progress || 0) + '%' }}</div>
                   <div class="progress" v-if="(f.progress || 0) < 100"><i :style="{ width: (f.progress || 0) + '%' }"></i></div>
                 </div>
-                <button class="ic-act danger" @click="store.removeDraftFile(i)"><j-icon name="trash" :size="16" /></button>
+                <button class="ic-act danger" @click="store.removeDraftFile(i)"><app-icon name="trash" :size="16" /></button>
               </div>
             </div>
           </div>
@@ -218,23 +218,23 @@ function saveDraft() {
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius:var(--r-md); background:var(--oj-primary-wash); color:var(--oj-primary); font-size:13.5px; font-weight:600;">
-            <j-icon name="shield" :size="18" /> 你保留作品 100% 著作權，平台僅收取 3% 交易手續費。
+            <app-icon name="shield" :size="18" /> 你保留作品 100% 著作權，平台僅收取 3% 交易手續費。
           </div>
         </template>
 
         <!-- footer nav -->
         <div class="wizard-foot">
           <button class="free-toggle" style="border-color:var(--border)" @click="step > 1 ? store.prevStep() : store.go('products')">
-            <j-icon name="arrowLeft" :size="16" /> {{ step > 1 ? '上一步' : '取消' }}
+            <app-icon name="arrowLeft" :size="16" /> {{ step > 1 ? '上一步' : '取消' }}
           </button>
           <div style="display:flex; gap:10px; align-items:center;">
             <n-button v-if="step === 3" size="large" @click="saveDraft">存成草稿</n-button>
             <n-button v-if="step < 3" type="primary" size="large" :disabled="(step===1 && !step1Valid) || (step===2 && !step2Valid)" @click="goNext">
               下一步
-              <template #icon><j-icon name="arrowRight" :size="17" /></template>
+              <template #icon><app-icon name="arrowRight" :size="17" /></template>
             </n-button>
             <button v-else class="cta-pop" style="font-size:15px; padding:12px 22px;" @click="publish">
-              <j-icon name="rocket" :size="17" style="vertical-align:-3px; margin-right:5px;" />送出審核
+              <app-icon name="rocket" :size="17" style="vertical-align:-3px; margin-right:5px;" />送出審核
             </button>
           </div>
         </div>
@@ -242,7 +242,7 @@ function saveDraft() {
 
       <!-- ============ RIGHT: live preview ============ -->
       <div class="preview-rail">
-        <div class="pr-label"><j-icon name="eye" :size="14" /> 商城預覽</div>
+        <div class="pr-label"><app-icon name="eye" :size="14" /> 商城預覽</div>
         <div class="preview-card">
           <product-thumb :product="previewProduct" />
           <div class="card-body">

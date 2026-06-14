@@ -12,7 +12,7 @@ import router from './router';
 import './assets/styles/base.css';
 import './assets/styles/market.css';
 
-import JIcon from './components/JIcon.vue';
+import AppIcon from './components/app-icon';
 import Stars from './components/Stars.vue';
 import ProductThumb from './components/ProductThumb.vue';
 import MktCard from './components/MktCard.vue';
@@ -23,7 +23,7 @@ app.use(createPinia());
 app.use(router);
 app.use(naive);
 
-app.component('JIcon', JIcon);
+app.component('app-icon', AppIcon);
 app.component('Stars', Stars);
 app.component('ProductThumb', ProductThumb);
 app.component('MktCard', MktCard);

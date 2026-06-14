@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { CATEGORIES } from '../data/products';
-import JIcon from './JIcon.vue';
+import AppIcon from './app-icon';
 
 /** ProductThumb 只需要這些欄位，Product 與購物車商品皆相容。 */
 interface ThumbProduct {
@@ -58,7 +58,7 @@ const autoLabel = computed(() => {
       <div class="thumb-dots"></div>
       <div class="thumb-blob"></div>
       <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
-      <div class="thumb-glyph"><j-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
+      <div class="thumb-glyph"><app-icon :name="catGlyph" :size="glyphSize" :stroke="1.6" /></div>
       <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
     </template>
   </div>

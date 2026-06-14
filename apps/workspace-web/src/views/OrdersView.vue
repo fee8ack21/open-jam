@@ -74,7 +74,7 @@ function dt(iso: string) { const d = new Date(iso); return d.toISOString().slice
         </tbody>
       </table>
       <div v-if="!rows.length" class="empty-box">
-        <div class="eb-ic"><j-icon name="receipt" :size="30" /></div>
+        <div class="eb-ic"><app-icon name="receipt" :size="30" /></div>
         <div class="eb-t">沒有符合的訂單</div>
       </div>
     </div>

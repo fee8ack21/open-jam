@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useShopStore } from '../stores/shop';
 import { type Product } from '../data/products';
-import JIcon from './JIcon.vue';
+import AppIcon from './app-icon';
 import Stars from './Stars.vue';
 import ProductThumb from './ProductThumb.vue';
 
@@ -23,7 +23,7 @@ const toggleFav = (e: MouseEvent) => { e.stopPropagation(); store.toggleFav(prop
 <template>
   <div class="card" :style="{ '--accent': accent }" @click="open">
     <div class="fav" :class="{ on: fav }" @click="toggleFav" :title="fav ? '已收藏' : '加入最愛'">
-      <j-icon name="heart" :size="17" :fill="fav" />
+      <app-icon name="heart" :size="17" :fill="fav" />
     </div>
     <product-thumb :product="product" />
     <div class="card-body">

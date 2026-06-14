@@ -30,7 +30,7 @@ function canToggle(p: Product) { return p.status === 'live' || p.status === 'off
         <h1 class="h-title">商品管理</h1>
         <p class="h-sub">{{ s.products.length }} 件作品 · {{ g.statusCount('live') }} 件上架中</p>
       </div>
-      <button class="cta-pop" @click="store.go('upload')"><j-icon name="plus" :size="16" :stroke="2.4" style="vertical-align:-3px; margin-right:4px;" />上架新商品</button>
+      <button class="cta-pop" @click="store.go('upload')"><app-icon name="plus" :size="16" :stroke="2.4" style="vertical-align:-3px; margin-right:4px;" />上架新商品</button>
     </div>
 
     <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px; flex-wrap:wrap;">
@@ -74,14 +74,14 @@ function canToggle(p: Product) { return p.status === 'live' || p.status === 'off
                 <span v-else style="font-size:12px; color:var(--text-faint); font-family:var(--oj-mono); margin-right:6px;">
                   {{ p.status === 'review' ? '審核中' : '草稿' }}
                 </span>
-                <button class="ic-act" title="編輯" @click="store.go('upload')"><j-icon name="edit" :size="17" /></button>
+                <button class="ic-act" title="編輯" @click="store.go('upload')"><app-icon name="edit" :size="17" /></button>
                 <n-popover trigger="click" placement="bottom-end" :show-arrow="false" to=".oj-root">
-                  <template #trigger><button class="ic-act" title="更多"><j-icon name="more" :size="18" /></button></template>
+                  <template #trigger><button class="ic-act" title="更多"><app-icon name="more" :size="18" /></button></template>
                   <div style="display:grid; gap:2px; min-width:150px; padding:2px;">
-                    <button class="menu-item"><j-icon name="eye" :size="16" /> 在商城預覽</button>
-                    <button class="menu-item"><j-icon name="copy" :size="16" /> 複製連結</button>
-                    <button class="menu-item"><j-icon name="layers" :size="16" /> 建立副本</button>
-                    <button class="menu-item danger"><j-icon name="trash" :size="16" /> 刪除作品</button>
+                    <button class="menu-item"><app-icon name="eye" :size="16" /> 在商城預覽</button>
+                    <button class="menu-item"><app-icon name="copy" :size="16" /> 複製連結</button>
+                    <button class="menu-item"><app-icon name="layers" :size="16" /> 建立副本</button>
+                    <button class="menu-item danger"><app-icon name="trash" :size="16" /> 刪除作品</button>
                   </div>
                 </n-popover>
               </div>
@@ -90,7 +90,7 @@ function canToggle(p: Product) { return p.status === 'live' || p.status === 'off
         </tbody>
       </table>
       <div v-if="!rows.length" class="empty-box">
-        <div class="eb-ic"><j-icon name="box" :size="30" /></div>
+        <div class="eb-ic"><app-icon name="box" :size="30" /></div>
         <div class="eb-t">這個分類還沒有作品</div>
       </div>
     </div>

@@ -36,7 +36,10 @@ src/
   utils/
     format.ts          # 金額 / 時間格式化、狀態標籤
   components/
-    JIcon.vue          # 線性 icon（全域註冊為 <j-icon>）
+    app-icon/            # 線性 icon（全域註冊為 <app-icon>）
+      AppIcon.vue
+      icon-paths.ts      # SVG path 資料
+      index.ts           # barrel
     ProductThumb.vue   # 作品縮圖（<product-thumb>）
     Stars.vue          # 星等（<stars>）
     TrendChart.vue     # SVG 收入趨勢圖（<trend-chart>）
@@ -48,9 +51,10 @@ src/
     PurchasesView.vue  # 購買紀錄
     WishlistView.vue   # Wishlist
     SettingsView.vue   # 帳號設定
-  styles/
-    base.css           # 基礎設計系統（含 Google Fonts @import）
-    workspace.css      # 後台版面與元件樣式
+  assets/
+    styles/
+      base.css         # 基礎設計系統（含 Google Fonts @import）
+      workspace.css    # 後台版面與元件樣式
 ```
 
 ## 遷移備忘
@@ -59,4 +63,4 @@ src/
 - **賣家 / 買家模式**：存在 Pinia (`mode`)，並隨路由所屬群組自動同步。
 - **資料層**：`src/data/index.ts` 為靜態範例（含領域型別），正式環境改成在 store action 內呼叫 API 即可。
 - **Naive UI**：在 `main.ts` 以 `app.use(naive)` 全域安裝；如需縮小打包體積可改成按需引入。
-- **API client**：`src/services/api/store-service.ts` 由 `pnpm gen:api` 從後端 OpenAPI 產生（TS），勿手改。後端 enum 已以 `JsonStringEnumConverter` 序列化為字串，codegen 產出具名字串 enum。
+- **API client**：`src/api/store-service.ts` 由 `pnpm gen:api` 從後端 OpenAPI 產生（TS），勿手改。後端 enum 已以 `JsonStringEnumConverter` 序列化為字串，codegen 產出具名字串 enum。

@@ -23,10 +23,6 @@ pnpm build      # 產出 dist/
 pnpm preview    # 預覽 build 結果
 ```
 
-> 尚未安裝 Node/pnpm 環境也能預覽：直接開啟根目錄的 **`preview.html`**。
-> 它透過 `vue3-sfc-loader` 在瀏覽器端載入**同一份** `src/` 原始碼（免建置），
-> 僅差在改用 hash 路由。正式環境一律以 `pnpm dev` / `pnpm build` 為準。
-
 ## 目錄結構
 
 ```
@@ -34,7 +30,6 @@ pnpm preview    # 預覽 build 結果
 ├── index.html              # Vite 進入點（掛載 #app）
 ├── vite.config.js          # 別名 @ → /src
 ├── package.json            # pnpm 相依與指令
-├── preview.html            # 免建置預覽用（dev harness，非 SPA 的一部分）
 ├── src/
 │   ├── main.js             # 啟動：Pinia · Router · Naive UI · 全域元件
 │   ├── App.vue             # 根元件（Naive UI providers + <router-view>）
@@ -49,7 +44,10 @@ pnpm preview    # 預覽 build 結果
 │   │   ├── DetailView.vue    # 「/shop/product/:id」商品詳情
 │   │   └── CheckoutView.vue  # 「/shop/checkout」結帳流程
 │   ├── components/
-│   │   ├── JIcon.vue         # 線性圖示集（全域註冊 <j-icon>）
+│   │   ├── app-icon/         # 線性圖示集（全域註冊 <app-icon>）
+│   │   │   ├── AppIcon.vue
+│   │   │   ├── icon-paths.ts # SVG path 資料
+│   │   │   └── index.ts      # barrel
 │   │   ├── Stars.vue         # 星級評分（<stars>）
 │   │   ├── ProductThumb.vue  # 漸層佔位縮圖（<product-thumb>）
 │   │   ├── ProductCard.vue   # 商店網格卡片（<product-card>）
@@ -81,5 +79,5 @@ pnpm preview    # 預覽 build 結果
 - **路由模式**：使用 `createWebHistory`，部署時伺服器需將未知路徑 fallback 至
   `index.html`（SPA history 模式）。
 - **金流**：`CheckoutView` 的付款為前端模擬（`setTimeout`），需串接真實金流。
-- `legacy/` 與 `preview.html` 僅供參考 / 免建置預覽，正式專案可移除。
+- `legacy/` 僅供參考，正式專案可移除。
 ```

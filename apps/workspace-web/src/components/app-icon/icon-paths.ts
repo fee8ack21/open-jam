@@ -1,4 +1,4 @@
-/* Icon path data for <JIcon name="..."> */
+/* Icon path data for <app-icon name="..."> */
 export const ICON_PATHS: Record<string, string> = {
   // storefront set
   heart: 'M12 20s-7-4.3-9.3-8.2C1.2 9 2.3 5.8 5.3 5.1 7.2 4.6 9 5.4 10 6.8c.5.6.7 1 1 1 .3 0 .5-.4 1-1 1-1.4 2.8-2.2 4.7-1.7 3 .7 4.1 3.9 2.6 6.7C19 15.7 12 20 12 20z',

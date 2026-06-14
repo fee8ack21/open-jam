@@ -37,7 +37,7 @@ const notif = reactive({ sales: true, weekly: true, promo: false })
             </div>
             <div class="field"><label class="field-label">顯示名稱</label><n-input v-model:value="form.name" size="large" /></div>
             <div class="field"><label class="field-label">帳號代稱</label><n-input v-model:value="form.handle" size="large"><template #prefix><span style="color:var(--text-faint)">@</span></template></n-input></div>
-            <div class="field"><label class="field-label">電子信箱</label><n-input v-model:value="form.email" size="large"><template #prefix><j-icon name="mail" :size="16" style="color:var(--text-faint)" /></template></n-input></div>
+            <div class="field"><label class="field-label">電子信箱</label><n-input v-model:value="form.email" size="large"><template #prefix><app-icon name="mail" :size="16" style="color:var(--text-faint)" /></template></n-input></div>
             <div class="field"><label class="field-label">個人簡介</label><n-input v-model:value="form.bio" type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" maxlength="120" show-count /></div>
           </div>
         </div>
@@ -52,7 +52,7 @@ const notif = reactive({ sales: true, weekly: true, promo: false })
           </div>
           <div>
             <div style="display:flex; align-items:center; gap:14px; padding:16px; border:1.5px solid var(--border); border-radius:var(--r-md); background:var(--surface-2);">
-              <span class="kpi-ic" style="background:var(--c-violet)"><j-icon name="wallet" :size="20" /></span>
+              <span class="kpi-ic" style="background:var(--c-violet)"><app-icon name="wallet" :size="20" /></span>
               <div style="flex:1;">
                 <div style="font-weight:700; font-size:14.5px;">銀行轉帳 · 永豐銀行 ••• 4821</div>
                 <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:3px;">下次撥款 2026/06/05 · 待結算 {{ F.money(store.pendingPayout) }}</div>

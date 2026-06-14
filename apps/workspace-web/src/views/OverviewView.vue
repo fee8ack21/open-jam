@@ -30,12 +30,12 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
     <div class="kpi-grid">
       <div v-for="k in kpis" :key="k.key" class="kpi">
         <div class="kpi-top">
-          <div class="kpi-ic" :style="{ background: k.bg }"><j-icon :name="k.ic" :size="20" /></div>
+          <div class="kpi-ic" :style="{ background: k.bg }"><app-icon :name="k.ic" :size="20" /></div>
           <span v-if="k.delta !== null" class="kpi-delta" :class="k.up ? 'up' : 'down'">
-            <j-icon :name="k.up ? 'trend' : 'chevronD'" :size="13" :stroke="2.2" /> {{ Math.abs(k.delta) }}%
+            <app-icon :name="k.up ? 'trend' : 'chevronD'" :size="13" :stroke="2.2" /> {{ Math.abs(k.delta) }}%
           </span>
           <span v-else class="kpi-delta up" style="background:var(--oj-primary-wash); color:var(--oj-primary)">
-            <j-icon name="clock" :size="13" /> {{ k.sub }}
+            <app-icon name="clock" :size="13" /> {{ k.sub }}
           </span>
         </div>
         <div class="kpi-val">{{ k.val }}</div>
@@ -85,7 +85,7 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
       <div class="card-pad">
         <div class="card-head">
           <h3>熱銷作品</h3>
-          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('products')">查看全部 <j-icon name="chevron" :size="13" /></button>
+          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('products')">查看全部 <app-icon name="chevron" :size="13" /></button>
         </div>
         <div class="list-rows">
           <div v-for="(p,i) in g.topProducts" :key="p.id" class="lrow">
@@ -106,7 +106,7 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
       <div class="card-pad">
         <div class="card-head">
           <h3>最新訂單</h3>
-          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('orders')">查看全部 <j-icon name="chevron" :size="13" /></button>
+          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('orders')">查看全部 <app-icon name="chevron" :size="13" /></button>
         </div>
         <div class="list-rows">
           <div v-for="o in g.recentOrders" :key="o.id" class="lrow">

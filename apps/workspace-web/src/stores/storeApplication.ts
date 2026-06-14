@@ -1,11 +1,11 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
-import { storeApi } from '@/services/api';
+import { storeApi } from '@/api';
 import {
   StoreApplicationStatus,
   type StoreApplicationDto,
   type MyStoreDto,
-} from '@/services/api/store-service';
+} from '@/api/store-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
 function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。'): string {
