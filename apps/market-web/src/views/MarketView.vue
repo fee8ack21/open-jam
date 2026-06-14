@@ -273,8 +273,8 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
         <nav class="mkt-foot-links" aria-label="頁尾連結">
           <a href="#" @click.prevent>關於 Open Jam</a>
           <a href="#" @click.prevent="goWorkspace">成為創作者</a>
-          <a href="#" @click.prevent>隱私權政策</a>
-          <a href="#" @click.prevent>服務條款</a>
+          <router-link to="/privacy">隱私權政策</router-link>
+          <router-link to="/terms">服務條款</router-link>
         </nav>
         <div class="mkt-foot-copy">© 2026 Open Jam · 創作者數位市集</div>
       </footer>
