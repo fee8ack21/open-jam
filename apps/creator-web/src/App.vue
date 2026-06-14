@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { useShopStore } from './stores/shop';
-import AppNav from './components/AppNav.vue';
-import JIcon from './components/JIcon.vue';
-
-const store = useShopStore();
-const tweaksOpen = ref(false);
+import { computed } from 'vue';
+import AppNav from './layout/AppNav.vue';
 
 const naiveTheme = computed(() => null);
 const overrides = computed(() => ({
@@ -56,51 +51,18 @@ const overrides = computed(() => ({
   },
   Switch: { railColorActive: '#6c4cf1' },
 }));
-
-onMounted(() => {
-  window.addEventListener('message', (e) => {
-    const t = e && e.data && e.data.type;
-    if (t === '__activate_edit_mode') tweaksOpen.value = true;
-    else if (t === '__deactivate_edit_mode') tweaksOpen.value = false;
-  });
-  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-});
-
-const dismissTweaks = () => {
-  tweaksOpen.value = false;
-  window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
-};
-
-const fontClass = computed(() => 'font-' + store.font);
 </script>
 
 <template>
   <n-config-provider :theme="naiveTheme" :theme-overrides="overrides">
   <n-message-provider>
-    <div class="oj-root" :class="['light', fontClass]">
+    <div class="oj-root light">
 
       <app-nav />
 
       <main>
         <router-view />
       </main>
-
-      <div v-show="tweaksOpen" class="tweaks-panel">
-        <div class="tweaks-head">
-          <span>Tweaks</span>
-          <button class="tweaks-x" @click="dismissTweaks"><j-icon name="close" :size="16" /></button>
-        </div>
-        <div class="tweaks-body">
-          <div class="tweaks-section">展示字體</div>
-          <div class="tweaks-row">
-            <span>標題字型</span>
-            <div class="seg">
-              <button :class="{ on: store.font === 'sora' }" @click="store.setFont('sora')">Bricolage</button>
-              <button :class="{ on: store.font === 'grotesk' }" @click="store.setFont('grotesk')">Unbounded</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
     </div>
   </n-message-provider>

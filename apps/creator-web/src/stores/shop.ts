@@ -37,7 +37,6 @@ interface Order {
 
 interface ShopState {
   theme: Theme;
-  font: string;
   search: string;
   category: string;
   activeTags: string[];
@@ -59,7 +58,6 @@ export const useShopStore = defineStore('shop', {
   state: (): ShopState => ({
     // theme / display
     theme: load<Theme>('theme', 'light'),
-    font: load('font', 'sora'),
 
     // catalogue search & filters
     search: '',
@@ -125,7 +123,6 @@ export const useShopStore = defineStore('shop', {
   actions: {
     setTheme(t: Theme) { this.theme = t; save('theme', t); },
     toggleTheme() { this.setTheme(this.theme === 'light' ? 'dark' : 'light'); },
-    setFont(f: string) { this.font = f; save('font', f); },
 
     toggleFav(id: string) {
       const i = this.favorites.indexOf(id);
