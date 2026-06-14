@@ -77,6 +77,20 @@ const activeCatLabel = computed(() => {
   if (category.value === 'all') return '全部作品';
   return CATEGORIES.find((c) => c.id === category.value)?.label ?? '全部作品';
 });
+
+// active filter chips — surface what's currently narrowing the grid (excludes sort)
+const activeFilters = computed(() => {
+  const chips: { key: string; label: string; clear: () => void }[] = [];
+  const q = search.value.trim();
+  if (q) chips.push({ key: 'q', label: `「${q}」`, clear: () => { search.value = ''; } });
+  if (category.value !== 'all') chips.push({ key: 'cat', label: activeCatLabel.value, clear: () => { category.value = 'all'; } });
+  if (priceBand.value !== 'all') {
+    const l = priceOptions.find((o) => o.v === priceBand.value)?.l ?? '';
+    chips.push({ key: 'price', label: l, clear: () => { priceBand.value = 'all'; } });
+  }
+  return chips;
+});
+
 const visibleResults = computed(() => results.value.slice(0, visibleCount.value));
 const hasMore = computed(() => visibleCount.value < results.value.length);
 
@@ -167,20 +181,22 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
       <section class="sec browse" id="browse">
         <!-- category pills (desktop) -->
         <div class="browse-cats">
-          <span class="cat-pill c-all" :class="{ on: category === 'all' }" @click="category = 'all'">
+          <button type="button" class="cat-pill c-all" :class="{ on: category === 'all' }" :aria-pressed="category === 'all'" @click="category = 'all'">
             <span class="dot" style="background: var(--c-violet)"></span>全部作品
             <span class="cp-count">{{ catCount('all') }}</span>
-          </span>
-          <span
+          </button>
+          <button
+            type="button"
             v-for="c in cats"
             :key="c.id"
             class="cat-pill"
             :class="['c-' + c.id, { on: category === c.id }]"
+            :aria-pressed="category === c.id"
             @click="category = c.id"
           >
             <span class="dot" :style="{ background: catColor(c.id) }"></span>{{ c.label }}
             <span class="cp-count">{{ catCount(c.id) }}</span>
-          </span>
+          </button>
         </div>
 
         <!-- category dropdown (mobile) -->
@@ -196,7 +212,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
           <div class="bb-group bb-sort">
             <span class="bb-label">排序</span>
             <div class="bb-pills">
-              <span v-for="o in sortOptions" :key="o.v" class="tag-toggle" :class="{ on: sort === o.v }" @click="sort = o.v">{{ o.l }}</span>
+              <button type="button" v-for="o in sortOptions" :key="o.v" class="tag-toggle" :class="{ on: sort === o.v }" :aria-pressed="sort === o.v" @click="sort = o.v">{{ o.l }}</button>
             </div>
             <select class="m-select bb-select" v-model="sort" aria-label="排序方式">
               <option v-for="o in sortOptions" :key="o.v" :value="o.v">{{ o.l }}</option>
@@ -205,7 +221,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
           <div class="bb-group bb-price">
             <span class="bb-label">價格</span>
             <div class="bb-pills">
-              <span v-for="o in priceOptions" :key="o.v" class="tag-toggle" :class="{ on: priceBand === o.v }" @click="priceBand = o.v">{{ o.l }}</span>
+              <button type="button" v-for="o in priceOptions" :key="o.v" class="tag-toggle" :class="{ on: priceBand === o.v }" :aria-pressed="priceBand === o.v" @click="priceBand = o.v">{{ o.l }}</button>
             </div>
             <select class="m-select bb-select" v-model="priceBand" aria-label="價格區間">
               <option v-for="o in priceOptions" :key="o.v" :value="o.v">{{ o.l }}</option>
@@ -215,6 +231,15 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
 
         <div class="browse-count">
           <span><b>{{ activeCatLabel }}</b> · 共 <b>{{ results.length }}</b> 件作品</span>
+        </div>
+
+        <div v-if="activeFilters.length" class="active-chips">
+          <span class="active-chips-lab">篩選中</span>
+          <button v-for="f in activeFilters" :key="f.key" type="button" class="fchip" @click="f.clear()">
+            {{ f.label }}
+            <span class="fchip-x"><j-icon name="close" :size="13" :stroke="2.4" /></span>
+          </button>
+          <button type="button" class="fchip-clear" @click="reset">清除全部</button>
         </div>
 
         <div v-if="results.length" class="grid">
@@ -245,7 +270,12 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
           </span>
           <span class="brand-name">Open Jam</span>
         </div>
-        <div class="mkt-foot-links"></div>
+        <nav class="mkt-foot-links" aria-label="頁尾連結">
+          <a href="#" @click.prevent>關於 Open Jam</a>
+          <a href="#" @click.prevent="goWorkspace">成為創作者</a>
+          <a href="#" @click.prevent>隱私權政策</a>
+          <a href="#" @click.prevent>服務條款</a>
+        </nav>
         <div class="mkt-foot-copy">© 2026 Open Jam · 創作者數位市集</div>
       </footer>
     </main>
