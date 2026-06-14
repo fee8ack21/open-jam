@@ -20,7 +20,7 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
       <span class="brand-name">Open Jam</span>
     </router-link>
     <nav class="mkt-foot-links" aria-label="頁尾連結">
-      <a href="#" @click.prevent>關於 Open Jam</a>
+      <router-link to="/about">關於 Open Jam</router-link>
       <a href="#" @click.prevent="goWorkspace">成為創作者</a>
       <router-link to="/privacy">隱私權政策</router-link>
       <router-link to="/terms">服務條款</router-link>
