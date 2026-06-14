@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '../stores/shop';
-import JIcon from './JIcon.vue';
+import JIcon from '../components/JIcon.vue';
 
 const store = useShopStore();
 const route = useRoute();
@@ -14,6 +14,8 @@ const mobileSearchOpen = ref(false);
 const mobileFollowOpen = ref(false);
 
 const cartCount = computed(() => store.cartCount);
+// 404 等頁面只顯示 Logo，隱藏搜尋／購物車／追蹤等互動欄位
+const minimal = computed(() => route.name === 'not-found');
 
 const subscribe = () => {
   const v = followEmail.value.trim();
@@ -45,7 +47,7 @@ const onSearch = (v: string) => {
         <span class="brand-name">Open Jam</span>
       </div>
 
-      <div class="nav-search" :class="{ 'is-open': mobileSearchOpen }">
+      <div v-if="!minimal" class="nav-search" :class="{ 'is-open': mobileSearchOpen }">
         <div class="search-box">
           <span class="follow-icon"><j-icon name="search" :size="17" /></span>
           <input class="search-input" type="text" :value="store.search"
@@ -58,7 +60,7 @@ const onSearch = (v: string) => {
 
       <div class="nav-spacer"></div>
 
-      <div class="nav-actions">
+      <div v-if="!minimal" class="nav-actions">
         <div class="icon-btn nav-icon-toggle" :class="{ active: mobileSearchOpen }"
              @click="toggleSearch" title="搜尋">
           <j-icon name="search" :size="20" />
@@ -75,7 +77,7 @@ const onSearch = (v: string) => {
         </div>
       </div>
 
-      <div class="nav-follow" :class="{ 'is-open': mobileFollowOpen }">
+      <div v-if="!minimal" class="nav-follow" :class="{ 'is-open': mobileFollowOpen }">
         <form v-if="!subscribed" class="follow-form" @submit.prevent="subscribe">
           <span class="follow-icon"><j-icon name="mail" :size="16" /></span>
           <input class="follow-input" type="email" v-model="followEmail"

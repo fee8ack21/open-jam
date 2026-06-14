@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '../stores/shop';
 import { CATEGORIES } from '../data/products';
@@ -27,6 +27,7 @@ const catLabel = computed(() => (p.value ? (CATEGORIES.find((c) => c.id === p.va
 const totalFiles = computed(() => (p.value ? p.value.files.reduce((n, f) => n + f.count, 0) : 0));
 
 watch(() => route.params.id, () => { active.value = 0; });
+watchEffect(() => { if (!p.value) router.replace({ name: 'not-found' }); });
 
 const fileColor = (t: string) => FILE_COLORS[t] || FILE_COLORS.DEFAULT;
 const goList = () => router.push({ name: 'list' });

@@ -11,12 +11,13 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import ListView from '../views/ListView.vue';
 import DetailView from '../views/DetailView.vue';
 import CheckoutView from '../views/CheckoutView.vue';
+import NotFoundView from '../views/NotFoundView.vue';
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'list', component: ListView },
   { path: '/product/:id', name: 'product', component: DetailView },
   { path: '/checkout', name: 'checkout', component: CheckoutView },
-  { path: '/:pathMatch(.*)*', redirect: { name: 'list' } },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ];
 
 const router = createRouter({
