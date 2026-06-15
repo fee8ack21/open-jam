@@ -16,7 +16,9 @@ import {
   BRICK_ROWS,
   BRICK_COLS,
   MAX_BRICKS,
+  WHEEL_CABINS,
   type SceneState,
+  type CharKind,
 } from './scene-state';
 
 const root = ref<HTMLDivElement | null>(null);
@@ -99,8 +101,22 @@ function drawStall(x: number, col: string) {
   ctx.restore();
 }
 
+/** A crate carried overhead, with two little arms reaching up to it. */
+function drawCarriedCrate(carryCol: string) {
+  ctx.fillStyle = carryCol;
+  rrect(-8, -46, 16, 11, 3);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-6, -26);
+  ctx.lineTo(-7, -37);
+  ctx.moveTo(6, -26);
+  ctx.lineTo(7, -37);
+  ctx.stroke();
+}
+
 /** A hard-hat worker with swinging legs, optionally carrying a crate. */
-function drawWorker(x: number, phase: number, carryCol: string | null) {
+function drawWorker(x: number, phase: number, carryCol: string | null, bodyCol: string) {
   const bob = Math.abs(Math.sin(phase * 2)) * 1.5;
   ctx.save();
   ctx.translate(x, groundY - bob);
@@ -113,7 +129,7 @@ function drawWorker(x: number, phase: number, carryCol: string | null) {
   ctx.moveTo(3, -12);
   ctx.lineTo(3 - swing, 0);
   ctx.stroke();
-  ctx.fillStyle = '#6c4cf1';
+  ctx.fillStyle = bodyCol;
   rrect(-6, -26, 12, 15, 4);
   ctx.fill();
   ctx.stroke();
@@ -131,19 +147,160 @@ function drawWorker(x: number, phase: number, carryCol: string | null) {
   ctx.moveTo(-7, -33);
   ctx.lineTo(7, -33);
   ctx.stroke();
+  if (carryCol) drawCarriedCrate(carryCol);
+  ctx.restore();
+}
+
+/** A round little monster that hops along, eyes + horns, optional crate. */
+function drawMonster(x: number, phase: number, carryCol: string | null, bodyCol: string) {
+  const hop = Math.max(0, Math.sin(phase * 1.4)) * 7; // springy bounce
+  ctx.save();
+  ctx.translate(x, groundY - hop);
+  ctx.lineWidth = 2.4;
+  ctx.strokeStyle = OUTLINE;
+  // feet (tuck up while airborne)
+  const tuck = hop * 0.4;
+  ctx.beginPath();
+  ctx.moveTo(-5, -8);
+  ctx.lineTo(-5, -2 + tuck);
+  ctx.moveTo(5, -8);
+  ctx.lineTo(5, -2 + tuck);
+  ctx.stroke();
+  // horns
+  ctx.fillStyle = bodyCol;
+  ctx.beginPath();
+  ctx.moveTo(-6, -24);
+  ctx.lineTo(-9, -32);
+  ctx.lineTo(-2, -26);
+  ctx.closePath();
+  ctx.moveTo(6, -24);
+  ctx.lineTo(9, -32);
+  ctx.lineTo(2, -26);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // body blob
+  ctx.beginPath();
+  ctx.arc(0, -15, 11, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  // big eyes
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-4, -17, 4, 0, 7);
+  ctx.arc(4, -17, 4, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = OUTLINE;
+  ctx.beginPath();
+  ctx.arc(-3.5, -16.5, 1.7, 0, 7);
+  ctx.arc(4.5, -16.5, 1.7, 0, 7);
+  ctx.fill();
   if (carryCol) {
     ctx.fillStyle = carryCol;
-    rrect(-8, -46, 16, 11, 3);
+    rrect(-8, -40, 16, 11, 3);
     ctx.fill();
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-6, -26);
-    ctx.lineTo(-7, -37);
-    ctx.moveTo(6, -26);
-    ctx.lineTo(7, -37);
     ctx.stroke();
   }
   ctx.restore();
+}
+
+/** A rhinoceros beetle scuttling low, with a horn and a crate on its back. */
+function drawBeetle(x: number, phase: number, carryCol: string | null, bodyCol: string) {
+  const bob = Math.abs(Math.sin(phase * 2)) * 1;
+  ctx.save();
+  ctx.translate(x, groundY - bob);
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = OUTLINE;
+  // six little legs
+  const s = Math.sin(phase) * 2.5;
+  for (const lx of [-7, 0, 7]) {
+    ctx.beginPath();
+    ctx.moveTo(lx, -6);
+    ctx.lineTo(lx + s, 0);
+    ctx.stroke();
+  }
+  // shell
+  ctx.fillStyle = bodyCol;
+  ctx.beginPath();
+  ctx.ellipse(0, -11, 13, 8, 0, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  // wing-case split line
+  ctx.beginPath();
+  ctx.moveTo(2, -18);
+  ctx.lineTo(2, -4);
+  ctx.stroke();
+  // head + horn (獨角仙)
+  ctx.fillStyle = bodyCol;
+  ctx.beginPath();
+  ctx.arc(13, -11, 4.5, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(16, -13);
+  ctx.lineTo(23, -19);
+  ctx.lineTo(19, -11);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  if (carryCol) {
+    ctx.fillStyle = carryCol;
+    rrect(-9, -27, 16, 11, 3);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Dispatch to the right creature renderer. */
+function drawCharacter(kind: CharKind, x: number, phase: number, carryCol: string, tint: string) {
+  if (kind === 'monster') drawMonster(x, phase, carryCol, tint);
+  else if (kind === 'beetle') drawBeetle(x, phase, carryCol, tint);
+  else drawWorker(x, phase, carryCol, tint);
+}
+
+/** A slowly turning ferris wheel — the centrepiece of the little park. */
+function drawFerrisWheel(cx: number, baseY: number, r: number, angle: number) {
+  const hubY = baseY - r - 8;
+  ctx.lineWidth = 2.4;
+  ctx.strokeStyle = 'rgba(26,22,38,.75)';
+  // A-frame support legs
+  ctx.beginPath();
+  ctx.moveTo(cx - 22, baseY);
+  ctx.lineTo(cx, hubY);
+  ctx.lineTo(cx + 22, baseY);
+  ctx.stroke();
+  // outer rim
+  ctx.beginPath();
+  ctx.arc(cx, hubY, r, 0, 7);
+  ctx.stroke();
+  // spokes + cabins
+  for (let i = 0; i < WHEEL_CABINS; i++) {
+    const a = angle + (i * Math.PI * 2) / WHEEL_CABINS;
+    const ex = cx + Math.cos(a) * r;
+    const ey = hubY + Math.sin(a) * r;
+    ctx.strokeStyle = 'rgba(26,22,38,.55)';
+    ctx.beginPath();
+    ctx.moveTo(cx, hubY);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    // cabin hangs below the rim point, upright regardless of rotation
+    ctx.fillStyle = PALETTE[i % PALETTE.length];
+    ctx.strokeStyle = OUTLINE;
+    ctx.lineWidth = 2;
+    rrect(ex - 6, ey + 1, 12, 9, 3);
+    ctx.fill();
+    ctx.stroke();
+  }
+  // hub
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = OUTLINE;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.arc(cx, hubY, 4, 0, 7);
+  ctx.fill();
+  ctx.stroke();
 }
 
 /** A worker beside the build site swinging a hammer. */
@@ -276,17 +433,24 @@ function render(t: number) {
   ctx.lineTo(w, groundY);
   ctx.stroke();
 
+  // ferris wheel sits in the mid-ground (behind the workers / building)
+  const mid = px.cur * 14;
+  ctx.save();
+  ctx.translate(mid, 0);
+  drawFerrisWheel(w * 0.8, groundY, 46, state.wheelAngle);
+  ctx.restore();
+
   ctx.save();
   ctx.translate(near, 0);
   drawStall(w * 0.1, '#6c4cf1');
   drawStall(w * 0.22, '#ff4d9d');
 
-  const bx = w * 0.52;
+  const bx = w * 0.5;
   drawBuilding(bx, t);
   drawBuilder(bx - 34, t);
 
   for (const wk of state.workers) {
-    drawWorker(wk.x * w, wk.phase, PALETTE[wk.carry]);
+    drawCharacter(wk.kind, wk.x * w, wk.phase, PALETTE[wk.carry], PALETTE[wk.tint]);
   }
   ctx.restore();
 }

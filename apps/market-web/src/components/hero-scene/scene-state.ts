@@ -13,12 +13,19 @@ export interface Cloud {
   speed: number; // normalised units per ms
 }
 
-/** A hard-hat worker walking across the site carrying a crate. */
+/** The kind of creature parading across the site. */
+export type CharKind = 'human' | 'monster' | 'beetle';
+
+const KIND_CYCLE: CharKind[] = ['human', 'monster', 'beetle'];
+
+/** A character walking/hopping across the site carrying a crate. */
 export interface Worker {
-  x: number;     // normalised horizontal position
-  speed: number; // normalised units per ms
-  carry: number; // palette index of the carried crate
-  phase: number; // leg-swing animation phase (radians)
+  x: number;       // normalised horizontal position
+  speed: number;   // normalised units per ms
+  carry: number;   // palette index of the carried crate
+  phase: number;   // gait animation phase (radians)
+  kind: CharKind;  // which creature to draw
+  tint: number;    // palette index for the creature's body colour
 }
 
 /** Whole-scene simulation state. */
@@ -29,6 +36,7 @@ export interface SceneState {
   buildTimerMs: number; // time accumulated toward the next brick
   holdMs: number;       // time held after completion before resetting
   complete: boolean;    // true while the flag/sparkles show
+  wheelAngle: number;   // ferris-wheel rotation in radians
 }
 
 export const BRICK_ROWS = 5;
@@ -42,6 +50,11 @@ export const HOLD_MS = 2000;
 
 /** Number of palette colours the renderer cycles through. */
 export const PALETTE_SIZE = 5;
+
+/** Radians per ms the ferris wheel turns (~16s per revolution). */
+export const WHEEL_SPEED = 0.0004;
+/** Number of cabins / spokes on the ferris wheel. */
+export const WHEEL_CABINS = 6;
 
 const WORKER_RESET_X = -0.08;
 const WORKER_WRAP_X = 1.08;
@@ -57,15 +70,17 @@ export function createScene(): SceneState {
       { x: 0.84, y: 60, scale: 1.15, speed: 0.000034 },
     ],
     workers: [
-      { x: 0.05, speed: 0.00016, carry: 0, phase: 0 },
-      { x: 0.40, speed: 0.00013, carry: 1, phase: 2 },
-      { x: 0.72, speed: 0.00018, carry: 2, phase: 4 },
-      { x: 0.94, speed: 0.00015, carry: 4, phase: 1 },
+      { x: 0.04, speed: 0.00016, carry: 0, phase: 0, kind: 'human', tint: 0 },
+      { x: 0.28, speed: 0.00013, carry: 1, phase: 2, kind: 'monster', tint: 3 },
+      { x: 0.5, speed: 0.00019, carry: 3, phase: 4, kind: 'beetle', tint: 0 },
+      { x: 0.72, speed: 0.00015, carry: 2, phase: 1, kind: 'human', tint: 0 },
+      { x: 0.92, speed: 0.00012, carry: 4, phase: 3, kind: 'monster', tint: 1 },
     ],
     bricks: 0,
     buildTimerMs: 0,
     holdMs: 0,
     complete: false,
+    wheelAngle: 0,
   };
 }
 
@@ -82,13 +97,17 @@ export function updateScene(state: SceneState, dtMs: number): SceneState {
     if (c.x > CLOUD_WRAP_X) c.x = CLOUD_RESET_X;
   }
 
+  state.wheelAngle = (state.wheelAngle + WHEEL_SPEED * dt) % (Math.PI * 2);
+
   for (const w of state.workers) {
     w.x += w.speed * dt;
     w.phase += dt * 0.012;
     if (w.x > WORKER_WRAP_X) {
       w.x = WORKER_RESET_X;
-      // pick the next crate colour so the loop stays visually varied
+      // rotate crate colour and creature so the loop stays visually varied
       w.carry = (w.carry + 2) % PALETTE_SIZE;
+      w.tint = (w.tint + 1) % PALETTE_SIZE;
+      w.kind = KIND_CYCLE[(KIND_CYCLE.indexOf(w.kind) + 1) % KIND_CYCLE.length];
     }
   }
 
