@@ -2,11 +2,11 @@
 /* ============================================================
    HeroScene — looping "creators building the park" background
    animation for the market hero. Pure simulation lives in
-   scene-state.ts; this component only draws it to a canvas,
-   adds gentle mouse parallax, and manages the rAF lifecycle.
-   Decorative only: pointer-events are off so it never blocks
-   the search box. Hidden on phones via CSS; pauses when the
-   hero scrolls off-screen and respects prefers-reduced-motion.
+   scene-state.ts; this component only draws it to a canvas and
+   manages the rAF lifecycle. Purely decorative and non-interactive:
+   pointer-events are off so it never blocks the search box. Hidden
+   on phones via CSS; pauses when the hero scrolls off-screen and
+   respects prefers-reduced-motion.
    ============================================================ */
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import {
@@ -26,6 +26,18 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 
 const OUTLINE = '#1a1626';
 const PALETTE = ['#6c4cf1', '#ff4d9d', '#aef03e', '#1fd6c6', '#ffc83a'];
+const TRUNK = '#b5793f';
+
+// fixed park props, positioned by normalised x across the scene
+const TREES = [
+  { x: 0.16, scale: 0.85, canopy: '#1fd6c6' },
+  { x: 0.93, scale: 1.0, canopy: '#aef03e' },
+];
+const TREEHOUSE_X = 0.37;
+const BALLOONS = [
+  { x: 0.28, col: '#ff4d9d', ph: 0 },
+  { x: 0.62, col: '#ffc83a', ph: 2.1 },
+];
 
 let ctx: CanvasRenderingContext2D;
 let state: SceneState;
@@ -35,8 +47,6 @@ let w = 0;
 let h = 0;
 let groundY = 0;
 
-// parallax: target follows the pointer, current eases toward it
-const px = { cur: 0, tgt: 0 };
 let reduced = false;
 let visible = true;
 
@@ -59,6 +69,11 @@ function rrect(x: number, y: number, bw: number, bh: number, r: number) {
   ctx.roundRect(x, y, bw, bh, r);
 }
 
+/** Rolling terrain height at a given x (gentle hills, not a flat line). */
+function groundAt(x: number): number {
+  return groundY + Math.sin(x * 0.011 + 0.6) * 7 + Math.sin(x * 0.0047 - 1.2) * 5;
+}
+
 function drawCloud(cx: number, cy: number, s: number) {
   ctx.fillStyle = '#fff';
   ctx.strokeStyle = OUTLINE;
@@ -73,9 +88,9 @@ function drawCloud(cx: number, cy: number, s: number) {
 }
 
 /** A finished creator storefront: striped awning over a coloured door. */
-function drawStall(x: number, col: string) {
+function drawStall(x: number, gy: number, col: string) {
   ctx.save();
-  ctx.translate(x, groundY);
+  ctx.translate(x, gy);
   ctx.lineWidth = 2.4;
   ctx.strokeStyle = OUTLINE;
   ctx.fillStyle = '#fff';
@@ -116,10 +131,10 @@ function drawCarriedCrate(carryCol: string) {
 }
 
 /** A hard-hat worker with swinging legs, optionally carrying a crate. */
-function drawWorker(x: number, phase: number, carryCol: string | null, bodyCol: string) {
+function drawWorker(x: number, gy: number, phase: number, carryCol: string | null, bodyCol: string) {
   const bob = Math.abs(Math.sin(phase * 2)) * 1.5;
   ctx.save();
-  ctx.translate(x, groundY - bob);
+  ctx.translate(x, gy - bob);
   ctx.lineWidth = 2.4;
   ctx.strokeStyle = OUTLINE;
   const swing = Math.sin(phase) * 4;
@@ -152,10 +167,10 @@ function drawWorker(x: number, phase: number, carryCol: string | null, bodyCol: 
 }
 
 /** A round little monster that hops along, eyes + horns, optional crate. */
-function drawMonster(x: number, phase: number, carryCol: string | null, bodyCol: string) {
+function drawMonster(x: number, gy: number, phase: number, carryCol: string | null, bodyCol: string) {
   const hop = Math.max(0, Math.sin(phase * 1.4)) * 7; // springy bounce
   ctx.save();
-  ctx.translate(x, groundY - hop);
+  ctx.translate(x, gy - hop);
   ctx.lineWidth = 2.4;
   ctx.strokeStyle = OUTLINE;
   // feet (tuck up while airborne)
@@ -206,10 +221,10 @@ function drawMonster(x: number, phase: number, carryCol: string | null, bodyCol:
 }
 
 /** A rhinoceros beetle scuttling low, with a horn and a crate on its back. */
-function drawBeetle(x: number, phase: number, carryCol: string | null, bodyCol: string) {
+function drawBeetle(x: number, gy: number, phase: number, carryCol: string | null, bodyCol: string) {
   const bob = Math.abs(Math.sin(phase * 2)) * 1;
   ctx.save();
-  ctx.translate(x, groundY - bob);
+  ctx.translate(x, gy - bob);
   ctx.lineWidth = 2.2;
   ctx.strokeStyle = OUTLINE;
   // six little legs
@@ -254,10 +269,10 @@ function drawBeetle(x: number, phase: number, carryCol: string | null, bodyCol: 
 }
 
 /** Dispatch to the right creature renderer. */
-function drawCharacter(kind: CharKind, x: number, phase: number, carryCol: string, tint: string) {
-  if (kind === 'monster') drawMonster(x, phase, carryCol, tint);
-  else if (kind === 'beetle') drawBeetle(x, phase, carryCol, tint);
-  else drawWorker(x, phase, carryCol, tint);
+function drawCharacter(kind: CharKind, x: number, gy: number, phase: number, carryCol: string, tint: string) {
+  if (kind === 'monster') drawMonster(x, gy, phase, carryCol, tint);
+  else if (kind === 'beetle') drawBeetle(x, gy, phase, carryCol, tint);
+  else drawWorker(x, gy, phase, carryCol, tint);
 }
 
 /** A slowly turning ferris wheel — the centrepiece of the little park. */
@@ -304,10 +319,10 @@ function drawFerrisWheel(cx: number, baseY: number, r: number, angle: number) {
 }
 
 /** A worker beside the build site swinging a hammer. */
-function drawBuilder(x: number, t: number) {
+function drawBuilder(x: number, gy: number, t: number) {
   const swing = Math.sin(t * 0.012) * 0.5;
   ctx.save();
-  ctx.translate(x, groundY);
+  ctx.translate(x, gy);
   ctx.lineWidth = 2.4;
   ctx.strokeStyle = OUTLINE;
   ctx.beginPath();
@@ -346,16 +361,16 @@ function drawBuilder(x: number, t: number) {
 }
 
 /** The growing brick tower, with flag + sparkles once complete. */
-function drawBuilding(bx: number, t: number) {
+function drawBuilding(bx: number, gy: number, t: number) {
   const bw = 18;
   const bh = 11;
   ctx.lineWidth = 2.2;
   ctx.strokeStyle = 'rgba(26,22,38,.5)';
   ctx.beginPath();
-  ctx.moveTo(bx - (BRICK_COLS * bw) / 2 - 6, groundY);
-  ctx.lineTo(bx - (BRICK_COLS * bw) / 2 - 6, groundY - BRICK_ROWS * bh - 8);
-  ctx.moveTo(bx + (BRICK_COLS * bw) / 2 + 4, groundY);
-  ctx.lineTo(bx + (BRICK_COLS * bw) / 2 + 4, groundY - BRICK_ROWS * bh - 8);
+  ctx.moveTo(bx - (BRICK_COLS * bw) / 2 - 6, gy);
+  ctx.lineTo(bx - (BRICK_COLS * bw) / 2 - 6, gy - BRICK_ROWS * bh - 8);
+  ctx.moveTo(bx + (BRICK_COLS * bw) / 2 + 4, gy);
+  ctx.lineTo(bx + (BRICK_COLS * bw) / 2 + 4, gy - BRICK_ROWS * bh - 8);
   ctx.stroke();
 
   ctx.lineWidth = 2.2;
@@ -364,13 +379,13 @@ function drawBuilding(bx: number, t: number) {
     const row = Math.floor(i / BRICK_COLS);
     const col = i % BRICK_COLS;
     ctx.fillStyle = PALETTE[(row + col) % PALETTE.length];
-    rrect(bx + col * bw - (BRICK_COLS * bw) / 2, groundY - (row + 1) * bh, bw - 1, bh - 1, 2);
+    rrect(bx + col * bw - (BRICK_COLS * bw) / 2, gy - (row + 1) * bh, bw - 1, bh - 1, 2);
     ctx.fill();
     ctx.stroke();
   }
 
   if (state.bricks >= MAX_BRICKS) {
-    const top = groundY - BRICK_ROWS * bh;
+    const top = gy - BRICK_ROWS * bh;
     ctx.strokeStyle = OUTLINE;
     ctx.lineWidth = 2.2;
     ctx.beginPath();
@@ -401,58 +416,178 @@ function drawBuilding(bx: number, t: number) {
   }
 }
 
+/** Soft layered hills behind everything, giving the horizon some relief. */
+function drawHills() {
+  const layers = [
+    { base: groundY + 4, amp: 16, k: 0.0055, ph: 0.4, col: 'rgba(31,214,198,.10)' },
+    { base: groundY + 10, amp: 24, k: 0.0034, ph: 2.1, col: 'rgba(174,240,62,.14)' },
+  ];
+  for (const L of layers) {
+    ctx.beginPath();
+    ctx.moveTo(-40, h);
+    for (let x = -40; x <= w + 40; x += 16) {
+      ctx.lineTo(x, L.base - Math.abs(Math.sin(x * L.k + L.ph)) * L.amp);
+    }
+    ctx.lineTo(w + 40, h);
+    ctx.closePath();
+    ctx.fillStyle = L.col;
+    ctx.fill();
+  }
+}
+
+/** The rolling front lawn: grass fill under the curve + a soft ground line. */
+function drawGround() {
+  const x0 = -40;
+  const x1 = w + 40;
+  const trace = () => {
+    ctx.beginPath();
+    ctx.moveTo(x0, groundAt(x0));
+    for (let x = x0; x <= x1; x += 10) ctx.lineTo(x, groundAt(x));
+  };
+  // grass fill fading into the cream page background
+  trace();
+  ctx.lineTo(x1, h);
+  ctx.lineTo(x0, h);
+  ctx.closePath();
+  const grass = ctx.createLinearGradient(0, groundY - 14, 0, h);
+  grass.addColorStop(0, 'rgba(174,240,62,.22)');
+  grass.addColorStop(1, 'rgba(174,240,62,0)');
+  ctx.fillStyle = grass;
+  ctx.fill();
+  // ground line, fading out at both screen edges
+  const line = ctx.createLinearGradient(0, 0, w, 0);
+  line.addColorStop(0, 'rgba(26,22,38,0)');
+  line.addColorStop(0.1, 'rgba(26,22,38,.8)');
+  line.addColorStop(0.9, 'rgba(26,22,38,.8)');
+  line.addColorStop(1, 'rgba(26,22,38,0)');
+  trace();
+  ctx.strokeStyle = line;
+  ctx.lineWidth = 2.6;
+  ctx.stroke();
+}
+
+/** A simple lollipop tree, sized by scale. */
+function drawTree(x: number, scale: number, canopyCol: string) {
+  ctx.save();
+  ctx.translate(x, groundAt(x));
+  ctx.scale(scale, scale);
+  ctx.lineWidth = 2.4 / scale; // keep outline weight roughly constant
+  ctx.strokeStyle = OUTLINE;
+  ctx.fillStyle = TRUNK;
+  rrect(-4, -24, 8, 24, 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = canopyCol;
+  ctx.beginPath();
+  ctx.arc(0, -36, 16, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** A little house nestled in a tree, with roof, window and a ladder. */
+function drawTreehouse(x: number) {
+  ctx.save();
+  ctx.translate(x, groundAt(x));
+  ctx.lineWidth = 2.4;
+  ctx.strokeStyle = OUTLINE;
+  ctx.fillStyle = TRUNK;
+  rrect(-6, -30, 12, 30, 3);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#1fd6c6';
+  ctx.beginPath();
+  ctx.arc(0, -44, 20, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  rrect(-14, -42, 28, 20, 3);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#ff4d9d';
+  ctx.beginPath();
+  ctx.moveTo(-17, -42);
+  ctx.lineTo(0, -54);
+  ctx.lineTo(17, -42);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#ffc83a';
+  rrect(-5, -37, 10, 9, 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-3, -22);
+  ctx.lineTo(-3, 0);
+  ctx.moveTo(3, -22);
+  ctx.lineTo(3, 0);
+  for (let yy = -18; yy < 0; yy += 6) {
+    ctx.moveTo(-3, yy);
+    ctx.lineTo(3, yy);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** A tethered balloon that sways gently — a festival/park touch. */
+function drawBalloon(x: number, col: string, t: number, ph: number) {
+  const gy = groundAt(x);
+  const sway = Math.sin(t * 0.0014 + ph) * 6;
+  const cy = gy - 64;
+  const cx = x + sway;
+  // string from a ground peg up to the knot
+  ctx.strokeStyle = 'rgba(26,22,38,.5)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(x, gy - 2);
+  ctx.quadraticCurveTo((x + cx) / 2, cy + 34, cx, cy + 13);
+  ctx.stroke();
+  ctx.fillStyle = col;
+  ctx.strokeStyle = OUTLINE;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 11, 13, 0, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - 3, cy + 12);
+  ctx.lineTo(cx + 3, cy + 12);
+  ctx.lineTo(cx, cy + 15);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
 /* ---------- frame ---------- */
 function render(t: number) {
   ctx.clearRect(0, 0, w, h);
 
-  // ease parallax toward the pointer target
-  px.cur += (px.tgt - px.cur) * 0.06;
-  const far = px.cur * 8; // clouds drift least
-  const near = px.cur * 22; // workers / building drift most
-
   for (const c of state.clouds) {
-    drawCloud(c.x * w + far, c.y, c.scale);
+    drawCloud(c.x * w, c.y, c.scale);
   }
 
-  // grassy band fading down into the cream page background (no hard cut-off)
-  const grass = ctx.createLinearGradient(0, groundY, 0, h);
-  grass.addColorStop(0, 'rgba(174,240,62,.20)');
-  grass.addColorStop(1, 'rgba(174,240,62,0)');
-  ctx.fillStyle = grass;
-  ctx.fillRect(0, groundY, w, h - groundY);
-  // soft ground line (fades out at both ends so it doesn't hit the screen edges hard)
-  const line = ctx.createLinearGradient(0, 0, w, 0);
-  line.addColorStop(0, 'rgba(26,22,38,0)');
-  line.addColorStop(0.12, 'rgba(26,22,38,.85)');
-  line.addColorStop(0.88, 'rgba(26,22,38,.85)');
-  line.addColorStop(1, 'rgba(26,22,38,0)');
-  ctx.strokeStyle = line;
-  ctx.lineWidth = 2.6;
-  ctx.beginPath();
-  ctx.moveTo(0, groundY);
-  ctx.lineTo(w, groundY);
-  ctx.stroke();
+  drawHills();
 
-  // ferris wheel sits in the mid-ground (behind the workers / building)
-  const mid = px.cur * 14;
-  ctx.save();
-  ctx.translate(mid, 0);
-  drawFerrisWheel(w * 0.8, groundY, 46, state.wheelAngle);
-  ctx.restore();
+  // foreground park — everything stands on the same rolling terrain
+  drawGround();
 
-  ctx.save();
-  ctx.translate(near, 0);
-  drawStall(w * 0.1, '#6c4cf1');
-  drawStall(w * 0.22, '#ff4d9d');
+  drawTree(TREES[0].x * w, TREES[0].scale, TREES[0].canopy);
+  drawTreehouse(TREEHOUSE_X * w);
+  drawFerrisWheel(w * 0.8, groundAt(w * 0.8), 46, state.wheelAngle);
+  drawStall(w * 0.1, groundAt(w * 0.1), '#6c4cf1');
+  drawStall(w * 0.22, groundAt(w * 0.22), '#ff4d9d');
 
   const bx = w * 0.5;
-  drawBuilding(bx, t);
-  drawBuilder(bx - 34, t);
+  drawBuilding(bx, groundAt(bx), t);
+  drawBuilder(bx - 34, groundAt(bx - 34), t);
+
+  drawTree(TREES[1].x * w, TREES[1].scale, TREES[1].canopy);
+  for (const b of BALLOONS) drawBalloon(b.x * w, b.col, t, b.ph);
 
   for (const wk of state.workers) {
-    drawCharacter(wk.kind, wk.x * w, wk.phase, PALETTE[wk.carry], PALETTE[wk.tint]);
+    drawCharacter(wk.kind, wk.x * w, groundAt(wk.x * w), wk.phase, PALETTE[wk.carry], PALETTE[wk.tint]);
   }
-  ctx.restore();
 }
 
 function frame(t: number) {
@@ -463,21 +598,6 @@ function frame(t: number) {
     render(t);
   }
   raf = requestAnimationFrame(frame);
-}
-
-/* ---------- pointer parallax ---------- */
-// The scene has pointer-events: none, so track the pointer on window and
-// measure it against the hero bounds. Outside the hero, ease back to centre.
-function onPointerMove(e: PointerEvent) {
-  const el = root.value;
-  if (!el) return;
-  const rect = el.getBoundingClientRect();
-  const inside =
-    e.clientX >= rect.left &&
-    e.clientX <= rect.right &&
-    e.clientY >= rect.top &&
-    e.clientY <= rect.bottom;
-  px.tgt = inside ? ((e.clientX - rect.left) / rect.width - 0.5) * 2 : 0;
 }
 
 let ro: ResizeObserver | null = null;
@@ -496,14 +616,13 @@ onMounted(() => {
   ro.observe(el);
 
   if (reduced) {
-    // a single static, finished frame — no animation, no parallax
+    // a single static, finished frame — no animation
     state = completedScene();
     render(performance.now());
     return;
   }
 
   state = createScene();
-  window.addEventListener('pointermove', onPointerMove, { passive: true });
 
   io = new IntersectionObserver(
     ([entry]) => {
@@ -520,7 +639,6 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(raf);
   ro?.disconnect();
   io?.disconnect();
-  window.removeEventListener('pointermove', onPointerMove);
 });
 </script>
 
