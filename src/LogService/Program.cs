@@ -42,13 +42,7 @@ builder.Services.AddMassTransit(x =>
 // REST API
 builder.Services.AddControllers();
 builder.Services.AddOpenJamApiVersioning();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(opts =>
-{
-    opts.SwaggerDoc("v1", new() { Title = "LogService", Version = "v1" });
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, "LogService.xml");
-    if (File.Exists(xmlPath)) opts.IncludeXmlComments(xmlPath);
-});
+builder.Services.AddOpenJamSwagger("LogService");
 
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
