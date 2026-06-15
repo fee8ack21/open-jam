@@ -115,6 +115,10 @@ chore(release): 發佈新版本
 - **常用資源查詢快取**（Redis）。
 - **LogService 單純 index**：以索引支撐查詢，資料量大再評估分表分庫（見 [[Log]]）。
 - **decimal 數值計算**：金額計算避免溢位。
+- **設定檔 URL 一律無結尾斜線**：`appsettings.json` 內服務自有的 base URL（`Services:*:BaseUrl`、`Storage:PublicBaseUrl`、`Storage:Local:BaseUrl`、`App:BaseUrl` / `App:WorkspaceUrl`、`Hydra:AdminUrl` 等）結尾不帶 `/`，與前端一致。程式端不信任設定值的斜線狀態，一律正規化後再用：
+  - 字串拼接情境以 `.TrimEnd('/')` 去尾，再接帶前導斜線的後綴（如 `$"{baseUrl}/v1/files/blob/{key}"`）。
+  - `HttpClient.BaseAddress` 則以 `.TrimEnd('/') + "/"` 強制補尾斜線——.NET 規定 BaseAddress 須以 `/` 結尾、相對請求路徑**不可**以 `/` 開頭，否則最後一段路徑會被丟棄。
+  - **例外（外部協定精確比對，維持原樣含結尾斜線，不適用本規則）**：OIDC issuer（`Hydra:Issuer`）須與 token `iss` 完全一致；Hydra OIDC client 的 redirect / post-logout redirect URI 為註冊時的精確比對字串。CORS 的 allowed origins 則依規範僅為 scheme+host+port，本就不帶路徑或結尾斜線。
 - **後端多國語系**：採 .resx 資源檔。
 - **時間欄位命名**：一律以 `At` 結尾（如 `CreatedAt`、`UpdatedAt`），型別統一宣告為 `DateTimeOffset`。
 - **資料庫命名慣例**：資料庫、資料表、欄位、Migration history 資料表全部採 `snake_case`；C# Entity 仍保持 `PascalCase`，由 `BaseDbContext` 統一套用 `EF Core` naming convention 自動轉換，開發層不需手動指定 `[Column]` 或 `[Table]`。
@@ -134,6 +138,7 @@ chore(release): 發佈新版本
 - **API promise singleton**：同一請求進行中時共用同一個 promise，避免重複發送；搭配 with-pending 狀態機制。
 - **lodash debounce**：搜尋 / 輸入等場景去抖。
 - **前端多國語系**：i18n。
+- **環境變數 URL 一律無結尾斜線**：所有 `environment.ts` 的 URL 設定（API base、頁面導向、外部連結，如 `STORE_API_URL`、`AUTH_PAGE_URL`、`*_PAGE_URL`、`GITHUB_REPO_URL`、`DOCS_URL`）結尾**不帶** `/`；拼接時一律由後綴自帶前導 `/`（如 `${env.AUTH_PAGE_URL}/error`、API client 的 `${baseUrl}/v1/...`）。如此「base 無斜線 + 後綴帶斜線」是唯一心智模型，不會組出雙斜線。直接綁 `:href` / `location.href` 而不接後綴的連結同樣維持無斜線以保持一致。
 
 ## Controller 與 Service 分層
 
