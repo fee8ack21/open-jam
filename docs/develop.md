@@ -122,6 +122,10 @@ chore(release): 發佈新版本
 - **enum 獨立成檔**：enum 一律單獨一個檔案（一型別一檔），不與 Entity 或其他型別共置同檔，如 `UserStatus.cs`、`EmailStatus.cs`。
 - **XML 文件註解**：Entity、Model（DTO / ViewModel / Request / Response）、Service、公開方法、Controller 及其 Action 皆須撰寫完整 `<summary>`，Model 屬性另加 `<example>`。Controller / Model 缺少註解會直接影響 Swagger 文件完整度，屬強制要求。
 - **API 版本（ApiVersion）**：後端 REST API 皆須定義 API 版本，路由以版本前綴呈現（如 `/v1/...`）。新增或破壞性變更端點時遞增版本，舊版本維持並行直到下線；版本前綴由各服務統一掛載，Controller 不個別硬寫。
+- **PathBase（Ingress path 前綴剝除）**：正式環境各 REST API 服務以 path 前綴掛在 `api.openjam.co` 之下（如 `api.openjam.co/store-service` → StoreService）。GKE 原生 GCE Ingress **不會剝除** 該前綴，後端會收到 `/store-service/v1/...`，無法比對僅註冊於 `/v1/...` 的 Controller 路由而回 404（前端常表現為 CORS 錯誤，因錯誤回應不帶 `Access-Control-Allow-Origin`）。各服務於 `Program.cs` 以 `app.UseOpenJamPathBase()`（`Shared/Web/PathBaseExtensions.cs`）作為**第一個 middleware**剝除前綴，前綴值由 deployment 的 `PathBase` 環境變數提供（如 `/store-service`）。
+  - 須排在所有 middleware（含 `UseExceptionMiddleware`）之前，使後續例外處理、路由、CORS 皆見到已校正的路徑。
+  - `UsePathBase` 僅在路徑以前綴開頭時剝除；不以前綴開頭的請求（健康檢查 `/healthz`、叢集內部服務間直連 `/v1/...`）原樣通過，不受影響。
+  - 未設定 `PathBase`（本機開發）時不作用，行為不變。
 
 ## 前端注意事項
 
