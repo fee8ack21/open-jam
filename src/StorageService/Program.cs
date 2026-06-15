@@ -98,6 +98,9 @@ using (var scope = app.Services.CreateScope())
         .EnsurePublicReadPolicyAsync();
 }
 
+// PathBase：剝除 Ingress 轉發保留的服務前綴（如 /storage-service），須為第一個 middleware
+app.UseOpenJamPathBase();
+
 app.UseExceptionMiddleware();
 
 if (app.Environment.IsDevelopment())

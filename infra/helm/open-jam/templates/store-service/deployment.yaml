@@ -30,6 +30,9 @@ spec:
               value: Production
             - name: ASPNETCORE_HTTP_PORTS
               value: "8080"
+            # 對應 infra chart Ingress 的 path 前綴（GCE Ingress 不剝除，由服務自行剝除）
+            - name: PathBase
+              value: "/store-service"
             - name: Logging__LogLevel__Default
               value: "Warning"
             - name: Logging__LogLevel__Microsoft

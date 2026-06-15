@@ -84,6 +84,9 @@ using (var scope = app.Services.CreateScope())
         .Database.MigrateAsync();
 }
 
+// PathBase：剝除 Ingress 轉發保留的服務前綴（如 /store-service），須為第一個 middleware
+app.UseOpenJamPathBase();
+
 app.UseExceptionMiddleware();
 
 if (app.Environment.IsDevelopment())
