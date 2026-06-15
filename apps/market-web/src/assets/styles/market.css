@@ -33,6 +33,17 @@
 .nav-logout:hover { color: var(--c-pink); transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--text); }
 .nav-logout:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--text); }
 
+.nav-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; flex: none;
+  color: var(--text-soft); background: var(--surface);
+  border: 1.5px solid var(--text); border-radius: 12px;
+  text-decoration: none; cursor: pointer;
+  transition: transform .14s, box-shadow .14s, color .14s;
+}
+.nav-link:hover { color: var(--oj-primary); transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--text); }
+.nav-link:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--text); }
+
 /* ---------- hero (search-led) ---------- */
 .mkt-hero { position: relative; padding: 64px 0 30px; text-align: center; }
 .mkt-hero .hero-shapes { z-index: 0; }
@@ -199,6 +210,7 @@
   /* scale down buttons proportionally on phones */
   .nav-admin { height: 36px; padding: 0 13px; font-size: 13px; gap: 6px; box-shadow: 2px 2px 0 var(--text); }
   .nav-logout { width: 36px; height: 36px; box-shadow: 2px 2px 0 var(--text); }
+  .nav-link { width: 36px; height: 36px; box-shadow: 2px 2px 0 var(--text); }
   .mkt-search input { font-size: 15px; }
   .mkt-search button { height: 34px; padding: 0 13px; font-size: 13px; gap: 5px; border-radius: 10px; box-shadow: 2px 2px 0 var(--text); }
   /* the field already has a leading magnifier — drop the redundant one in the button */

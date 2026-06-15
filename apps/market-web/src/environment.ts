@@ -4,6 +4,8 @@ class AppEnv {
   OIDC_AUTHORITY = 'https://hydra.openjam.co';
   OIDC_CLIENT_ID = 'open-jam-web';
   AUTH_PAGE_URL = 'http://localhost:5169/';
+  GITHUB_REPO_URL = 'https://github.com/fee8ack21/open-jam';
+  DOCS_URL = 'https://docs.openjam.co';
   [key: string]: string;
 
   constructor() {
