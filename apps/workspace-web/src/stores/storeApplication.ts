@@ -38,8 +38,8 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
     error.value = null;
     try {
       const [appsRes, storesRes] = await Promise.all([
-        storeApi.storeApplications.getStoreApplications({ Offset: 0, Limit: 20 }),
-        storeApi.stores.getStores(),
+        storeApi.storeApplications.getMine({ Offset: 0, Limit: 20 }),
+        storeApi.stores.getMine(),
       ]);
       applications.value = appsRes.data.items ?? [];
       stores.value = storesRes.data ?? [];
@@ -57,7 +57,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
     submitting.value = true;
     error.value = null;
     try {
-      await storeApi.storeApplications.storeApplicationsCreate({ storeName, storeSlug });
+      await storeApi.storeApplications.submit({ storeName, storeSlug });
       await load();
       return true;
     } catch (err) {
@@ -72,7 +72,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
   async function withdraw(id: string) {
     error.value = null;
     try {
-      await storeApi.storeApplications.withdrawCreate(id);
+      await storeApi.storeApplications.withdraw(id);
       await load();
       return true;
     } catch (err) {

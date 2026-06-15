@@ -15,7 +15,7 @@
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "gen:api": "swagger-typescript-api generate -p http://localhost:5172/swagger/v1/swagger.json -o src/api -n store-service.ts --single-http-client"
+    "gen:api": "swagger-typescript-api generate -p http://localhost:5172/swagger/v1/swagger.json -o src/api -n store-service.ts --single-http-client --module-name-first-tag"
   },
   "dependencies": {
     "naive-ui": "^2.40.1",

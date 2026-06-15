@@ -538,19 +538,16 @@ export class Api<SecurityDataType extends unknown> {
     this.http = http;
   }
 
-  v1 = {
+  storeApplications = {
     /**
      * No description
      *
      * @tags StoreApplications
-     * @name StoreApplicationsCreate
+     * @name Submit
      * @summary 提交開店申請。同一使用者僅能有一筆 Pending 申請。
      * @request POST:/v1/store-applications
      */
-    storeApplicationsCreate: (
-      data: SubmitStoreApplicationRequest,
-      params: RequestParams = {},
-    ) =>
+    submit: (data: SubmitStoreApplicationRequest, params: RequestParams = {}) =>
       this.http.request<StoreApplicationDto, any>({
         path: `/v1/store-applications`,
         method: "POST",
@@ -564,11 +561,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags StoreApplications
-     * @name StoreApplicationsList
+     * @name GetAll
      * @summary 查詢全平台開店申請列表，可依審核狀態篩選（分頁）。
      * @request GET:/v1/store-applications
      */
-    storeApplicationsList: (
+    getAll: (
       query?: {
         /**
          * 略過筆數。
@@ -602,11 +599,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags StoreApplications
-     * @name StoreApplicationsMeList
+     * @name GetMine
      * @summary 查詢自己的開店申請紀錄（分頁）。
      * @request GET:/v1/store-applications/me
      */
-    storeApplicationsMeList: (
+    getMine: (
       query?: {
         /**
          * 略過筆數。
@@ -640,11 +637,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags StoreApplications
-     * @name StoreApplicationsWithdrawCreate
+     * @name Withdraw
      * @summary 撤回自己的待審核申請（Pending → Withdrawn），可重新提交。
      * @request POST:/v1/store-applications/{id}/withdraw
      */
-    storeApplicationsWithdrawCreate: (id: string, params: RequestParams = {}) =>
+    withdraw: (id: string, params: RequestParams = {}) =>
       this.http.request<void, any>({
         path: `/v1/store-applications/${id}/withdraw`,
         method: "POST",
@@ -655,11 +652,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags StoreApplications
-     * @name StoreApplicationsApproveCreate
+     * @name Approve
      * @summary 核准開店申請（Pending → Approved），建立 Store 與 StoreMember(Owner)。
      * @request POST:/v1/store-applications/{id}/approve
      */
-    storeApplicationsApproveCreate: (id: string, params: RequestParams = {}) =>
+    approve: (id: string, params: RequestParams = {}) =>
       this.http.request<StoreApplicationDto, any>({
         path: `/v1/store-applications/${id}/approve`,
         method: "POST",
@@ -671,11 +668,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags StoreApplications
-     * @name StoreApplicationsRejectCreate
+     * @name Reject
      * @summary 駁回開店申請（Pending → Rejected），可重新提交。
      * @request POST:/v1/store-applications/{id}/reject
      */
-    storeApplicationsRejectCreate: (
+    reject: (
       id: string,
       data: RejectStoreApplicationRequest,
       params: RequestParams = {},
@@ -688,16 +685,17 @@ export class Api<SecurityDataType extends unknown> {
         format: "json",
         ...params,
       }),
-
+  };
+  storeFollowers = {
     /**
      * No description
      *
      * @tags StoreFollowers
-     * @name StoresFollowCreate
+     * @name Follow
      * @summary 追蹤商店。已追蹤則 no-op。
      * @request POST:/v1/stores/{id}/follow
      */
-    storesFollowCreate: (
+    follow: (
       id: string,
       data: FollowStoreRequest,
       params: RequestParams = {},
@@ -714,11 +712,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags StoreFollowers
-     * @name StoresFollowDelete
+     * @name Unfollow
      * @summary 取消追蹤商店。依 (StoreId, Email) 移除，未追蹤則 no-op。
      * @request DELETE:/v1/stores/{id}/follow
      */
-    storesFollowDelete: (
+    unfollow: (
       id: string,
       data: FollowStoreRequest,
       params: RequestParams = {},
@@ -735,11 +733,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags StoreFollowers
-     * @name StoresFollowersList
+     * @name GetFollowers
      * @summary 查詢商店追蹤者列表（分頁）。僅 Owner 可操作。
      * @request GET:/v1/stores/{id}/followers
      */
-    storesFollowersList: (
+    getFollowers: (
       id: string,
       query?: {
         /**
@@ -764,16 +762,17 @@ export class Api<SecurityDataType extends unknown> {
         format: "json",
         ...params,
       }),
-
+  };
+  stores = {
     /**
      * No description
      *
      * @tags Stores
-     * @name StoresDetail
+     * @name Get
      * @summary 查詢商店基本資訊（公開）。
      * @request GET:/v1/stores/{idOrSlug}
      */
-    storesDetail: (idOrSlug: string, params: RequestParams = {}) =>
+    get: (idOrSlug: string, params: RequestParams = {}) =>
       this.http.request<StoreDto, any>({
         path: `/v1/stores/${idOrSlug}`,
         method: "GET",
@@ -785,11 +784,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
-     * @name StoresMeList
+     * @name GetMine
      * @summary 查詢登入使用者所屬的商店列表。
      * @request GET:/v1/stores/me
      */
-    storesMeList: (params: RequestParams = {}) =>
+    getMine: (params: RequestParams = {}) =>
       this.http.request<MyStoreDto[], any>({
         path: `/v1/stores/me`,
         method: "GET",
@@ -801,11 +800,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
-     * @name StoresPartialUpdate
+     * @name Update
      * @summary 更新商店基本資料（StoreName / Description）。僅 Owner 可操作。
      * @request PATCH:/v1/stores/{id}
      */
-    storesPartialUpdate: (
+    update: (
       id: string,
       data: UpdateStoreRequest,
       params: RequestParams = {},
@@ -823,11 +822,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
-     * @name StoresSuspendCreate
+     * @name Suspend
      * @summary 平台停權商店（Active → Suspended）。僅 Admin 可操作。
      * @request POST:/v1/stores/{id}/suspend
      */
-    storesSuspendCreate: (id: string, params: RequestParams = {}) =>
+    suspend: (id: string, params: RequestParams = {}) =>
       this.http.request<void, any>({
         path: `/v1/stores/${id}/suspend`,
         method: "POST",
@@ -838,11 +837,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
-     * @name StoresUnsuspendCreate
+     * @name Unsuspend
      * @summary 解除商店停權（Suspended → Active）。僅 Admin 可操作。
      * @request POST:/v1/stores/{id}/unsuspend
      */
-    storesUnsuspendCreate: (id: string, params: RequestParams = {}) =>
+    unsuspend: (id: string, params: RequestParams = {}) =>
       this.http.request<void, any>({
         path: `/v1/stores/${id}/unsuspend`,
         method: "POST",
@@ -853,11 +852,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
-     * @name StoresCloseCreate
+     * @name Close
      * @summary 關閉商店（Active/Suspended → Closed，終態不可逆）。Owner 或 Admin 可操作。
      * @request POST:/v1/stores/{id}/close
      */
-    storesCloseCreate: (id: string, params: RequestParams = {}) =>
+    close: (id: string, params: RequestParams = {}) =>
       this.http.request<void, any>({
         path: `/v1/stores/${id}/close`,
         method: "POST",
@@ -868,11 +867,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
-     * @name StoresAvatarUploadUrlCreate
+     * @name RequestAvatarUploadUrl
      * @summary 申請商店頭像（Avatar）上傳簽章 URL。僅 Owner 可操作。
      * @request POST:/v1/stores/{id}/avatar/upload-url
      */
-    storesAvatarUploadUrlCreate: (
+    requestAvatarUploadUrl: (
       id: string,
       data: RequestAssetUploadUrlRequest,
       params: RequestParams = {},
@@ -890,11 +889,11 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
-     * @name StoresBannerUploadUrlCreate
+     * @name RequestBannerUploadUrl
      * @summary 申請商店橫幅（Banner）上傳簽章 URL。僅 Owner 可操作。
      * @request POST:/v1/stores/{id}/banner/upload-url
      */
-    storesBannerUploadUrlCreate: (
+    requestBannerUploadUrl: (
       id: string,
       data: RequestAssetUploadUrlRequest,
       params: RequestParams = {},
@@ -908,7 +907,7 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
-  healthz = {
+  storeService = {
     /**
      * No description
      *

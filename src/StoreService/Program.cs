@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using MassTransit;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
 using Shared.Middleware;
@@ -73,6 +74,10 @@ builder.Services.AddSwaggerGen(opts =>
     opts.SwaggerDoc("v1", new() { Title = "StoreService", Version = "v1" });
     var xmlPath = Path.Combine(AppContext.BaseDirectory, "StoreService.xml");
     if (File.Exists(xmlPath)) opts.IncludeXmlComments(xmlPath);
+    // operationId 取 Controller Action 名稱（已去除 Async 後綴），
+    // 讓 swagger-typescript-api 產出的方法名與 .NET action 一致
+    opts.CustomOperationIds(api =>
+        api.ActionDescriptor is ControllerActionDescriptor cad ? cad.ActionName : null);
 });
 
 var app = builder.Build();
