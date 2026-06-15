@@ -22,11 +22,11 @@ public class StoreDto
     public string? Description { get; set; }
 
     /// <summary>商店頭像公開 URL；null 表示尚未設定。</summary>
-    /// <example>http://localhost:9000/open-jam/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/avatar.png</example>
+    /// <example>http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/avatar.png</example>
     public string? AvatarUrl { get; set; }
 
     /// <summary>商店橫幅公開 URL；null 表示尚未設定。</summary>
-    /// <example>http://localhost:9000/open-jam/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/banner.png</example>
+    /// <example>http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/banner.png</example>
     public string? BannerUrl { get; set; }
 
     /// <summary>商店狀態。</summary>
@@ -87,11 +87,11 @@ public class AssetUploadUrlResponse
     public Guid AssetId { get; set; }
 
     /// <summary>前端應使用此 URL 以 HTTP PUT 直傳檔案。</summary>
-    /// <example>http://localhost:9000/open-jam/public/.../avatar.png?X-Amz-Signature=...</example>
+    /// <example>http://localhost:5171/v1/files/blob/public/.../avatar.png?expires=1735689600&amp;sig=...</example>
     public string UploadUrl { get; set; } = "";
 
     /// <summary>上傳完成後的公開讀取網址。</summary>
-    /// <example>http://localhost:9000/open-jam/public/.../avatar.png</example>
+    /// <example>http://localhost:5171/v1/files/blob/public/.../avatar.png</example>
     public string PublicUrl { get; set; } = "";
 
     /// <summary>簽章 URL 過期時間（UTC）。</summary>

@@ -1,6 +1,6 @@
 namespace StorageService.Services.StorageEvents;
 
-/// <summary>處理儲存後端（MinIO / GCS）物件事件通知的業務邏輯。</summary>
+/// <summary>處理儲存後端（本地檔案 / GCS）物件事件通知的業務邏輯。</summary>
 public interface IStorageEventService
 {
     /// <summary>

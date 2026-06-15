@@ -46,7 +46,7 @@ public class RequestUploadUrlResponse
     public Guid FileId { get; set; }
 
     /// <summary>前端應使用此 URL 以 HTTP PUT 直傳檔案，不得經過 API Server 轉傳。</summary>
-    /// <example>http://localhost:9000/open-jam/creators/.../intro-video.mp4?X-Amz-Signature=...</example>
+    /// <example>http://localhost:5171/v1/files/blob/creators/.../intro-video.mp4?expires=1735689600&amp;sig=...</example>
     public string UploadUrl { get; set; } = "";
 
     /// <summary>在儲存後端的物件鍵值。</summary>
@@ -54,7 +54,7 @@ public class RequestUploadUrlResponse
     public string StorageKey { get; set; } = "";
 
     /// <summary>公開讀取網址；僅 `IsPublic=true` 時提供。</summary>
-    /// <example>http://localhost:9000/open-jam/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png</example>
+    /// <example>http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png</example>
     public string? PublicUrl { get; set; }
 
     /// <summary>簽章 URL 過期時間（UTC）。</summary>
@@ -69,7 +69,7 @@ public class GetDownloadUrlResponse
     public Guid FileId { get; set; }
 
     /// <summary>有效的短效下載 URL；調用方應立即轉交給終端使用者，不應快取。</summary>
-    /// <example>http://localhost:9000/open-jam/creators/.../intro-video.mp4?X-Amz-Signature=...</example>
+    /// <example>http://localhost:5171/v1/files/blob/creators/.../intro-video.mp4?expires=1735689600&amp;sig=...</example>
     public string DownloadUrl { get; set; } = "";
 
     /// <summary>簽章 URL 過期時間（UTC）。</summary>

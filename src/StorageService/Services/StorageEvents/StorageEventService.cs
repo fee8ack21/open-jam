@@ -36,7 +36,7 @@ public class StorageEventService(
             await db.SaveChangesAsync(ct);
         }
 
-        // 在背景執行 pipeline，不阻塞 webhook 回應（MinIO 期望快速回應）
+        // 在背景執行 pipeline，不阻塞上傳回應
         _ = Task.Run(() => processor.ProcessAsync(fileId, CancellationToken.None), ct);
 
         return true;

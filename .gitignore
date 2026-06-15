@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# StorageService 地端本地儲存的上傳檔案
+src/StorageService/Files/
+
 # User-specific files
 *.rsuser
 *.suo

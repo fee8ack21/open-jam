@@ -14,7 +14,7 @@ public class Asset : ICreatedAt
     /// <summary>上傳者使用者 ID。</summary>
     public Guid CreatedBy { get; set; }
 
-    /// <summary>在儲存後端（MinIO / GCS）的物件鍵值。</summary>
+    /// <summary>在儲存後端（本地檔案 / GCS）的物件鍵值。</summary>
     public string StorageKey { get; set; } = "";
 
     /// <summary>使用者上傳時的原始檔名。</summary>

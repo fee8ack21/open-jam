@@ -14,7 +14,7 @@ public class StoredFile : ICreatedAt, IUpdatedAt, IDeletedAt, IDeletedBy
     /// <summary>所屬商品 ID；null 表示尚未關聯商品。</summary>
     public Guid? ProductId { get; set; }
 
-    /// <summary>在儲存後端（MinIO / GCS）的物件鍵值，格式：creators/{creatorId}/{fileId}/{originalName}。</summary>
+    /// <summary>在儲存後端（本地檔案 / GCS）的物件鍵值，格式：creators/{creatorId}/{fileId}/{originalName}。</summary>
     public string StorageKey { get; set; } = "";
 
     /// <summary>使用者上傳時的原始檔名。</summary>

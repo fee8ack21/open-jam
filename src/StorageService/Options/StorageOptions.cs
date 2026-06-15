@@ -1,30 +1,21 @@
 namespace StorageService.Options;
 
-/// <summary>物件儲存後端設定（地端 MinIO / 雲端 GCS 共用介面）。</summary>
+/// <summary>物件儲存後端設定（地端本地檔案 / 雲端 GCS 共用介面）。</summary>
 public class StorageOptions
 {
-    /// <summary>儲存後端供應商：<c>Minio</c>（地端開發，預設）或 <c>Gcs</c>（雲端正式）。</summary>
-    public StorageProvider Provider { get; set; } = StorageProvider.Minio;
+    /// <summary>儲存後端供應商：<c>Local</c>（地端開發，預設）或 <c>Gcs</c>（雲端正式）。</summary>
+    public StorageProvider Provider { get; set; } = StorageProvider.Local;
+
+    /// <summary>地端本地檔案儲存設定；僅 <see cref="Provider"/> 為 <c>Local</c> 時使用。</summary>
+    public LocalOptions Local { get; set; } = new();
 
     /// <summary>Google Cloud Storage 專屬設定；僅 <see cref="Provider"/> 為 <c>Gcs</c> 時使用。</summary>
     public GcsOptions Gcs { get; set; } = new();
 
-    /// <summary>MinIO / GCS 端點，例如 "localhost:9000"。</summary>
-    public string Endpoint { get; set; } = "localhost:9000";
-
-    /// <summary>Access key（MinIO root user / GCS HMAC key）。</summary>
-    public string AccessKey { get; set; } = "minioadmin";
-
-    /// <summary>Secret key（MinIO root password / GCS HMAC secret）。</summary>
-    public string SecretKey { get; set; } = "minioadmin";
-
-    /// <summary>是否使用 TLS；本地 MinIO 設 false。</summary>
-    public bool UseSsl { get; set; } = false;
-
-    /// <summary>目標 bucket 名稱。</summary>
+    /// <summary>目標 bucket 名稱（僅 GCS 使用）。</summary>
     public string Bucket { get; set; } = "open-jam";
 
-    /// <summary>公開讀取物件（`public/*`）的對外存取網址前綴，例如 "http://localhost:9000/open-jam"。</summary>
+    /// <summary>公開讀取物件（`public/*`）的對外存取網址前綴，例如 "http://localhost:5171/v1/files/blob"。</summary>
     public string PublicBaseUrl { get; set; } = "";
 
     /// <summary>上傳簽章 URL 有效秒數；預設 1 小時。</summary>
@@ -43,11 +34,24 @@ public class StorageOptions
 /// <summary>儲存後端供應商種類。</summary>
 public enum StorageProvider
 {
-    /// <summary>地端 MinIO（S3 相容），用於本地開發。</summary>
-    Minio,
+    /// <summary>地端本地檔案系統，用於本地開發。</summary>
+    Local,
 
     /// <summary>Google Cloud Storage，用於雲端正式環境。</summary>
     Gcs,
+}
+
+/// <summary>地端本地檔案儲存設定。</summary>
+public class LocalOptions
+{
+    /// <summary>檔案存放根目錄；相對路徑以服務工作目錄為基準。預設 "Files"。</summary>
+    public string RootPath { get; set; } = "Files";
+
+    /// <summary>本服務對外可達的基底網址，用於組合上傳 / 下載 blob URL，例如 "http://localhost:5171"。</summary>
+    public string BaseUrl { get; set; } = "http://localhost:5171";
+
+    /// <summary>簽發 blob URL 的 HMAC 密鑰；正式環境須以環境變數 / Secret 覆蓋。</summary>
+    public string SigningKey { get; set; } = "dev-local-storage-signing-key-change-me";
 }
 
 /// <summary>Google Cloud Storage 專屬設定。</summary>

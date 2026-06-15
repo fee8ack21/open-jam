@@ -2,7 +2,6 @@ using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Minio;
 using Shared.Auth;
 using Shared.Middleware;
 using Shared.Web;
@@ -29,7 +28,7 @@ builder.Services.AddDbContext<StorageDbContext>(opts =>
 
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
 
-// 儲存後端：地端 MinIO（S3 相容）/ 雲端 Google Cloud Storage，依設定切換
+// 儲存後端：地端本地檔案系統 / 雲端 Google Cloud Storage，依設定切換
 if (storageOpts.Provider == StorageProvider.Gcs)
 {
     // 服務帳戶金鑰可簽章 signed URL；留空則用 ADC（GKE Workload Identity，透過 IAM SignBlob 簽章）
@@ -43,14 +42,10 @@ if (storageOpts.Provider == StorageProvider.Gcs)
 }
 else
 {
-    builder.Services.AddSingleton<IMinioClient>(_ =>
-        new MinioClient()
-            .WithEndpoint(storageOpts.Endpoint)
-            .WithCredentials(storageOpts.AccessKey, storageOpts.SecretKey)
-            .WithSSL(storageOpts.UseSsl)
-            .Build());
-
-    builder.Services.AddScoped<IStorageProvider, MinioStorageProvider>();
+    // 本地檔案儲存：blob URL 由 BlobUrlSigner 以 HMAC 簽章，實體檔案由 LocalFileStore 讀寫。
+    builder.Services.AddSingleton<LocalFileStore>();
+    builder.Services.AddSingleton<BlobUrlSigner>();
+    builder.Services.AddScoped<IStorageProvider, LocalStorageProvider>();
 }
 
 // MassTransit + RabbitMQ（publish only，FileReadyEvent）

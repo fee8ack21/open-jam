@@ -4,6 +4,6 @@ namespace StoreService.Options;
 public class StorageOptions
 {
     /// <summary>公開讀取資產（Avatar/Banner）的 URL 前綴。</summary>
-    /// <example>http://localhost:9000/open-jam</example>
+    /// <example>http://localhost:5171/v1/files/blob</example>
     public string PublicBaseUrl { get; set; } = null!;
 }

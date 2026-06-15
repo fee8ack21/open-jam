@@ -1,7 +1,7 @@
 namespace StorageService.Storage;
 
 /// <summary>
-/// 物件儲存後端抽象介面。地端使用 MinIO 實作，雲端切換為 Google Cloud Storage 實作，
+/// 物件儲存後端抽象介面。地端使用本地檔案系統實作，雲端切換為 Google Cloud Storage 實作，
 /// 業務邏輯不依賴具體後端。
 /// </summary>
 public interface IStorageProvider

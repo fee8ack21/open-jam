@@ -8,7 +8,7 @@ namespace StorageService.Controllers;
 /// <summary>
 /// 數位商品檔案管理 API。
 /// 調用方為功能 API（商品服務），前端不直接呼叫此 Controller，
-/// 而是透過 presigned URL 直接與 MinIO / GCS 互動。
+/// 而是透過簽章 URL 直接與儲存後端（本地 blob 端點 / GCS）互動。
 ///
 /// 授權說明（MVP 暫無 JWT 驗證，待功能 API 整合後補上 service token 驗證）。
 /// </summary>
@@ -19,9 +19,9 @@ public class FilesController(IFileService fileService) : ControllerBase
 {
     /// <summary>申請上傳簽章 URL（presigned PUT）。</summary>
     /// <remarks>
-    /// 功能 API 在完成配額檢查後呼叫此端點，取得 presigned URL 交由前端直傳 MinIO / GCS。
-    /// 上傳完成後由 Storage bucket notification webhook 自動觸發處理 pipeline，
-    /// 無需客戶端另行回報。
+    /// 功能 API 在完成配額檢查後呼叫此端點，取得簽章 URL 交由前端直傳儲存後端。
+    /// 本地儲存於 blob 端點接收上傳後即觸發處理 pipeline；GCS 由 bucket notification 觸發，
+    /// 皆無需客戶端另行回報。
     /// </remarks>
     /// <param name="request">上傳元資訊。</param>
     /// <param name="ct">Cancellation token。</param>

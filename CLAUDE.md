@@ -123,8 +123,9 @@ RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以
 
 REST API，簽發上傳 / 下載 URL 並管理檔案生命週期。
 
-- **儲存後端**：`IStorageProvider` 抽象，依 `Storage:Provider` 設定切換地端 `MinioStorageProvider`（S3 相容）或雲端 `GcsStorageProvider`（GCS，signed URL 用服務帳戶金鑰或 GKE Workload Identity 的 IAM SignBlob）。
-- **流程**：`FilesController` 簽發 presigned upload URL → 客戶端直傳後端儲存 → `InternalController` 收 storage 事件（webhook）由 `StorageEventService` 確認 → `FileProcessingService` 處理 → publish `FileReadyEvent`。
+- **儲存後端**：`IStorageProvider` 抽象，依 `Storage:Provider` 設定切換地端 `LocalStorageProvider`（本地檔案系統，預設存於 `Files/` 資料夾）或雲端 `GcsStorageProvider`（GCS，signed URL 用服務帳戶金鑰或 GKE Workload Identity 的 IAM SignBlob）。
+- **流程**：`FilesController` 簽發上傳 / 下載 URL（本地由 `BlobUrlSigner` 以 HMAC 簽章，取代 presigned URL）→ 客戶端直傳；本地經 `BlobController` 接收上傳寫入 `LocalFileStore` 後即觸發 `StorageEventService` → `FileProcessingService` 處理 → publish `FileReadyEvent`（GCS 則由 bucket notification 觸發）。
+- **本地 blob 端點**：`BlobController`（`/v1/files/blob/{**key}`）負責本地儲存的 PUT 上傳 / GET 下載；`public/` 前綴免簽章供匿名讀取，其餘須帶有效 `expires` + `sig`。
 - **背景**：`OrphanCleanupService` 清理保留期過後的孤兒檔案（硬刪除）。
 
 ## StoreService（`src/StoreService/`）
@@ -163,12 +164,17 @@ REST API，管理開店申請、店家與追蹤。Controller（`StoreApplication
 {
   "Hydra": { "Issuer": "http://localhost:4444/" }
 }
-// StorageService 額外需要（地端 MinIO；正式切 Provider: "Gcs"）
+// StorageService 額外需要（地端本地檔案儲存；正式切 Provider: "Gcs"）
 {
   "Storage": {
-    "Provider": "Minio", "Endpoint": "localhost:9000",
-    "AccessKey": "minioadmin", "SecretKey": "minioadmin",
+    "Provider": "Local",
     "Bucket": "open-jam", "SoftDeleteRetentionDays": 30,
+    "PublicBaseUrl": "http://localhost:5171/v1/files/blob",  // public/* 匿名讀取網址前綴
+    "Local": {
+      "RootPath": "Files",                  // 檔案存放根目錄（相對工作目錄）
+      "BaseUrl": "http://localhost:5171",   // 本服務對外網址，用於組合 blob URL
+      "SigningKey": "<HMAC 簽章密鑰，正式以 Secret 覆蓋>"
+    },
     "Gcs": { "CredentialsPath": "" }  // 留空走 ADC / Workload Identity
   }
 }

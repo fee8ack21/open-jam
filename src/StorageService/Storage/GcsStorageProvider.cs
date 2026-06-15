@@ -21,7 +21,7 @@ public class GcsStorageProvider(
     {
         // 簽入 Content-Type；上傳端送出的 Content-Type header 須與此一致，否則簽章驗證失敗。
         // maxBytes 無法以 signed PUT URL 強制（需改用 POST policy 的 content-length-range），
-        // 與 MinIO 實作一致，配額把關交由上游功能 API。
+        // 配額把關交由上游功能 API。
         var template = UrlSigner.RequestTemplate
             .FromBucket(_opts.Bucket)
             .WithObjectName(key)
