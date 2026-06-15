@@ -5,7 +5,7 @@
     "version": "v1"
   },
   "paths": {
-    "/store-applications": {
+    "/v1/store-applications": {
       "post": {
         "tags": [
           "StoreApplications"
@@ -88,7 +88,8 @@
             "description": "過濾審核狀態。",
             "schema": {
               "$ref": "#/components/schemas/StoreApplicationStatus"
-            }
+            },
+            "example": "Pending"
           }
         ],
         "responses": {
@@ -115,7 +116,7 @@
         }
       }
     },
-    "/store-applications/me": {
+    "/v1/store-applications/me": {
       "get": {
         "tags": [
           "StoreApplications"
@@ -150,7 +151,8 @@
             "description": "過濾審核狀態。",
             "schema": {
               "$ref": "#/components/schemas/StoreApplicationStatus"
-            }
+            },
+            "example": "Pending"
           }
         ],
         "responses": {
@@ -177,7 +179,7 @@
         }
       }
     },
-    "/store-applications/{id}/withdraw": {
+    "/v1/store-applications/{id}/withdraw": {
       "post": {
         "tags": [
           "StoreApplications"
@@ -202,7 +204,7 @@
         }
       }
     },
-    "/store-applications/{id}/approve": {
+    "/v1/store-applications/{id}/approve": {
       "post": {
         "tags": [
           "StoreApplications"
@@ -244,7 +246,7 @@
         }
       }
     },
-    "/store-applications/{id}/reject": {
+    "/v1/store-applications/{id}/reject": {
       "post": {
         "tags": [
           "StoreApplications"
@@ -306,7 +308,7 @@
         }
       }
     },
-    "/stores/{id}/follow": {
+    "/v1/stores/{id}/follow": {
       "post": {
         "tags": [
           "StoreFollowers"
@@ -394,7 +396,7 @@
         }
       }
     },
-    "/stores/{id}/followers": {
+    "/v1/stores/{id}/followers": {
       "get": {
         "tags": [
           "StoreFollowers"
@@ -458,7 +460,7 @@
         }
       }
     },
-    "/stores/{idOrSlug}": {
+    "/v1/stores/{idOrSlug}": {
       "get": {
         "tags": [
           "Stores"
@@ -499,7 +501,7 @@
         }
       }
     },
-    "/stores/me": {
+    "/v1/stores/me": {
       "get": {
         "tags": [
           "Stores"
@@ -538,7 +540,7 @@
         }
       }
     },
-    "/stores/{id}": {
+    "/v1/stores/{id}": {
       "patch": {
         "tags": [
           "Stores"
@@ -600,7 +602,7 @@
         }
       }
     },
-    "/stores/{id}/suspend": {
+    "/v1/stores/{id}/suspend": {
       "post": {
         "tags": [
           "Stores"
@@ -625,7 +627,7 @@
         }
       }
     },
-    "/stores/{id}/unsuspend": {
+    "/v1/stores/{id}/unsuspend": {
       "post": {
         "tags": [
           "Stores"
@@ -650,7 +652,7 @@
         }
       }
     },
-    "/stores/{id}/close": {
+    "/v1/stores/{id}/close": {
       "post": {
         "tags": [
           "Stores"
@@ -675,7 +677,7 @@
         }
       }
     },
-    "/stores/{id}/avatar/upload-url": {
+    "/v1/stores/{id}/avatar/upload-url": {
       "post": {
         "tags": [
           "Stores"
@@ -737,7 +739,7 @@
         }
       }
     },
-    "/stores/{id}/banner/upload-url": {
+    "/v1/stores/{id}/banner/upload-url": {
       "post": {
         "tags": [
           "Stores"
@@ -827,13 +829,13 @@
             "type": "string",
             "description": "前端應使用此 URL 以 HTTP PUT 直傳檔案。",
             "nullable": true,
-            "example": "http://localhost:9000/open-jam/public/.../avatar.png?X-Amz-Signature=..."
+            "example": "http://localhost:5171/v1/files/blob/public/.../avatar.png?expires=1735689600&sig=..."
           },
           "publicUrl": {
             "type": "string",
             "description": "上傳完成後的公開讀取網址。",
             "nullable": true,
-            "example": "http://localhost:9000/open-jam/public/.../avatar.png"
+            "example": "http://localhost:5171/v1/files/blob/public/.../avatar.png"
           },
           "expiresAt": {
             "type": "string",
@@ -1054,13 +1056,13 @@
             "type": "string",
             "description": "商店頭像公開 URL；null 表示尚未設定。",
             "nullable": true,
-            "example": "http://localhost:9000/open-jam/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/avatar.png"
+            "example": "http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/avatar.png"
           },
           "bannerUrl": {
             "type": "string",
             "description": "商店橫幅公開 URL；null 表示尚未設定。",
             "nullable": true,
-            "example": "http://localhost:9000/open-jam/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/banner.png"
+            "example": "http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/banner.png"
           },
           "status": {
             "$ref": "#/components/schemas/StoreStatus"
