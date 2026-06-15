@@ -9,6 +9,7 @@ import { useShopStore } from '@/stores/shop.js';
 import { PRODUCTS, CATEGORIES } from '@/data/products';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
+import HeroScene from '@/components/hero-scene/HeroScene.vue';
 
 const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
 
@@ -127,6 +128,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
           <span class="shape s2"></span>
           <span class="shape s3"></span>
         </div>
+        <hero-scene />
         <div class="mkt-hero-inner">
           <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · 創作者數位市集</p>
           <h1 class="mkt-hero-title">發現值得<span class="hl hl-lime">收藏</span>的<br>創作者<span class="hl hl-pink">數位作品</span></h1>

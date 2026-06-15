@@ -45,7 +45,8 @@
 .nav-link:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--text); }
 
 /* ---------- hero (search-led) ---------- */
-.mkt-hero { position: relative; padding: 64px 0 30px; text-align: center; }
+/* extra bottom room (desktop) for the builders background scene to sit below the keyword row */
+.mkt-hero { position: relative; padding: 64px 0 130px; text-align: center; }
 .mkt-hero .hero-shapes { z-index: 0; }
 .mkt-hero-inner { position: relative; z-index: 2; max-width: 880px; margin: 0 auto; }
 .mkt-hero .hero-eyebrow { margin: 0 auto 22px; }
@@ -204,7 +205,7 @@
 
 /* ---------- responsive ---------- */
 @media (max-width: 600px) {
-  .mkt-hero { padding-top: 40px; }
+  .mkt-hero { padding-top: 40px; padding-bottom: 36px; } /* scene hidden on phones — no ground band needed */
   .mkt-search { height: 50px; padding: 0 7px 0 16px; gap: 7px; }
 
   /* scale down buttons proportionally on phones */
