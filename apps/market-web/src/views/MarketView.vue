@@ -10,6 +10,7 @@ import { PRODUCTS, CATEGORIES } from '@/data/products';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
+import OnboardingGuide from '@/components/OnboardingGuide.vue';
 
 const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
 
@@ -241,5 +242,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
         <app-icon name="chevronU" :size="22" />
       </button>
     </Transition>
+
+    <onboarding-guide />
   </div>
 </template>
