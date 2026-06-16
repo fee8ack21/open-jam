@@ -23,6 +23,7 @@ dotnet ef migrations add <Name>   # 新增 EF Core Migration（需 dotnet-ef too
 | LogService | Audit Log REST API | http://localhost:5170，Swagger: `/swagger` |
 | StorageService | 檔案上傳 / 下載 URL 簽發 REST API | http://localhost:5171，Swagger: `/swagger` |
 | StoreService | 開店申請 / 店家 / 追蹤 REST API | http://localhost:5172，Swagger: `/swagger` |
+| CatalogService | 商品 / 版本 / 分類 / 標籤 REST API | http://localhost:5176，Swagger: `/swagger` |
 | EmailService | RabbitMQ Worker（無 HTTP port） | — |
 | Bootstrap | Seed，一次性執行後結束 | — |
 
@@ -136,6 +137,16 @@ REST API，管理開店申請、店家與追蹤。Controller（`StoreApplication
 - **`StoreSlugValidator` / `StoreAuthorization`**：子網域 slug 驗證與店家成員授權。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`。
 
+## CatalogService（`src/CatalogService/`）
+
+REST API，管理數位商品（`Catalog`）、版本（`CatalogVersion`）、平台分類（`CatalogCategory`，以 `ParentId` 自我參照多層子分類）與標籤（`CatalogTag`，名稱強制小寫、維護 `UsageCount`）。Controller（`Catalogs` / `CatalogVersions` / `CatalogCategories` / `CatalogTags`）僅轉接，業務在 `Services/<Feature>/` 的 `ICatalogManager` / `ICatalogVersionService` / `ICatalogCategoryService` / `ICatalogTagService`。
+
+- **商品狀態**：`Draft → Published`（需先有版本）↔ `Archived`；`Suspended` 由 Admin 停權 / 解除。`CatalogStatus` 索引化以利瀏覽過濾。
+- **資產分兩類**：展示型 `CatalogAsset`（縮圖 / 截圖 / 預覽影音，公開讀取，`public/` 前綴）；版本可下載檔 `CatalogVersionAsset`（買家實際取得內容，私有，須授權簽發下載 URL）。Asset `Id` 與 StorageService 簽發的 `FileId` 同值。
+- **`StorageServiceClient`**（named `"storage"`）：簽發上傳 / 下載 URL。**`StoreServiceClient`**（named `"store"`）：轉發呼叫者 Bearer token 至 StoreService `GET /v1/stores/me` 驗證商品所屬商店的 Owner 身分（`CatalogAuthorization.LoadOwnedCatalogAsync`）。
+- **`CatalogSlugValidator`**：slug 格式驗證；商品 slug 於同一商店內唯一、分類 slug 全域唯一。
+- **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`。
+
 ## Bootstrap（`src/Bootstrap/`）
 
 一次性 seed 工具，執行 `HydraClientSeeder`（註冊 Hydra OIDC client）與 `EmailTemplateSeeder`（寫入郵件模板）後結束。
@@ -181,5 +192,13 @@ REST API，管理開店申請、店家與追蹤。Controller（`StoreApplication
 // StoreService 額外需要（呼叫 StorageService 簽發頭像 / 橫幅上傳 URL）
 {
   "Services": { "StorageService": { "BaseUrl": "http://localhost:5171" } }
+}
+// CatalogService 額外需要（簽發資產上傳 URL + 驗證商店 Owner 身分）
+{
+  "Storage": { "PublicBaseUrl": "http://localhost:5171/v1/files/blob" },  // 展示型資產公開讀取前綴
+  "Services": {
+    "StorageService": { "BaseUrl": "http://localhost:5171" },
+    "StoreService": { "BaseUrl": "http://localhost:5172" }
+  }
 }
 ```
