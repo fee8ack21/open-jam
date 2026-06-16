@@ -93,9 +93,8 @@
   z-index: 1; pointer-events: none; overflow: hidden;
 }
 .hero-collage .fc {
-  position: absolute; width: 168px; will-change: transform;
+  position: absolute; width: 168px;
 }
-.hero-collage .fc-float { animation: fc-bob 6s ease-in-out infinite; }
 .hero-collage .fc-card {
   border-radius: var(--r-md); background: var(--surface);
   border: 1.5px solid var(--text); box-shadow: 5px 5px 0 var(--text);
@@ -129,17 +128,12 @@
 .hero-collage .fc-2 { top: 52%; left: calc(50% - 620px); --rot: 5deg; }
 .hero-collage .fc-3 { top: 10%; left: calc(50% + 452px); --rot: 6deg; }
 .hero-collage .fc-4 { top: 50%; left: calc(50% + 488px); --rot: -7deg; }
-.hero-collage .fc-2 .fc-float { animation-duration: 7s; animation-delay: -2s; }
-.hero-collage .fc-3 .fc-float { animation-duration: 6.5s; animation-delay: -1s; }
-.hero-collage .fc-4 .fc-float { animation-duration: 7.5s; animation-delay: -3s; }
 
-.hero-collage .c-shape { position: absolute; will-change: transform; }
+.hero-collage .c-shape { position: absolute; }
 .hero-collage .c-shape.sq { left: calc(50% - 600px); top: 8%; width: 50px; height: 50px; border-radius: 15px; background: var(--c-lime); box-shadow: 4px 4px 0 var(--text); }
 .hero-collage .c-shape.d1 { left: calc(50% - 524px); top: 47%; width: 36px; height: 36px; border-radius: 50%; background: var(--c-yellow); box-shadow: 3px 3px 0 rgba(26,22,38,.35); }
 .hero-collage .c-shape.d2 { left: calc(50% + 600px); top: 70%; width: 28px; height: 28px; border-radius: 50%; background: var(--c-cyan); box-shadow: 3px 3px 0 rgba(26,22,38,.35); }
 
-@keyframes fc-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
-@media (prefers-reduced-motion: reduce) { .hero-collage .fc-float { animation: none; } }
 /* not enough side room to clear the centred content — keep the hero clean */
 @media (max-width: 1280px) { .hero-collage { display: none; } }
 .mkt-hero .hero-eyebrow { margin: 0 auto 22px; }
@@ -185,7 +179,19 @@
 .sec { margin-top: 76px; scroll-margin-top: 92px; }
 
 /* ---------- browse catalogue ---------- */
-.browse { margin-top: 40px; }
+.browse { margin-top: 60px; }
+.browse-head { margin-bottom: 28px; }
+.browse-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--oj-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--oj-primary); background: var(--oj-wash);
+  padding: 6px 12px; border-radius: 999px; margin: 0 0 14px;
+}
+.browse-title {
+  font-family: var(--oj-display); font-size: clamp(28px, 3.4vw, 40px); font-weight: 800;
+  letter-spacing: -1px; line-height: 1.04; margin: 0; color: var(--text);
+}
+.browse-sub { color: var(--text-soft); margin: 12px 0 0; font-size: 16px; line-height: 1.6; max-width: 54ch; }
 .browse-cats { display: flex; flex-wrap: wrap; gap: 11px; margin-bottom: 22px; }
 .browse-cats .cat-pill { padding: 10px 17px; }
 .cp-count { font-family: var(--oj-mono); font-size: 12px; opacity: .65; margin-left: 2px; }
@@ -234,7 +240,7 @@
 .fchip .fchip-x { display: grid; place-items: center; width: 18px; height: 18px; }
 .fchip-clear {
   font-family: var(--oj-font); font-weight: 700; font-size: 13px; color: var(--oj-primary);
-  background: transparent; border: 0; cursor: pointer; padding: 6px 4px; text-decoration: underline;
+  background: transparent; border: 0; cursor: pointer; padding: 6px 4px;
 }
 .fchip-clear:hover { color: var(--c-pink); }
 

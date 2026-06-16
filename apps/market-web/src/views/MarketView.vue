@@ -143,6 +143,11 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
 
       <!-- ============ BROWSE ============ -->
       <section class="sec browse" id="browse">
+        <div class="browse-head">
+          <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> 探索市集</p>
+          <h2 class="browse-title">探索所有作品</h2>
+          <p class="browse-sub">數千件來自獨立創作者的音樂、攝影與電子書，每一件都能立即下載擁有。</p>
+        </div>
         <!-- category pills (desktop) -->
         <div class="browse-cats">
           <button type="button" class="cat-pill c-all" :class="{ on: category === 'all' }" :aria-pressed="category === 'all'" @click="category = 'all'">
