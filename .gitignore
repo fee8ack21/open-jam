@@ -511,3 +511,5 @@ infra/helm/infra/values.prod.yaml
 
 .claude
 TEMP.md
+.playwright-mcp/
+.superpowers/

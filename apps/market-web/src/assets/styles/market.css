@@ -45,10 +45,103 @@
 .nav-link:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--text); }
 
 /* ---------- hero (search-led) ---------- */
-/* extra bottom room (desktop) for the builders background scene to sit below the keyword row */
-.mkt-hero { position: relative; padding: 64px 0 130px; text-align: center; }
-.mkt-hero .hero-shapes { z-index: 0; }
+/* saturated full-bleed gradient band (echoes the auth/register brand panel)
+   so the hero reads rich rather than empty; cards + headline sit on top. */
+.mkt-hero { position: relative; padding: 92px 0 108px; text-align: center; }
+.mkt-hero::before, .mkt-hero::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 100vw; transform: translateX(-50%); z-index: 0; pointer-events: none;
+}
+.mkt-hero::before {
+  background:
+    radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.40), transparent 58%),
+    radial-gradient(680px 520px at 92% 16%, rgba(255,77,157,.52), transparent 60%),
+    radial-gradient(720px 620px at 78% 98%, rgba(31,214,198,.40), transparent 62%),
+    radial-gradient(820px 720px at 16% 94%, rgba(108,76,241,.55), transparent 64%),
+    linear-gradient(150deg, #6c4cf1, #8a3df1 46%, #c33ad6);
+  border-bottom: 1.5px solid var(--text);
+}
+.mkt-hero::after {
+  background-image: radial-gradient(rgba(255,255,255,.55) 1.5px, transparent 1.7px);
+  background-size: 18px 18px; opacity: .15; mix-blend-mode: soft-light;
+}
 .mkt-hero-inner { position: relative; z-index: 2; max-width: 880px; margin: 0 auto; }
+
+/* hero content tuned for the saturated gradient band */
+.mkt-hero .hero-eyebrow {
+  color: #fff; background: rgba(255,255,255,.16);
+  border: 1.5px solid rgba(255,255,255,.28); backdrop-filter: blur(4px);
+}
+.mkt-hero-title { color: #fff; }
+.mkt-hero .hl { box-shadow: 3px 3px 0 rgba(26,22,38,.45); }
+.mkt-hero .kw-lab { color: rgba(255,255,255,.78); }
+.mkt-hero .kw {
+  color: #fff; background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.35); box-shadow: none; backdrop-filter: blur(4px);
+}
+.mkt-hero .kw:hover {
+  transform: translate(-2px,-2px); background: #fff; color: var(--text);
+  border-color: #fff; box-shadow: 4px 4px 0 rgba(26,22,38,.3);
+}
+
+/* ---------- hero collage (register-style floating cards) ---------- */
+/* full-bleed decorative layer: cards sit in the side gutters beside the
+   centred hero content; only shown when there is room to clear it. */
+.hero-collage {
+  position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 100vw; transform: translateX(-50%);
+  z-index: 1; pointer-events: none; overflow: hidden;
+}
+.hero-collage .fc {
+  position: absolute; width: 168px; will-change: transform;
+}
+.hero-collage .fc-float { animation: fc-bob 6s ease-in-out infinite; }
+.hero-collage .fc-card {
+  border-radius: var(--r-md); background: var(--surface);
+  border: 1.5px solid var(--text); box-shadow: 5px 5px 0 var(--text);
+  overflow: hidden; transform: rotate(var(--rot, 0deg));
+}
+.hero-collage .fc-thumb { height: 96px; position: relative; }
+.hero-collage .fc-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.55) 1.3px, transparent 1.5px);
+  background-size: 12px 12px; opacity: .4; mix-blend-mode: soft-light;
+}
+.hero-collage .fc-cat {
+  position: absolute; left: 9px; top: 9px;
+  font-family: var(--oj-mono); font-size: 8.5px; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase; color: #1a1626;
+  background: rgba(255,255,255,.92); padding: 3px 7px; border-radius: 999px;
+}
+.hero-collage .fc-glyph { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; opacity: .92; }
+.hero-collage .fc-body { padding: 9px 11px 11px; }
+.hero-collage .fc-title { font-family: var(--oj-display); font-weight: 700; font-size: 13px; color: var(--text); letter-spacing: -.2px; line-height: 1.2; }
+.hero-collage .fc-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.hero-collage .fc-price { font-family: var(--oj-display); font-weight: 700; font-size: 13px; color: var(--text); }
+.hero-collage .fc-price.free { color: #11a36a; }
+.hero-collage .fc-star { font-family: var(--oj-mono); font-size: 10.5px; color: var(--text-soft); display: inline-flex; align-items: center; gap: 3px; }
+
+/* card placements (rotation lives on .fc-card so it composes with the
+   parallax translate on .fc and the bob on .fc-float) */
+/* anchored to the centred content edge (≈440px half-width + gap) so the
+   cards always clear the headline/search regardless of viewport width */
+.hero-collage .fc-1 { top: 16%; left: calc(50% - 656px); --rot: -6deg; }
+.hero-collage .fc-2 { top: 52%; left: calc(50% - 620px); --rot: 5deg; }
+.hero-collage .fc-3 { top: 10%; left: calc(50% + 452px); --rot: 6deg; }
+.hero-collage .fc-4 { top: 50%; left: calc(50% + 488px); --rot: -7deg; }
+.hero-collage .fc-2 .fc-float { animation-duration: 7s; animation-delay: -2s; }
+.hero-collage .fc-3 .fc-float { animation-duration: 6.5s; animation-delay: -1s; }
+.hero-collage .fc-4 .fc-float { animation-duration: 7.5s; animation-delay: -3s; }
+
+.hero-collage .c-shape { position: absolute; will-change: transform; }
+.hero-collage .c-shape.sq { left: calc(50% - 600px); top: 8%; width: 50px; height: 50px; border-radius: 15px; background: var(--c-lime); box-shadow: 4px 4px 0 var(--text); }
+.hero-collage .c-shape.d1 { left: calc(50% - 524px); top: 47%; width: 36px; height: 36px; border-radius: 50%; background: var(--c-yellow); box-shadow: 3px 3px 0 rgba(26,22,38,.35); }
+.hero-collage .c-shape.d2 { left: calc(50% + 600px); top: 70%; width: 28px; height: 28px; border-radius: 50%; background: var(--c-cyan); box-shadow: 3px 3px 0 rgba(26,22,38,.35); }
+
+@keyframes fc-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@media (prefers-reduced-motion: reduce) { .hero-collage .fc-float { animation: none; } }
+/* not enough side room to clear the centred content — keep the hero clean */
+@media (max-width: 1280px) { .hero-collage { display: none; } }
 .mkt-hero .hero-eyebrow { margin: 0 auto 22px; }
 .mkt-hero-title {
   font-family: var(--oj-display); font-size: clamp(42px, 6.4vw, 82px); font-weight: 800;
@@ -60,9 +153,9 @@
   display: flex; align-items: center; gap: 10px; margin: 34px auto 0; max-width: 660px;
   height: 64px; padding: 0 10px 0 22px; background: var(--surface);
   border: 2px solid var(--border-strong); border-radius: 18px;
-  box-shadow: 5px 5px 0 var(--border-strong); transition: transform .16s, box-shadow .16s;
+  box-shadow: 4px 4px 0 var(--border-strong); transition: transform .16s, box-shadow .16s;
 }
-.mkt-search:focus-within { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--c-violet); }
+.mkt-search:focus-within { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--c-violet); }
 .mkt-search .s-ic { color: var(--text-faint); flex: none; display: grid; place-items: center; }
 .mkt-search input {
   flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
@@ -152,7 +245,7 @@
   overflow: hidden; box-shadow: var(--shadow);
   transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s, border-color .22s;
 }
-.mc:hover { transform: translateY(-7px) rotate(-.5deg); box-shadow: var(--shadow-hover); border-color: var(--border-strong); }
+.mc:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); border-color: var(--border-strong); }
 .mc .thumb { aspect-ratio: 4 / 3; height: auto; border-radius: 0; }
 .mc-body { padding: 15px 16px 16px; }
 .mc-title {

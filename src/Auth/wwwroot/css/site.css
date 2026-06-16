@@ -935,6 +935,9 @@ a.btn-pop {
     width: 36px;
     height: 36px;
   }
+  .mobile-brand .brand-mark svg {
+    color: #fff;
+  }
   .mobile-brand .brand-name {
     color: var(--text);
     font-size: 23px;
