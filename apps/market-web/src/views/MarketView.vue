@@ -143,41 +143,45 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
 
       <!-- ============ BROWSE ============ -->
       <section class="sec browse" id="browse">
+        <div class="browse-decor" aria-hidden="true">
+          <span class="bd sq1"></span>
+          <span class="bd dot1"></span>
+          <span class="bd tri1"></span>
+          <span class="bd sq2"></span>
+          <span class="bd dot2"></span>
+        </div>
         <div class="browse-head">
           <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> 探索市集</p>
           <h2 class="browse-title">探索所有作品</h2>
           <p class="browse-sub">數千件來自獨立創作者的音樂、攝影與電子書，每一件都能立即下載擁有。</p>
         </div>
-        <!-- category pills (desktop) -->
-        <div class="browse-cats">
-          <button type="button" class="cat-pill c-all" :class="{ on: category === 'all' }" :aria-pressed="category === 'all'" @click="category = 'all'">
-            <span class="dot" style="background: var(--c-violet)"></span>全部作品
-            <span class="cp-count">{{ catCount('all') }}</span>
-          </button>
-          <button
-            type="button"
-            v-for="c in cats"
-            :key="c.id"
-            class="cat-pill"
-            :class="['c-' + c.id, { on: category === c.id }]"
-            :aria-pressed="category === c.id"
-            @click="category = c.id"
-          >
-            <span class="dot" :style="{ background: catColor(c.id) }"></span>{{ c.label }}
-            <span class="cp-count">{{ catCount(c.id) }}</span>
-          </button>
-        </div>
-
-        <!-- category dropdown (mobile) -->
-        <div class="browse-select">
-          <select class="m-select" v-model="category" aria-label="作品分類">
-            <option value="all">全部作品（{{ catCount('all') }}）</option>
-            <option v-for="c in cats" :key="c.id" :value="c.id">{{ c.label }}（{{ catCount(c.id) }}）</option>
-          </select>
-        </div>
-
-        <!-- sort + price toolbar -->
+        <!-- unified filter bar: category · sort · price -->
         <div class="browse-bar">
+          <div class="bb-group bb-cats">
+            <span class="bb-label">分類</span>
+            <div class="bb-pills">
+              <button type="button" class="tag-toggle cat c-all" :class="{ on: category === 'all' }" :aria-pressed="category === 'all'" @click="category = 'all'">
+                <span class="dot" style="background: var(--c-violet)"></span>全部作品
+                <span class="cp-count">{{ catCount('all') }}</span>
+              </button>
+              <button
+                type="button"
+                v-for="c in cats"
+                :key="c.id"
+                class="tag-toggle cat"
+                :class="['c-' + c.id, { on: category === c.id }]"
+                :aria-pressed="category === c.id"
+                @click="category = c.id"
+              >
+                <span class="dot" :style="{ background: catColor(c.id) }"></span>{{ c.label }}
+                <span class="cp-count">{{ catCount(c.id) }}</span>
+              </button>
+            </div>
+            <select class="m-select bb-select" v-model="category" aria-label="作品分類">
+              <option value="all">全部作品（{{ catCount('all') }}）</option>
+              <option v-for="c in cats" :key="c.id" :value="c.id">{{ c.label }}（{{ catCount(c.id) }}）</option>
+            </select>
+          </div>
           <div class="bb-group bb-sort">
             <span class="bb-label">排序</span>
             <div class="bb-pills">

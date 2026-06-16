@@ -170,16 +170,27 @@
 .kw {
   font-family: var(--oj-font); font-weight: 600; font-size: 13.5px; color: var(--text);
   background: var(--surface); border: 1.5px solid var(--text); border-radius: 999px;
-  padding: 7px 15px; cursor: pointer; box-shadow: 2px 2px 0 var(--text); text-decoration: none;
+  padding: 7px 15px; cursor: pointer; box-shadow: var(--pop-1); text-decoration: none;
   transition: transform .14s, box-shadow .14s, background .14s, color .14s;
 }
-.kw:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--text); background: var(--c-yellow); }
+.kw:hover { transform: translate(-2px,-2px); box-shadow: var(--pop-1-h); background: var(--c-yellow); }
 
 /* ---------- section scaffolding ---------- */
 .sec { margin-top: 76px; scroll-margin-top: 92px; }
 
 /* ---------- browse catalogue ---------- */
-.browse { margin-top: 60px; }
+.browse { margin-top: 60px; position: relative; z-index: 0; }
+/* small geometric accents down the side margins (pop language, echoes the
+   hero). Anchored to the content edge; hidden when margins get too tight.
+   kept subtle so they decorate without competing with the grid. */
+.browse-decor { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .5; }
+.bd { position: absolute; }
+.bd.sq1  { left: calc(50% - 672px); top: 3%;  width: 46px; height: 46px; border-radius: 13px; background: var(--c-lime);   transform: rotate(12deg);  box-shadow: var(--pop-3); }
+.bd.dot1 { left: calc(50% + 650px); top: 11%; width: 34px; height: 34px; border-radius: 50%;  background: var(--c-cyan);   box-shadow: var(--pop-2); }
+.bd.tri1 { left: calc(50% - 656px); top: 41%; width: 0; height: 0; border-left: 26px solid transparent; border-right: 26px solid transparent; border-bottom: 44px solid var(--c-pink); transform: rotate(-14deg); filter: drop-shadow(3px 4px 0 rgba(26,22,38,.4)); }
+.bd.sq2  { left: calc(50% + 656px); top: 58%; width: 38px; height: 38px; border-radius: 11px; background: var(--c-yellow); transform: rotate(-10deg); box-shadow: var(--pop-2); }
+.bd.dot2 { left: calc(50% - 668px); top: 80%; width: 30px; height: 30px; border-radius: 50%;  background: var(--c-violet); box-shadow: var(--pop-2); }
+@media (max-width: 1340px) { .browse-decor { display: none; } }
 .browse-head { margin-bottom: 28px; }
 .browse-eyebrow {
   display: inline-flex; align-items: center; gap: 7px;
@@ -192,24 +203,32 @@
   letter-spacing: -1px; line-height: 1.04; margin: 0; color: var(--text);
 }
 .browse-sub { color: var(--text-soft); margin: 12px 0 0; font-size: 16px; line-height: 1.6; max-width: 54ch; }
-.browse-cats { display: flex; flex-wrap: wrap; gap: 11px; margin-bottom: 22px; }
-.browse-cats .cat-pill { padding: 10px 17px; }
-.cp-count { font-family: var(--oj-mono); font-size: 12px; opacity: .65; margin-left: 2px; }
-.cat-pill.on .cp-count { opacity: .85; }
+.cp-count { font-family: var(--oj-mono); font-size: 12px; opacity: .6; margin-left: 2px; }
+.tag-toggle.on .cp-count { opacity: .85; }
 
+/* unified filter bar — one pop panel, category · sort · price as rows */
 .browse-bar {
-  display: flex; flex-direction: column; gap: 16px; align-items: stretch;
-  padding: 20px 22px; margin-bottom: 22px;
-  background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r-lg);
-  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; align-items: stretch;
+  padding: 6px 22px; margin-bottom: 24px;
+  background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
+  box-shadow: var(--pop-2);
 }
-.bb-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.bb-label { width: 46px; font-family: var(--oj-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); flex: none; }
+.bb-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 15px 0; }
+.bb-group + .bb-group { border-top: 1.5px solid var(--border); }
+.bb-label { width: 40px; font-family: var(--oj-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); flex: none; }
 .bb-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .browse-bar .tag-toggle { padding: 7px 14px; font-size: 13px; }
 
-/* mobile dropdowns — hidden on desktop, shown < 600px */
-.browse-select { display: none; margin-bottom: 22px; }
+/* category toggles keep their colour identity via the dot + filled active */
+.tag-toggle.cat { padding-left: 11px; }
+.tag-toggle.cat .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.tag-toggle.cat.on.c-all,
+.tag-toggle.cat.on.c-music { background: var(--c-violet); border-color: var(--c-violet); color: #fff; }
+.tag-toggle.cat.on.c-photo { background: var(--c-pink); border-color: var(--c-pink); color: #fff; }
+.tag-toggle.cat.on.c-ebook { background: var(--c-cyan); border-color: var(--c-cyan); color: #08312d; }
+.tag-toggle.cat.on .dot { background: rgba(255,255,255,.92) !important; }
+
+/* mobile dropdowns — hidden on desktop, each filter row reveals its own < 600px */
 .bb-select { display: none; }
 .m-select {
   appearance: none; -webkit-appearance: none;
@@ -233,10 +252,10 @@
   display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
   font-family: var(--oj-font); font-weight: 600; font-size: 13px; color: var(--text);
   background: var(--surface); border: 1.5px solid var(--text); border-radius: 999px;
-  padding: 6px 8px 6px 13px; box-shadow: 2px 2px 0 var(--text);
+  padding: 6px 8px 6px 13px; box-shadow: var(--pop-1);
   transition: transform .14s, box-shadow .14s, background .14s, color .14s;
 }
-.fchip:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--text); background: var(--c-pink); color: #fff; }
+.fchip:hover { transform: translate(-2px,-2px); box-shadow: var(--pop-1-h); background: var(--c-pink); color: #fff; }
 .fchip .fchip-x { display: grid; place-items: center; width: 18px; height: 18px; }
 .fchip-clear {
   font-family: var(--oj-font); font-weight: 700; font-size: 13px; color: var(--oj-primary);
@@ -247,12 +266,12 @@
 /* ---------- product card grid (hub variant, anchor-based) ---------- */
 .mc {
   position: relative; display: block; text-decoration: none; color: inherit;
-  background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r-lg);
-  overflow: hidden; box-shadow: var(--shadow);
-  transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s, border-color .22s;
+  background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
+  overflow: hidden; box-shadow: var(--pop-3);
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s;
 }
-.mc:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); border-color: var(--border-strong); }
-.mc .thumb { aspect-ratio: 4 / 3; height: auto; border-radius: 0; }
+.mc:hover { transform: translate(-3px, -3px); box-shadow: var(--pop-3-h); }
+.mc .thumb { aspect-ratio: 4 / 3; height: auto; border-radius: 0; border-bottom: 1.5px solid var(--border-strong); }
 .mc-body { padding: 15px 16px 16px; }
 .mc-title {
   font-family: var(--oj-display); font-weight: 700; font-size: 16.5px; line-height: 1.22;
@@ -270,11 +289,11 @@
   width: 48px; height: 48px; border-radius: 14px;
   display: grid; place-items: center; cursor: pointer;
   color: var(--text); background: var(--surface);
-  border: 2px solid var(--text); box-shadow: 4px 4px 0 var(--text);
+  border: 1.5px solid var(--border-strong); box-shadow: var(--pop-3);
   transition: transform .14s, box-shadow .14s;
 }
-.to-top-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--text); }
-.to-top-btn:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--text); }
+.to-top-btn:hover { transform: translate(-2px,-2px); box-shadow: var(--pop-3-h); }
+.to-top-btn:active { transform: translate(1px,1px); box-shadow: var(--pop-1); }
 .to-top-enter-active, .to-top-leave-active { transition: opacity .2s, transform .2s; }
 .to-top-enter-from, .to-top-leave-to { opacity: 0; transform: translateY(12px); }
 
@@ -284,11 +303,11 @@
   display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 36px;
   font-family: var(--oj-display); font-weight: 700; font-size: 16px;
   color: var(--text); background: var(--surface);
-  border: 2px solid var(--text); border-radius: 14px; box-shadow: 4px 4px 0 var(--text);
+  border: 1.5px solid var(--border-strong); border-radius: 14px; box-shadow: var(--pop-3);
   cursor: pointer; transition: transform .14s, box-shadow .14s;
 }
-.load-more-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--text); }
-.load-more-btn:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--text); }
+.load-more-btn:hover { transform: translate(-2px,-2px); box-shadow: var(--pop-3-h); }
+.load-more-btn:active { transform: translate(1px,1px); box-shadow: var(--pop-1); }
 .load-more-count { font-family: var(--oj-mono); font-size: 12px; font-weight: 500; opacity: .6; }
 
 /* ---------- footer ---------- */
@@ -316,17 +335,14 @@
   /* the field already has a leading magnifier — drop the redundant one in the button */
   .mkt-search button svg { display: none; }
   .kw { font-size: 12.5px; padding: 6px 12px; }
-  .cat-pill { font-size: 13px; padding: 8px 13px; }
 
   /* 1. hide popular-search row */
   .kw-row { display: none; }
-  /* 2. category pills → dropdown */
-  .browse-cats { display: none; }
-  .browse-select { display: block; }
-  /* 3. sort pills → dropdown */
-  .bb-sort .bb-pills { display: none; }
-  .bb-sort .bb-select { display: block; flex: 1; min-width: 0; }
-  /* 4. price pills → dropdown */
+  /* 2. every filter row collapses its pills into the native select */
+  .bb-cats .bb-pills,
+  .bb-sort .bb-pills,
   .bb-price .bb-pills { display: none; }
+  .bb-cats .bb-select,
+  .bb-sort .bb-select,
   .bb-price .bb-select { display: block; flex: 1; min-width: 0; }
 }
