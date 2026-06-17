@@ -17,12 +17,30 @@ type Step = 'hidden' | 'modal' | 'coach';
 const step = ref<Step>('hidden');
 
 const spot = ref({ top: 0, left: 0, width: 0, height: 0, right: 0 });
+const viewport = ref({ w: 0, h: 0 });
 const ready = ref(false);
 
 const cardStyle = computed(() => ({
   top: spot.value.top + spot.value.height + 16 + 'px',
   right: spot.value.right + 'px',
 }));
+
+// full-screen blurred dim-veil with a rounded-rect hole punched out over the
+// spotlight (clip-path evenodd) so the highlighted icons stay sharp and the
+// clear area matches the spotlight ring's rounded corners
+const veilStyle = computed(() => {
+  const { left: x, top: y, width: w, height: h } = spot.value;
+  const r = Math.min(14, w / 2, h / 2);
+  const outer = `M0 0H${viewport.value.w}V${viewport.value.h}H0Z`;
+  const hole =
+    `M${x + r} ${y}` +
+    `H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}` +
+    `V${y + h - r}A${r} ${r} 0 0 1 ${x + w - r} ${y + h}` +
+    `H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}` +
+    `V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
+  const path = `path(evenodd, "${outer}${hole}")`;
+  return { clipPath: path, WebkitClipPath: path };
+});
 
 function hasCookie(name: string): boolean {
   return document.cookie.split('; ').some((c) => c.startsWith(name + '='));
@@ -48,6 +66,7 @@ function measure() {
     b = Math.max(b, rect.bottom);
   });
   const pad = 8;
+  viewport.value = { w: window.innerWidth, h: window.innerHeight };
   spot.value = {
     left: l - pad,
     top: t - pad,
@@ -116,6 +135,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 
   <!-- 2) coach-marks — spotlight the top-right header icons -->
   <div v-if="step === 'coach' && ready" class="coach" @click="finish">
+    <div class="coach-veil" :style="veilStyle"></div>
     <div
       class="coach-spot"
       :style="{ top: spot.top + 'px', left: spot.left + 'px', width: spot.width + 'px', height: spot.height + 'px' }"
@@ -213,15 +233,23 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 
 /* ---------- coach-marks ---------- */
 .coach { position: fixed; inset: 0; z-index: 210; cursor: pointer; animation: scrim-in 0.22s ease; }
+/* blurred dim-veil — same backdrop blur as the dialog scrim, with a
+   rounded-rect hole (clip-path, set inline) over the spotlight so the
+   highlighted icons stay sharp */
+.coach-veil {
+  position: fixed; inset: 0; pointer-events: none;
+  background: rgba(20, 16, 40, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
 .coach-spot {
   position: fixed; border-radius: 14px; pointer-events: none;
   border: 2px solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 0 0 9999px rgba(20, 16, 40, 0.62);
   animation: spot-pulse 1.8s ease-in-out infinite;
 }
 @keyframes spot-pulse {
-  0%, 100% { box-shadow: 0 0 0 9999px rgba(20, 16, 40, 0.62), 0 0 0 0 rgba(255, 255, 255, 0.5); }
-  50% { box-shadow: 0 0 0 9999px rgba(20, 16, 40, 0.62), 0 0 0 7px rgba(255, 255, 255, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
+  50% { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0); }
 }
 .coach-card {
   position: fixed; width: 300px; max-width: calc(100vw - 32px);
