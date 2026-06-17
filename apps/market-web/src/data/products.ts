@@ -48,6 +48,8 @@ export interface Product {
   previews: number;
   /** 實際商品縮圖（webp import URL）；未設定時退回程式產生的佔位縮圖。 */
   image?: string;
+  /** 編輯精選：顯示於市集首頁頂部的「精選作品」輪播。 */
+  featured?: boolean;
 }
 
 export interface Category {
@@ -90,6 +92,7 @@ export const PRODUCTS: Product[] = [
     ],
     previews: 5,
     image: thumbSilver,
+    featured: true,
   },
   {
     id: 'p02', cat: 'photo', hue: 28,
@@ -109,6 +112,7 @@ export const PRODUCTS: Product[] = [
     ],
     previews: 6,
     image: thumbAutumn,
+    featured: true,
   },
   {
     id: 'p03', cat: 'ebook', hue: 168,
@@ -128,6 +132,7 @@ export const PRODUCTS: Product[] = [
     ],
     previews: 4,
     image: thumbDragonTales,
+    featured: true,
   },
   {
     id: 'p04', cat: 'music', hue: 320,
@@ -147,6 +152,7 @@ export const PRODUCTS: Product[] = [
     ],
     previews: 5,
     image: thumbLicks,
+    featured: true,
   },
   {
     id: 'p05', cat: 'photo', hue: 210,
@@ -165,6 +171,7 @@ export const PRODUCTS: Product[] = [
     ],
     previews: 6,
     image: thumbSurf,
+    featured: true,
   },
   {
     id: 'p06', cat: 'ebook', hue: 44,
@@ -217,6 +224,7 @@ export const PRODUCTS: Product[] = [
     ],
     previews: 6,
     image: thumbInterior,
+    featured: true,
   },
   {
     id: 'p09', cat: 'ebook', hue: 286,

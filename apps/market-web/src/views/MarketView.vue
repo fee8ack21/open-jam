@@ -6,10 +6,11 @@
    ============================================================ */
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
-import { PRODUCTS, CATEGORIES } from '@/data/products';
+import { PRODUCTS, CATEGORIES, type Product } from '@/data/products';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
+import FeaturedCard from '@/components/FeaturedCard.vue';
 import OnboardingGuide from '@/components/OnboardingGuide.vue';
 
 const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
@@ -97,6 +98,68 @@ const hasMore = computed(() => visibleCount.value < results.value.length);
 
 watch(results, () => { visibleCount.value = pageSize; });
 
+// ----- featured carousel (精選作品) -----
+const featured = computed(() => PRODUCTS.filter((p) => p.featured));
+const featTrack = ref<HTMLElement | null>(null);
+const canLeft = ref(false);
+const canRight = ref(false);
+function updateFeatNav() {
+  const el = featTrack.value;
+  if (!el) return;
+  canLeft.value = el.scrollLeft > 4;
+  canRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+}
+function scrollFeat(dir: number) {
+  featTrack.value?.scrollBy({ left: dir * featTrack.value.clientWidth * 0.9, behavior: 'smooth' });
+}
+
+// drag-to-scroll (mouse only — touch keeps native momentum scrolling)
+let dragging = false;
+let dragMoved = false;
+let dragStartX = 0;
+let dragStartScroll = 0;
+function onFeatDown(e: PointerEvent) {
+  if (e.pointerType !== 'mouse' || e.button !== 0 || !featTrack.value) return;
+  dragging = true;
+  dragMoved = false;
+  dragStartX = e.clientX;
+  dragStartScroll = featTrack.value.scrollLeft;
+}
+function onFeatMove(e: PointerEvent) {
+  if (!dragging || !featTrack.value) return;
+  const dx = e.clientX - dragStartX;
+  if (!dragMoved && Math.abs(dx) > 4) {
+    dragMoved = true;
+    featTrack.value.setPointerCapture?.(e.pointerId);
+    featTrack.value.classList.add('dragging');
+  }
+  if (dragMoved) featTrack.value.scrollLeft = dragStartScroll - dx;
+}
+function onFeatUp() {
+  if (!dragging) return;
+  dragging = false;
+  featTrack.value?.classList.remove('dragging');
+  updateFeatNav();
+}
+// swallow the click that follows a drag so cards don't navigate
+function onFeatClick(e: MouseEvent) {
+  if (dragMoved) { e.preventDefault(); e.stopPropagation(); dragMoved = false; }
+}
+
+// ----- grid badges (精選 / 熱賣 / 新上架) — adds rhythm to the otherwise uniform grid -----
+const newestIds = new Set(
+  PRODUCTS.slice()
+    .sort((a, b) => (orderMap.get(b.id) ?? 0) - (orderMap.get(a.id) ?? 0))
+    .slice(0, 3)
+    .map((p) => p.id),
+);
+function badgeFor(p: Product): { label: string; tone: 'hot' | 'new' | 'feat' } | null {
+  if (p.featured) return { label: '精選', tone: 'feat' };
+  if (p.sales >= 1500) return { label: '熱賣', tone: 'hot' };
+  if (newestIds.has(p.id)) return { label: '新上架', tone: 'new' };
+  return null;
+}
+
 function catColor(id: string): string {
   const map: Record<string, string> = { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' };
   return map[id] ?? '';
@@ -112,8 +175,15 @@ function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function loadMore() { visibleCount.value += pageSize; }
 
-onMounted(() => window.addEventListener('scroll', onScroll));
-onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
+onMounted(() => {
+  window.addEventListener('scroll', onScroll);
+  window.addEventListener('resize', updateFeatNav);
+  updateFeatNav();
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll);
+  window.removeEventListener('resize', updateFeatNav);
+});
 </script>
 
 <template>
@@ -142,94 +212,126 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
         </div>
       </section>
 
+      <!-- ============ FEATURED ============ -->
+      <section v-if="featured.length" class="sec featured" id="featured">
+        <div class="feat-head">
+          <div class="feat-head-text">
+            <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> 編輯精選</p>
+            <h2 class="browse-title">精選作品</h2>
+          </div>
+          <div class="feat-nav">
+            <button type="button" class="feat-arrow prev" :disabled="!canLeft" @click="scrollFeat(-1)" aria-label="上一個精選">
+              <app-icon name="chevron" :size="20" :stroke="2.4" />
+            </button>
+            <button type="button" class="feat-arrow" :disabled="!canRight" @click="scrollFeat(1)" aria-label="下一個精選">
+              <app-icon name="chevron" :size="20" :stroke="2.4" />
+            </button>
+          </div>
+        </div>
+        <div
+          class="feat-track"
+          ref="featTrack"
+          @scroll="updateFeatNav"
+          @pointerdown="onFeatDown"
+          @pointermove="onFeatMove"
+          @pointerup="onFeatUp"
+          @pointercancel="onFeatUp"
+          @click.capture="onFeatClick"
+          @dragstart.prevent
+        >
+          <featured-card v-for="p in featured" :key="p.id" :product="p" />
+        </div>
+      </section>
+
       <!-- ============ BROWSE ============ -->
       <section class="sec browse" id="browse">
-        <div class="browse-decor" aria-hidden="true">
-          <span class="bd sq1"></span>
-          <span class="bd dot1"></span>
-          <span class="bd tri1"></span>
-          <span class="bd sq2"></span>
-          <span class="bd dot2"></span>
-        </div>
         <div class="browse-head">
           <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> 探索市集</p>
           <h2 class="browse-title">探索所有作品</h2>
           <p class="browse-sub">數千件來自獨立創作者的音樂、攝影與電子書，每一件都能立即下載擁有。</p>
         </div>
-        <!-- unified filter bar: category · sort · price -->
-        <div class="browse-bar">
-          <div class="bb-group bb-cats">
-            <span class="bb-label">分類</span>
-            <div class="bb-pills">
-              <button type="button" class="tag-toggle cat c-all" :class="{ on: category === 'all' }" :aria-pressed="category === 'all'" @click="category = 'all'">
-                <span class="dot" style="background: var(--c-violet)"></span>全部作品
-                <span class="cp-count">{{ catCount('all') }}</span>
-              </button>
-              <button
-                type="button"
-                v-for="c in cats"
-                :key="c.id"
-                class="tag-toggle cat"
-                :class="['c-' + c.id, { on: category === c.id }]"
-                :aria-pressed="category === c.id"
-                @click="category = c.id"
-              >
-                <span class="dot" :style="{ background: catColor(c.id) }"></span>{{ c.label }}
-                <span class="cp-count">{{ catCount(c.id) }}</span>
-              </button>
-            </div>
-            <select class="m-select bb-select" v-model="category" aria-label="作品分類">
-              <option value="all">全部作品（{{ catCount('all') }}）</option>
-              <option v-for="c in cats" :key="c.id" :value="c.id">{{ c.label }}（{{ catCount(c.id) }}）</option>
-            </select>
-          </div>
-          <div class="bb-group bb-sort">
-            <span class="bb-label">排序</span>
-            <div class="bb-pills">
-              <button type="button" v-for="o in sortOptions" :key="o.v" class="tag-toggle" :class="{ on: sort === o.v }" :aria-pressed="sort === o.v" @click="sort = o.v">{{ o.l }}</button>
-            </div>
-            <select class="m-select bb-select" v-model="sort" aria-label="排序方式">
+
+        <!-- toolbar: result count + sort -->
+        <div class="browse-toolbar">
+          <span class="browse-count"><b>{{ activeCatLabel }}</b> · 共 <b>{{ results.length }}</b> 件作品</span>
+          <div class="sort-tabs">
+            <span class="sort-lab">排序</span>
+            <button type="button" v-for="o in sortOptions" :key="o.v" class="sort-tab" :class="{ on: sort === o.v }" :aria-pressed="sort === o.v" @click="sort = o.v">{{ o.l }}</button>
+            <select class="m-select sort-select" v-model="sort" aria-label="排序方式">
               <option v-for="o in sortOptions" :key="o.v" :value="o.v">{{ o.l }}</option>
             </select>
           </div>
-          <div class="bb-group bb-price">
-            <span class="bb-label">價格</span>
-            <div class="bb-pills">
-              <button type="button" v-for="o in priceOptions" :key="o.v" class="tag-toggle" :class="{ on: priceBand === o.v }" :aria-pressed="priceBand === o.v" @click="priceBand = o.v">{{ o.l }}</button>
+        </div>
+
+        <div class="browse-body">
+          <!-- filter sidebar (Gumroad-style left rail) -->
+          <aside class="browse-side">
+            <div class="side-card">
+              <p class="side-title"><app-icon name="sparkle" :size="15" /> 篩選</p>
+
+              <div class="side-group">
+                <p class="side-label">分類</p>
+                <div class="side-opts">
+                  <button type="button" class="side-opt" :class="{ on: category === 'all' }" @click="category = 'all'">
+                    <span class="so-dot" style="background: var(--c-violet)"></span>
+                    <span class="so-name">全部作品</span>
+                    <span class="so-count">{{ catCount('all') }}</span>
+                  </button>
+                  <button type="button" v-for="c in cats" :key="c.id" class="side-opt" :class="{ on: category === c.id }" @click="category = c.id">
+                    <span class="so-dot" :style="{ background: catColor(c.id) }"></span>
+                    <span class="so-name">{{ c.label }}</span>
+                    <span class="so-count">{{ catCount(c.id) }}</span>
+                  </button>
+                </div>
+                <select class="m-select side-select" v-model="category" aria-label="作品分類">
+                  <option value="all">全部作品（{{ catCount('all') }}）</option>
+                  <option v-for="c in cats" :key="c.id" :value="c.id">{{ c.label }}（{{ catCount(c.id) }}）</option>
+                </select>
+              </div>
+
+              <div class="side-group">
+                <p class="side-label">價格</p>
+                <div class="side-opts">
+                  <button type="button" v-for="o in priceOptions" :key="o.v" class="side-opt" :class="{ on: priceBand === o.v }" @click="priceBand = o.v">
+                    <span class="so-name">{{ o.l }}</span>
+                  </button>
+                </div>
+                <select class="m-select side-select" v-model="priceBand" aria-label="價格區間">
+                  <option v-for="o in priceOptions" :key="o.v" :value="o.v">{{ o.l }}</option>
+                </select>
+              </div>
+
+              <button v-if="activeFilters.length" type="button" class="side-reset" @click="reset">清除全部篩選</button>
             </div>
-            <select class="m-select bb-select" v-model="priceBand" aria-label="價格區間">
-              <option v-for="o in priceOptions" :key="o.v" :value="o.v">{{ o.l }}</option>
-            </select>
+          </aside>
+
+          <!-- results -->
+          <div class="browse-main">
+            <div v-if="activeFilters.length" class="active-chips">
+              <span class="active-chips-lab">篩選中</span>
+              <button v-for="f in activeFilters" :key="f.key" type="button" class="fchip" @click="f.clear()">
+                {{ f.label }}
+                <span class="fchip-x"><app-icon name="close" :size="13" :stroke="2.4" /></span>
+              </button>
+              <button type="button" class="fchip-clear" @click="reset">清除全部</button>
+            </div>
+
+            <div v-if="results.length" class="grid">
+              <product-card v-for="p in visibleResults" :key="p.id" :product="p" :badge="badgeFor(p)" />
+            </div>
+            <div v-if="hasMore" class="load-more-wrap">
+              <button class="load-more-btn" @click="loadMore">
+                載入更多
+                <span class="load-more-count">（還有 {{ results.length - visibleCount }} 件）</span>
+              </button>
+            </div>
+            <div v-if="!results.length" class="empty">
+              <app-icon name="search" :size="40" style="margin-bottom: 14px; opacity: 0.5" />
+              <p style="font-size: 17px; font-weight: 600; color: var(--text-soft)">找不到符合的作品</p>
+              <p style="margin-top: 6px">試著放寬篩選條件或清除搜尋關鍵字。</p>
+              <span class="kw" style="display: inline-block; margin-top: 18px; cursor: pointer" @click="reset">清除全部篩選</span>
+            </div>
           </div>
-        </div>
-
-        <div class="browse-count">
-          <span><b>{{ activeCatLabel }}</b> · 共 <b>{{ results.length }}</b> 件作品</span>
-        </div>
-
-        <div v-if="activeFilters.length" class="active-chips">
-          <span class="active-chips-lab">篩選中</span>
-          <button v-for="f in activeFilters" :key="f.key" type="button" class="fchip" @click="f.clear()">
-            {{ f.label }}
-            <span class="fchip-x"><app-icon name="close" :size="13" :stroke="2.4" /></span>
-          </button>
-          <button type="button" class="fchip-clear" @click="reset">清除全部</button>
-        </div>
-
-        <div v-if="results.length" class="grid">
-          <product-card v-for="p in visibleResults" :key="p.id" :product="p" />
-        </div>
-        <div v-if="hasMore" class="load-more-wrap">
-          <button class="load-more-btn" @click="loadMore">
-            載入更多
-            <span class="load-more-count">（還有 {{ results.length - visibleCount }} 件）</span>
-          </button>
-        </div>
-        <div v-if="!results.length" class="empty">
-          <app-icon name="search" :size="40" style="margin-bottom: 14px; opacity: 0.5" />
-          <p style="font-size: 17px; font-weight: 600; color: var(--text-soft)">找不到符合的作品</p>
-          <p style="margin-top: 6px">試著放寬篩選條件或清除搜尋關鍵字。</p>
-          <span class="kw" style="display: inline-block; margin-top: 18px; cursor: pointer" @click="reset">清除全部篩選</span>
         </div>
       </section>
 

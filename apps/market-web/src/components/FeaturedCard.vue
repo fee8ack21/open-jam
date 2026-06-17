@@ -1,17 +1,14 @@
 <script setup lang="ts">
 /* ============================================================
-   ProductCard — marketplace-hub catalogue card. Registered as <product-card>.
-   Links out to the creator's storefront (creator-web) on their subdomain.
+   FeaturedCard — wide editorial card for the "精選作品" carousel.
+   Image on the left, info on the right. Links out to the
+   creator's storefront like <product-card>.
    ============================================================ */
 import { computed } from 'vue';
 import { env } from '@/environment.js';
 import type { Product } from '@/data/products';
 
-const props = defineProps<{
-  product: Product;
-  /** optional corner ribbon (熱賣 / 新上架 / 精選) surfaced on the thumb */
-  badge?: { label: string; tone: 'hot' | 'new' | 'feat' } | null;
-}>();
+const props = defineProps<{ product: Product }>();
 
 const BASE = env.CREATOR_PAGE_BASE_URL;
 const href = computed(() => `${BASE}/product/${props.product.id}`);
@@ -19,17 +16,20 @@ const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]
 </script>
 
 <template>
-  <a class="mc" :href="href">
-    <product-thumb :product="product" />
-    <span v-if="badge" class="mc-badge" :class="'b-' + badge.tone">{{ badge.label }}</span>
-    <div class="mc-body">
-      <h3 class="mc-title">{{ product.title }}</h3>
-      <div class="mc-creator">
+  <a class="feat-card" :href="href">
+    <div class="feat-media">
+      <product-thumb :product="product" hide-label />
+    </div>
+    <div class="feat-info">
+      <span class="feat-tag"><app-icon name="sparkle" :size="12" /> 編輯精選</span>
+      <h3 class="feat-title">{{ product.title }}</h3>
+      <p class="feat-blurb">{{ product.blurb }}</p>
+      <div class="feat-creator">
         <span class="avatar" :style="{ background: product.avatar }">{{ initials }}</span>
         {{ product.creator }}
       </div>
-      <div class="mc-foot">
-        <span class="mc-price" :class="{ free: product.price === 0 }">
+      <div class="feat-foot">
+        <span class="feat-price" :class="{ free: product.price === 0 }">
           {{ product.price === 0 ? '免費' : '$' + product.price }}
         </span>
         <stars :value="product.rating" :count="product.ratingCount" />
