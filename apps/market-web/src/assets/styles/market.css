@@ -328,6 +328,8 @@
 
   /* scale down buttons proportionally on phones */
   .nav-admin { height: 36px; padding: 0 13px; font-size: 13px; gap: 6px; box-shadow: 2px 2px 0 var(--text); }
+  /* 手機板空間有限：「前往後台」收斂為「後台」 */
+  .nav-admin-label { display: none; }
   .nav-logout { width: 36px; height: 36px; box-shadow: 2px 2px 0 var(--text); }
   .nav-link { width: 36px; height: 36px; box-shadow: 2px 2px 0 var(--text); }
   .mkt-search input { font-size: 15px; }
