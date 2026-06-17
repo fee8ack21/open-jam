@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { ME as me } from '@/data/products'
+import { env } from '@/environment'
 
 /** open-drawer：點擊行動版選單鈕時通知父層展開抽屜。 */
 const emit = defineEmits<{ 'open-drawer': [] }>()
@@ -33,6 +34,7 @@ onBeforeUnmount(() => {
 })
 
 function nav(view: string) { store.go(view) }
+function goToMarket() { window.location.href = env.MARKET_PAGE_URL }
 </script>
 
 <template>
@@ -45,6 +47,9 @@ function nav(view: string) { store.go(view) }
     <div class="tb-spacer"></div>
 
     <div class="tb-actions">
+      <button class="icon-btn" @click="goToMarket" title="返回平台" aria-label="返回平台">
+        <app-icon name="home" :size="20" />
+      </button>
       <div class="icon-btn" title="通知">
         <app-icon name="bell" :size="20" />
         <span class="cart-badge">3</span>

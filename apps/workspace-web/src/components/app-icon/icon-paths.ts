@@ -17,6 +17,7 @@ export const ICON_PATHS: Record<string, string> = {
   shield: 'M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3z',
   close: 'M6 6l12 12M18 6L6 18',
   menu: 'M4 6h16M4 12h16M4 18h16',
+  home: 'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',
   plus: 'M12 5v14M5 12h14',
   minus: 'M5 12h14',
   sliders: 'M4 6h11M19 6h1M4 12h4M12 12h8M4 18h9M17 18h3M15 4v4M8 10v4M13 16v4',

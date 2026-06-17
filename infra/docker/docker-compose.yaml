@@ -288,6 +288,7 @@ services:
     restart: unless-stopped
     environment:
       WORKSPACE_PAGE_URL: ${WORKSPACE_URL}
+      MARKET_PAGE_URL: ${MARKET_PAGE_URL}
       OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
