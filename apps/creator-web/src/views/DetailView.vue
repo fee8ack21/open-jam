@@ -68,7 +68,7 @@ const goCart = () => router.push({ name: 'checkout' });
           <h2 class="section-title">內容預覽</h2>
           <div class="preview-locked">
             <div class="lock-veil">
-              <div style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--surface);box-shadow:var(--shadow);color:var(--oj-primary)">
+              <div class="lock-mark">
                 <app-icon name="lock" :size="22" />
               </div>
               <span class="lock-txt">完整內容於購買後立即解鎖</span>
