@@ -3,7 +3,9 @@ import { useAuthStore } from '@/stores/auth'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'overview', component: () => import('@/views/OverviewView.vue'), meta: { title: '儀表板' } },
+  // 預設進入買家「購買紀錄」頁
+  { path: '/', redirect: '/purchases' },
+  { path: '/overview', name: 'overview', component: () => import('@/views/OverviewView.vue'), meta: { title: '儀表板' } },
   { path: '/open-store', name: 'open-store', component: () => import('@/views/OpenStoreView.vue'), meta: { title: '開店' } },
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { title: '上架新作品' } },
@@ -11,7 +13,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/purchases', name: 'purchases', component: () => import('@/views/PurchasesView.vue'), meta: { title: '購買紀錄' } },
   { path: '/wishlist', name: 'wishlist', component: () => import('@/views/WishlistView.vue'), meta: { title: 'Wishlist' } },
   { path: '/settings', name: 'settings', component: () => import('@/views/SettingsView.vue'), meta: { title: '設定' } },
-  { path: '/:pathMatch(.*)*', redirect: '/' },
+  { path: '/:pathMatch(.*)*', redirect: '/purchases' },
 ]
 
 export const router = createRouter({

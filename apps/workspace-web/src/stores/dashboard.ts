@@ -56,7 +56,7 @@ const statusOverrides = load<Record<string, ProductStatus>>('statusOverrides', {
 
 export const useDashboardStore = defineStore('dashboard', {
   state: (): DashboardState => ({
-    mode: load('mode', 'sell'),          // sell | buy
+    mode: load('mode', 'buy'),           // sell | buy（預設買家）
     font: load('font', 'sora'),          // sora | grotesk
     density: load('density', 'comfy'),   // comfy | compact
     search: '',
