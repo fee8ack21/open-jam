@@ -12,6 +12,26 @@ config:
   oidcClientId: "open-jam-web"
   storagePublicBaseUrl: "https://assets.openjam.co"
 
+hydraClients:
+  web:
+    redirectUris:
+      - "http://localhost:5173/callback.html"
+      - "http://localhost:5173/silent-renew.html"
+      - "http://localhost:5174/callback.html"
+      - "http://localhost:5174/silent-renew.html"
+      - "http://localhost:5175/callback.html"
+      - "http://localhost:5175/silent-renew.html"
+      - "https://workspace.openjam.co/callback.html"
+      - "https://workspace.openjam.co/silent-renew.html"
+      - "https://openjam.co/callback.html"
+      - "https://openjam.co/silent-renew.html"
+    postLogoutRedirectUris:
+      - "http://localhost:5173/"
+      - "http://localhost:5174/"
+      - "http://localhost:5175/"
+      - "https://workspace.openjam.co/"
+      - "https://openjam.co/"
+
 # 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
 dbNamePrefix: open_jam
 

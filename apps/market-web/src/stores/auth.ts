@@ -1,32 +1,93 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { User } from 'oidc-client-ts';
-import { getUser, login, logout, validateSession } from '@/oidc/auth.js';
+import { login, logout, userManager, validateSession } from '@/oidc/auth.js';
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const part = token.split('.')[1];
+    const json = decodeURIComponent(
+      atob(part.replace(/-/g, '+').replace(/_/g, '/'))
+        .split('')
+        .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join(''),
+    );
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
 
 export const useAuthStore = defineStore('auth', () => {
   const userIdentity = ref<User | null>(null);
+  let loadPromise: Promise<void> | null = null;
 
   const isAuthenticated = computed(() => !!userIdentity.value && !userIdentity.value.expired);
-  const userEmail = computed<string | null>(() => userIdentity.value?.profile?.email ?? null);
+  const accessTokenExt = computed<Record<string, unknown> | null>(() => {
+    const token = userIdentity.value?.access_token;
+    if (!token) return null;
+    const payload = decodeJwtPayload(token);
+    return (payload?.ext as Record<string, unknown> | undefined) ?? payload ?? null;
+  });
+  const userEmail = computed<string | null>(
+    () => (accessTokenExt.value?.email as string | undefined) ?? userIdentity.value?.profile?.email ?? null,
+  );
 
   async function getUserIdentity(): Promise<void> {
-    try {
-      const user = await getUser();
+    if (loadPromise) return loadPromise;
 
-      if (user && !user.expired) {
-        userIdentity.value = user;
-        return;
+    loadPromise = (async () => {
+      try {
+        // 本地 token 不代表 Hydra session 仍存在；無本地 token 時也用 SSO session 嘗試自動登入。
+        userIdentity.value = await validateSession();
+      } catch (error) {
+        console.error('getUserIdentity failed:', error);
+        userIdentity.value = null;
+      } finally {
+        loadPromise = null;
       }
+    })();
 
-      // 本地沒有 user 或 token 過期時，嘗試靠 auth.openjam.co 的 SSO session silent signin
-      userIdentity.value = await validateSession();
-    } catch (error) {
-      console.error('getUserIdentity failed:', error);
+    return loadPromise;
+  }
+
+  function refreshWhenVisible(): void {
+    if (document.visibilityState === 'visible') {
+      void getUserIdentity();
+    }
+  }
+
+  userManager.events.addUserLoaded((user) => {
+    userIdentity.value = user;
+  });
+  userManager.events.addUserUnloaded(() => {
+    userIdentity.value = null;
+  });
+  userManager.events.addUserSignedOut(() => {
+    userIdentity.value = null;
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'logout-event') {
       userIdentity.value = null;
+      return;
     }
 
-    console.log('userIdentity:', userIdentity);
+    if (event.key === 'login-event' || event.key?.startsWith('oidc.user:')) {
+      void getUserIdentity();
+    }
+  });
+
+  if ('BroadcastChannel' in window) {
+    const channel = new BroadcastChannel('auth');
+    channel.onmessage = (event: MessageEvent<string>) => {
+      if (event.data === 'login') void getUserIdentity();
+      if (event.data === 'logout') userIdentity.value = null;
+    };
   }
+
+  window.addEventListener('focus', () => void getUserIdentity());
+  document.addEventListener('visibilitychange', refreshWhenVisible);
 
   return {
     userIdentity,

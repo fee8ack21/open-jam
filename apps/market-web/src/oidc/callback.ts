@@ -5,6 +5,12 @@ async function load(): Promise<void> {
   const manager = createUserManager();
   try {
     const user = await manager.signinRedirectCallback();
+    localStorage.setItem('login-event', Date.now().toString());
+    if ('BroadcastChannel' in window) {
+      const channel = new BroadcastChannel('auth');
+      channel.postMessage('login');
+      channel.close();
+    }
     const redirect =
       user.state && typeof user.state === 'string'
         ? user.state

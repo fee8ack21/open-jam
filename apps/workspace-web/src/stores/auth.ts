@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { User } from 'oidc-client-ts';
-import { getUser, login, logout, validateSession } from '@/oidc/auth';
+import { login, logout, userManager, validateSession } from '@/oidc/auth';
 
 /** 解碼 JWT payload（base64url），失敗回傳 null。 */
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
@@ -21,6 +21,7 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 
 export const useAuthStore = defineStore('auth', () => {
   const userIdentity = ref<User | null>(null);
+  let loadPromise: Promise<void> | null = null;
 
   const isAuthenticated = computed(() => !!userIdentity.value && !userIdentity.value.expired);
 
@@ -52,15 +53,59 @@ export const useAuthStore = defineStore('auth', () => {
   const isUser = computed(() => (userRole.value ?? '').toLowerCase() === 'user');
 
   async function getUserIdentity() {
-    try {
-      const user = await getUser();
-      // 本地有未過期的 token 不代表 Hydra session 仍存在（可能已在其他子網域登出），
-      // 需以 prompt=none silent check 向 Hydra 確認。
-      userIdentity.value = user && !user.expired ? await validateSession() : user;
-    } catch {
-      userIdentity.value = null;
+    if (loadPromise) return loadPromise;
+
+    loadPromise = (async () => {
+      try {
+        // 本地 token 不代表 Hydra session 仍存在；無本地 token 時也用 SSO session 嘗試自動登入。
+        userIdentity.value = await validateSession();
+      } catch {
+        userIdentity.value = null;
+      } finally {
+        loadPromise = null;
+      }
+    })();
+
+    return loadPromise;
+  }
+
+  function refreshWhenVisible(): void {
+    if (document.visibilityState === 'visible') {
+      void getUserIdentity();
     }
   }
+
+  userManager.events.addUserLoaded((user) => {
+    userIdentity.value = user;
+  });
+  userManager.events.addUserUnloaded(() => {
+    userIdentity.value = null;
+  });
+  userManager.events.addUserSignedOut(() => {
+    userIdentity.value = null;
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'logout-event') {
+      userIdentity.value = null;
+      return;
+    }
+
+    if (event.key === 'login-event' || event.key?.startsWith('oidc.user:')) {
+      void getUserIdentity();
+    }
+  });
+
+  if ('BroadcastChannel' in window) {
+    const channel = new BroadcastChannel('auth');
+    channel.onmessage = (event: MessageEvent<string>) => {
+      if (event.data === 'login') void getUserIdentity();
+      if (event.data === 'logout') userIdentity.value = null;
+    };
+  }
+
+  window.addEventListener('focus', () => void getUserIdentity());
+  document.addEventListener('visibilitychange', refreshWhenVisible);
 
   return {
     userIdentity,

@@ -36,22 +36,14 @@ spec:
                   key: auth-connection-string
             - name: Hydra__AdminUrl
               value: {{ include "open-jam.hydraAdminUrl" . | quote }}
-            - name: HydraClients__Web__RedirectUris__0
-              value: {{ printf "%scallback.html" .Values.config.externalUrl | quote }}
-            - name: HydraClients__Web__RedirectUris__1
-              value: {{ printf "%ssilent-renew.html" .Values.config.externalUrl | quote }}
-            - name: HydraClients__Web__RedirectUris__2
-              value: "http://workspace.openjam.co"
-            - name: HydraClients__Web__RedirectUris__3
-              value: "https://openjam.co"
-            - name: HydraClients__Web__PostLogoutRedirectUris__0
-              value: {{ .Values.config.externalUrl | quote }}
-            - name: HydraClients__Web__PostLogoutRedirectUris__1
-              value: {{ .Values.config.workspaceUrl | quote }}
-            - name: HydraClients__Web__PostLogoutRedirectUris__2
-              value: "http://workspace.openjam.co"
-            - name: HydraClients__Web__PostLogoutRedirectUris__3
-              value: "https://openjam.co"
+            {{- range $index, $uri := .Values.hydraClients.web.redirectUris }}
+            - name: HydraClients__Web__RedirectUris__{{ $index }}
+              value: {{ $uri | quote }}
+            {{- end }}
+            {{- range $index, $uri := .Values.hydraClients.web.postLogoutRedirectUris }}
+            - name: HydraClients__Web__PostLogoutRedirectUris__{{ $index }}
+              value: {{ $uri | quote }}
+            {{- end }}
           {{- with .Values.bootstrap.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
