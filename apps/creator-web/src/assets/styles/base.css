@@ -17,6 +17,17 @@
   --oj-primary: #6c4cf1;
   --oj-primary-soft: #8a72ff;
   --oj-primary-wash: rgba(108, 76, 241, 0.10);
+  --oj-wash: rgba(108, 76, 241, 0.10);
+
+  /* unified pop hard-shadow scale (mirrors market-web) — resting → hover
+     always grows by +2px toward the shadow source. uses --text so it tracks
+     the active theme (dark shadow on light, light shadow on dark). */
+  --pop-1: 2px 2px 0 var(--text);
+  --pop-1-h: 4px 4px 0 var(--text);
+  --pop-2: 3px 3px 0 var(--text);
+  --pop-2-h: 5px 5px 0 var(--text);
+  --pop-3: 4px 4px 0 var(--text);
+  --pop-3-h: 6px 6px 0 var(--text);
 
   --oj-display: 'Bricolage Grotesque', 'Noto Sans TC', sans-serif;
   --oj-font: 'Space Grotesk', 'Noto Sans TC', sans-serif;
@@ -196,13 +207,13 @@ body {
   display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
   font-family: var(--oj-font); font-weight: 600; font-size: 14px; color: var(--text);
   padding: 9px 16px; border-radius: 999px; background: var(--surface);
-  border: 1.5px solid var(--text); box-shadow: 2px 2px 0 var(--text); user-select: none;
-  transition: transform .14s, box-shadow .14s, background .14s, color .14s;
+  border: 1.5px solid var(--text); user-select: none;
+  transition: transform .14s, background .14s, color .14s;
 }
-.cat-pill:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--text); }
+.cat-pill:hover { transform: translateY(-1px); }
 .cat-pill .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
 .cat-pill.on { color: #fff; }
-.cat-pill.on.c-all { background: var(--c-violet); border-color: var(--c-violet); box-shadow: 2px 2px 0 color-mix(in srgb, var(--c-violet) 55%, #000); }
+.cat-pill.on.c-all { background: var(--c-violet); border-color: var(--c-violet); }
 .cat-pill.on.c-music { background: var(--c-violet); border-color: var(--c-violet); }
 .cat-pill.on.c-photo { background: var(--c-pink); border-color: var(--c-pink); }
 .cat-pill.on.c-ebook { background: var(--c-cyan); border-color: var(--c-cyan); color: #08312d; }

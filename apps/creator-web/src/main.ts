@@ -8,6 +8,7 @@ import App from './App.vue';
 import router from './router';
 
 import './assets/styles/base.css';
+import './assets/styles/list.css';
 
 const app = createApp(App);
 app.use(createPinia());

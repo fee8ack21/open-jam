@@ -52,7 +52,7 @@ const onSearch = (v: string) => {
           <span class="follow-icon"><app-icon name="search" :size="17" /></span>
           <input class="search-input" type="text" :value="store.search"
                  @input="onSearch(($event.target as HTMLInputElement).value)"
-                 placeholder="搜尋作品、創作者或標籤…" aria-label="搜尋" />
+                 placeholder="搜尋作品或標籤…" aria-label="搜尋" />
           <button v-if="store.search" class="search-clear" type="button"
                   @click="onSearch('')" aria-label="清除"><app-icon name="close" :size="15" /></button>
         </div>
