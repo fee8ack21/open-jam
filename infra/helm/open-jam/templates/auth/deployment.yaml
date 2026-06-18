@@ -54,6 +54,8 @@ spec:
               value: {{ .Values.config.authPageUrl | quote }}
             - name: App__WorkspaceUrl
               value: {{ .Values.config.workspaceUrl | quote }}
+            - name: App__MarketUrl
+              value: {{ .Values.config.marketPageUrl | quote }}
           {{- with .Values.auth.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

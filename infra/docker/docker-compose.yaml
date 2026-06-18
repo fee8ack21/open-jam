@@ -139,6 +139,7 @@ services:
       Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
       App__BaseUrl: ${AUTH_PAGE_URL}
       App__WorkspaceUrl: ${WORKSPACE_URL}
+      App__MarketUrl: ${MARKET_PAGE_URL}
     ports:
       - "5169:8080"
     depends_on:

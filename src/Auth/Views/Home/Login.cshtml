@@ -1,4 +1,5 @@
 @model LoginViewModel
+@inject Microsoft.Extensions.Options.IOptions<Auth.Options.AppOptions> AppOptions
 @{
     ViewData["Title"] = "Open Jam · 登入";
 }
@@ -17,7 +18,12 @@
         </div>
         <div class="form-wrap">
             <div class="screen">
-                <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) 歡迎回來</p>
+                <div class="screen-head">
+                    <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) 歡迎回來</p>
+                    <a href="@AppOptions.Value.MarketUrl" class="back-link">
+                        @IconHelper.Render("arrowLeft", 16) 返回平台
+                    </a>
+                </div>
                 <h2 class="form-title">登入 Open Jam</h2>
                 <p class="form-sub">還沒準備好？先逛逛也沒關係。輸入帳號繼續你的創作旅程。</p>
                 <form asp-action="Login" method="post" novalidate>

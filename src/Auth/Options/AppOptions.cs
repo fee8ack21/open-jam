@@ -10,4 +10,8 @@ public class AppOptions
     /// <summary>Workspace Web 根 URL，無 OIDC challenge 時導向此處發起 OIDC flow。</summary>
     /// <example>https://workspace.openjam.co</example>
     public string WorkspaceUrl { get; set; } = null!;
+
+    /// <summary>Market Web（平台首頁）根 URL，供登入頁「返回平台」連結使用。</summary>
+    /// <example>https://openjam.co</example>
+    public string MarketUrl { get; set; } = null!;
 }

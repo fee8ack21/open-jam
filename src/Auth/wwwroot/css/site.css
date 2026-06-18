@@ -750,6 +750,17 @@ a.btn-pop {
   margin-left: 4px;
 }
 
+.screen-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.screen-head .form-eyebrow {
+  margin: 0;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -758,7 +769,7 @@ a.btn-pop {
   background: 0;
   border: 0;
   padding: 0;
-  margin-bottom: 24px;
+  text-decoration: none;
   font-family: var(--oj-font);
   font-weight: 600;
   font-size: 14px;
