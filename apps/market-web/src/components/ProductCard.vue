@@ -13,8 +13,8 @@ const props = defineProps<{
   badge?: { label: string; tone: 'hot' | 'new' | 'feat' } | null;
 }>();
 
-const BASE = env.CREATOR_PAGE_BASE_URL;
-const href = computed(() => `${BASE}/product/${props.product.id}`);
+const slug = computed(() => props.product.handle.replace(/^@/, ''));
+const href = computed(() => `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', slug.value)}/products/${props.product.id}`);
 const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
 </script>
 
