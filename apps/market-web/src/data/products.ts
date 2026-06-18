@@ -28,6 +28,7 @@ export interface ContentItem {
 
 export interface Product {
   id: string;
+  storeSlug: string;
   cat: string;
   hue: number;
   title: string;
@@ -74,7 +75,7 @@ const F = (type: string, count: number): FileEntry => ({ type, count });
 
 export const PRODUCTS: Product[] = [
   {
-    id: 'p01', cat: 'music', hue: 256,
+    id: 'p01', storeSlug: 'lenakeys', cat: 'music', hue: 256,
     title: '午夜爵士鋼琴：12 首即興譜集',
     creator: 'Lena Okafor', handle: '@lenakeys', avatar: '#6151f0',
     price: 18, rating: 4.9, ratingCount: 312, sales: 1840,
@@ -95,7 +96,7 @@ export const PRODUCTS: Product[] = [
     featured: true,
   },
   {
-    id: 'p02', cat: 'photo', hue: 28,
+    id: 'p02', storeSlug: 'haru-frames', cat: 'photo', hue: 28,
     title: '京都の秋・古都紅葉攝影集',
     creator: 'Haru Tanaka', handle: '@haru.frames', avatar: '#e0823c',
     price: 24, rating: 4.8, ratingCount: 208, sales: 920,
@@ -115,7 +116,7 @@ export const PRODUCTS: Product[] = [
     featured: true,
   },
   {
-    id: 'p03', cat: 'ebook', hue: 168,
+    id: 'p03', storeSlug: 'marcusbuilds', cat: 'ebook', hue: 168,
     title: '獨立創作者的定價心法',
     creator: 'Marcus Wei', handle: '@marcusbuilds', avatar: '#16a07a',
     price: 0, rating: 4.7, ratingCount: 540, sales: 6100,
@@ -135,7 +136,7 @@ export const PRODUCTS: Product[] = [
     featured: true,
   },
   {
-    id: 'p04', cat: 'music', hue: 320,
+    id: 'p04', storeSlug: 'sora-scores', cat: 'music', hue: 320,
     title: '極簡電影配樂模板（Cinematic Pack）',
     creator: 'Sora Lim', handle: '@sora.scores', avatar: '#c94f9e',
     price: 32, rating: 5.0, ratingCount: 96, sales: 410,
@@ -155,7 +156,7 @@ export const PRODUCTS: Product[] = [
     featured: true,
   },
   {
-    id: 'p05', cat: 'photo', hue: 210,
+    id: 'p05', storeSlug: 'diego-night', cat: 'photo', hue: 210,
     title: '城市夜行・霓虹街拍 RAW 套組',
     creator: 'Diego Ramos', handle: '@diego.night', avatar: '#3b7fd4',
     price: 21, rating: 4.6, ratingCount: 144, sales: 680,
@@ -174,7 +175,7 @@ export const PRODUCTS: Product[] = [
     featured: true,
   },
   {
-    id: 'p06', cat: 'ebook', hue: 44,
+    id: 'p06', storeSlug: 'priya-shoots', cat: 'ebook', hue: 44,
     title: '手機攝影構圖 30 講',
     creator: 'Priya Nair', handle: '@priya.shoots', avatar: '#d8a017',
     price: 12, rating: 4.8, ratingCount: 376, sales: 2300,
@@ -191,7 +192,7 @@ export const PRODUCTS: Product[] = [
     image: thumbBloodFamily,
   },
   {
-    id: 'p07', cat: 'music', hue: 12,
+    id: 'p07', storeSlug: 'theo-strings', cat: 'music', hue: 12,
     title: '原聲吉他指彈譜・溫暖系 10 首',
     creator: 'Theo Brandt', handle: '@theo.strings', avatar: '#d65a3a',
     price: 15, rating: 4.7, ratingCount: 188, sales: 1020,
@@ -209,7 +210,7 @@ export const PRODUCTS: Product[] = [
     image: thumbColorful,
   },
   {
-    id: 'p08', cat: 'photo', hue: 142,
+    id: 'p08', storeSlug: 'astrid-space', cat: 'photo', hue: 142,
     title: '北歐極簡室內・空間攝影 40 張',
     creator: 'Astrid Holm', handle: '@astrid.space', avatar: '#2f9e6b',
     price: 28, rating: 4.9, ratingCount: 110, sales: 540,
@@ -227,7 +228,7 @@ export const PRODUCTS: Product[] = [
     featured: true,
   },
   {
-    id: 'p09', cat: 'ebook', hue: 286,
+    id: 'p09', storeSlug: 'yuki-writes', cat: 'ebook', hue: 286,
     title: '寫作者的 Notion 系統範本',
     creator: 'Yuki Sato', handle: '@yuki.writes', avatar: '#8b5cf6',
     price: 9, rating: 4.5, ratingCount: 264, sales: 1560,
@@ -244,7 +245,7 @@ export const PRODUCTS: Product[] = [
     image: thumbGoodDeeds,
   },
   {
-    id: 'p10', cat: 'music', hue: 198,
+    id: 'p10', storeSlug: 'lenakeys', cat: 'music', hue: 198,
     title: '兒童鋼琴啟蒙・趣味練習本',
     creator: 'Lena Okafor', handle: '@lenakeys', avatar: '#6151f0',
     price: 11, rating: 4.8, ratingCount: 142, sales: 760,
@@ -260,7 +261,7 @@ export const PRODUCTS: Product[] = [
     previews: 4,
   },
   {
-    id: 'p11', cat: 'photo', hue: 350,
+    id: 'p11', storeSlug: 'astrid-space', cat: 'photo', hue: 350,
     title: '花卉微距・植物標本影像庫',
     creator: 'Astrid Holm', handle: '@astrid.space', avatar: '#2f9e6b',
     price: 19, rating: 4.6, ratingCount: 88, sales: 320,
@@ -276,7 +277,7 @@ export const PRODUCTS: Product[] = [
     previews: 6,
   },
   {
-    id: 'p12', cat: 'ebook', hue: 226,
+    id: 'p12', storeSlug: 'marcusbuilds', cat: 'ebook', hue: 226,
     title: '品牌字體搭配指南 + 範本',
     creator: 'Marcus Wei', handle: '@marcusbuilds', avatar: '#16a07a',
     price: 16, rating: 4.9, ratingCount: 174, sales: 880,
