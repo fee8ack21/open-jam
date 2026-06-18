@@ -34,8 +34,8 @@ const storeAppStore = useStoreApplicationStore()
 const reviewStore = useStoreReviewStore()
 const storeListStore = useStoreListStore()
 
-/** 首次身份載入是否完成；未完成前選單保持空白，避免閃現錯誤角色的項目。 */
-const isReady = computed(() => authStore.isReady)
+/** 已有可用身份時才呈現選單；登出卸載 user 後到導頁前保持空白，避免閃現錯誤角色項目。 */
+const isReady = computed(() => authStore.isReady && authStore.isAuthenticated)
 /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
 const canSell = computed(() => authStore.isUser)
 /** 是否為系統管理員：顯示店家審核後台，不顯示買家/賣家分頁。 */

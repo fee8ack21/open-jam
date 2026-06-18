@@ -36,7 +36,10 @@ const canSell = computed(() => authStore.isUser)
 
 watch(() => route.name, (name) => { if (name) store.syncModeToRoute(name as string) }, { immediate: true })
 // 非賣家角色不應停留在賣家模式
-watch(canSell, (can) => { if (!can && store.mode === 'sell') store.setMode('buy') }, { immediate: true })
+watch(canSell, (can) => {
+  if (!authStore.isReady || !authStore.isAuthenticated) return
+  if (!can && store.mode === 'sell') store.setMode('buy')
+}, { immediate: true })
 </script>
 
 <template>

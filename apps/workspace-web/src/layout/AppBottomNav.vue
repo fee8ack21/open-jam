@@ -10,6 +10,8 @@ const store = useDashboardStore()
 const authStore = useAuthStore()
 const storeAppStore = useStoreApplicationStore()
 
+/** 已有可用身份時才呈現行動導覽；登出導頁前避免 fallback 到買家導覽。 */
+const isReady = computed(() => authStore.isReady && authStore.isAuthenticated)
 /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
 const canSell = computed(() => authStore.isUser)
 /** 是否為系統管理員：行動版只露出店家審核與設定。 */
@@ -20,6 +22,7 @@ const hasStore = computed(() => storeAppStore.hasStore)
 const mobileNav = computed(() => {
   const buy = { view: 'purchases', label: '已購', icon: 'bag' }
   const settings = { view: 'settings', label: '設定', icon: 'gear' }
+  if (!isReady.value) return []
   if (isAdmin.value) {
     return [
       { view: 'review', label: '審核', icon: 'shield' },
