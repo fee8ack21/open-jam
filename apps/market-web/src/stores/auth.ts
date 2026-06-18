@@ -73,7 +73,10 @@ export const useAuthStore = defineStore('auth', () => {
       return;
     }
 
-    if (event.key === 'login-event' || event.key?.startsWith('oidc.user:')) {
+    // 僅在「明確的登入事件」時重新驗證。不要監聽 oidc.user:* 的寫入，否則其他分頁
+    // 每次 automaticSilentRenew 重寫該 key 都會觸發本分頁 silent renew，造成跨分頁
+    // prompt=none 連鎖競態與已登入／未登入狀態抖動。
+    if (event.key === 'login-event') {
       void getUserIdentity();
     }
   });
@@ -86,7 +89,8 @@ export const useAuthStore = defineStore('auth', () => {
     };
   }
 
-  window.addEventListener('focus', () => void getUserIdentity());
+  // 分頁重新可見時做一次 SSO session 檢查（偵測在其他子網域登出）。
+  // 不再額外監聽 window focus，避免每次視窗取得焦點都觸發 silent renew。
   document.addEventListener('visibilitychange', refreshWhenVisible);
 
   return {
