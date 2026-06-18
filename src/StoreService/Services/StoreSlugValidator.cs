@@ -6,7 +6,7 @@ using StoreService.Data.Entities;
 
 namespace StoreService.Services;
 
-/// <summary>商店 slug 格式與唯一性驗證。</summary>
+/// <summary>商店 slug 格式與唯一性驗證。格式 / 保留字屬無狀態輸入驗證（由 FluentValidation 使用）；唯一性需查 DB（由業務層使用）。</summary>
 public static partial class StoreSlugValidator
 {
     private static readonly HashSet<string> ReservedSlugs = new(StringComparer.Ordinal)
@@ -14,18 +14,11 @@ public static partial class StoreSlugValidator
         "www", "api", "admin", "app", "store", "mail", "ftp", "blog", "help", "support",
     };
 
-    /// <summary>
-    /// 驗證 slug 格式（小寫英數字 + 連字號，3–30 字，不可開頭/結尾為連字號）並檢查是否為保留字。
-    /// 格式或保留字錯誤時拋出 <see cref="ValidationException"/>。
-    /// </summary>
-    public static void ValidateFormat(string slug)
-    {
-        if (!SlugFormatRegex().IsMatch(slug))
-            throw new ValidationException("商店子網域格式錯誤：須為 3–30 字小寫英數字與連字號，且不可開頭/結尾為連字號。");
+    /// <summary>slug 是否符合格式（小寫英數字 + 連字號，3–30 字，不可開頭/結尾為連字號）。</summary>
+    public static bool IsValidFormat(string slug) => SlugFormatRegex().IsMatch(slug);
 
-        if (ReservedSlugs.Contains(slug))
-            throw new ValidationException("此商店子網域為保留字，請改用其他名稱。");
-    }
+    /// <summary>slug 是否為保留字。</summary>
+    public static bool IsReserved(string slug) => ReservedSlugs.Contains(slug);
 
     /// <summary>
     /// 檢查 slug 唯一性，範圍為 <c>Stores.StoreSlug</c> ∪ <c>StoreApplications.StoreSlug WHERE Status = Pending</c>。

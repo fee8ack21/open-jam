@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -17,11 +18,9 @@ public class StoreManager(
     IOptions<StorageOptions> storageOptions,
     StorageServiceClient storageClient,
     AuditLogPublisher auditLog,
-    IHttpContextAccessor httpContextAccessor) : IStoreManager
+    IHttpContextAccessor httpContextAccessor,
+    IMapper mapper) : IStoreManager
 {
-    private static readonly HashSet<string> AllowedImageContentTypes =
-        new(StringComparer.Ordinal) { "image/jpeg", "image/png", "image/gif", "image/webp" };
-
     private readonly string _publicBaseUrl = (storageOptions.Value.PublicBaseUrl ?? "").TrimEnd('/');
 
     /// <inheritdoc/>
@@ -61,13 +60,7 @@ public class StoreManager(
         await StoreAuthorization.EnsureOwnerAsync(db, id, userId, ct);
 
         if (request.StoreName is not null)
-        {
-            var storeName = request.StoreName.Trim();
-            if (storeName.Length is < 1 or > 100)
-                throw new ValidationException("商店名稱長度須為 1–100 字。");
-
-            store.StoreName = storeName;
-        }
+            store.StoreName = request.StoreName.Trim();
 
         if (request.Description is not null)
             store.Description = request.Description.Length == 0 ? null : request.Description;
@@ -142,9 +135,6 @@ public class StoreManager(
 
         await StoreAuthorization.EnsureOwnerAsync(db, id, userId, ct);
 
-        if (!AllowedImageContentTypes.Contains(request.ContentType))
-            throw new ValidationException($"不支援的檔案類型：{request.ContentType}");
-
         var result = await storageClient.RequestPublicImageUploadUrlAsync(
             userId, request.FileName, request.ContentType, request.SizeBytes, ct);
 
@@ -180,18 +170,13 @@ public class StoreManager(
             ? await db.Stores.FirstOrDefaultAsync(s => s.Id == id, ct)
             : await db.Stores.FirstOrDefaultAsync(s => s.StoreSlug == idOrSlug, ct);
 
-    private async Task<StoreDto> ToDtoAsync(Store store, CancellationToken ct) => new()
+    private async Task<StoreDto> ToDtoAsync(Store store, CancellationToken ct)
     {
-        Id = store.Id,
-        StoreName = store.StoreName,
-        StoreSlug = store.StoreSlug,
-        Description = store.Description,
-        AvatarUrl = await GetAssetUrlAsync(store.AvatarAssetId, ct),
-        BannerUrl = await GetAssetUrlAsync(store.BannerAssetId, ct),
-        Status = store.Status,
-        CreatedAt = store.CreatedAt,
-        UpdatedAt = store.UpdatedAt,
-    };
+        var dto = mapper.Map<StoreDto>(store);
+        dto.AvatarUrl = await GetAssetUrlAsync(store.AvatarAssetId, ct);
+        dto.BannerUrl = await GetAssetUrlAsync(store.BannerAssetId, ct);
+        return dto;
+    }
 
     private async Task<string?> GetAssetUrlAsync(Guid? assetId, CancellationToken ct)
     {

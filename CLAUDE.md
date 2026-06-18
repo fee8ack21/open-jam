@@ -71,6 +71,8 @@ pnpm preview
 
 - **軟體三層 + Service DI**：Controller 只做 HTTP（路由、model binding、狀態碼），業務邏輯一律下放至 `Services/<Feature>/` 的 `I<Feature>Service` + 實作，於 `Program.cs` 以 `AddScoped` 註冊（詳見 `docs/develop.md`）
 - **API Model**：Request / Response / DTO 依功能集中於 `Models/<Feature>Models.cs`（一功能一檔，非一型別一檔），namespace `<Service>.Models`
+- **Model 驗證**：REST API 服務一律以 **FluentValidation** 驗證輸入 model。驗證器置於 `Validators/`（`AbstractValidator<TRequest>`），於 `Program.cs` 呼叫 `AddOpenJamValidation(typeof(Program).Assembly)`（`Shared/Web/ValidationExtensions.cs`）註冊。**僅無狀態輸入驗證**（格式 / 長度 / 必填 / 範圍）放驗證器；需查 DB 或跨服務的檢查（唯一性、存在性、Owner、狀態轉移）留在 service 層拋 `AppException` 子類。`ValidationActionFilter` 將驗證失敗統一拋 `ValidationException`（422，含欄位 `errors`），不使用 FluentValidation 內建 auto-validation（避免回 400 破壞契約）。分頁範圍重用 `Shared.Web.PaginationRules` 的 `ValidOffset()` / `ValidLimit()`
+- **Model 轉換**：Entity ↔ DTO 一律以 **AutoMapper** 轉換。`Profile` 置於 `Mapping/`，於 `Program.cs` 呼叫 `AddOpenJamMapping(typeof(Program).Assembly)`（`Shared/Web/MappingExtensions.cs`）註冊；業務層注入 `IMapper`，IQueryable 投影用 `ProjectTo<TDto>(mapper.ConfigurationProvider)`。AutoMapper 只做扁平欄位對應，需 async 查詢補值的欄位（資產 URL、標籤清單、目前版本等）以 `Ignore()` 標記，由 service map 後補上
 - **分頁**：一律 `offset` / `limit`（非 `page` / `pageSize`）
 - **時間欄位**：型別 `DateTimeOffset`，命名以 `At` 結尾
 - **資料庫命名**：snake_case；C# Entity 保持 PascalCase，由 `BaseDbContext` 自動套用 EF Core naming convention，不需手動 `[Column]`

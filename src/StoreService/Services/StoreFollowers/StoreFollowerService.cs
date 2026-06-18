@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
 using Shared.Exceptions;
@@ -8,14 +10,12 @@ using StoreService.Models;
 namespace StoreService.Services.StoreFollowers;
 
 /// <summary>商店追蹤者業務邏輯實作。</summary>
-public class StoreFollowerService(StoreDbContext db, ICurrentUserAccessor currentUser) : IStoreFollowerService
+public class StoreFollowerService(StoreDbContext db, ICurrentUserAccessor currentUser, IMapper mapper) : IStoreFollowerService
 {
     /// <inheritdoc/>
     public async Task FollowAsync(Guid storeId, FollowStoreRequest request, CancellationToken ct)
     {
         var email = request.Email.Trim();
-        if (!IsValidEmail(email))
-            throw new ValidationException("信箱格式錯誤。");
 
         var storeExists = await db.Stores.AnyAsync(s => s.Id == storeId, ct);
         if (!storeExists)
@@ -64,36 +64,16 @@ public class StoreFollowerService(StoreDbContext db, ICurrentUserAccessor curren
 
         await StoreAuthorization.EnsureOwnerAsync(db, storeId, userId, ct);
 
-        var limit = Math.Clamp(request.Limit, 1, 100);
-
         var query = db.StoreFollowers.AsNoTracking().Where(f => f.StoreId == storeId);
 
         var total = await query.CountAsync(ct);
         var items = await query
             .OrderByDescending(f => f.CreatedAt)
             .Skip(request.Offset)
-            .Take(limit)
-            .Select(f => new StoreFollowerDto
-            {
-                Email = f.Email,
-                UserId = f.UserId,
-                CreatedAt = f.CreatedAt,
-            })
+            .Take(request.Limit)
+            .ProjectTo<StoreFollowerDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
         return new GetStoreFollowersResponse { TotalCount = total, Items = items };
-    }
-
-    private static bool IsValidEmail(string email)
-    {
-        try
-        {
-            _ = new System.Net.Mail.MailAddress(email);
-            return true;
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
     }
 }

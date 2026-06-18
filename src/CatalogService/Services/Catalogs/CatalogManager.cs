@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using CatalogService.Data;
 using CatalogService.Data.Entities;
 using CatalogService.Models;
@@ -16,7 +18,8 @@ public class CatalogManager(
     IOptions<StorageOptions> storageOptions,
     StorageServiceClient storageClient,
     StoreServiceClient storeClient,
-    AuditLogPublisher auditLog) : ICatalogManager
+    AuditLogPublisher auditLog,
+    IMapper mapper) : ICatalogManager
 {
     private readonly string _publicBaseUrl = (storageOptions.Value.PublicBaseUrl ?? "").TrimEnd('/');
 
@@ -27,15 +30,9 @@ public class CatalogManager(
         await storeClient.EnsureStoreOwnerAsync(request.StoreId, ct);
 
         var name = request.Name.Trim();
-        if (name.Length is < 1 or > 200)
-            throw new ValidationException("商品名稱長度須為 1–200 字。");
 
         var slug = request.Slug.Trim().ToLowerInvariant();
-        CatalogSlugValidator.ValidateFormat(slug);
         await CatalogSlugValidator.EnsureCatalogSlugUniqueAsync(db, request.StoreId, slug, null, ct);
-
-        if (request.Price < 0)
-            throw new ValidationException("售價不得為負數。");
 
         var currency = NormalizeCurrency(request.Currency);
 
@@ -84,9 +81,6 @@ public class CatalogManager(
     /// <inheritdoc/>
     public async Task<ListCatalogsResponse> ListAsync(ListCatalogsRequest request, bool publishedOnly, CancellationToken ct)
     {
-        var limit = Math.Clamp(request.Limit, 1, 100);
-        var offset = Math.Max(request.Offset, 0);
-
         var query = db.Catalogs.AsNoTracking().AsQueryable();
 
         if (publishedOnly)
@@ -119,25 +113,16 @@ public class CatalogManager(
 
         var catalogs = await query
             .OrderByDescending(c => c.PublishedAt ?? c.CreatedAt)
-            .Skip(offset)
-            .Take(limit)
+            .Skip(request.Offset)
+            .Take(request.Limit)
             .ToListAsync(ct);
 
         var items = new List<CatalogSummaryDto>(catalogs.Count);
         foreach (var c in catalogs)
         {
-            items.Add(new CatalogSummaryDto
-            {
-                Id = c.Id,
-                StoreId = c.StoreId,
-                Name = c.Name,
-                Slug = c.Slug,
-                Price = c.Price,
-                Currency = c.Currency,
-                Status = c.Status,
-                ThumbnailUrl = await GetAssetUrlAsync(c.ThumbnailAssetId, ct),
-                PublishedAt = c.PublishedAt,
-            });
+            var summary = mapper.Map<CatalogSummaryDto>(c);
+            summary.ThumbnailUrl = await GetAssetUrlAsync(c.ThumbnailAssetId, ct);
+            items.Add(summary);
         }
 
         return new ListCatalogsResponse { TotalCount = total, Items = items };
@@ -149,17 +134,11 @@ public class CatalogManager(
         var catalog = await LoadOwnedCatalogAsync(id, ct);
 
         if (request.Name is not null)
-        {
-            var name = request.Name.Trim();
-            if (name.Length is < 1 or > 200)
-                throw new ValidationException("商品名稱長度須為 1–200 字。");
-            catalog.Name = name;
-        }
+            catalog.Name = request.Name.Trim();
 
         if (request.Slug is not null)
         {
             var slug = request.Slug.Trim().ToLowerInvariant();
-            CatalogSlugValidator.ValidateFormat(slug);
             await CatalogSlugValidator.EnsureCatalogSlugUniqueAsync(db, catalog.StoreId, slug, catalog.Id, ct);
             catalog.Slug = slug;
         }
@@ -168,11 +147,7 @@ public class CatalogManager(
             catalog.Description = request.Description.Length == 0 ? null : request.Description;
 
         if (request.Price is { } price)
-        {
-            if (price < 0)
-                throw new ValidationException("售價不得為負數。");
             catalog.Price = price;
-        }
 
         if (request.Currency is not null)
             catalog.Currency = NormalizeCurrency(request.Currency);
@@ -420,35 +395,17 @@ public class CatalogManager(
             .OrderBy(name => name)
             .ToListAsync(ct);
 
-        return new CatalogDto
+        var dto = mapper.Map<CatalogDto>(catalog);
+        dto.ThumbnailUrl = await GetAssetUrlAsync(catalog.ThumbnailAssetId, ct);
+        dto.CurrentVersion = await GetCurrentVersionDtoAsync(catalog.CurrentVersionId, ct);
+        dto.Assets = assets.Select(a =>
         {
-            Id = catalog.Id,
-            StoreId = catalog.StoreId,
-            CategoryId = catalog.CategoryId,
-            Name = catalog.Name,
-            Slug = catalog.Slug,
-            Description = catalog.Description,
-            Status = catalog.Status,
-            Price = catalog.Price,
-            Currency = catalog.Currency,
-            ThumbnailUrl = await GetAssetUrlAsync(catalog.ThumbnailAssetId, ct),
-            CurrentVersion = await GetCurrentVersionDtoAsync(catalog.CurrentVersionId, ct),
-            Assets = assets.Select(a => new CatalogAssetDto
-            {
-                Id = a.Id,
-                Type = a.Type,
-                FileName = a.FileName,
-                ContentType = a.ContentType,
-                FileSize = a.FileSize,
-                SortOrder = a.SortOrder,
-                Url = BuildPublicUrl(a.StorageKey),
-                CreatedAt = a.CreatedAt,
-            }).ToList(),
-            Tags = tags,
-            PublishedAt = catalog.PublishedAt,
-            CreatedAt = catalog.CreatedAt,
-            UpdatedAt = catalog.UpdatedAt,
-        };
+            var assetDto = mapper.Map<CatalogAssetDto>(a);
+            assetDto.Url = BuildPublicUrl(a.StorageKey);
+            return assetDto;
+        }).ToList();
+        dto.Tags = tags;
+        return dto;
     }
 
     private async Task<CatalogVersionDto?> GetCurrentVersionDtoAsync(Guid? versionId, CancellationToken ct)
@@ -464,26 +421,12 @@ public class CatalogManager(
         var assets = await db.CatalogVersionAssets.AsNoTracking()
             .Where(a => a.CatalogVersionId == version.Id)
             .OrderBy(a => a.SortOrder)
-            .Select(a => new CatalogVersionAssetDto
-            {
-                Id = a.Id,
-                FileName = a.FileName,
-                ContentType = a.ContentType,
-                FileSize = a.FileSize,
-                SortOrder = a.SortOrder,
-                CreatedAt = a.CreatedAt,
-            })
+            .ProjectTo<CatalogVersionAssetDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
-        return new CatalogVersionDto
-        {
-            Id = version.Id,
-            CatalogId = version.CatalogId,
-            Version = version.Version,
-            ReleaseNote = version.ReleaseNote,
-            Assets = assets,
-            CreatedAt = version.CreatedAt,
-        };
+        var dto = mapper.Map<CatalogVersionDto>(version);
+        dto.Assets = assets;
+        return dto;
     }
 
     private async Task<string?> GetAssetUrlAsync(Guid? assetId, CancellationToken ct)

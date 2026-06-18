@@ -609,3 +609,94 @@ public class UpdateUserItem
     public string? Status { get; set; }
 }
 ```
+
+## Model 驗證與轉換（FluentValidation / AutoMapper）
+
+REST API 服務（LogService / StorageService / StoreService / CatalogService 等；`Auth` 為 MVC 不在此列）一律：
+
+- **以 FluentValidation 驗證輸入 model**——不在 Service 內以內聯 `if` 檢查輸入格式。
+- **以 AutoMapper 轉換 model**——Entity ↔ DTO 不手寫逐欄位組裝。
+
+### 資料夾位置
+
+`Validators/` 與 `Mapping/` 與 `Models/`、`Services/`、`Controllers/`、`Data/` **平行置於服務根目錄，不內嵌於 `Models/` 之下**：
+
+```
+<Service>/
+  Controllers/
+  Services/
+  Models/        # Request / Response / DTO（純資料型別）
+  Mapping/       # AutoMapper Profile
+  Validators/    # FluentValidation AbstractValidator
+  Data/
+```
+
+理由：
+
+1. **驗證器與 Profile 都不是 model，且橫跨兩層。** Profile 同時引用 `Data/Entities`（來源）與 `Models`（目的），是 Entity↔DTO 的橋接；驗證器則是規則邏輯。兩者皆非 `Models/` 所界定的「Request / Response / DTO 純資料型別」。
+2. **與「角色分層、扁平擺放」一致。** 服務根目錄按技術角色平鋪；`Mapping/` 與 `Validators/` 是被 assembly 掃描註冊的橫切單位（性質接近 `Services/`），擺同一層最一致，namespace 也乾淨（`<Service>.Mapping`、`<Service>.Validators`，而非 `<Service>.Models.Mapping`）。
+3. **兩者須一致對待。** `Mapping/` 與 `Validators/` 處境相同，要嘛都平行、要嘛都內嵌；分開放會破壞對稱，全塞進 `Models/` 又會讓 `Models/` 變雜燴。故統一平行於 `Models/`。
+
+### 驗證邊界（哪些檢查放 Validator）
+
+**僅無狀態輸入驗證**放 FluentValidation Validator：格式、長度、必填、數值範圍（如名稱 1–200 字、售價 `>= 0`、slug 格式、幣別 3 碼、MIME 白名單、分頁 `offset`/`limit` 範圍）。
+
+**需查 DB 或跨服務的檢查留在 Service 層**，以 `AppException` 子類拋出：唯一性（slug）、存在性（分類 / 上層分類）、授權（店家 Owner）、狀態轉移規則（如「已停權商品不可自行上架」）。slug 的格式檢查與唯一性檢查因此分家——格式以 `StoreSlugValidator.IsValidFormat` / `CatalogSlugValidator.IsValidFormat`（非拋例外的 `bool`）供 Validator 使用，唯一性 `Ensure...UniqueAsync` 留在 Service。
+
+### 驗證接線（維持 422 契約，不用 auto-validation）
+
+各服務於 `Program.cs` 呼叫 `builder.Services.AddOpenJamValidation(typeof(Program).Assembly)`（`Shared/Web/ValidationExtensions.cs`），它會：
+
+- `AddValidatorsFromAssembly` 註冊該 assembly 內所有 `AbstractValidator<T>`；
+- 掛上 `ValidationActionFilter`：在 action 執行前對每個已綁定參數解析 `IValidator<>` 並執行，失敗時彙整欄位錯誤拋出 **`ValidationException`（422，含 `errors`）**，由 [`ExceptionMiddleware`](#exceptionmiddleware) 統一轉為 RFC 9457 Problem Details。
+
+> **刻意不使用** FluentValidation 內建的 auto-validation（`AddFluentValidationAutoValidation`）：它會把輸入驗證失敗回成 **400 ValidationProblemDetails**，與既有「業務 / 輸入驗證皆走 422 + `errors`」的契約不一致，也會影響前端 codegen 消費的錯誤形狀。
+
+分頁欄位範圍重用 `Shared/Web/PaginationRules.cs` 的 `ValidOffset()`（`>= 0`）/ `ValidLimit()`（1–100），不再於 Service 以 `Math.Clamp` 靜默截斷——超界一律回 422。
+
+```csharp
+// Validators/GetAuditLogsRequestValidator.cs
+public class GetAuditLogsRequestValidator : AbstractValidator<GetAuditLogsRequest>
+{
+    public GetAuditLogsRequestValidator()
+    {
+        RuleFor(x => x.Offset).ValidOffset();
+        RuleFor(x => x.Limit).ValidLimit();
+        RuleFor(x => x.To)
+            .GreaterThanOrEqualTo(x => x.From)
+            .When(x => x.From.HasValue && x.To.HasValue)
+            .WithMessage("查詢結束時間不得早於起始時間。");
+    }
+}
+```
+
+### 轉換接線（AutoMapper 只做扁平對應，async 補值留 Service）
+
+各服務於 `Program.cs` 呼叫 `builder.Services.AddOpenJamMapping(typeof(Program).Assembly)`（`Shared/Web/MappingExtensions.cs`，內部 `AddAutoMapper`），Profile 置於 `Mapping/`。業務層注入 `IMapper`：
+
+- **AutoMapper 只負責 Entity → DTO 的扁平欄位對應。** 需 async 查詢或計算的欄位（資產 URL、標籤清單、目前版本、子資產清單等）在 Profile 以 `.ForMember(..., o => o.Ignore())` 標記，由 Service 在 `Map` 後補值。
+- **IQueryable 投影用 `ProjectTo<TDto>(mapper.ConfigurationProvider)`**，讓欄位選取下推到 SQL（取代 `.Select(x => new TDto { ... })`）。
+
+```csharp
+// Mapping/CatalogMappingProfile.cs
+public class CatalogMappingProfile : Profile
+{
+    public CatalogMappingProfile()
+    {
+        CreateMap<Catalog, CatalogDto>()
+            .ForMember(d => d.ThumbnailUrl, o => o.Ignore())   // async 查詢
+            .ForMember(d => d.CurrentVersion, o => o.Ignore())
+            .ForMember(d => d.Assets, o => o.Ignore())
+            .ForMember(d => d.Tags, o => o.Ignore());
+    }
+}
+
+// Service：扁平用 AutoMapper，async 欄位 map 後補上
+var dto = mapper.Map<CatalogDto>(catalog);
+dto.ThumbnailUrl   = await GetAssetUrlAsync(catalog.ThumbnailAssetId, ct);
+dto.CurrentVersion = await GetCurrentVersionDtoAsync(catalog.CurrentVersionId, ct);
+```
+
+### 套件版本
+
+固定 **AutoMapper `13.*`** 與 **FluentValidation `11.*`**（最後採寬鬆授權的版本：AutoMapper 14+ / FluentValidation 12+ 已轉商業授權）。兩者及 `FluentValidation.DependencyInjectionExtensions` 集中宣告於 `Shared.csproj`，由 ProjectReference 傳遞至各服務。AutoMapper 13.x 的 NU1903（GHSA-rvv3-g6hj-g44x，需數萬層巢狀物件的 DoS，不適用於自有 Entity→DTO 轉換）已於 `Shared.csproj` 以 `NoWarn` 抑制並註明原因。

@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
@@ -16,7 +18,8 @@ public class StoreApplicationService(
     StoreDbContext db,
     ICurrentUserAccessor currentUser,
     AuditLogPublisher auditLog,
-    IHttpContextAccessor httpContextAccessor) : IStoreApplicationService
+    IHttpContextAccessor httpContextAccessor,
+    IMapper mapper) : IStoreApplicationService
 {
     /// <inheritdoc/>
     public async Task<StoreApplicationDto> SubmitAsync(SubmitStoreApplicationRequest request, CancellationToken ct)
@@ -26,11 +29,7 @@ public class StoreApplicationService(
             ?? throw new UnauthorizedException();
 
         var storeName = request.StoreName.Trim();
-        if (storeName.Length is < 1 or > 100)
-            throw new ValidationException("商店名稱長度須為 1–100 字。");
-
         var storeSlug = request.StoreSlug.Trim().ToLowerInvariant();
-        StoreSlugValidator.ValidateFormat(storeSlug);
 
         var hasPending = await db.StoreApplications
             .AnyAsync(a => a.UserId == userId && a.Status == StoreApplicationStatus.Pending, ct);
@@ -57,14 +56,13 @@ public class StoreApplicationService(
 
         await db.SaveChangesAsync(ct);
 
-        return ToDto(application);
+        return mapper.Map<StoreApplicationDto>(application);
     }
 
     /// <inheritdoc/>
     public async Task<GetStoreApplicationsResponse> GetMineAsync(GetStoreApplicationsRequest request, CancellationToken ct)
     {
         var userId = currentUser.UserId ?? throw new UnauthorizedException();
-        var limit = Math.Clamp(request.Limit, 1, 100);
 
         var query = db.StoreApplications.AsNoTracking().Where(a => a.UserId == userId);
 
@@ -72,8 +70,8 @@ public class StoreApplicationService(
         var items = await query
             .OrderByDescending(a => a.CreatedAt)
             .Skip(request.Offset)
-            .Take(limit)
-            .Select(a => ToDto(a))
+            .Take(request.Limit)
+            .ProjectTo<StoreApplicationDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
         return new GetStoreApplicationsResponse { TotalCount = total, Items = items };
@@ -101,8 +99,6 @@ public class StoreApplicationService(
     /// <inheritdoc/>
     public async Task<GetStoreApplicationsResponse> GetAllAsync(GetStoreApplicationsRequest request, CancellationToken ct)
     {
-        var limit = Math.Clamp(request.Limit, 1, 100);
-
         var query = db.StoreApplications.AsNoTracking().AsQueryable();
         if (request.Status.HasValue)
             query = query.Where(a => a.Status == request.Status.Value);
@@ -111,8 +107,8 @@ public class StoreApplicationService(
         var items = await query
             .OrderByDescending(a => a.CreatedAt)
             .Skip(request.Offset)
-            .Take(limit)
-            .Select(a => ToDto(a))
+            .Take(request.Limit)
+            .ProjectTo<StoreApplicationDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
         return new GetStoreApplicationsResponse { TotalCount = total, Items = items };
@@ -167,7 +163,7 @@ public class StoreApplicationService(
 
         await db.SaveChangesAsync(ct);
 
-        return ToDto(application);
+        return mapper.Map<StoreApplicationDto>(application);
     }
 
     /// <inheritdoc/>
@@ -206,7 +202,7 @@ public class StoreApplicationService(
 
         await db.SaveChangesAsync(ct);
 
-        return ToDto(application);
+        return mapper.Map<StoreApplicationDto>(application);
     }
 
     private void AddEmailOutbox(string to, string templateKey, string eventType, Dictionary<string, string> @params)
@@ -221,18 +217,4 @@ public class StoreApplicationService(
 
         db.OutboxMessages.Add(outbox);
     }
-
-    private static StoreApplicationDto ToDto(StoreApplication a) => new()
-    {
-        Id = a.Id,
-        UserId = a.UserId,
-        Email = a.Email,
-        StoreName = a.StoreName,
-        StoreSlug = a.StoreSlug,
-        Status = a.Status,
-        CreatedAt = a.CreatedAt,
-        ReviewedAt = a.ReviewedAt,
-        ReviewedBy = a.ReviewedBy,
-        ReviewComment = a.ReviewComment,
-    };
 }

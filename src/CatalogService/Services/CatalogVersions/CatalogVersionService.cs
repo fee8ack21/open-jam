@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using CatalogService.Data;
 using CatalogService.Data.Entities;
 using CatalogService.Models;
@@ -12,7 +14,8 @@ public class CatalogVersionService(
     CatalogDbContext db,
     ICurrentUserAccessor currentUser,
     StorageServiceClient storageClient,
-    StoreServiceClient storeClient) : ICatalogVersionService
+    StoreServiceClient storeClient,
+    IMapper mapper) : ICatalogVersionService
 {
     /// <inheritdoc/>
     public async Task<List<CatalogVersionDto>> ListAsync(Guid catalogId, CancellationToken ct)
@@ -37,8 +40,6 @@ public class CatalogVersionService(
         var catalog = await CatalogAuthorization.LoadOwnedCatalogAsync(db, storeClient, currentUser, catalogId, ct);
 
         var versionString = request.Version.Trim();
-        if (versionString.Length is < 1 or > 50)
-            throw new ValidationException("版本字串長度須為 1–50 字。");
 
         var duplicate = await db.CatalogVersions
             .AnyAsync(v => v.CatalogId == catalogId && v.Version == versionString, ct);
@@ -140,25 +141,11 @@ public class CatalogVersionService(
         var assets = await db.CatalogVersionAssets.AsNoTracking()
             .Where(a => a.CatalogVersionId == version.Id)
             .OrderBy(a => a.SortOrder)
-            .Select(a => new CatalogVersionAssetDto
-            {
-                Id = a.Id,
-                FileName = a.FileName,
-                ContentType = a.ContentType,
-                FileSize = a.FileSize,
-                SortOrder = a.SortOrder,
-                CreatedAt = a.CreatedAt,
-            })
+            .ProjectTo<CatalogVersionAssetDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
-        return new CatalogVersionDto
-        {
-            Id = version.Id,
-            CatalogId = version.CatalogId,
-            Version = version.Version,
-            ReleaseNote = version.ReleaseNote,
-            Assets = assets,
-            CreatedAt = version.CreatedAt,
-        };
+        var dto = mapper.Map<CatalogVersionDto>(version);
+        dto.Assets = assets;
+        return dto;
     }
 }

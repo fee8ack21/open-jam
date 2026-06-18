@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using CatalogService.Data;
 using CatalogService.Data.Entities;
 using CatalogService.Models;
@@ -7,17 +9,14 @@ using Shared.Exceptions;
 namespace CatalogService.Services.Categories;
 
 /// <summary>商品分類業務邏輯實作。</summary>
-public class CatalogCategoryService(CatalogDbContext db) : ICatalogCategoryService
+public class CatalogCategoryService(CatalogDbContext db, IMapper mapper) : ICatalogCategoryService
 {
     /// <inheritdoc/>
-    public async Task<List<CatalogCategoryDto>> ListAsync(CancellationToken ct)
-    {
-        var categories = await db.CatalogCategories.AsNoTracking()
+    public async Task<List<CatalogCategoryDto>> ListAsync(CancellationToken ct) =>
+        await db.CatalogCategories.AsNoTracking()
             .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+            .ProjectTo<CatalogCategoryDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
-
-        return categories.Select(ToDto).ToList();
-    }
 
     /// <inheritdoc/>
     public async Task<CatalogCategoryDto> GetAsync(Guid id, CancellationToken ct)
@@ -25,18 +24,15 @@ public class CatalogCategoryService(CatalogDbContext db) : ICatalogCategoryServi
         var category = await db.CatalogCategories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct)
             ?? throw new NotFoundException("找不到分類。");
 
-        return ToDto(category);
+        return mapper.Map<CatalogCategoryDto>(category);
     }
 
     /// <inheritdoc/>
     public async Task<CatalogCategoryDto> CreateAsync(CreateCatalogCategoryRequest request, CancellationToken ct)
     {
         var name = request.Name.Trim();
-        if (name.Length is < 1 or > 100)
-            throw new ValidationException("分類名稱長度須為 1–100 字。");
 
         var slug = request.Slug.Trim().ToLowerInvariant();
-        CatalogSlugValidator.ValidateFormat(slug);
         await EnsureSlugUniqueAsync(slug, null, ct);
 
         if (request.ParentId is { } parentId)
@@ -53,7 +49,7 @@ public class CatalogCategoryService(CatalogDbContext db) : ICatalogCategoryServi
 
         await db.SaveChangesAsync(ct);
 
-        return ToDto(category);
+        return mapper.Map<CatalogCategoryDto>(category);
     }
 
     /// <inheritdoc/>
@@ -63,17 +59,11 @@ public class CatalogCategoryService(CatalogDbContext db) : ICatalogCategoryServi
             ?? throw new NotFoundException("找不到分類。");
 
         if (request.Name is not null)
-        {
-            var name = request.Name.Trim();
-            if (name.Length is < 1 or > 100)
-                throw new ValidationException("分類名稱長度須為 1–100 字。");
-            category.Name = name;
-        }
+            category.Name = request.Name.Trim();
 
         if (request.Slug is not null)
         {
             var slug = request.Slug.Trim().ToLowerInvariant();
-            CatalogSlugValidator.ValidateFormat(slug);
             await EnsureSlugUniqueAsync(slug, id, ct);
             category.Slug = slug;
         }
@@ -91,7 +81,7 @@ public class CatalogCategoryService(CatalogDbContext db) : ICatalogCategoryServi
 
         await db.SaveChangesAsync(ct);
 
-        return ToDto(category);
+        return mapper.Map<CatalogCategoryDto>(category);
     }
 
     /// <inheritdoc/>
@@ -125,13 +115,4 @@ public class CatalogCategoryService(CatalogDbContext db) : ICatalogCategoryServi
         if (!exists)
             throw new ValidationException("指定的上層分類不存在。");
     }
-
-    private static CatalogCategoryDto ToDto(CatalogCategory c) => new()
-    {
-        Id = c.Id,
-        ParentId = c.ParentId,
-        Name = c.Name,
-        Slug = c.Slug,
-        SortOrder = c.SortOrder,
-    };
 }

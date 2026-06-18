@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shared.Exceptions;
@@ -13,22 +14,13 @@ namespace StorageService.Services.Files;
 public class FileService(
     StorageDbContext db,
     IStorageProvider storage,
-    IOptions<StorageOptions> storageOptions) : IFileService
+    IOptions<StorageOptions> storageOptions,
+    IMapper mapper) : IFileService
 {
-    private static readonly HashSet<string> AllowedContentTypes =
-    [
-        "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm",
-        "image/jpeg", "image/png", "image/gif", "image/webp",
-        "application/pdf",
-    ];
-
     /// <inheritdoc/>
     public async Task<RequestUploadUrlResponse> RequestUploadUrlAsync(
         RequestUploadUrlRequest request, CancellationToken ct)
     {
-        if (!AllowedContentTypes.Contains(request.ContentType))
-            throw new ValidationException($"不支援的檔案類型：{request.ContentType}");
-
         var opts      = storageOptions.Value;
         var expiry    = TimeSpan.FromSeconds(opts.UploadUrlExpirySeconds);
         var expiresAt = DateTimeOffset.UtcNow.Add(expiry);
@@ -75,7 +67,7 @@ public class FileService(
             .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
             ?? throw new NotFoundException($"檔案 {id} 不存在");
 
-        return ToDto(file);
+        return mapper.Map<FileDto>(file);
     }
 
     /// <inheritdoc/>
@@ -113,19 +105,4 @@ public class FileService(
         db.StoredFiles.Remove(file);
         await db.SaveChangesAsync(ct);
     }
-
-    private static FileDto ToDto(StoredFile f) => new()
-    {
-        Id           = f.Id,
-        CreatorId    = f.CreatorId,
-        ProductId    = f.ProductId,
-        OriginalName = f.OriginalName,
-        ContentType  = f.ContentType,
-        SizeBytes    = f.SizeBytes,
-        FileType     = f.FileType,
-        Status       = f.Status,
-        IsPreview    = f.IsPreview,
-        CreatedAt    = f.CreatedAt,
-        UpdatedAt    = f.UpdatedAt,
-    };
 }

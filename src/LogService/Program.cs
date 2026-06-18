@@ -44,6 +44,10 @@ builder.Services.AddControllers();
 builder.Services.AddOpenJamApiVersioning();
 builder.Services.AddOpenJamSwagger("LogService");
 
+// FluentValidation（model 驗證）+ AutoMapper（model 轉換）
+builder.Services.AddOpenJamValidation(typeof(Program).Assembly);
+builder.Services.AddOpenJamMapping(typeof(Program).Assembly);
+
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
 

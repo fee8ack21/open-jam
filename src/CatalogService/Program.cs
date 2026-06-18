@@ -76,6 +76,10 @@ builder.Services.AddControllers()
 builder.Services.AddOpenJamApiVersioning();
 builder.Services.AddOpenJamSwagger("CatalogService");
 
+// FluentValidation（model 驗證）+ AutoMapper（model 轉換）
+builder.Services.AddOpenJamValidation(typeof(Program).Assembly);
+builder.Services.AddOpenJamMapping(typeof(Program).Assembly);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

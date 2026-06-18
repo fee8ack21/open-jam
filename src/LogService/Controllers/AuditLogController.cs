@@ -1,4 +1,6 @@
 using Asp.Versioning;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using LogService.Data;
 using LogService.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +18,7 @@ namespace LogService.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("v{version:apiVersion}/audit-logs")]
-public class AuditLogController(LogDbContext db) : ControllerBase
+public class AuditLogController(LogDbContext db, IMapper mapper) : ControllerBase
 {
     /// <summary>查詢稽核事件（分頁，支援多條件篩選）。</summary>
     /// <param name="request">篩選與分頁參數。</param>
@@ -26,8 +28,6 @@ public class AuditLogController(LogDbContext db) : ControllerBase
     [ProducesResponseType<GetAuditLogsResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<GetAuditLogsResponse>> GetAsync([FromQuery] GetAuditLogsRequest request, CancellationToken ct)
     {
-        var limit = Math.Clamp(request.Limit, 1, 100);
-
         var query = db.AuditLogs.AsNoTracking();
 
         if (request.Who.HasValue)
@@ -53,22 +53,8 @@ public class AuditLogController(LogDbContext db) : ControllerBase
         var items = await query
             .OrderByDescending(a => a.OccurredAt)
             .Skip(request.Offset)
-            .Take(limit)
-            .Select(a => new AuditLogDto
-            {
-                Id            = a.Id,
-                Who           = a.Who,
-                Action        = a.Action,
-                Target        = a.Target,
-                TargetId      = a.TargetId,
-                Result        = a.Result,
-                Before        = a.Before,
-                After         = a.After,
-                Ip            = a.Ip,
-                Tenant        = a.Tenant,
-                OccurredAt    = a.OccurredAt,
-                CorrelationId = a.CorrelationId,
-            })
+            .Take(request.Limit)
+            .ProjectTo<AuditLogDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
         return Ok(new GetAuditLogsResponse { TotalCount = total, Items = items });

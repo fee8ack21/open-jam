@@ -5,18 +5,11 @@ using Shared.Exceptions;
 
 namespace CatalogService.Services;
 
-/// <summary>商品 / 分類 slug 格式與唯一性驗證。</summary>
+/// <summary>商品 / 分類 slug 格式與唯一性驗證。格式屬無狀態輸入驗證（由 FluentValidation 使用）；唯一性需查 DB（由業務層使用）。</summary>
 public static partial class CatalogSlugValidator
 {
-    /// <summary>
-    /// 驗證 slug 格式（小寫英數字 + 連字號，3–100 字，不可開頭/結尾為連字號）。
-    /// 格式錯誤時拋出 <see cref="ValidationException"/>。
-    /// </summary>
-    public static void ValidateFormat(string slug)
-    {
-        if (!SlugFormatRegex().IsMatch(slug))
-            throw new ValidationException("代稱格式錯誤：須為 3–100 字小寫英數字與連字號，且不可開頭/結尾為連字號。");
-    }
+    /// <summary>slug 是否符合格式（小寫英數字 + 連字號，3–100 字，不可開頭/結尾為連字號）。</summary>
+    public static bool IsValidFormat(string slug) => SlugFormatRegex().IsMatch(slug);
 
     /// <summary>檢查商品 slug 於同一商店內唯一（排除指定商品自身）。已被使用時拋出 <see cref="ValidationException"/>。</summary>
     public static async Task EnsureCatalogSlugUniqueAsync(

@@ -9,6 +9,12 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Asp.Versioning.Mvc" Version="8.*" />
+    <!-- AutoMapper 13.x / FluentValidation 11.x：最後採寬鬆授權（MIT / Apache-2.0）的版本；
+         14+ / 12+ 已轉商業授權。NU1903（GHSA-rvv3-g6hj-g44x）為需數萬層巢狀物件的 DoS，
+         本專案僅對自有 EF Entity 做 Entity→DTO 轉換，不適用，故抑制此警告。 -->
+    <PackageReference Include="AutoMapper" Version="13.*" NoWarn="NU1903" />
+    <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.*" />

@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using CatalogService.Data;
 using CatalogService.Models;
 using Microsoft.EntityFrameworkCore;
@@ -5,14 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace CatalogService.Services.Tags;
 
 /// <summary>商品標籤業務邏輯實作。</summary>
-public class CatalogTagService(CatalogDbContext db) : ICatalogTagService
+public class CatalogTagService(CatalogDbContext db, IMapper mapper) : ICatalogTagService
 {
     /// <inheritdoc/>
     public async Task<ListCatalogTagsResponse> ListAsync(ListCatalogTagsRequest request, CancellationToken ct)
     {
-        var limit = Math.Clamp(request.Limit, 1, 100);
-        var offset = Math.Max(request.Offset, 0);
-
         var query = db.CatalogTags.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
@@ -25,14 +24,9 @@ public class CatalogTagService(CatalogDbContext db) : ICatalogTagService
 
         var items = await query
             .OrderByDescending(t => t.UsageCount).ThenBy(t => t.Name)
-            .Skip(offset)
-            .Take(limit)
-            .Select(t => new CatalogTagDto
-            {
-                Id = t.Id,
-                Name = t.Name,
-                UsageCount = t.UsageCount,
-            })
+            .Skip(request.Offset)
+            .Take(request.Limit)
+            .ProjectTo<CatalogTagDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
         return new ListCatalogTagsResponse { TotalCount = total, Items = items };
