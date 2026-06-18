@@ -18,7 +18,7 @@ async function load() {
     window.location.replace(redirect);
   } catch (error) {
     console.error('OIDC callback error:', error);
-    window.location.replace(`${env.AUTH_PAGE_URL}/error`);
+    window.location.replace(`${env.AUTH_PAGE_URL.replace(/\/$/, '')}/error`);
   }
 }
 
