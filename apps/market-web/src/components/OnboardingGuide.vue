@@ -149,7 +149,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
       </a>
       <a class="coach-row" :href="env.DOCS_URL" target="_blank" rel="noopener noreferrer">
         <span class="coach-ic"><app-icon name="book" :size="18" /></span>
-        <span class="coach-txt"><b>規格書文件</b><span>系統設計與規格說明文件</span></span>
+        <span class="coach-txt"><b>專案文件</b><span>系統設計與規格說明文件</span></span>
       </a>
       <button class="btn-pop violet coach-done" @click="finish">
         <app-icon name="check" :size="16" :stroke="2.4" /> 知道了

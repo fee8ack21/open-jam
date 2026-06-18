@@ -36,7 +36,7 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
         <a class="nav-link" :href="env.GITHUB_REPO_URL" target="_blank" rel="noopener noreferrer" title="GitHub 原始碼">
           <app-icon name="github" :size="18" />
         </a>
-        <a class="nav-link" :href="env.DOCS_URL" target="_blank" rel="noopener noreferrer" title="規格書文件">
+        <a class="nav-link" :href="env.DOCS_URL" target="_blank" rel="noopener noreferrer" title="專案文件">
           <app-icon name="book" :size="18" />
         </a>
         <router-link v-if="isLegal" class="nav-admin" to="/">返回市集</router-link>
