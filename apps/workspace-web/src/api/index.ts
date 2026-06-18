@@ -7,7 +7,8 @@
 //   2. 以 customFetch 注入 OIDC Bearer token
 // 業務程式碼一律 import 這裡匯出的實例，不直接 new 產生出來的 class。
 // ============================================================
-import { Api, HttpClient } from '@/api/store-service';
+import { Api as StoreApi, HttpClient as StoreHttpClient } from '@/api/store-service';
+import { Api as CatalogApi, HttpClient as CatalogHttpClient } from '@/api/catalog-service';
 import { env } from '@/environment';
 import { userManager } from '@/oidc/auth';
 
@@ -24,10 +25,18 @@ const authFetch: typeof fetch = async (input, init = {}) => {
   return fetch(input, { ...init, headers });
 };
 
-const http = new HttpClient({
+const storeHttp = new StoreHttpClient({
   baseUrl: env.STORE_API_URL,
   customFetch: authFetch,
 });
 
+const catalogHttp = new CatalogHttpClient({
+  baseUrl: env.CATALOG_API_URL,
+  customFetch: authFetch,
+});
+
 /** StoreService API client（store-applications / stores / followers）。 */
-export const storeApi = new Api(http);
+export const storeApi = new StoreApi(storeHttp);
+
+/** CatalogService API client（catalog / categories / tags）。 */
+export const catalogApi = new CatalogApi(catalogHttp);

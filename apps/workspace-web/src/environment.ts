@@ -7,6 +7,7 @@ class AppEnv {
   OIDC_CLIENT_ID = "open-jam-web";
   AUTH_PAGE_URL = "http://localhost:5169";
   STORE_API_URL = "https://api.openjam.co/store-service";
+  CATALOG_API_URL = "https://api.openjam.co/catalog-service";
 
   constructor() {
     Object.keys(this).forEach((key) => {

@@ -94,6 +94,10 @@ function isActive(view: string) { return route.name === view }
             <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
             <span>審核紀錄</span>
           </div>
+          <div class="nav-item" :class="{ on: isActive('catalog-categories') }" @click="nav('catalog-categories')">
+            <span class="nav-ic"><app-icon name="tag" :size="19" /></span>
+            <span>商品分類</span>
+          </div>
         </div>
       </template>
       <template v-else-if="store.mode === 'sell'">

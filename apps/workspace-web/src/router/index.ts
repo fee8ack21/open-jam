@@ -8,6 +8,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/overview', name: 'overview', component: () => import('@/views/OverviewView.vue'), meta: { title: '儀表板' } },
   { path: '/review', name: 'review', component: () => import('@/views/ReviewView.vue'), meta: { title: '待審核商店' } },
   { path: '/review-history', name: 'review-history', component: () => import('@/views/ReviewHistoryView.vue'), meta: { title: '審核紀錄' } },
+  { path: '/catalog-categories', name: 'catalog-categories', component: () => import('@/views/CatalogCategoriesView.vue'), meta: { title: '商品分類' } },
   { path: '/open-store', name: 'open-store', component: () => import('@/views/OpenStoreView.vue'), meta: { title: '開店' } },
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { title: '上架新作品' } },
@@ -29,7 +30,7 @@ const SELL_ROUTES = ['overview', 'open-store', 'products', 'upload', 'orders']
 // 需要先開店才能操作的路由：尚未開店時一律導回「開店」
 const REQUIRE_STORE_ROUTES = ['overview', 'products', 'upload', 'orders']
 // 平台管理員專屬路由：僅 role === "Admin" 可進入
-const ADMIN_ROUTES = ['review', 'review-history']
+const ADMIN_ROUTES = ['review', 'review-history', 'catalog-categories']
 
 let userLoaded = false
 let storeStateLoaded = false

@@ -21,7 +21,7 @@ const keyword = ref('')
 /** 審核結果篩選：all | Approved | Rejected */
 const statusFilter = ref<'all' | StoreApplicationStatus>('all')
 /** 排序欄位 + 方向 */
-const sortKey = ref<'reviewedAt' | 'createdAt' | 'storeName'>('reviewedAt')
+const sortKey = ref<'reviewedAt' | 'createdAt' | 'storeName' | 'storeSlug' | 'email'>('reviewedAt')
 const sortDesc = ref(true)
 
 const statusOptions = [
@@ -29,17 +29,28 @@ const statusOptions = [
   { label: '已核准', value: StoreApplicationStatus.Approved },
   { label: '已駁回', value: StoreApplicationStatus.Rejected },
 ]
-const sortOptions = [
-  { label: '審核時間', value: 'reviewedAt' },
-  { label: '申請時間', value: 'createdAt' },
-  { label: '商店名稱', value: 'storeName' },
-]
+const columns = [
+  { key: 'storeName', label: '商店名稱', hideSm: false },
+  { key: 'storeSlug', label: '子網域', hideSm: false },
+  { key: 'email', label: '申請人 Email', hideSm: true },
+  { key: 'createdAt', label: '申請時間', hideSm: true },
+  { key: 'reviewedAt', label: '審核時間', hideSm: true },
+] as const
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
 }
 function initial(email?: string | null) {
   return (email?.charAt(0) || '?').toUpperCase()
+}
+
+function toggleSort(key: typeof sortKey.value) {
+  if (sortKey.value === key) {
+    sortDesc.value = !sortDesc.value
+    return
+  }
+  sortKey.value = key
+  sortDesc.value = key === 'reviewedAt' || key === 'createdAt'
 }
 
 /** 套用關鍵字、結果篩選與排序後的清單。 */
@@ -83,9 +94,10 @@ onMounted(store.load)
     </div>
 
     <!-- 篩選 / 排序工具列 -->
-    <div class="card-pad" style="margin-bottom:16px;">
+    <div class="card-pad history-toolbar">
       <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
         <n-input
+          class="history-search"
           v-model:value="keyword"
           clearable
           placeholder="搜尋商店名稱、子網域或信箱"
@@ -94,20 +106,10 @@ onMounted(store.load)
         </n-input>
 
         <n-select
+          class="history-filter"
           v-model:value="statusFilter"
           :options="statusOptions"
           style="width:140px; flex:none;" />
-
-        <n-select
-          v-model:value="sortKey"
-          :options="sortOptions"
-          style="width:140px; flex:none;" />
-
-        <n-button tertiary style="flex:none;" @click="sortDesc = !sortDesc"
-                  :title="sortDesc ? '改為遞增' : '改為遞減'">
-          <template #icon><app-icon :name="sortDesc ? 'chevronD' : 'chevronU'" :size="16" /></template>
-          {{ sortDesc ? '遞減' : '遞增' }}
-        </n-button>
       </div>
     </div>
 
@@ -123,28 +125,133 @@ onMounted(store.load)
         </div>
       </div>
 
-      <!-- 紀錄列表 -->
-      <div v-else class="card-pad">
-        <div v-for="a in visible" :key="a.id"
-             style="display:flex; align-items:flex-start; gap:12px; padding:14px 0; border-bottom:1.5px solid var(--border);">
-          <span class="avatar" style="width:36px; height:36px; font-size:15px; flex:none;">{{ initial(a.email) }}</span>
-          <div style="flex:1; min-width:0;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="font-weight:600; font-size:14px;">{{ a.storeName }}</div>
-              <n-tag :type="resultOf(a.status).type" size="small" round>{{ resultOf(a.status).label }}</n-tag>
-            </div>
-            <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:3px;">
-              {{ a.storeSlug }}.openjam.co · {{ a.email }}
-            </div>
-            <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:2px;">
-              申請於 {{ fmtDate(a.createdAt) }} · 審核於 {{ fmtDate(a.reviewedAt) }}
-            </div>
-            <div v-if="a.reviewComment" style="font-size:12.5px; color:var(--text-faint); margin-top:6px;">
-              駁回原因：{{ a.reviewComment }}
-            </div>
-          </div>
+      <!-- 紀錄表格 -->
+      <div v-else class="card-pad history-table-card" style="padding:8px 8px 4px;">
+        <div class="history-table-wrap">
+          <table class="tbl history-table">
+            <thead>
+              <tr>
+                <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
+                  <button class="sort-head" type="button" @click="toggleSort(col.key)">
+                    <span>{{ col.label }}</span>
+                    <app-icon
+                      v-if="sortKey === col.key"
+                      :name="sortDesc ? 'chevronD' : 'chevronU'"
+                      :size="15" />
+                  </button>
+                </th>
+                <th style="width:120px; text-align:right;">結果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="a in visible" :key="a.id">
+                <td>
+                  <div class="prod-cell">
+                    <span class="history-rank">{{ initial(a.email) }}</span>
+                    <div style="min-width:0;">
+                      <div class="pc-title">{{ a.storeName }}</div>
+                      <div class="pc-meta">{{ a.reviewComment ? `駁回原因：${a.reviewComment}` : '審核完成' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="history-mono">{{ a.storeSlug }}.openjam.co</span>
+                </td>
+                <td class="hide-sm">
+                  <span class="history-mono">{{ a.email }}</span>
+                </td>
+                <td class="hide-sm">
+                  <span class="history-mono">{{ fmtDate(a.createdAt) }}</span>
+                </td>
+                <td class="hide-sm">
+                  <span class="history-mono">{{ fmtDate(a.reviewedAt) }}</span>
+                </td>
+                <td style="text-align:right;">
+                  <n-tag :type="resultOf(a.status).type" size="small" round>{{ resultOf(a.status).label }}</n-tag>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </n-spin>
   </div>
 </template>
+
+<style scoped>
+.history-toolbar {
+  margin-bottom: 16px;
+  border-radius: 10px;
+}
+
+.history-search,
+.history-search :deep(.n-input-wrapper),
+.history-filter,
+.history-filter :deep(.n-base-selection),
+.history-filter :deep(.n-base-selection-label) {
+  border-radius: 10px;
+}
+
+.history-search :deep(.n-input__border),
+.history-search :deep(.n-input__state-border),
+.history-filter :deep(.n-base-selection__border),
+.history-filter :deep(.n-base-selection__state-border) {
+  border-radius: 10px;
+}
+
+.history-table-wrap {
+  overflow-x: auto;
+}
+
+.history-table {
+  min-width: 940px;
+}
+
+.sort-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.history-table thead th {
+  font-size: 12.5px;
+  padding-top: 12px;
+  vertical-align: middle;
+}
+
+.history-table-card {
+  border-radius: 10px;
+}
+
+.history-table thead th + th {
+  border-left: 1.5px solid var(--border);
+}
+
+.history-table tbody td + td {
+  border-left: 1.5px solid var(--border);
+}
+
+.history-rank {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--oj-primary-wash);
+  color: var(--oj-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.history-mono {
+  font-family: var(--oj-mono);
+  color: var(--text-soft);
+}
+</style>
