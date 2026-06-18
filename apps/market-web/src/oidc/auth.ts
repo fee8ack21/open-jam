@@ -1,5 +1,6 @@
 import { UserManager, WebStorageStateStore, Log, type User } from 'oidc-client-ts';
 import { env } from '@/environment.js';
+import { markLoggedOut } from '@/oidc/cross-domain-logout.js';
 
 Log.setLogger(console);
 Log.setLevel(Log.WARN);
@@ -58,6 +59,9 @@ export function login(redirectPath?: string): void {
 export async function logout(): Promise<void> {
   const user = await userManager.getUser();
   if (!user) return;
+
+  // 跨子網域登出標記（.openjam.co 共用 cookie），讓其他子網域分頁偵測並同步登出。
+  markLoggedOut();
 
   if (authChannel) {
     authChannel.postMessage('logout');

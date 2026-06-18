@@ -1,10 +1,13 @@
 import { createUserManager } from './auth';
 import { env } from '@/environment';
+import { clearLoggedOut } from '@/oidc/cross-domain-logout';
 
 async function load() {
   const manager = createUserManager();
   try {
     const user = await manager.signinRedirectCallback();
+    // 明確登入成功：清除跨子網域登出標記，避免殘留標記誤殺這次新 session。
+    clearLoggedOut();
     localStorage.setItem('login-event', Date.now().toString());
     if ('BroadcastChannel' in window) {
       const channel = new BroadcastChannel('auth');

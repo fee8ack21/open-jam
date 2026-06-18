@@ -1,7 +1,8 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { defineStore } from 'pinia';
 import type { User } from 'oidc-client-ts';
 import { login, logout, userManager, validateSession } from '@/oidc/auth';
+import { getLogoutMark, clearLoggedOut } from '@/oidc/cross-domain-logout';
 
 /** 解碼 JWT payload（base64url），失敗回傳 null。 */
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
@@ -77,9 +78,43 @@ export const useAuthStore = defineStore('auth', () => {
 
   function refreshWhenVisible(): void {
     if (document.visibilityState === 'visible') {
+      checkCrossDomainLogout();
       void getUserIdentity();
     }
   }
+
+  // 跨子網域登出：以 .openjam.co 共用 cookie 標記偵測「在其他子網域登出」。
+  // sessionStartedAt 記錄本分頁建立登入的時間（僅首次建立時設定，silent renew 不更動），
+  // 標記時間晚於它即代表登出發生在本分頁登入之後 → 清除本地 session。
+  let sessionStartedAt: number | null = null;
+
+  watch(userIdentity, (user) => {
+    if (user && !user.expired) {
+      if (sessionStartedAt === null) {
+        sessionStartedAt = Date.now();
+        // 清除早於本次登入的殘留標記（已過期或他人舊登出），避免混淆。
+        const mark = getLogoutMark();
+        if (mark !== null && mark < sessionStartedAt) clearLoggedOut();
+      }
+    } else {
+      sessionStartedAt = null;
+    }
+  });
+
+  function checkCrossDomainLogout(): void {
+    const mark = getLogoutMark();
+    if (
+      mark !== null &&
+      sessionStartedAt !== null &&
+      mark > sessionStartedAt &&
+      userIdentity.value &&
+      !userIdentity.value.expired
+    ) {
+      void userManager.removeUser(); // 觸發 addUserUnloaded → userIdentity = null
+    }
+  }
+
+  window.setInterval(checkCrossDomainLogout, 3000);
 
   userManager.events.addUserLoaded((user) => {
     userIdentity.value = user;
