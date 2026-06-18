@@ -19,7 +19,6 @@ const routes: RouteRecordRaw[] = [
   { path: '/orders', name: 'orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單管理' } },
   { path: '/purchases', name: 'purchases', component: () => import('@/views/PurchasesView.vue'), meta: { title: '購買紀錄' } },
   { path: '/wishlist', name: 'wishlist', component: () => import('@/views/WishlistView.vue'), meta: { title: 'Wishlist' } },
-  { path: '/settings', name: 'settings', component: () => import('@/views/SettingsView.vue'), meta: { title: '設定' } },
   { path: '/:pathMatch(.*)*', redirect: '/purchases' },
 ]
 
@@ -52,9 +51,9 @@ router.beforeEach(async (to) => {
 
   const name = to.name as string | undefined
 
-  // 系統管理員：不走買家/賣家流程，預設進入平台儀表板（設定頁仍開放）
+  // 系統管理員：不走買家/賣家流程，預設進入平台儀表板
   if (auth.isAdmin) {
-    if (name && (ADMIN_ROUTES.includes(name) || name === 'settings')) return
+    if (name && ADMIN_ROUTES.includes(name)) return
     return { name: 'admin-overview' }
   }
 

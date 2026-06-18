@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { ME as me } from '@/data/products'
 import { env } from '@/environment'
@@ -10,7 +9,6 @@ import { env } from '@/environment'
 const emit = defineEmits<{ 'open-drawer': [] }>()
 
 const route = useRoute()
-const store = useDashboardStore()
 const authStore = useAuthStore()
 
 const userMenuOpen = ref(false)
@@ -33,7 +31,6 @@ onBeforeUnmount(() => {
   if (outside) document.removeEventListener('click', outside)
 })
 
-function nav(view: string) { store.go(view) }
 function goToMarket() { window.location.href = env.MARKET_PAGE_URL }
 </script>
 
@@ -65,7 +62,6 @@ function goToMarket() { window.location.href = env.MARKET_PAGE_URL }
               <div v-if="accountEmail" class="um-email" :title="accountEmail">{{ accountEmail }}</div>
             </div>
             <div class="um-sep"></div>
-            <button class="um-item" @click="nav('settings'); userMenuOpen = false"><app-icon name="gear" :size="17" /> 帳號設定</button>
             <button class="um-item danger" @click="authStore.logout()"><app-icon name="logout" :size="17" /> 登出</button>
           </div>
         </transition>

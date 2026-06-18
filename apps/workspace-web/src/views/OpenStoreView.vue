@@ -103,7 +103,7 @@ onMounted(store.load)
         </template>
 
         <!-- 審核中的申請 -->
-        <div v-else-if="hasPending && latestApplication" class="card-pad">
+        <div v-else-if="hasPending && latestApplication" class="card-pad applications-card">
           <div style="display:flex; align-items:center; gap:14px;">
             <span class="kpi-ic" style="background:var(--c-amber, #f0a020)"><app-icon name="receipt" :size="20" /></span>
             <div style="flex:1;">
@@ -165,10 +165,10 @@ onMounted(store.load)
         </div>
 
         <!-- 申請紀錄 -->
-        <div v-if="applications.length" class="card-pad">
+        <div v-if="applications.length" class="card-pad applications-card">
           <div style="font-weight:700; font-size:14px; margin-bottom:12px;">申請紀錄</div>
-          <div v-for="a in applications" :key="a.id"
-               style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1.5px solid var(--border);">
+          <div v-for="(a, i) in applications" :key="a.id"
+               :style="`display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:${i === applications.length - 1 ? 'none' : '1.5px solid var(--border)'};`">
             <div style="flex:1;">
               <div style="font-weight:600; font-size:14px;">{{ a.storeName }}</div>
               <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:2px;">
@@ -183,3 +183,10 @@ onMounted(store.load)
     </n-spin>
   </div>
 </template>
+
+<style scoped>
+/* 申請紀錄卡片圓角對齊 admin 頁面的 10px */
+.applications-card {
+  border-radius: 10px;
+}
+</style>

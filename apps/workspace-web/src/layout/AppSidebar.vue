@@ -73,7 +73,7 @@ function isActive(view: string) { return route.name === view }
           <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
         </svg>
       </span>
-      <span class="brand-name">Open Jam<small>Creator Studio</small></span>
+      <span class="brand-name">Open Jam<small>Workspace</small></span>
     </div>
 
     <div v-if="isReady && !isAdmin" class="mode-switch">
