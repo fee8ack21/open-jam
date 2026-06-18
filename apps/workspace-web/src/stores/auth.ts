@@ -21,6 +21,8 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 
 export const useAuthStore = defineStore('auth', () => {
   const userIdentity = ref<User | null>(null);
+  /** 首次身份載入是否完成；在此之前不可依角色決定畫面（選單應保持空白）。 */
+  const isReady = ref(false);
   let loadPromise: Promise<void> | null = null;
 
   const isAuthenticated = computed(() => !!userIdentity.value && !userIdentity.value.expired);
@@ -52,6 +54,9 @@ export const useAuthStore = defineStore('auth', () => {
   /** 是否為一般使用者（role === "User"）；唯一能使用賣家/上架流程的角色。 */
   const isUser = computed(() => (userRole.value ?? '').toLowerCase() === 'user');
 
+  /** 是否為系統管理員（role === "Admin"）；登入後直接進入店家審核後台，不顯示買家/賣家分頁。 */
+  const isAdmin = computed(() => (userRole.value ?? '').toLowerCase() === 'admin');
+
   async function getUserIdentity() {
     if (loadPromise) return loadPromise;
 
@@ -62,6 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
       } catch {
         userIdentity.value = null;
       } finally {
+        isReady.value = true;
         loadPromise = null;
       }
     })();
@@ -113,11 +119,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     userIdentity,
+    isReady,
     isAuthenticated,
     userEmail,
     userName,
     userRole,
     isUser,
+    isAdmin,
     getUserIdentity,
     login,
     logout,

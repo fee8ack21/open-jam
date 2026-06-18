@@ -12,12 +12,21 @@ const storeAppStore = useStoreApplicationStore()
 
 /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
 const canSell = computed(() => authStore.isUser)
+/** 是否為系統管理員：行動版只露出店家審核與設定。 */
+const isAdmin = computed(() => authStore.isAdmin)
 /** 是否已開店：未開店前賣家選單只露出「開店」。 */
 const hasStore = computed(() => storeAppStore.hasStore)
 
 const mobileNav = computed(() => {
   const buy = { view: 'purchases', label: '已購', icon: 'bag' }
   const settings = { view: 'settings', label: '設定', icon: 'gear' }
+  if (isAdmin.value) {
+    return [
+      { view: 'review', label: '審核', icon: 'shield' },
+      { view: 'review-history', label: '紀錄', icon: 'receipt' },
+      settings,
+    ]
+  }
   if (!canSell.value) {
     return [buy, { view: 'wishlist', label: '收藏', icon: 'heart' }, settings]
   }

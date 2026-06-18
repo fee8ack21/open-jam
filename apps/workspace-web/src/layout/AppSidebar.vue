@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
+import { useStoreReviewStore } from '@/stores/storeReview'
 
 /** 賣家 / 買家兩組導覽項目；countKey 對應 store 中的數量。 */
 const NAV = {
@@ -29,9 +30,14 @@ const route = useRoute()
 const store = useDashboardStore()
 const authStore = useAuthStore()
 const storeAppStore = useStoreApplicationStore()
+const reviewStore = useStoreReviewStore()
 
+/** 首次身份載入是否完成；未完成前選單保持空白，避免閃現錯誤角色的項目。 */
+const isReady = computed(() => authStore.isReady)
 /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
 const canSell = computed(() => authStore.isUser)
+/** 是否為系統管理員：顯示店家審核後台，不顯示買家/賣家分頁。 */
+const isAdmin = computed(() => authStore.isAdmin)
 /** 是否已開店：未開店前賣家選單只露出「開店」。 */
 const hasStore = computed(() => storeAppStore.hasStore)
 const navSell = computed(() => {
@@ -68,13 +74,29 @@ function isActive(view: string) { return route.name === view }
       <span class="brand-name">Open Jam<small>Creator Studio</small></span>
     </div>
 
-    <div class="mode-switch">
+    <div v-if="isReady && !isAdmin" class="mode-switch">
       <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><app-icon name="rocket" :size="15" /> 賣家</button>
       <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><app-icon name="bag" :size="15" /> 買家</button>
     </div>
 
     <nav style="flex:1; overflow-y:auto;">
-      <template v-if="store.mode === 'sell'">
+      <!-- 身份載入完成前保持空白，載入後才依角色呈現選單 -->
+      <template v-if="!isReady" />
+      <template v-else-if="isAdmin">
+        <div class="nav-group">
+          <div class="nav-label">平台管理</div>
+          <div class="nav-item" :class="{ on: isActive('review') }" @click="nav('review')">
+            <span class="nav-ic"><app-icon name="shield" :size="19" /></span>
+            <span>待審核商店</span>
+            <span v-if="reviewStore.pendingCount" class="nav-count">{{ reviewStore.pendingCount }}</span>
+          </div>
+          <div class="nav-item" :class="{ on: isActive('review-history') }" @click="nav('review-history')">
+            <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
+            <span>審核紀錄</span>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="store.mode === 'sell'">
         <div class="nav-group">
           <div class="nav-label">賣家工作室</div>
           <div v-for="it in navSell" :key="it.view" class="nav-item" :class="{ on: isActive(it.view) }" @click="nav(it.view)">
