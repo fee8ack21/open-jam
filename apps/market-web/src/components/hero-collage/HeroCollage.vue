@@ -1,10 +1,20 @@
 <script setup lang="ts">
 /* ============================================================
-   HeroCollage — static floating product-card collage behind the
-   market hero, echoing the auth/register brand panel. Purely
-   decorative (aria-hidden, pointer-events off) and hidden on narrow
-   screens. Fully static: no pointer parallax, no ambient motion.
+   HeroCollage — floating product-card collage behind the market
+   hero, echoing the auth/register brand panel. Purely decorative
+   (aria-hidden, pointer-events off) and hidden on narrow screens.
+
+   Motion (all gated behind prefers-reduced-motion):
+   - pointer parallax: cards/shapes drift toward the cursor at
+     per-element depths, smoothed with a rAF lerp loop.
+   - scroll parallax: elements rise/sink at different rates while
+     scrolling through the hero.
+   - ambient bob: gentle out-of-sync float (pure CSS, see market.css).
+   The loop only sets CSS vars (--mx/--my/--scroll) on the root; all
+   depths + composition live in CSS so transforms compose with the
+   static rotation on .fc-card and the bob on .fc-float.
    ============================================================ */
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import AppIcon from '@/components/app-icon/AppIcon.vue';
 
 interface CollageCard {
@@ -24,22 +34,68 @@ const cards: CollageCard[] = [
   { cls: 'fc-3', grad: 'linear-gradient(135deg,#ff7a2f,#ff4d9d)', cat: 'PHOTO', glyph: 'image', title: '霓虹城市夜景',   price: '$24', rating: '4.8' },
   { cls: 'fc-4', grad: 'linear-gradient(135deg,#1fd6c6,#6c4cf1)', cat: 'SCORE', glyph: 'note',  title: 'Lo-Fi 節拍包',   price: '$15', rating: '4.7' },
 ];
+
+/* ---- pointer + scroll parallax driver ---------------------------- */
+const root = ref<HTMLElement | null>(null);
+
+let raf = 0;
+let tmx = 0, tmy = 0;        // target pointer offset, normalised -1..1
+let cmx = 0, cmy = 0;        // current (lerped) pointer offset
+let tScroll = 0, cScroll = 0; // target / current scroll position (px)
+let cleanup: (() => void) | null = null;
+
+function onPointer(e: PointerEvent) {
+  tmx = (e.clientX / window.innerWidth) * 2 - 1;
+  tmy = (e.clientY / window.innerHeight) * 2 - 1;
+}
+function onScroll() {
+  tScroll = window.scrollY;
+}
+function tick() {
+  // ease current toward target; pointer trails a little softer than scroll
+  cmx += (tmx - cmx) * 0.06;
+  cmy += (tmy - cmy) * 0.06;
+  cScroll += (tScroll - cScroll) * 0.12;
+  const el = root.value;
+  if (el) {
+    el.style.setProperty('--mx', cmx.toFixed(4));
+    el.style.setProperty('--my', cmy.toFixed(4));
+    el.style.setProperty('--scroll', `${cScroll.toFixed(1)}px`);
+  }
+  raf = requestAnimationFrame(tick);
+}
+
+onMounted(() => {
+  // honour reduced-motion: leave the collage fully static
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  window.addEventListener('pointermove', onPointer, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
+  raf = requestAnimationFrame(tick);
+  cleanup = () => {
+    cancelAnimationFrame(raf);
+    window.removeEventListener('pointermove', onPointer);
+    window.removeEventListener('scroll', onScroll);
+  };
+});
+onBeforeUnmount(() => cleanup?.());
 </script>
 
 <template>
-  <div class="hero-collage" aria-hidden="true">
+  <div ref="root" class="hero-collage" aria-hidden="true">
     <div v-for="c in cards" :key="c.cls" class="fc" :class="c.cls">
-      <div class="fc-card">
-        <div class="fc-thumb" :style="{ background: c.grad }">
-          <div class="fc-dots"></div>
-          <div class="fc-cat">{{ c.cat }}</div>
-          <div class="fc-glyph"><app-icon :name="c.glyph" :size="32" :stroke="1.6" /></div>
-        </div>
-        <div class="fc-body">
-          <div class="fc-title">{{ c.title }}</div>
-          <div class="fc-foot">
-            <span class="fc-price" :class="{ free: c.free }">{{ c.price }}</span>
-            <span class="fc-star"><app-icon name="star" :size="11" fill style="color: #f0a92b" /> {{ c.rating }}</span>
+      <div class="fc-float">
+        <div class="fc-card">
+          <div class="fc-thumb" :style="{ background: c.grad }">
+            <div class="fc-dots"></div>
+            <div class="fc-cat">{{ c.cat }}</div>
+            <div class="fc-glyph"><app-icon :name="c.glyph" :size="32" :stroke="1.6" /></div>
+          </div>
+          <div class="fc-body">
+            <div class="fc-title">{{ c.title }}</div>
+            <div class="fc-foot">
+              <span class="fc-price" :class="{ free: c.free }">{{ c.price }}</span>
+              <span class="fc-star"><app-icon name="star" :size="11" fill style="color: #f0a92b" /> {{ c.rating }}</span>
+            </div>
           </div>
         </div>
       </div>

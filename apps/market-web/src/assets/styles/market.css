@@ -88,14 +88,23 @@
   width: 100vw; transform: translateX(-50%);
   z-index: 1; pointer-events: none; overflow: hidden;
 }
+/* .fc carries pointer + scroll parallax (CSS vars set by HeroCollage.vue);
+   .fc-float carries the ambient bob; .fc-card carries the static rotation —
+   three separate transform layers so none clobbers the others. */
 .hero-collage .fc {
-  position: absolute; width: 168px;
+  position: absolute; width: 168px; will-change: transform;
+  transform: translate3d(
+    calc(var(--mx, 0) * var(--depth, 18px)),
+    calc(var(--my, 0) * var(--depth, 18px) + var(--scroll, 0px) * var(--sdepth, 0.05)),
+    0);
 }
+.hero-collage .fc-float { animation: fc-bob 6s ease-in-out infinite; }
 .hero-collage .fc-card {
   border-radius: var(--r-md); background: var(--surface);
   border: 1.5px solid var(--text); box-shadow: 5px 5px 0 var(--text);
   overflow: hidden; transform: rotate(var(--rot, 0deg));
 }
+@keyframes fc-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 .hero-collage .fc-thumb { height: 96px; position: relative; }
 .hero-collage .fc-dots {
   position: absolute; inset: 0;
@@ -120,15 +129,38 @@
    parallax translate on .fc and the bob on .fc-float) */
 /* anchored to the centred content edge (≈440px half-width + gap) so the
    cards always clear the headline/search regardless of viewport width */
-.hero-collage .fc-1 { top: 16%; left: calc(50% - 656px); --rot: -6deg; }
-.hero-collage .fc-2 { top: 52%; left: calc(50% - 620px); --rot: 5deg; }
-.hero-collage .fc-3 { top: 10%; left: calc(50% + 452px); --rot: 6deg; }
-.hero-collage .fc-4 { top: 50%; left: calc(50% + 488px); --rot: -7deg; }
+/* --depth: px the card drifts toward the pointer; --sdepth: scroll-parallax
+   rate (sign sets rise/sink). Bob durations/delays vary so cards never sync. */
+.hero-collage .fc-1 { top: 16%; left: calc(50% - 656px); --rot: -6deg; --depth: 7px; --sdepth: -0.015; }
+.hero-collage .fc-2 { top: 52%; left: calc(50% - 620px); --rot: 5deg;  --depth: 5px; --sdepth: 0.025; }
+.hero-collage .fc-3 { top: 10%; left: calc(50% + 452px); --rot: 6deg;  --depth: 8px; --sdepth: -0.01; }
+.hero-collage .fc-4 { top: 50%; left: calc(50% + 488px); --rot: -7deg; --depth: 6px; --sdepth: 0.02; }
+.hero-collage .fc-1 .fc-float { animation-duration: 6.5s; animation-delay: -1.2s; }
+.hero-collage .fc-2 .fc-float { animation-duration: 7.3s; animation-delay: -3.4s; }
+.hero-collage .fc-3 .fc-float { animation-duration: 5.8s; animation-delay: -2.1s; }
+.hero-collage .fc-4 .fc-float { animation-duration: 8.0s; animation-delay: -0.6s; }
 
-.hero-collage .c-shape { position: absolute; }
-.hero-collage .c-shape.sq { left: calc(50% - 600px); top: 8%; width: 50px; height: 50px; border-radius: 15px; background: var(--c-lime); box-shadow: 4px 4px 0 var(--text); }
-.hero-collage .c-shape.d1 { left: calc(50% - 524px); top: 47%; width: 36px; height: 36px; border-radius: 50%; background: var(--c-yellow); box-shadow: 3px 3px 0 rgba(26,22,38,.35); }
-.hero-collage .c-shape.d2 { left: calc(50% + 600px); top: 70%; width: 28px; height: 28px; border-radius: 50%; background: var(--c-cyan); box-shadow: 3px 3px 0 rgba(26,22,38,.35); }
+/* shapes parallax + drift further than the cards for a layered feel */
+.hero-collage .c-shape {
+  position: absolute;
+  transform: translate3d(
+    calc(var(--mx, 0) * var(--depth, 34px)),
+    calc(var(--my, 0) * var(--depth, 34px) + var(--scroll, 0px) * var(--sdepth, 0.12)),
+    0);
+}
+.hero-collage .c-shape.sq { left: calc(50% - 600px); top: 8%; width: 50px; height: 50px; border-radius: 15px; background: var(--c-lime); box-shadow: 4px 4px 0 var(--text); --depth: 11px; --sdepth: -0.035; }
+.hero-collage .c-shape.sq::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: inherit; animation: fc-spin 18s linear infinite;
+}
+.hero-collage .c-shape.d1 { left: calc(50% - 524px); top: 47%; width: 36px; height: 36px; border-radius: 50%; background: var(--c-yellow); box-shadow: 3px 3px 0 rgba(26,22,38,.35); --depth: 7px; --sdepth: 0.04; }
+.hero-collage .c-shape.d2 { left: calc(50% + 600px); top: 70%; width: 28px; height: 28px; border-radius: 50%; background: var(--c-cyan); box-shadow: 3px 3px 0 rgba(26,22,38,.35); --depth: 12px; --sdepth: 0.05; }
+@keyframes fc-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-collage .fc-float,
+  .hero-collage .c-shape.sq::after { animation: none; }
+}
 
 /* not enough side room to clear the centred content — keep the hero clean */
 @media (max-width: 1280px) { .hero-collage { display: none; } }
