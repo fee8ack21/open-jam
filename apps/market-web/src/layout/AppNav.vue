@@ -42,7 +42,7 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
         <router-link v-if="isLegal" class="nav-admin" to="/">返回市集</router-link>
         <template v-else-if="auth.isAuthenticated">
           <a class="nav-admin" href="#" title="前往後台" @click.prevent="goWorkspace">
-            <app-icon name="user" :size="18" /> <span class="nav-admin-label">前往</span>後台
+            <app-icon name="user" :size="18" /> <span class="nav-admin-label">前往後台</span>
           </a>
           <a class="nav-logout" href="#" title="登出" @click.prevent="auth.logout()">
             <app-icon name="logout" :size="17" />
