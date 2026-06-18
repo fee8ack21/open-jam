@@ -82,15 +82,96 @@ function isSessionEndedError(error: unknown): boolean {
   return code === 'login_required' || code === 'interaction_required' || code === 'consent_required';
 }
 
+/** 產生符合 PKCE 格式的隨機 base64url 字串（僅供探測，不會交換 code）。 */
+function randomB64Url(bytes = 32): string {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  let s = '';
+  for (const b of arr) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+type SsoProbeResult = 'active' | 'logged-out' | 'unknown';
+
 /**
- * 向 Hydra 進行 prompt=none 的 silent check，確認 SSO session 是否仍然存在。
- * 用於偵測「在其他子網域登出」的情況：本地 token 雖未過期，但 Hydra session 已被銷毀。
+ * 以隱藏 iframe 對 Hydra 授權端點做 prompt=none 探測，真正確認 SSO session 是否仍存在。
  *
- * 僅在 Hydra 明確回報 session 已不存在（login_required / interaction_required /
- * consent_required）時才清除使用者；網路逾時、iframe 競態等暫時性錯誤一律保留目前
- * 快取的使用者，避免 header 在已登入／未登入間閃爍。
+ * 為何不用 signinSilent：本地有 refresh token 時 signinSilent 走 refresh token grant，
+ * 而 refresh grant 不檢查 Hydra SSO session，會掩蓋「在其他子網域登出」的情況。直打
+ * 授權端點才會檢查 session（hydra 與本站同為 *.openjam.co same-site，SSO cookie 會隨送）。
+ *
+ * 回傳 'logged-out' → Hydra 已無 session（含跨子網域登出）；'active' → 仍登入；
+ * 'unknown' → 其他錯誤 / 逾時，保留現狀不動。
+ */
+function probeSsoSession(timeoutMs = 8000): Promise<SsoProbeResult> {
+  return new Promise((resolve) => {
+    const params = new URLSearchParams({
+      client_id: config.client_id,
+      response_type: 'code',
+      scope: 'openid',
+      redirect_uri: config.silent_redirect_uri,
+      prompt: 'none',
+      state: randomB64Url(16),
+      nonce: randomB64Url(16),
+      code_challenge: randomB64Url(32),
+      code_challenge_method: 'S256',
+    });
+    const url = `${env.OIDC_AUTHORITY.replace(/\/$/, '')}/oauth2/auth?${params.toString()}`;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    let settled = false;
+    let pollId = 0;
+    let timeoutId = 0;
+
+    const finish = (result: SsoProbeResult) => {
+      if (settled) return;
+      settled = true;
+      window.clearInterval(pollId);
+      window.clearTimeout(timeoutId);
+      try { iframe.remove(); } catch { /* ignore */ }
+      resolve(result);
+    };
+
+    pollId = window.setInterval(() => {
+      let href: string | null = null;
+      try {
+        href = iframe.contentWindow?.location.href ?? null; // 導回本站後才同源可讀
+      } catch {
+        return; // 仍停在 hydra（跨來源），繼續等
+      }
+      if (!href || !href.startsWith(window.location.origin) || !href.includes('silent-renew')) return;
+      const query = new URLSearchParams(href.split('?')[1] ?? '');
+      if (query.get('error') === 'login_required') finish('logged-out');
+      else if (query.get('code')) finish('active');
+      else finish('unknown');
+    }, 200);
+
+    timeoutId = window.setTimeout(() => finish('unknown'), timeoutMs);
+    document.body.appendChild(iframe);
+    iframe.src = url;
+  });
+}
+
+/**
+ * 確認登入狀態：偵測「在其他子網域登出」（本地 token 雖未過期，但 Hydra session 已被銷毀）。
+ *
+ * - 已有未過期的本地登入 → 用 prompt=none 授權端點探測 SSO session；僅在明確 `logged-out`
+ *   時才清除（暫時性 / 未知錯誤保留現狀，避免 header 閃爍）。
+ * - 無本地登入或已過期 → 以 signinSilent 嘗試用 SSO session 自動登入 / 續期。
  */
 export async function validateSession(): Promise<User | null> {
+  const current = await userManager.getUser();
+
+  if (current && !current.expired) {
+    const probe = await probeSsoSession();
+    if (probe === 'logged-out') {
+      await userManager.removeUser();
+      return null;
+    }
+    return current;
+  }
+
   try {
     return await userManager.signinSilent();
   } catch (error) {
