@@ -1,18 +1,12 @@
 <script setup lang="ts">
 /* ============================================================
    AppNav — market-web 全站頂部導覽列
-   首頁顯示登入／後台／登出；法律頁顯示「返回市集」。
+   全站一致顯示登入／後台／登出。
    ============================================================ */
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.js';
 import { env } from '@/environment.js';
 
-const route = useRoute();
 const auth = useAuthStore();
-
-// 法律頁（服務條款 / 隱私權政策）改顯示返回連結，不顯示帳號操作
-const isLegal = computed(() => route.name === 'terms' || route.name === 'privacy');
 
 function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 </script>
@@ -39,8 +33,7 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
         <a class="nav-link" :href="env.DOCS_URL" target="_blank" rel="noopener noreferrer" title="專案文件">
           <app-icon name="book" :size="18" />
         </a>
-        <router-link v-if="isLegal" class="nav-admin" to="/">返回市集</router-link>
-        <template v-else-if="auth.isAuthenticated">
+        <template v-if="auth.isAuthenticated">
           <a class="nav-admin" href="#" title="前往後台" @click.prevent="goWorkspace">
             <app-icon name="user" :size="18" /> <span class="nav-admin-label">前往後台</span>
           </a>
