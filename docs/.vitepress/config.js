@@ -54,6 +54,7 @@ export default defineConfig({
         text: '總覽',
         items: [
           { text: '首頁', link: '/' },
+          { text: 'MVP 範圍與 Roadmap', link: '/mvp' },
         ],
       },
       {

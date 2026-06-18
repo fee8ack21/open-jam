@@ -1,5 +1,3 @@
-_
-
 # Open Jam
 
 一個面向創作者的數位商品上架與販售平台，參考 [Gumroad](https://gumroad.com)。
