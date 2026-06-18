@@ -34,8 +34,13 @@ function wikiLinkPlugin(md) {
 export default defineConfig({
   lang: 'zh-TW',
   title: 'Open Jam',
+  titleTemplate: ':title · 專案文件',
   description: '面向創作者的數位商品上架與販售平台',
   appearance: true,
+
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+  ],
 
   markdown: {
     config: (md) => wikiLinkPlugin(md),
