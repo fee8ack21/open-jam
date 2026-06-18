@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useShopStore } from '@/stores/shop';
 import { CATEGORIES, TAGS, PRODUCTS, type Product } from '@/data/products';
+import { STORE } from '@/data/store';
 import ProductCard from '@/components/ProductCard.vue';
 import AppIcon from '@/components/app-icon';
 
@@ -73,7 +74,7 @@ const activeChips = computed(() => {
         <span class="shape s2"></span>
         <span class="shape s3"></span>
       </div>
-      <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · 創作者數位市集</p>
+      <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · {{ STORE.storeName }}</p>
       <h1 class="hero-title">把你的<span class="hl hl-lime">創造力</span><br>變成可以<span class="hl hl-pink">販售</span>的作品</h1>
       <p class="hero-sub">樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。</p>
       <div class="hero-cats">

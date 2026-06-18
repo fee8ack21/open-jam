@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import AppNav from './layout/AppNav.vue';
+import { STORE } from './data/store';
+
+// 店面瀏覽器標題：Open Jam · <店名>（待串接後端後改由 API 取得）
+document.title = `Open Jam · ${STORE.storeName}`;
 
 const naiveTheme = computed(() => null);
 const overrides = computed(() => ({
