@@ -1,0 +1,163 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "LogService",
+    "version": "v1"
+  },
+  "paths": {
+    "/v1/audit-logs": {
+      "get": {
+        "tags": ["AuditLog"],
+        "summary": "查詢稽核事件（分頁，支援多條件篩選）。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": { "type": "integer", "format": "int32" }
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": { "type": "integer", "format": "int32" }
+          },
+          {
+            "name": "Who",
+            "in": "query",
+            "description": "過濾操作者 user ID。",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "Action",
+            "in": "query",
+            "description": "過濾動作類型（精確比對）。",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "Target",
+            "in": "query",
+            "description": "過濾操作對象資源類型。",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "Tenant",
+            "in": "query",
+            "description": "過濾所屬租戶 ID。",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "description": "查詢起始時間（UTC，含）。",
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "description": "查詢結束時間（UTC，含）。",
+            "schema": { "type": "string", "format": "date-time" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAuditLogsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuditLogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "who": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "action": {
+            "type": "string",
+            "nullable": true
+          },
+          "target": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "result": {
+            "type": "string",
+            "nullable": true
+          },
+          "before": {
+            "type": "string",
+            "nullable": true
+          },
+          "after": {
+            "type": "string",
+            "nullable": true
+          },
+          "ip": {
+            "type": "string",
+            "nullable": true
+          },
+          "tenant": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "correlationId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GetAuditLogsResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

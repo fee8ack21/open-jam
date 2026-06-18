@@ -16,8 +16,8 @@ const authStore = useAuthStore()
 const userMenuOpen = ref(false)
 
 const pageTitle = computed(() => route.meta.title || '')
-/** 用戶選單顯示的信箱；access token 僅提供 email，無名稱可用。 */
-const accountEmail = computed(() => authStore.userEmail ?? me.email)
+/** 用戶選單顯示的信箱；access token 僅提供 email，無名稱可用。未登入時為空字串。 */
+const accountEmail = computed(() => authStore.userEmail ?? '')
 /** 頭像字母：信箱首字母大寫。 */
 const avatarText = computed(() => (accountEmail.value.charAt(0) || '?').toUpperCase())
 
@@ -62,7 +62,7 @@ function goToMarket() { window.location.href = env.MARKET_PAGE_URL }
           <div v-if="userMenuOpen" class="user-pop">
             <div class="um-head">
               <span class="avatar" :style="{ background: me.avatar }">{{ avatarText }}</span>
-              <div class="um-email" :title="accountEmail">{{ accountEmail }}</div>
+              <div v-if="accountEmail" class="um-email" :title="accountEmail">{{ accountEmail }}</div>
             </div>
             <div class="um-sep"></div>
             <button class="um-item" @click="nav('settings'); userMenuOpen = false"><app-icon name="gear" :size="17" /> 帳號設定</button>

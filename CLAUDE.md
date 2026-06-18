@@ -48,7 +48,16 @@ pnpm dev    # Vite dev server（預設 5173，多個並跑依序遞增）
 pnpm build
 ```
 
-> 前端 API client 一律以 `swagger-typescript-api` 從後端 OpenAPI 自動產生（見 `workspace-web/openapi/`），不手寫；搭配 token 注入 wrapper。
+#### 前端串接後端 API 流程（強制）
+
+前端**不手寫** API 呼叫、**不 hard code** 任何 endpoint 路徑、URL、query string 或 request / response 型別。一律走自動產生流程：
+
+1. **OpenAPI 來源**：各後端服務的 Swagger 文件放在該 app 的 `openapi/` 資料夾（如 `workspace-web/openapi/catalog-service.json`、`log-service.json`），或直接指向開發伺服器的 `/swagger/v1/swagger.json`。
+2. **產生 client**：以 `swagger-typescript-api` 透過 `package.json` 的 `gen:api`（及各 `gen:api:<service>`）script，將型別與 API class 產生到 `src/api/<service>.ts`。**產生檔不手動編輯**；後端 API 變更時更新 `openapi/` 文件並重跑 `pnpm gen:api`。
+3. **統一進入點**：`src/api/index.ts` 匯入產生的 `Api` / `HttpClient`，設定 `baseUrl`（取自 `environment.ts` 的環境變數，非寫死）並以 `customFetch` wrapper 注入 OIDC Bearer token，匯出 `storeApi` / `catalogApi` / `logApi` 等實例。
+4. **業務使用**：所有 component / store 一律 `import` `src/api/index.ts` 匯出的實例呼叫，**不直接 `new` 產生出來的 class、不自行 `fetch`**。
+
+詳見 [docs/develop.md](docs/develop.md) 的「前端串接後端 API」。
 
 ### 文件站（從 `docs/` 執行）
 

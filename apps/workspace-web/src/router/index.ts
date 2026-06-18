@@ -6,9 +6,13 @@ const routes: RouteRecordRaw[] = [
   // 預設進入買家「購買紀錄」頁
   { path: '/', redirect: '/purchases' },
   { path: '/overview', name: 'overview', component: () => import('@/views/OverviewView.vue'), meta: { title: '儀表板' } },
+  { path: '/admin', name: 'admin-overview', component: () => import('@/views/AdminOverviewView.vue'), meta: { title: '儀表板' } },
   { path: '/review', name: 'review', component: () => import('@/views/ReviewView.vue'), meta: { title: '待審核商店' } },
   { path: '/review-history', name: 'review-history', component: () => import('@/views/ReviewHistoryView.vue'), meta: { title: '審核紀錄' } },
+  { path: '/stores', name: 'stores', component: () => import('@/views/StoresView.vue'), meta: { title: '商店列表' } },
+  { path: '/stores/:id/products', name: 'store-products', component: () => import('@/views/StoreProductsView.vue'), meta: { title: '商店商品' } },
   { path: '/catalog-categories', name: 'catalog-categories', component: () => import('@/views/CatalogCategoriesView.vue'), meta: { title: '商品分類' } },
+  { path: '/audit-log', name: 'audit-log', component: () => import('@/views/AuditLogView.vue'), meta: { title: '稽核日誌' } },
   { path: '/open-store', name: 'open-store', component: () => import('@/views/OpenStoreView.vue'), meta: { title: '開店' } },
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { title: '上架新作品' } },
@@ -30,7 +34,7 @@ const SELL_ROUTES = ['overview', 'open-store', 'products', 'upload', 'orders']
 // 需要先開店才能操作的路由：尚未開店時一律導回「開店」
 const REQUIRE_STORE_ROUTES = ['overview', 'products', 'upload', 'orders']
 // 平台管理員專屬路由：僅 role === "Admin" 可進入
-const ADMIN_ROUTES = ['review', 'review-history', 'catalog-categories']
+const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'catalog-categories', 'audit-log']
 
 let userLoaded = false
 let storeStateLoaded = false
@@ -48,10 +52,10 @@ router.beforeEach(async (to) => {
 
   const name = to.name as string | undefined
 
-  // 系統管理員：不走買家/賣家流程，一律進入店家審核後台（設定頁仍開放）
+  // 系統管理員：不走買家/賣家流程，預設進入平台儀表板（設定頁仍開放）
   if (auth.isAdmin) {
     if (name && (ADMIN_ROUTES.includes(name) || name === 'settings')) return
-    return { name: 'review' }
+    return { name: 'admin-overview' }
   }
 
   // 非管理員不可進入管理員專屬路由

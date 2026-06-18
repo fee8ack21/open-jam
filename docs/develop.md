@@ -140,6 +140,60 @@ chore(release): 發佈新版本
 - **前端多國語系**：i18n。
 - **環境變數 URL 一律無結尾斜線**：所有 `environment.ts` 的 URL 設定（API base、頁面導向、外部連結，如 `STORE_API_URL`、`AUTH_PAGE_URL`、`*_PAGE_URL`、`GITHUB_REPO_URL`、`DOCS_URL`）結尾**不帶** `/`；拼接時一律由後綴自帶前導 `/`（如 `${env.AUTH_PAGE_URL}/error`、API client 的 `${baseUrl}/v1/...`）。如此「base 無斜線 + 後綴帶斜線」是唯一心智模型，不會組出雙斜線。直接綁 `:href` / `location.href` 而不接後綴的連結同樣維持無斜線以保持一致。
 
+## 前端串接後端 API
+
+前端串接後端 API 的流程**一律基於 `openapi/` 資料夾內的 Swagger 文件**，透過 `swagger-typescript-api` 套件**自動產生** API service 到 `src/api/`。**嚴禁手寫 API 呼叫、hard code endpoint 路徑 / URL / query string / request / response 型別**。
+
+### 流程
+
+1. **OpenAPI 來源（`openapi/`）**：各後端服務的 Swagger 文件存放於該 app 的 `openapi/` 資料夾（如 `workspace-web/openapi/catalog-service.json`、`log-service.json`、`store-service.json`）。可改指向開發伺服器即時端點（如 `http://localhost:5172/swagger/v1/swagger.json`）；後端 API 變更時，先更新 `openapi/` 內的文件再重新產生。
+
+2. **產生 client（`swagger-typescript-api` → `src/api/`）**：以 `package.json` 的 `gen:api` script（彙整各 `gen:api:<service>`）產生型別與 API class 至 `src/api/<service>.ts`：
+
+   ```bash
+   pnpm gen:api          # 一次重產所有服務 client
+   pnpm gen:api:store    # 單一服務（store / catalog / log…）
+   ```
+
+   ```jsonc
+   // package.json scripts（--single-http-client 讓多服務共用注入後的 HttpClient；
+   //                       --module-name-first-tag 以 OpenAPI tag 切分 API class）
+   "gen:api": "pnpm gen:api:store && pnpm gen:api:catalog && pnpm gen:api:log",
+   "gen:api:store":   "swagger-typescript-api generate -p http://localhost:5172/swagger/v1/swagger.json -o src/api -n store-service.ts --single-http-client --module-name-first-tag",
+   "gen:api:catalog": "swagger-typescript-api generate -p openapi/catalog-service.json -o src/api -n catalog-service.ts --single-http-client --module-name-first-tag",
+   "gen:api:log":     "swagger-typescript-api generate -p openapi/log-service.json -o src/api -n log-service.ts --single-http-client --module-name-first-tag"
+   ```
+
+   > `src/api/<service>.ts` 為**產生檔，不得手動編輯**——任何手改都會在下次 `pnpm gen:api` 被覆蓋。要調整 API 形狀請改後端，更新 `openapi/` 文件後重產。
+
+3. **統一進入點（`src/api/index.ts`）**：匯入產生的 `Api` / `HttpClient`，於此處（且**僅此處**）設定 `baseUrl` 與 token 注入，匯出可直接使用的實例：
+
+   - `baseUrl` 一律取自 `environment.ts` 的環境變數（如 `env.STORE_API_URL`），**不寫死網址**。
+   - 以 `customFetch` wrapper 在每個請求即時帶上目前 OIDC 使用者的 Bearer token（因 silent renew 會更新，故每次請求即時讀取、不快取）。
+
+   ```ts
+   const authFetch: typeof fetch = async (input, init = {}) => {
+     const user = await userManager.getUser();
+     const headers = new Headers(init.headers ?? {});
+     if (user?.access_token && !headers.has('Authorization')) {
+       headers.set('Authorization', `Bearer ${user.access_token}`);
+     }
+     return fetch(input, { ...init, headers });
+   };
+
+   const storeHttp = new StoreHttpClient({ baseUrl: env.STORE_API_URL, customFetch: authFetch });
+   export const storeApi = new StoreApi(storeHttp);
+   ```
+
+4. **業務使用**：所有 component / Pinia store 一律 `import` `src/api/index.ts` 匯出的實例（`storeApi` / `catalogApi` / `logApi`…）呼叫，**不直接 `new` 產生出來的 class、不自行 `fetch`、不重複設定 baseUrl 或 token**。
+
+### 禁止事項
+
+- ❌ 手寫 `fetch('http://localhost:5172/v1/stores')` 或 hard code endpoint 路徑 / query。
+- ❌ 自訂 interface 重複宣告 request / response 型別——一律 import 產生檔的型別。
+- ❌ 手改 `src/api/<service>.ts` 產生檔。
+- ❌ 在 `index.ts` 以外的地方設定 baseUrl 或注入 token。
+
 ## Controller 與 Service 分層
 
 REST API 服務遵循「軟體三層 + Service DI」：**Controller 只負責 HTTP（路由、model binding、回傳狀態碼），不得撰寫業務邏輯**；所有業務邏輯下放至 Service 層，Controller 以介面注入呼叫。

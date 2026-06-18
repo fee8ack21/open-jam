@@ -9,6 +9,7 @@
 // ============================================================
 import { Api as StoreApi, HttpClient as StoreHttpClient } from '@/api/store-service';
 import { Api as CatalogApi, HttpClient as CatalogHttpClient } from '@/api/catalog-service';
+import { Api as LogApi, HttpClient as LogHttpClient } from '@/api/log-service';
 import { env } from '@/environment';
 import { userManager } from '@/oidc/auth';
 
@@ -35,8 +36,16 @@ const catalogHttp = new CatalogHttpClient({
   customFetch: authFetch,
 });
 
+const logHttp = new LogHttpClient({
+  baseUrl: env.LOG_API_URL,
+  customFetch: authFetch,
+});
+
 /** StoreService API client（store-applications / stores / followers）。 */
 export const storeApi = new StoreApi(storeHttp);
 
 /** CatalogService API client（catalog / categories / tags）。 */
 export const catalogApi = new CatalogApi(catalogHttp);
+
+/** LogService API client（audit-logs 稽核日誌查詢）。 */
+export const logApi = new LogApi(logHttp);

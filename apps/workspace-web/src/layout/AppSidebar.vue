@@ -5,6 +5,7 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { useStoreReviewStore } from '@/stores/storeReview'
+import { useStoreListStore } from '@/stores/storeList'
 
 /** 賣家 / 買家兩組導覽項目；countKey 對應 store 中的數量。 */
 const NAV = {
@@ -31,6 +32,7 @@ const store = useDashboardStore()
 const authStore = useAuthStore()
 const storeAppStore = useStoreApplicationStore()
 const reviewStore = useStoreReviewStore()
+const storeListStore = useStoreListStore()
 
 /** 首次身份載入是否完成；未完成前選單保持空白，避免閃現錯誤角色的項目。 */
 const isReady = computed(() => authStore.isReady)
@@ -85,6 +87,10 @@ function isActive(view: string) { return route.name === view }
       <template v-else-if="isAdmin">
         <div class="nav-group">
           <div class="nav-label">平台管理</div>
+          <div class="nav-item" :class="{ on: isActive('admin-overview') }" @click="nav('admin-overview')">
+            <span class="nav-ic"><app-icon name="grid" :size="19" /></span>
+            <span>儀表板</span>
+          </div>
           <div class="nav-item" :class="{ on: isActive('review') }" @click="nav('review')">
             <span class="nav-ic"><app-icon name="shield" :size="19" /></span>
             <span>待審核商店</span>
@@ -94,9 +100,18 @@ function isActive(view: string) { return route.name === view }
             <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
             <span>審核紀錄</span>
           </div>
+          <div class="nav-item" :class="{ on: isActive('stores') }" @click="nav('stores')">
+            <span class="nav-ic"><app-icon name="home" :size="19" /></span>
+            <span>商店列表</span>
+            <span v-if="storeListStore.activeCount" class="nav-count">{{ storeListStore.activeCount }}</span>
+          </div>
           <div class="nav-item" :class="{ on: isActive('catalog-categories') }" @click="nav('catalog-categories')">
             <span class="nav-ic"><app-icon name="tag" :size="19" /></span>
             <span>商品分類</span>
+          </div>
+          <div class="nav-item" :class="{ on: isActive('audit-log') }" @click="nav('audit-log')">
+            <span class="nav-ic"><app-icon name="note" :size="19" /></span>
+            <span>稽核日誌</span>
           </div>
         </div>
       </template>

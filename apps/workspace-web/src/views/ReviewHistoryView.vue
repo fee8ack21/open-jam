@@ -114,19 +114,8 @@ onMounted(store.load)
     </div>
 
     <n-spin :show="loading">
-      <!-- 無符合紀錄 -->
-      <div v-if="!loading && !visible.length" class="card-pad" style="text-align:center; padding:48px 24px;">
-        <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="receipt" :size="22" /></span>
-        <div style="font-weight:700; font-size:15px;">
-          {{ history.length ? '沒有符合條件的紀錄' : '尚無審核紀錄' }}
-        </div>
-        <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-          {{ history.length ? '試試調整關鍵字或篩選條件。' : '完成核准／駁回後，紀錄會顯示於此。' }}
-        </div>
-      </div>
-
-      <!-- 紀錄表格 -->
-      <div v-else class="card-pad history-table-card" style="padding:8px 8px 4px;">
+      <!-- 紀錄表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
+      <div class="card-pad history-table-card" style="padding:8px 8px 4px;">
         <div class="history-table-wrap">
           <table class="tbl history-table">
             <thead>
@@ -144,7 +133,19 @@ onMounted(store.load)
               </tr>
             </thead>
             <tbody>
-              <tr v-for="a in visible" :key="a.id">
+              <!-- 無符合紀錄：整列佔滿全部欄位 -->
+              <tr v-if="!loading && !visible.length">
+                <td :colspan="columns.length + 1" style="text-align:center; padding:48px 24px;">
+                  <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="receipt" :size="22" /></span>
+                  <div style="font-weight:700; font-size:15px;">
+                    {{ history.length ? '沒有符合條件的紀錄' : '尚無審核紀錄' }}
+                  </div>
+                  <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
+                    {{ history.length ? '試試調整關鍵字或篩選條件。' : '完成核准／駁回後，紀錄會顯示於此。' }}
+                  </div>
+                </td>
+              </tr>
+              <tr v-for="a in visible" v-else :key="a.id">
                 <td>
                   <div class="prod-cell">
                     <span class="history-rank">{{ initial(a.email) }}</span>
