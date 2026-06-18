@@ -1,6 +1,6 @@
 {
   "name": "market-web",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "private": true,
   "type": "module",
   "description": "Open Jam · 創作者數位市集 — Vue 3 + Vite + Pinia + Vue Router SPA",
