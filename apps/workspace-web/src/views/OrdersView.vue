@@ -16,6 +16,8 @@ const statusOptions = [
 ]
 /** 日期範圍篩選（[起, 迄] 毫秒時間戳），null 表示不限。 */
 const dateRange = ref<[number, number] | null>(null)
+/** 關鍵字查詢，比對訂單編號／買家名稱／帳號／作品名稱。 */
+const keyword = ref('')
 
 /** 將毫秒時間戳轉為當地 YYYY-MM-DD，供與訂單日期做同格式字串比較。 */
 function dayKey(ts: number): string {
@@ -27,6 +29,12 @@ function dayKey(ts: number): string {
 const rows = computed(() => {
   let list = s.orders
   if (tab.value !== 'all') list = list.filter(o => o.status === tab.value)
+  const kw = keyword.value.trim().toLowerCase()
+  if (kw) {
+    list = list.filter(o =>
+      [o.id, o.buyer, o.buyerHandle, prod(o.productId).title].some(v => v?.toLowerCase().includes(kw)),
+    )
+  }
   if (dateRange.value) {
     const [from, to] = [dayKey(dateRange.value[0]), dayKey(dateRange.value[1])]
     list = list.filter(o => {
@@ -37,10 +45,6 @@ const rows = computed(() => {
   return list
 })
 const paidTotal = computed(() => g.paidOrders.reduce((s, o) => s + o.amount, 0))
-
-function resetFilter() {
-  dateRange.value = null
-}
 
 function statusLabel(s: string) { return STATUS_LABEL[s] || s }
 function prod(id: string): Product { return store.product(id) || ({} as Product) }
@@ -57,22 +61,37 @@ function dt(iso: string) { const d = new Date(iso); return d.toISOString().slice
       </div>
     </div>
 
-    <!-- 篩選工具列 -->
+    <!-- 篩選工具列：單行時四欄平均分布、間隔一致；空間不足時整組換行，最多兩行並填滿寬度 -->
     <div class="card-pad history-toolbar">
-      <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-        <n-select
-          v-model:value="tab"
-          :options="statusOptions"
-          style="width:140px; flex:none;" />
-        <div style="flex:1;"></div>
-        <n-date-picker
-          v-model:value="dateRange"
-          type="daterange"
-          clearable
-          start-placeholder="起始日期"
-          end-placeholder="結束日期"
-          style="min-width:280px;" />
-        <n-button quaternary :disabled="!dateRange" @click="resetFilter">重設</n-button>
+      <div class="filter-bar">
+        <div class="fb-group">
+          <div class="fb-field" style="flex:1 1 140px;">
+            <label class="fb-label">狀態</label>
+            <n-select
+              v-model:value="tab"
+              :options="statusOptions" />
+          </div>
+          <div class="fb-field" style="flex:2 1 200px;">
+            <label class="fb-label">關鍵字</label>
+            <n-input
+              v-model:value="keyword"
+              clearable
+              placeholder="搜尋訂單編號、買家或作品">
+              <template #prefix><app-icon name="search" :size="15" /></template>
+            </n-input>
+          </div>
+        </div>
+        <div class="fb-group">
+          <div class="fb-field" style="flex:1 1 240px;">
+            <label class="fb-label">訂單時間</label>
+            <n-date-picker
+              v-model:value="dateRange"
+              type="daterange"
+              clearable
+              start-placeholder="起始日期"
+              end-placeholder="結束日期" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -145,6 +164,36 @@ function dt(iso: string) { const d = new Date(iso); return d.toISOString().slice
 .history-toolbar :deep(.n-input__border),
 .history-toolbar :deep(.n-input__state-border) {
   border-radius: 10px;
+}
+
+/* 篩選列：兩組各佔一半，單行並排（共四欄平均分布），不足時整組換行成最多兩行 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.fb-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+/* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
 }
 
 .history-table-card {
