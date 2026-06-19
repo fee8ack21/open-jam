@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Shared.Auth;
+using CatalogService.Data;
 using AuthDbContext = Auth.Data.AppDbContext;
 using EmailDbContext = EmailService.Data.AppDbContext;
 
@@ -23,6 +24,11 @@ var host = Host.CreateDefaultBuilder(args)
                     o => o.MigrationsHistoryTable("__ef_migrations_history"))
                 .UseSnakeCaseNamingConvention());
 
+        services.AddDbContext<CatalogDbContext>(opts =>
+            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:CatalogConnection"],
+                    o => o.MigrationsHistoryTable("__ef_migrations_history"))
+                .UseSnakeCaseNamingConvention());
+
         services.AddScoped<IPasswordHasher, Argon2idHasher>();
 
         var hydraUrl = (ctx.Configuration["Hydra:AdminUrl"] ?? "http://localhost:4445").TrimEnd('/') + "/";
@@ -31,6 +37,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<HydraClientSeeder>();
         services.AddScoped<EmailTemplateSeeder>();
         services.AddScoped<UserSeeder>();
+        services.AddScoped<CatalogCategorySeeder>();
     })
     .Build();
 
@@ -40,6 +47,7 @@ var sp = scope.ServiceProvider;
 await sp.GetRequiredService<HydraClientSeeder>().SeedAsync();
 await sp.GetRequiredService<EmailTemplateSeeder>().SeedAsync();
 await sp.GetRequiredService<UserSeeder>().SeedAsync();
+await sp.GetRequiredService<CatalogCategorySeeder>().SeedAsync();
 
 // TODO: SubdomainReservedWordSeeder — 待 Auth 或 Product DbContext 建立後接入。
 // 負責將系統占用子網域（auth / workspace / creator / market / api / www / mail）

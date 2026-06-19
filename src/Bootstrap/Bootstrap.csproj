@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Auth\Auth.csproj" />
     <ProjectReference Include="..\EmailService\EmailService.csproj" />
+    <ProjectReference Include="..\CatalogService\CatalogService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,11 +26,11 @@
     <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Auth / EmailService 的 appsettings*.json 會透過 ProjectReference 一併進入 publish 輸出，
+  <!-- Auth / EmailService / CatalogService 的 appsettings*.json 會透過 ProjectReference 一併進入 publish 輸出，
        與彼此及本專案的 appsettings.json 路徑衝突（NETSDK1152），故排除之 -->
   <Target Name="ExcludeReferencedAppSettingsFromPublish" AfterTargets="ComputeResolvedFilesToPublishList" BeforeTargets="_HandleFileConflictsForPublish">
     <ItemGroup>
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="('%(FileName)%(Extension)' == 'appsettings.json' or '%(FileName)%(Extension)' == 'appsettings.Development.json') and ($([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('Auth')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('EmailService')))" />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="('%(FileName)%(Extension)' == 'appsettings.json' or '%(FileName)%(Extension)' == 'appsettings.Development.json') and ($([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('Auth')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('EmailService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('CatalogService')))" />
     </ItemGroup>
   </Target>
 

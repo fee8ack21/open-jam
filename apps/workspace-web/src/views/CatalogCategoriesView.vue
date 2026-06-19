@@ -11,24 +11,6 @@ interface CategoryRow extends CatalogCategoryDto {
   depth: number
 }
 
-// TODO(mock): layout review only. Remove when CatalogCategory data is available from backend seed/admin input.
-const MOCK_CATEGORIES: CatalogCategoryDto[] = [
-  {
-    id: '00000000-0000-0000-0000-000000000201',
-    parentId: null,
-    name: '音樂與音效',
-    slug: 'audio',
-    sortOrder: 0,
-  },
-  {
-    id: '00000000-0000-0000-0000-000000000202',
-    parentId: '00000000-0000-0000-0000-000000000201',
-    name: '背景音樂',
-    slug: 'background-music',
-    sortOrder: 0,
-  },
-]
-
 const message = useMessage()
 const categories = ref<CatalogCategoryDto[]>([])
 const loading = ref(false)
@@ -74,11 +56,10 @@ async function load() {
   loading.value = true
   try {
     const res = await catalogApi.catalogCategories.list()
-    const data = res.data ?? []
-    categories.value = data.length ? data : [...MOCK_CATEGORIES]
+    categories.value = res.data ?? []
   } catch (err) {
     message.error(messageOf(err, '載入商品分類失敗。'))
-    categories.value = [...MOCK_CATEGORIES]
+    categories.value = []
   } finally {
     loading.value = false
   }
