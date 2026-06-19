@@ -9,13 +9,38 @@ const g = store
 const s = store
 
 const tab = ref('all')
+const statusOptions = [
+  { label: '全部', value: 'all' },
+  { label: '已付款', value: 'paid' },
+  { label: '已退款', value: 'refunded' },
+]
+/** 日期範圍篩選（[起, 迄] 毫秒時間戳），null 表示不限。 */
+const dateRange = ref<[number, number] | null>(null)
+
+/** 將毫秒時間戳轉為當地 YYYY-MM-DD，供與訂單日期做同格式字串比較。 */
+function dayKey(ts: number): string {
+  const d = new Date(ts)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
 
 const rows = computed(() => {
   let list = s.orders
   if (tab.value !== 'all') list = list.filter(o => o.status === tab.value)
+  if (dateRange.value) {
+    const [from, to] = [dayKey(dateRange.value[0]), dayKey(dateRange.value[1])]
+    list = list.filter(o => {
+      const k = dayKey(new Date(o.date).getTime())
+      return k >= from && k <= to
+    })
+  }
   return list
 })
 const paidTotal = computed(() => g.paidOrders.reduce((s, o) => s + o.amount, 0))
+
+function resetFilter() {
+  dateRange.value = null
+}
 
 function statusLabel(s: string) { return STATUS_LABEL[s] || s }
 function prod(id: string): Product { return store.product(id) || ({} as Product) }
@@ -32,51 +57,124 @@ function dt(iso: string) { const d = new Date(iso); return d.toISOString().slice
       </div>
     </div>
 
-    <div style="margin-bottom:18px;">
-      <div class="tabs">
-        <button :class="{ on: tab === 'all' }" @click="tab = 'all'">全部 <span class="tcount">{{ s.orders.length }}</span></button>
-        <button :class="{ on: tab === 'paid' }" @click="tab = 'paid'">已付款 <span class="tcount">{{ g.paidOrders.length }}</span></button>
-        <button :class="{ on: tab === 'refunded' }" @click="tab = 'refunded'">已退款 <span class="tcount">{{ s.orders.filter(o => o.status==='refunded').length }}</span></button>
+    <!-- 篩選工具列 -->
+    <div class="card-pad history-toolbar">
+      <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+        <n-select
+          v-model:value="tab"
+          :options="statusOptions"
+          style="width:140px; flex:none;" />
+        <div style="flex:1;"></div>
+        <n-date-picker
+          v-model:value="dateRange"
+          type="daterange"
+          clearable
+          start-placeholder="起始日期"
+          end-placeholder="結束日期"
+          style="min-width:280px;" />
+        <n-button quaternary :disabled="!dateRange" @click="resetFilter">重設</n-button>
       </div>
     </div>
 
-    <div class="card-pad" style="padding:8px 8px 4px;">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>訂單編號</th>
-            <th>買家</th>
-            <th class="hide-sm">作品</th>
-            <th class="hide-sm">狀態</th>
-            <th class="hide-sm">時間</th>
-            <th class="num">金額</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="o in rows" :key="o.id">
-            <td style="font-family:var(--oj-mono); font-size:12.5px; color:var(--text-soft);">{{ o.id }}</td>
-            <td>
-              <div style="display:flex; align-items:center; gap:10px;">
-                <span class="avatar" :style="{ background: o.avatar, width:'30px', height:'30px', fontSize:'11px' }">{{ F.initials(o.buyer) }}</span>
-                <div style="min-width:0;">
-                  <div style="font-weight:600; font-size:13.5px;">{{ o.buyer }}</div>
-                  <div style="font-family:var(--oj-mono); font-size:11px; color:var(--text-faint);">{{ o.buyerHandle }}</div>
+    <!-- 訂單表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
+    <div class="card-pad history-table-card" style="padding:8px 8px 4px;">
+      <div class="history-table-wrap">
+        <table class="tbl history-table">
+          <thead>
+            <tr>
+              <th>訂單編號</th>
+              <th>買家</th>
+              <th class="hide-sm">作品</th>
+              <th class="hide-sm">狀態</th>
+              <th class="hide-sm">時間</th>
+              <th class="num">金額</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 無紀錄：整列佔滿全部欄位 -->
+            <tr v-if="!rows.length">
+              <td colspan="6" style="text-align:center; padding:48px 24px;">
+                <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="receipt" :size="22" /></span>
+                <div style="font-weight:700; font-size:15px;">沒有符合的訂單</div>
+                <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
+                  沒有符合所選條件的訂單，試試調整或重設篩選條件。
                 </div>
-              </div>
-            </td>
-            <td class="hide-sm" style="max-width:240px;">
-              <div style="display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; font-size:13.5px; color:var(--text-soft);">{{ prod(o.productId).title }}</div>
-            </td>
-            <td class="hide-sm"><span class="pill" :class="o.status"><span class="pdot"></span>{{ statusLabel(o.status) }}</span></td>
-            <td class="hide-sm" style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint);">{{ dt(o.date) }}</td>
-            <td class="num" style="font-weight:700;" :style="o.status === 'refunded' ? 'color:var(--text-faint); text-decoration:line-through' : ''">{{ F.money(o.amount) }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-if="!rows.length" class="empty-box">
-        <div class="eb-ic"><app-icon name="receipt" :size="30" /></div>
-        <div class="eb-t">沒有符合的訂單</div>
+              </td>
+            </tr>
+            <tr v-for="o in rows" :key="o.id">
+              <td><span class="history-mono" style="font-size:12.5px;">{{ o.id }}</span></td>
+              <td>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span class="avatar" :style="{ background: o.avatar, width:'30px', height:'30px', fontSize:'11px' }">{{ F.initials(o.buyer) }}</span>
+                  <div style="min-width:0;">
+                    <div style="font-weight:600; font-size:13.5px;">{{ o.buyer }}</div>
+                    <div style="font-family:var(--oj-mono); font-size:11px; color:var(--text-faint);">{{ o.buyerHandle }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="hide-sm" style="max-width:240px;">
+                <div style="display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; font-size:13.5px; color:var(--text-soft);">{{ prod(o.productId).title }}</div>
+              </td>
+              <td class="hide-sm"><span class="pill" :class="o.status"><span class="pdot"></span>{{ statusLabel(o.status) }}</span></td>
+              <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ dt(o.date) }}</span></td>
+              <td class="num" style="font-weight:700;" :style="o.status === 'refunded' ? 'color:var(--text-faint); text-decoration:line-through' : ''">{{ F.money(o.amount) }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 對齊 admin 頁面（AuditLogView）的 10px 圓角與表格樣式 */
+.history-toolbar {
+  margin-bottom: 16px;
+  border-radius: 10px;
+}
+
+.history-toolbar :deep(.n-date-picker),
+.history-toolbar :deep(.n-input),
+.history-toolbar :deep(.n-input-wrapper),
+.history-toolbar :deep(.n-base-selection),
+.history-toolbar :deep(.n-base-selection__border),
+.history-toolbar :deep(.n-base-selection__state-border) {
+  border-radius: 10px;
+}
+
+.history-toolbar :deep(.n-input__border),
+.history-toolbar :deep(.n-input__state-border) {
+  border-radius: 10px;
+}
+
+.history-table-card {
+  border-radius: 10px;
+}
+
+.history-table-wrap {
+  overflow-x: auto;
+}
+
+.history-table {
+  min-width: 760px;
+}
+
+.history-table thead th {
+  font-size: 12.5px;
+  padding-top: 12px;
+  vertical-align: middle;
+}
+
+.history-table thead th + th {
+  border-left: 1.5px solid var(--border);
+}
+
+.history-table tbody td + td {
+  border-left: 1.5px solid var(--border);
+}
+
+.history-mono {
+  font-family: var(--oj-mono);
+  color: var(--text-soft);
+}
+</style>
