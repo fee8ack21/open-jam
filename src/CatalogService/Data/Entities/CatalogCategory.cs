@@ -15,6 +15,9 @@ public class CatalogCategory
     /// <summary>分類代稱，全域唯一。</summary>
     public string Slug { get; set; } = "";
 
+    /// <summary>分類補充敘述，前端用於分類卡片的說明文字；null 表示未設定。</summary>
+    public string? Description { get; set; }
+
     /// <summary>同層分類的顯示排序（由小到大）。</summary>
     public int SortOrder { get; set; }
 }

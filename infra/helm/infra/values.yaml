@@ -40,6 +40,8 @@ ingress:
       paths:
         - path: /store-service
           serviceName: open-jam-store-service
+        - path: /catalog-service
+          serviceName: open-jam-catalog-service
         - path: /log-service
           serviceName: open-jam-log-service
     - host: docs.openjam.co

@@ -120,6 +120,11 @@ export interface CatalogCategoryDto {
    */
   slug?: string | null;
   /**
+   * 分類補充敘述；null 表示未設定。
+   * @example "樂譜、配樂、分軌音檔"
+   */
+  description?: string | null;
+  /**
    * 同層顯示排序。
    * @format int32
    * @example 0
@@ -393,6 +398,11 @@ export interface CreateCatalogCategoryRequest {
    */
   slug?: string | null;
   /**
+   * 分類補充敘述（選填，最多 200 字）。
+   * @example "樂譜、配樂、分軌音檔"
+   */
+  description?: string | null;
+  /**
    * 同層顯示排序。
    * @format int32
    * @example 0
@@ -591,6 +601,11 @@ export interface UpdateCatalogCategoryRequest {
    * @example "audio"
    */
   slug?: string | null;
+  /**
+   * 分類補充敘述；null 表示不變更。
+   * @example "樂譜、配樂、分軌音檔"
+   */
+  description?: string | null;
   /**
    * 同層顯示排序；null 表示不變更。
    * @format int32

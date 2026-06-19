@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { JFmt } from '@/utils/format'
-import { CATEGORIES, CAT_DESC, TAGS, ME } from '@/data/products'
+import { TAGS, ME } from '@/data/products'
 
 const STEPS = [
   { n: 1, k: 'STEP 01', l: '基本資訊' },
@@ -13,8 +13,16 @@ const STEPS = [
   { n: 3, k: 'STEP 03', l: '預覽與發佈' },
 ]
 
-// 前端分類 id → 後端 CatalogCategory slug（Bootstrap 預建）
-const CAT_SLUG: Record<string, string> = { music: 'music', photo: 'photography', ebook: 'ebook' }
+// 後端分類 slug → 前端展示資訊（icon / 顏色 / 描述 / 建議標籤 / 縮圖類別）；
+// API 僅提供 name / slug，這些純展示欄位由前端對應，未知 slug 走 fallback。
+const CAT_META: Record<string, { color: string; glyph: string; desc: string; tags: string[]; thumb: string }> = {
+  music:       { color: 'var(--c-violet)', glyph: 'note',  desc: '樂譜、配樂、分軌音檔', tags: TAGS.music, thumb: 'music' },
+  photography: { color: 'var(--c-pink)',   glyph: 'image', desc: '照片集、RAW、預設',   tags: TAGS.photo, thumb: 'photo' },
+  ebook:       { color: 'var(--c-cyan)',   glyph: 'book',  desc: '電子書、範本、文件',   tags: TAGS.ebook, thumb: 'ebook' },
+}
+const CAT_FALLBACK = { color: 'var(--c-violet)', glyph: 'tag', desc: '', tags: [] as string[], thumb: 'photo' }
+function catMeta(slug: string) { return CAT_META[slug] ?? CAT_FALLBACK }
+
 const TYPE_COLOR: Record<string, string> = { ZIP: '#6c4cf1', XMP: '#1fd6c6', PDF: '#ff4d9d', JPG: '#ff7a2f', PNG: '#ff7a2f', PSD: '#3b7fd4', WAV: '#8b5cf6', MP3: '#16a07a', FIG: '#d8a017' }
 
 const store = useDashboardStore()
@@ -32,18 +40,29 @@ const files = ref<File[]>([])
 const step = computed(() => store.wizardStep)
 const d = computed(() => store.draft)
 const steps = STEPS
-const cats = CATEGORIES
-const catDesc = CAT_DESC
+
+// 頂層商品分類由 CatalogService API 取得（slug + name），子分類不在上架卡片呈現。
+const cats = computed(() =>
+  catalog.categories
+    .filter(c => !c.parentId)
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map(c => {
+      const meta = catMeta(c.slug ?? '')
+      // 敘述優先採用後端分類的 description，未設定時退回前端對應文案。
+      return { slug: c.slug ?? '', label: c.name ?? c.slug ?? '', ...meta, desc: c.description || meta.desc }
+    }),
+)
 
 const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
 const suggestedTags = computed(() =>
-  (TAGS[d.value.cat] || []).filter(t => !d.value.tags.includes(t)).slice(0, 6),
+  catMeta(d.value.cat).tags.filter(t => !d.value.tags.includes(t)).slice(0, 6),
 )
 const totalBytes = computed(() => files.value.reduce((s, f) => s + f.size, 0))
 const totalSize = computed(() => store.fmtBytes(totalBytes.value) || '—')
 const fileFormats = computed(() => [...new Set(files.value.map(f => fileType(f.name)))])
 const previewProduct = computed(() => ({
-  cat: d.value.cat, hue: d.value.coverHue,
+  cat: catMeta(d.value.cat).thumb, hue: d.value.coverHue,
   title: d.value.title || '你的作品標題會顯示在這裡',
   creator: ME.name, avatar: ME.avatar,
   tags: d.value.tags.length ? d.value.tags : ['標籤'],
@@ -55,6 +74,13 @@ const previewProduct = computed(() => ({
 const step1Valid = computed(() => d.value.title.trim().length >= 2)
 const step2Valid = computed(() => files.value.length > 0)
 const hueOptions = [256, 320, 28, 168, 44, 198, 142, 226]
+
+onMounted(async () => {
+  await catalog.loadCategories()
+  // draft 預設 / localStorage 殘留可能不是有效 slug，載入後對齊到第一個分類。
+  const slugs = cats.value.map(c => c.slug)
+  if (!slugs.includes(d.value.cat) && slugs.length) store.patchDraft({ cat: slugs[0] })
+})
 
 function fileType(name: string) { return (name.split('.').pop() || 'FILE').toUpperCase().slice(0, 4) }
 function typeColor(t: string) { return TYPE_COLOR[t] || 'var(--c-violet)' }
@@ -87,7 +113,7 @@ async function submit(publish: boolean) {
   const created = await catalog.createProduct({
     storeId: storeId.value,
     name: d.value.title,
-    categorySlug: CAT_SLUG[d.value.cat] ?? null,
+    categorySlug: d.value.cat || null,
     summary: d.value.blurb,
     coverHue: d.value.coverHue,
     price: d.value.free ? 0 : d.value.price,
@@ -144,12 +170,12 @@ async function submit(publish: boolean) {
           <div class="form-block">
             <h4 class="fb-title">作品分類</h4>
             <div class="cat-cards">
-              <div v-for="c in cats" :key="c.id" class="cat-card" :class="{ on: d.cat === c.id }"
-                   @click="store.patchDraft({ cat: c.id })">
-                <span class="cc-ic" :style="{ background: ({music:'var(--c-violet)',photo:'var(--c-pink)',ebook:'var(--c-cyan)'})[c.id] }"><app-icon :name="c.glyph" :size="20" /></span>
+              <div v-for="c in cats" :key="c.slug" class="cat-card" :class="{ on: d.cat === c.slug }"
+                   @click="store.patchDraft({ cat: c.slug })">
+                <span class="cc-ic" :style="{ background: c.color }"><app-icon :name="c.glyph" :size="20" /></span>
                 <div>
                   <div class="cc-l">{{ c.label }}</div>
-                  <div class="cc-d">{{ catDesc[c.id] }}</div>
+                  <div class="cc-d">{{ c.desc }}</div>
                 </div>
               </div>
             </div>
@@ -238,7 +264,7 @@ async function submit(publish: boolean) {
             <p class="fb-sub">送出後即建立商品並上架；你也可以先存成草稿稍後再上架。</p>
             <div style="margin-top:6px;">
               <div class="rev-row"><span class="rev-k">標題</span><span class="rev-v">{{ d.title || '未命名作品' }}</span></div>
-              <div class="rev-row"><span class="rev-k">分類</span><span class="rev-v">{{ (cats.find(c=>c.id===d.cat)||{}).label }}</span></div>
+              <div class="rev-row"><span class="rev-k">分類</span><span class="rev-v">{{ cats.find(c => c.slug === d.cat)?.label || '—' }}</span></div>
               <div class="rev-row"><span class="rev-k">標籤</span><span class="rev-v">{{ d.tags.length ? d.tags.join('、') : '—' }}</span></div>
               <div class="rev-row"><span class="rev-k">定價</span><span class="rev-v">{{ d.free ? '免費' : '$' + d.price }}</span></div>
               <div class="rev-row"><span class="rev-k">檔案</span><span class="rev-v">{{ files.length }} 個 · {{ totalSize }}</span></div>

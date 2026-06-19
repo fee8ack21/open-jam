@@ -19,6 +19,10 @@ public class CatalogCategoryDto
     /// <example>audio</example>
     public string Slug { get; set; } = "";
 
+    /// <summary>分類補充敘述；null 表示未設定。</summary>
+    /// <example>樂譜、配樂、分軌音檔</example>
+    public string? Description { get; set; }
+
     /// <summary>同層顯示排序。</summary>
     /// <example>0</example>
     public int SortOrder { get; set; }
@@ -39,6 +43,10 @@ public class CreateCatalogCategoryRequest
     /// <example>audio</example>
     public string Slug { get; set; } = "";
 
+    /// <summary>分類補充敘述（選填，最多 200 字）。</summary>
+    /// <example>樂譜、配樂、分軌音檔</example>
+    public string? Description { get; set; }
+
     /// <summary>同層顯示排序。</summary>
     /// <example>0</example>
     public int SortOrder { get; set; }
@@ -58,6 +66,10 @@ public class UpdateCatalogCategoryRequest
     /// <summary>分類代稱；null 表示不變更。</summary>
     /// <example>audio</example>
     public string? Slug { get; set; }
+
+    /// <summary>分類補充敘述；null 表示不變更。</summary>
+    /// <example>樂譜、配樂、分軌音檔</example>
+    public string? Description { get; set; }
 
     /// <summary>同層顯示排序；null 表示不變更。</summary>
     /// <example>1</example>

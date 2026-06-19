@@ -1508,6 +1508,12 @@
             "nullable": true,
             "example": "audio"
           },
+          "description": {
+            "type": "string",
+            "description": "分類補充敘述；null 表示未設定。",
+            "nullable": true,
+            "example": "樂譜、配樂、分軌音檔"
+          },
           "sortOrder": {
             "type": "integer",
             "description": "同層顯示排序。",
@@ -1856,6 +1862,12 @@
             "nullable": true,
             "example": "audio"
           },
+          "description": {
+            "type": "string",
+            "description": "分類補充敘述（選填，最多 200 字）。",
+            "nullable": true,
+            "example": "樂譜、配樂、分軌音檔"
+          },
           "sortOrder": {
             "type": "integer",
             "description": "同層顯示排序。",
@@ -2132,6 +2144,12 @@
             "description": "分類代稱；null 表示不變更。",
             "nullable": true,
             "example": "audio"
+          },
+          "description": {
+            "type": "string",
+            "description": "分類補充敘述；null 表示不變更。",
+            "nullable": true,
+            "example": "樂譜、配樂、分軌音檔"
           },
           "sortOrder": {
             "type": "integer",

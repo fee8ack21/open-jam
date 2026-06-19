@@ -43,6 +43,7 @@ public class CatalogCategoryService(CatalogDbContext db, IMapper mapper) : ICata
             ParentId = request.ParentId,
             Name = name,
             Slug = slug,
+            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             SortOrder = request.SortOrder,
         };
         db.CatalogCategories.Add(category);
@@ -75,6 +76,9 @@ public class CatalogCategoryService(CatalogDbContext db, IMapper mapper) : ICata
             await EnsureParentExistsAsync(parentId, ct);
             category.ParentId = parentId;
         }
+
+        if (request.Description is not null)
+            category.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
 
         if (request.SortOrder is { } sortOrder)
             category.SortOrder = sortOrder;
