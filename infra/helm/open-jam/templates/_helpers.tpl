@@ -101,6 +101,13 @@ StorageService Service URL (cluster-internal).
 {{- end }}
 
 {{/*
+StoreService Service URL (cluster-internal).
+*/}}
+{{- define "open-jam.storeServiceUrl" -}}
+{{- printf "http://%s-store-service:8080" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
 Secret name.
 */}}
 {{- define "open-jam.secretName" -}}
