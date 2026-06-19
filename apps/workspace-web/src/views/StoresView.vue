@@ -136,21 +136,24 @@ onMounted(store.load)
 
     <!-- 篩選 / 排序工具列 -->
     <div class="card-pad store-toolbar">
-      <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-        <n-input
-          class="store-search"
-          v-model:value="keyword"
-          clearable
-          placeholder="搜尋商店名稱、子網域或描述"
-          style="flex:1; min-width:220px;">
-          <template #prefix><app-icon name="search" :size="16" /></template>
-        </n-input>
-
-        <n-select
-          class="store-filter"
-          v-model:value="statusFilter"
-          :options="statusOptions"
-          style="width:140px; flex:none;" />
+      <div class="filter-bar">
+        <div class="fb-group">
+          <div class="fb-field" style="flex:2 1 220px;">
+            <label class="fb-label">關鍵字</label>
+            <n-input
+              v-model:value="keyword"
+              clearable
+              placeholder="搜尋商店名稱、子網域或描述">
+              <template #prefix><app-icon name="search" :size="16" /></template>
+            </n-input>
+          </div>
+          <div class="fb-field" style="flex:1 1 140px;">
+            <label class="fb-label">狀態</label>
+            <n-select
+              v-model:value="statusFilter"
+              :options="statusOptions" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -268,19 +271,48 @@ onMounted(store.load)
   border-radius: 10px;
 }
 
-.store-search,
-.store-search :deep(.n-input-wrapper),
-.store-filter,
-.store-filter :deep(.n-base-selection),
-.store-filter :deep(.n-base-selection-label) {
+.store-toolbar :deep(.n-input),
+.store-toolbar :deep(.n-input-wrapper),
+.store-toolbar :deep(.n-base-selection),
+.store-toolbar :deep(.n-base-selection-label) {
   border-radius: 10px;
 }
 
-.store-search :deep(.n-input__border),
-.store-search :deep(.n-input__state-border),
-.store-filter :deep(.n-base-selection__border),
-.store-filter :deep(.n-base-selection__state-border) {
+.store-toolbar :deep(.n-input__border),
+.store-toolbar :deep(.n-input__state-border),
+.store-toolbar :deep(.n-base-selection__border),
+.store-toolbar :deep(.n-base-selection__state-border) {
   border-radius: 10px;
+}
+
+/* 篩選列：兩組各佔一半，單行並排（共四欄平均分布），不足時整組換行成最多兩行 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.fb-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+/* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
 }
 
 .store-table-wrap {

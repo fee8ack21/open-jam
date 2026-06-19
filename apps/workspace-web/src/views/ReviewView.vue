@@ -95,13 +95,19 @@ onMounted(store.load)
     </div>
 
     <div class="card-pad review-toolbar">
-      <n-input
-        class="review-search"
-        v-model:value="keyword"
-        clearable
-        placeholder="搜尋商店名稱、子網域或申請人 Email">
-        <template #prefix><app-icon name="search" :size="16" /></template>
-      </n-input>
+      <div class="filter-bar">
+        <div class="fb-group">
+          <div class="fb-field" style="flex:0 1 360px;">
+            <label class="fb-label">關鍵字</label>
+            <n-input
+              v-model:value="keyword"
+              clearable
+              placeholder="搜尋商店名稱、子網域或申請人 Email">
+              <template #prefix><app-icon name="search" :size="16" /></template>
+            </n-input>
+          </div>
+        </div>
+      </div>
     </div>
 
     <n-spin :show="loading">
@@ -213,14 +219,44 @@ onMounted(store.load)
   border-radius: 10px;
 }
 
-.review-search,
-.review-search :deep(.n-input-wrapper) {
+.review-toolbar :deep(.n-input),
+.review-toolbar :deep(.n-input-wrapper) {
   border-radius: 10px;
 }
 
-.review-search :deep(.n-input__border),
-.review-search :deep(.n-input__state-border) {
+.review-toolbar :deep(.n-input__border),
+.review-toolbar :deep(.n-input__state-border) {
   border-radius: 10px;
+}
+
+/* 篩選列：兩組各佔一半，單行並排（共四欄平均分布），不足時整組換行成最多兩行 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.fb-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+/* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
 }
 
 .review-table-wrap {

@@ -84,27 +84,33 @@ onMounted(store.load)
 
     <!-- 篩選工具列 -->
     <div class="card-pad history-toolbar">
-      <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-        <n-input
-          class="history-search"
-          v-model:value="actionFilter"
-          clearable
-          placeholder="動作類型，如 auth.login.success"
-          style="flex:1; min-width:220px;"
-          @keyup.enter="applyFilter">
-          <template #prefix><app-icon name="search" :size="16" /></template>
-        </n-input>
-        <n-input
-          class="history-search"
-          v-model:value="targetFilter"
-          clearable
-          placeholder="對象資源類型，如 User"
-          style="flex:1; min-width:180px;"
-          @keyup.enter="applyFilter">
-          <template #prefix><app-icon name="tag" :size="16" /></template>
-        </n-input>
-        <n-button type="primary" :loading="loading" @click="applyFilter">查詢</n-button>
-        <n-button quaternary @click="resetFilter">重設</n-button>
+      <div class="filter-bar">
+        <div class="fb-group">
+          <div class="fb-field" style="flex:1 1 220px;">
+            <label class="fb-label">動作類型</label>
+            <n-input
+              v-model:value="actionFilter"
+              clearable
+              placeholder="動作類型，如 auth.login.success"
+              @keyup.enter="applyFilter">
+              <template #prefix><app-icon name="search" :size="16" /></template>
+            </n-input>
+          </div>
+          <div class="fb-field" style="flex:1 1 180px;">
+            <label class="fb-label">對象類型</label>
+            <n-input
+              v-model:value="targetFilter"
+              clearable
+              placeholder="對象資源類型，如 User"
+              @keyup.enter="applyFilter">
+              <template #prefix><app-icon name="tag" :size="16" /></template>
+            </n-input>
+          </div>
+        </div>
+        <div class="fb-group fb-actions">
+          <n-button type="primary" :loading="loading" @click="applyFilter">查詢</n-button>
+          <n-button quaternary @click="resetFilter">重設</n-button>
+        </div>
       </div>
     </div>
 
@@ -199,14 +205,49 @@ onMounted(store.load)
   border-radius: 10px;
 }
 
-.history-search,
-.history-search :deep(.n-input-wrapper) {
+.history-toolbar :deep(.n-input),
+.history-toolbar :deep(.n-input-wrapper) {
   border-radius: 10px;
 }
 
-.history-search :deep(.n-input__border),
-.history-search :deep(.n-input__state-border) {
+.history-toolbar :deep(.n-input__border),
+.history-toolbar :deep(.n-input__state-border) {
   border-radius: 10px;
+}
+
+/* 篩選列：兩組並排，按鈕組對齊輸入框底部；不足時整組換行成最多兩行 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.fb-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+/* 按鈕組：不撐滿、靠右對齊欄位底部 */
+.fb-actions {
+  flex: 0 0 auto;
+}
+
+/* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
 }
 
 .history-table-wrap {

@@ -34,10 +34,6 @@ const fileCount = computed(() => filtered.value.reduce((s, p) => s + p.product.c
 
 // 篩選條件變動時回到第一頁，避免停在已不存在的頁碼。
 watch(dateRange, () => { page.value = 1 })
-
-function resetFilter() {
-  dateRange.value = null
-}
 </script>
 
 <template>
@@ -52,15 +48,18 @@ function resetFilter() {
 
     <!-- 篩選工具列 -->
     <div class="card-pad history-toolbar">
-      <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-        <n-date-picker
-          v-model:value="dateRange"
-          type="daterange"
-          clearable
-          start-placeholder="起始日期"
-          end-placeholder="結束日期"
-          style="min-width:280px;" />
-        <n-button quaternary :disabled="!dateRange" @click="resetFilter">重設</n-button>
+      <div class="filter-bar">
+        <div class="fb-group">
+          <div class="fb-field" style="flex:1 1 auto;">
+            <label class="fb-label">購買時間</label>
+            <n-date-picker
+              v-model:value="dateRange"
+              type="daterange"
+              clearable
+              start-placeholder="起始日期"
+              end-placeholder="結束日期" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -127,13 +126,46 @@ function resetFilter() {
 
 .history-toolbar :deep(.n-date-picker),
 .history-toolbar :deep(.n-input),
-.history-toolbar :deep(.n-input-wrapper) {
+.history-toolbar :deep(.n-input-wrapper),
+.history-toolbar :deep(.n-base-selection),
+.history-toolbar :deep(.n-base-selection__border),
+.history-toolbar :deep(.n-base-selection__state-border) {
   border-radius: 10px;
 }
 
 .history-toolbar :deep(.n-input__border),
 .history-toolbar :deep(.n-input__state-border) {
   border-radius: 10px;
+}
+
+/* 篩選列：兩組各佔一半，單行並排（共四欄平均分布），不足時整組換行成最多兩行 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.fb-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+/* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
 }
 
 /* 各筆購買紀錄圓角對齊 admin 頁面的 10px */
