@@ -5,7 +5,6 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import AppSidebar from '@/layout/AppSidebar.vue'
 import AppHeader from '@/layout/AppHeader.vue'
-import AppBottomNav from '@/layout/AppBottomNav.vue'
 
 const route = useRoute()
 const store = useDashboardStore()
@@ -59,8 +58,6 @@ watch(canSell, (can) => {
           </main>
         </div>
       </div>
-
-      <app-bottom-nav />
     </div>
   </n-message-provider>
   </n-config-provider>
