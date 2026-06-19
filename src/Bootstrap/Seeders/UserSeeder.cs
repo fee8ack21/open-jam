@@ -13,9 +13,10 @@ public class UserSeeder(AppDbContext db, IPasswordHasher passwordHasher, IConfig
     /// <summary>找不到 MockUsers 設定時的預設一般使用者帳號。</summary>
     private static readonly string[] DefaultMockEmails =
     [
-        "alice@example.com",
-        "bob@example.com",
-        "carol@example.com",
+        "mateus_asato@example.com",
+        "matteo_mancuso@example.com",
+        "seiji_igusa@example.com",
+        "rick_beato@example.com",
     ];
 
     private const string DefaultMockPassword = "Aa123456!";
