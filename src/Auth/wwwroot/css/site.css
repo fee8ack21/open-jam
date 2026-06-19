@@ -229,6 +229,15 @@ input {
   box-shadow: 5px 5px 0 var(--text);
   overflow: hidden;
   opacity: 0.96;
+  /* pointer parallax: drift --depth px toward the cursor (vars set by
+     form-ui.js), composed with the per-card static --rot. */
+  will-change: transform;
+  transform: translate3d(
+      calc(var(--mx, 0) * var(--depth, 7px)),
+      calc(var(--my, 0) * var(--depth, 7px)),
+      0
+    )
+    rotate(var(--rot, 0deg));
 }
 .fc .fc-thumb {
   height: 98px;
@@ -302,6 +311,14 @@ input {
 .shape {
   position: absolute;
   z-index: 2;
+  /* shapes drift a touch further than the cards for a layered feel */
+  will-change: transform;
+  transform: translate3d(
+      calc(var(--mx, 0) * var(--depth, 10px)),
+      calc(var(--my, 0) * var(--depth, 10px)),
+      0
+    )
+    rotate(var(--rot, 0deg));
 }
 .shape.sq {
   border-radius: 18px;

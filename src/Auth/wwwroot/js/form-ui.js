@@ -94,6 +94,34 @@
     }, 1000);
   }
 
+  // ---- brand collage pointer parallax (mirrors market-web hero) ----
+  // Cards/shapes drift toward the cursor at per-element --depth (set in
+  // _BrandPanel.cshtml), smoothed with a rAF lerp. We only write --mx/--my
+  // on .collage; the compose-with-rotation transform lives in site.css.
+  function collageParallax() {
+    var root = document.querySelector('.collage');
+    if (!root) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var tmx = 0, tmy = 0; // target pointer offset, normalised -1..1
+    var cmx = 0, cmy = 0; // current (lerped) offset
+    var raf = 0;
+
+    function onPointer(e) {
+      tmx = (e.clientX / window.innerWidth) * 2 - 1;
+      tmy = (e.clientY / window.innerHeight) * 2 - 1;
+    }
+    function tick() {
+      cmx += (tmx - cmx) * 0.06;
+      cmy += (tmy - cmy) * 0.06;
+      root.style.setProperty('--mx', cmx.toFixed(4));
+      root.style.setProperty('--my', cmy.toFixed(4));
+      raf = requestAnimationFrame(tick);
+    }
+    window.addEventListener('pointermove', onPointer, { passive: true });
+    raf = requestAnimationFrame(tick);
+  }
+
   // ---- event binding ----
   function bind() {
     var $d = $(document);
@@ -154,5 +182,6 @@
   // ---- init ----
   $(function () {
     bind();
+    collageParallax();
   });
 }());
