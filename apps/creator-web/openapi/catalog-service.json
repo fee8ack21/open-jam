@@ -1385,6 +1385,87 @@
           }
         }
       }
+    },
+    "/v1/catalogs/favorites": {
+      "get": {
+        "tags": [
+          "CatalogFavorites"
+        ],
+        "summary": "查詢目前使用者已收藏的商品 ID 清單。",
+        "operationId": "ListMine",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogFavoritesResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogFavoritesResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogFavoritesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalogs/{id}/favorite": {
+      "post": {
+        "tags": [
+          "CatalogFavorites"
+        ],
+        "summary": "收藏商品。已收藏則 no-op。",
+        "operationId": "Add",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CatalogFavorites"
+        ],
+        "summary": "取消收藏商品。未收藏則 no-op。",
+        "operationId": "Remove",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2218,6 +2299,22 @@
         },
         "additionalProperties": false,
         "description": "版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。"
+      },
+      "CatalogFavoritesResponse": {
+        "type": "object",
+        "properties": {
+          "catalogIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "目前使用者已收藏的商品 ID 清單（依收藏時間遞減）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "目前使用者的商品收藏（wishlist）回應。"
       }
     }
   }

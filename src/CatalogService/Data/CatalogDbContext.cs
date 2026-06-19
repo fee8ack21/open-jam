@@ -30,6 +30,9 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
     /// <summary>商品與標籤多對多關聯資料表。</summary>
     public DbSet<CatalogTagMapping> CatalogTagMappings => Set<CatalogTagMapping>();
 
+    /// <summary>使用者商品收藏（wishlist）資料表。</summary>
+    public DbSet<CatalogFavorite> CatalogFavorites => Set<CatalogFavorite>();
+
     /// <summary>Outbox 訊息資料表。</summary>
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
@@ -98,6 +101,14 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
         {
             e.HasKey(m => new { m.CatalogId, m.TagId });
             e.HasIndex(m => m.TagId);
+        });
+
+        model.Entity<CatalogFavorite>(e =>
+        {
+            // 複合主鍵：同一使用者對同一商品至多一筆收藏
+            e.HasKey(f => new { f.CatalogId, f.UserId });
+            // 查詢某使用者的收藏清單（ListMine 以 UserId 過濾；主鍵以 CatalogId 為首，故另建）
+            e.HasIndex(f => f.UserId);
         });
 
         model.Entity<OutboxMessage>(e =>

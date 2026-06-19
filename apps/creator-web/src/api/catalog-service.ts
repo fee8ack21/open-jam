@@ -660,6 +660,12 @@ export interface VersionAssetUploadUrlResponse {
   expiresAt?: string;
 }
 
+/** 目前使用者的商品收藏（wishlist）回應。 */
+export interface CatalogFavoritesResponse {
+  /** 目前使用者已收藏的商品 ID 清單（依收藏時間遞減）。 */
+  catalogIds?: string[] | null;
+}
+
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
@@ -1531,6 +1537,53 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<void, any>({
         path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}`,
+        method: "DELETE",
+        ...params,
+      }),
+  };
+  catalogFavorites = {
+    /**
+     * No description
+     *
+     * @tags CatalogFavorites
+     * @name ListMine
+     * @summary 查詢目前使用者已收藏的商品 ID 清單。
+     * @request GET:/v1/catalogs/favorites
+     */
+    listMine: (params: RequestParams = {}) =>
+      this.http.request<CatalogFavoritesResponse, any>({
+        path: `/v1/catalogs/favorites`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogFavorites
+     * @name Add
+     * @summary 收藏商品。已收藏則 no-op。
+     * @request POST:/v1/catalogs/{id}/favorite
+     */
+    add: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/favorite`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogFavorites
+     * @name Remove
+     * @summary 取消收藏商品。未收藏則 no-op。
+     * @request DELETE:/v1/catalogs/{id}/favorite
+     */
+    remove: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/favorite`,
         method: "DELETE",
         ...params,
       }),

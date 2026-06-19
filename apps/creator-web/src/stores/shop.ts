@@ -9,6 +9,7 @@ import { defineStore } from 'pinia';
 import { PRODUCTS, type Product } from '@/data/products';
 import { STORE, type Store } from '@/data/store';
 import { catalogApi, storeApi } from '@/api';
+import { useAuthStore } from '@/stores/auth';
 import { env } from '@/environment';
 import { categoryKeyResolver, toProduct, toStore, hueColor, type StoreInfo } from '@/data/mapCatalog';
 import type { CatalogCategoryDto } from '@/api/catalog-service';
@@ -66,8 +67,9 @@ export const useShopStore = defineStore('shop', () => {
   const sort = ref<SortKey>('popular'); // popular | newest | price-asc | price-desc | rating
   const onlyFree = ref(false);
 
-  // user data (persisted)
-  const favorites = ref<string[]>(load<string[]>('favorites', []));
+  // user data
+  // 收藏（wishlist）為登入使用者所有，存於 CatalogService；以 API 為來源、不落地 localStorage
+  const favorites = ref<string[]>([]);
   const cart = ref<CartItem[]>(load<CartItem[]>('cart', []));   // [{ id, qty }]
 
   // checkout
@@ -175,10 +177,46 @@ export const useShopStore = defineStore('shop', () => {
   function setTheme(t: Theme) { theme.value = t; save('theme', t); }
   function toggleTheme() { setTheme(theme.value === 'light' ? 'dark' : 'light'); }
 
-  function toggleFav(id: string) {
-    const i = favorites.value.indexOf(id);
-    if (i >= 0) favorites.value.splice(i, 1); else favorites.value.push(id);
-    save('favorites', favorites.value);
+  /** 載入目前登入使用者的收藏清單；未登入則清空。 */
+  async function loadFavorites() {
+    const auth = useAuthStore();
+    if (!auth.isAuthenticated) {
+      favorites.value = [];
+      return;
+    }
+    try {
+      const res = await catalogApi.catalogFavorites.listMine();
+      favorites.value = res.data.catalogIds ?? [];
+    } catch {
+      // 取不到時保留現狀，不致誤清
+    }
+  }
+
+  /**
+   * 收藏 / 取消收藏商品。
+   * 未登入 → 導向登入頁，登入成功後由 OIDC 導回目前商品頁（不自動收藏）。
+   * 已登入 → 樂觀更新並呼叫 CatalogService 新增 / 移除收藏；失敗則還原。
+   */
+  async function toggleFav(id: string) {
+    const auth = useAuthStore();
+    if (!auth.isAuthenticated) {
+      auth.login();   // 預設 state 為目前網址，登入後導回本商品頁
+      return;
+    }
+
+    const wasFav = favorites.value.includes(id);
+    // 樂觀更新（愛心立即反映）
+    if (wasFav) favorites.value = favorites.value.filter((f) => f !== id);
+    else favorites.value = [...favorites.value, id];
+
+    try {
+      if (wasFav) await catalogApi.catalogFavorites.remove(id);
+      else await catalogApi.catalogFavorites.add(id);
+    } catch {
+      // 還原樂觀更新
+      if (wasFav) favorites.value = [...favorites.value, id];
+      else favorites.value = favorites.value.filter((f) => f !== id);
+    }
   }
 
   function addToCart(id: string, qty = 1) {
@@ -238,6 +276,6 @@ export const useShopStore = defineStore('shop', () => {
     // actions
     setTheme, toggleTheme, toggleFav, addToCart, setQty, removeFromCart, clearCart,
     setCategory, toggleTag, clearFilters, startCheckout, completeOrder, followStore,
-    loadCatalog, loadProduct,
+    loadCatalog, loadProduct, loadFavorites,
   };
 });

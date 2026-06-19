@@ -6,6 +6,7 @@ using CatalogService.Services.Background;
 using CatalogService.Services.Catalogs;
 using CatalogService.Services.CatalogVersions;
 using CatalogService.Services.Categories;
+using CatalogService.Services.Favorites;
 using CatalogService.Services.Tags;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,7 @@ builder.Services.AddScoped<ICatalogManager, CatalogManager>();
 builder.Services.AddScoped<ICatalogVersionService, CatalogVersionService>();
 builder.Services.AddScoped<ICatalogCategoryService, CatalogCategoryService>();
 builder.Services.AddScoped<ICatalogTagService, CatalogTagService>();
+builder.Services.AddScoped<ICatalogFavoriteService, CatalogFavoriteService>();
 
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
