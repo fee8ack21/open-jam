@@ -45,7 +45,7 @@
 
 ## 物件儲存與 CDN
 
-- **GCS**（雲端）+ 地端 **MinIO**（見 [[Storage]]）。
+- **GCS**（雲端）+ 地端**本地檔案系統**（見 [[Storage]]）。
 - **GCP Cloud CDN**：與 GCS 原生整合，原生支援 **signed URL / signed cookie**（對應 [[Storage]] 付費內容與 HLS 串流授權）。
 
 ## 平台服務元件
@@ -76,7 +76,7 @@
 
 ## 環境
 
-- **地端開發**：docker-compose 起本機依賴（MinIO、SMTP catcher（Mailpit，代替 SendGrid）、RabbitMQ、Redis、PostgreSQL 等，見 [[Develop]]）。
+- **地端開發**：docker-compose 起本機依賴（SMTP catcher（Mailpit，代替 SendGrid）、RabbitMQ、Redis、PostgreSQL 等，見 [[Develop]]）；檔案儲存改用本地檔案系統，無需額外物件儲存容器。
 - **正式（prod）**：GKE。
 - （MVP 不設獨立 staging，先以地端 + prod 兩套。）
 

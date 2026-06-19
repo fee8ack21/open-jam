@@ -1,6 +1,6 @@
 # 檔案儲存服務 StorageService
 
-StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上傳、儲存、轉碼、掃毒、預覽與授權下載**。上傳與下載皆採**簽章直傳 / 直取**，避免功能 API 轉傳大檔吃緊記憶體；儲存後端以 `IStorageProvider` 抽象封裝，地端用 MinIO、雲端用 Google Cloud Storage。
+StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上傳、儲存、轉碼、掃毒、預覽與授權下載**。上傳與下載皆採**簽章直傳 / 直取**，避免功能 API 轉傳大檔吃緊記憶體；儲存後端以 `IStorageProvider` 抽象封裝，地端用本地檔案系統，雲端用 Google Cloud Storage。
 
 ## 服務職責
 
@@ -12,7 +12,7 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 ## 儲存後端（IStorageProvider 抽象）
 
 - 以 `IStorageProvider` 介面封裝儲存操作，實作可替換。
-- **地端開發**：MinIO。
+- **地端開發**：本地檔案系統（`LocalStorageProvider`，blob URL 以 HMAC 簽章，實體檔案存於服務的 `Files/` 目錄）。
 - **雲端正式**：Google Cloud Storage（GCS）。
 - 支援格式：影片、圖片、PDF。
 
@@ -26,7 +26,7 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 
 ## 上傳完成與異步處理 Pipeline
 
-- **上傳完成確認**：採 **Storage 事件通知**（GCS Pub/Sub notification / MinIO bucket notification），透過 **RabbitMQ + MassTransit** 通知功能 API，不依賴客戶端回報。
+- **上傳完成確認**：採 **Storage 事件通知**（雲端 GCS Pub/Sub notification；地端由 `BlobController` 接收上傳後直接觸發 `StorageEventService`），透過 **RabbitMQ + MassTransit** 通知功能 API，不依賴客戶端回報。
 - 收到事件後依序進行異步處理，全部完成才將檔案標記為 **ready（可售）**：
 
 ### 掃毒（Malware Scan）

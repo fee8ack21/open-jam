@@ -57,8 +57,8 @@ secrets:
   sendgrid:
     apiKey: ""
   storage:
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    # 本地檔案後端的 HMAC blob 簽章密鑰（僅 storage.provider=Local 時使用）
+    localSigningKey: "changeme-local-storage-signing-key"
 
 # ── Infrastructure ────────────────────────────────────────────────────────────
 
@@ -159,16 +159,19 @@ email:
   maxRetryAttempts: 5
   retryIntervalMinutes: 2
 
-# 檔案儲存後端：地端 MinIO（S3 相容）或雲端 GCS，依 Provider 切換
+# 檔案儲存後端：雲端 GCS（預設）或本地檔案系統，依 Provider 切換
 storage:
-  provider: Minio
-  endpoint: "minio:9000"
-  useSsl: false
+  provider: Gcs
   bucket: open-jam
   softDeleteRetentionDays: 30
   gcs:
     # 留空走 ADC / GKE Workload Identity
     credentialsPath: ""
+  local:
+    # 檔案存放根目錄（相對工作目錄）；正式建議掛載 PersistentVolume
+    rootPath: Files
+    # 本服務對外可達 base URL，用於組合 blob 上傳 / 下載 URL（Provider=Local 時必填）
+    baseUrl: ""
 
 # ── Application Services ──────────────────────────────────────────────────────
 

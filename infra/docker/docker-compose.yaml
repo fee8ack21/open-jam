@@ -102,25 +102,6 @@ services:
       - "1025:1025"   # SMTP
       - "8025:8025"   # web UI
 
-  minio:
-    container_name: ${PROJECT_NAME}-minio
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    restart: unless-stopped
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
-    ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # web console
-    volumes:
-      - ./volumes/minio/data:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   # ── Application Services ────────────────────────────────────────────────────
 
   auth:
@@ -211,22 +192,22 @@ services:
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
-      Storage__Endpoint: ${MINIO_HOST}:9000
-      Storage__AccessKey: ${MINIO_ACCESS_KEY}
-      Storage__SecretKey: ${MINIO_SECRET_KEY}
-      Storage__UseSsl: "false"
-      Storage__Bucket: ${MINIO_BUCKET}
-      Storage__PublicBaseUrl: ${MINIO_PUBLIC_URL}
+      Storage__Provider: ${STORAGE_PROVIDER}
+      Storage__Bucket: ${STORAGE_BUCKET}
+      Storage__PublicBaseUrl: ${STORAGE_PUBLIC_BASE_URL}
+      Storage__Local__RootPath: ${STORAGE_LOCAL_ROOT_PATH}
+      Storage__Local__BaseUrl: ${STORAGE_LOCAL_BASE_URL}
+      Storage__Local__SigningKey: ${STORAGE_LOCAL_SIGNING_KEY}
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
       - "5171:8080"
+    volumes:
+      - ./volumes/storage/files:/app/${STORAGE_LOCAL_ROOT_PATH}
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
-        condition: service_healthy
-      minio:
         condition: service_healthy
       hydra:
         condition: service_started
@@ -244,7 +225,7 @@ services:
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
-      Storage__PublicBaseUrl: ${MINIO_PUBLIC_URL}
+      Storage__PublicBaseUrl: ${STORAGE_PUBLIC_BASE_URL}
       Services__StorageService__BaseUrl: http://${PROJECT_NAME}-storage-service:8080
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}

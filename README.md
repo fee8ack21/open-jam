@@ -46,7 +46,7 @@ infra/docker/       # Docker Compose 與本地基礎設施設定
 
 ## Docker Compose
 
-Docker Compose 設定位於 `infra/docker/docker-compose.yaml`，包含 PostgreSQL、Redis、RabbitMQ、Hydra、Mailpit、MinIO，以及目前已納入 compose 的應用服務。
+Docker Compose 設定位於 `infra/docker/docker-compose.yaml`，包含 PostgreSQL、Redis、RabbitMQ、Hydra、Mailpit，以及目前已納入 compose 的應用服務。StorageService 地端採本地檔案系統儲存（無需額外物件儲存容器）。
 
 ```bash
 cd infra/docker
@@ -72,7 +72,6 @@ docker compose --profile seed run --rm bootstrap
 | rabbitmq | 5672 / 15672 | RabbitMQ / Management UI |
 | hydra | 4444 / 4445 | Ory Hydra Public / Admin |
 | mailpit | 1025 / 8025 | SMTP / Web UI |
-| minio | 9000 / 9001 | S3 API / Console |
 
 > `CatalogService` 目前存在於專案中，但尚未加入 `infra/docker/docker-compose.yaml`。
 

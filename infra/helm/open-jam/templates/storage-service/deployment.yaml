@@ -59,28 +59,26 @@ spec:
               value: {{ include "open-jam.hydraMetadataAddress" . | quote }}
             - name: Storage__Provider
               value: {{ .Values.storage.provider | quote }}
-            - name: Storage__Endpoint
-              value: {{ .Values.storage.endpoint | quote }}
-            - name: Storage__AccessKey
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "open-jam.secretName" . }}
-                  key: storage-access-key
-            - name: Storage__SecretKey
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "open-jam.secretName" . }}
-                  key: storage-secret-key
-            - name: Storage__UseSsl
-              value: {{ .Values.storage.useSsl | quote }}
             - name: Storage__Bucket
               value: {{ .Values.storage.bucket | quote }}
             - name: Storage__PublicBaseUrl
               value: {{ .Values.config.storagePublicBaseUrl | quote }}
             - name: Storage__SoftDeleteRetentionDays
               value: {{ .Values.storage.softDeleteRetentionDays | quote }}
+            {{- if eq .Values.storage.provider "Gcs" }}
             - name: Storage__Gcs__CredentialsPath
               value: {{ .Values.storage.gcs.credentialsPath | quote }}
+            {{- else }}
+            - name: Storage__Local__RootPath
+              value: {{ .Values.storage.local.rootPath | quote }}
+            - name: Storage__Local__BaseUrl
+              value: {{ .Values.storage.local.baseUrl | quote }}
+            - name: Storage__Local__SigningKey
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: storage-local-signing-key
+            {{- end }}
           {{- with .Values.storageService.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

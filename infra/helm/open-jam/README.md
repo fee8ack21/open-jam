@@ -205,13 +205,13 @@ infra/helm/open-jam/
 
 | 參數 | 預設值 | 說明 |
 |------|--------|------|
-| `storage.provider` | `Minio` | 儲存後端，`Minio`（地端 S3 相容）或 `Gcs`（雲端） |
-| `storage.endpoint` | `minio:9000` | MinIO endpoint（`Provider: Minio` 時生效） |
-| `storage.useSsl` | `false` | MinIO 連線是否使用 TLS |
+| `storage.provider` | `Gcs` | 儲存後端，`Gcs`（雲端，預設）或 `Local`（本地檔案系統） |
 | `storage.bucket` | `open-jam` | 儲存桶名稱 |
 | `storage.softDeleteRetentionDays` | `30` | 軟刪除檔案保留天數，超過後由 `OrphanCleanupService` 硬刪除 |
-| `storage.gcs.credentialsPath` | `""` | GCS 服務帳戶金鑰路徑；留空走 ADC / GKE Workload Identity |
-| `secrets.storage.accessKey` / `secretKey` | `minioadmin` | MinIO Access/Secret Key（`Provider: Gcs` 時不使用） |
+| `storage.gcs.credentialsPath` | `""` | GCS 服務帳戶金鑰路徑；留空走 ADC / GKE Workload Identity（`Provider: Gcs` 時生效） |
+| `storage.local.rootPath` | `Files` | 本地檔案存放根目錄（`Provider: Local` 時生效，建議掛載 PV） |
+| `storage.local.baseUrl` | `""` | 本服務對外 base URL，用於組合 blob URL（`Provider: Local` 時必填） |
+| `secrets.storage.localSigningKey` | `changeme-…` | 本地 blob HMAC 簽章密鑰（`Provider: Local` 時使用） |
 
 ### 應用服務（auth / logService / emailService / storageService / storeService / creatorWeb / marketWeb / workspaceWeb / docs）
 

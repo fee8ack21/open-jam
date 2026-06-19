@@ -143,11 +143,11 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 
 ### StorageService 擴充
 
-1. `StorageOptions` 新增 `PublicBaseUrl`（dev: `http://localhost:9000/open-jam`，正式環境為 CDN/GCS public URL）。
+1. `StorageOptions` 新增 `PublicBaseUrl`（dev: `http://localhost:5171/v1/files/blob`，正式環境為 CDN/GCS public URL）。
 2. `RequestUploadUrlRequest` 新增 `bool IsPublic`（預設 false）。
 3. `IsPublic=true` 時 `StoredFile.StorageKey` 改用 `public/{creatorId}/{fileId}/{originalName}`（取代 `creators/...`），其餘規則不變。
 4. `RequestUploadUrlResponse` 新增 `string StorageKey` 與 `string? PublicUrl`（`IsPublic=true` 時填值：`{PublicBaseUrl}/{StorageKey}`）。
-5. StorageService 啟動時對 `{bucket}/public/*` 設定 MinIO anonymous read bucket policy（idempotent）。
+5. `public/*` 前綴的物件供匿名讀取（地端由 `BlobController` 對 `public/` 前綴免簽章放行；雲端 GCS 對 `{bucket}/public/*` 設定 public read）。
 
 ### 上傳流程（以 Avatar 為例）
 
@@ -156,11 +156,11 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 3. StoreService 呼叫 StorageService `POST /v1/files/upload-url`：`CreatorId=ownerId, ProductId=null, FileType=Image, IsPreview=false, IsPublic=true, OriginalName, ContentType, SizeBytes`。
 4. StorageService 回傳 `FileId, UploadUrl, StorageKey, PublicUrl, ExpiresAt`。
 5. StoreService 寫入 `Assets`：`Id=FileId, CreatedBy=ownerId, StorageKey, FileName, ContentType, FileSize=SizeBytes, CreatedAt=now`，並設 `Stores.AvatarAssetId = Asset.Id`。
-6. 回傳 `{AssetId, UploadUrl, PublicUrl, ExpiresAt}` 給前端，前端以 `UploadUrl` 直接 PUT 至 MinIO。
+6. 回傳 `{AssetId, UploadUrl, PublicUrl, ExpiresAt}` 給前端，前端以 `UploadUrl` 直接 PUT 至儲存後端（地端為 StorageService blob 端點，雲端為 GCS）。
 
 `GET /v1/stores/{idOrSlug}` 回傳的 `AvatarUrl` / `BannerUrl` = `{PublicBaseUrl}/{Asset.StorageKey}`（StoreService 自行組字串，需設定 `Storage:PublicBaseUrl`，與 StorageService 同值）。
 
-舊 Avatar/Banner 的 Asset 記錄與 MinIO 物件**不主動清除**（MVP 不做孤兒清理，留待未來）。
+舊 Avatar/Banner 的 Asset 記錄與儲存後端物件**不主動清除**（MVP 不做孤兒清理，留待未來）。
 
 ## 平台基礎設施：JWT 驗證與 Role
 

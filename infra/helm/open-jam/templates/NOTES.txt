@@ -26,5 +26,5 @@ Open Jam 已部署至 namespace: {{ .Release.Namespace }}
   - Secrets 中的密碼皆為預設值，正式環境請以 --set 或 ExternalSecret 覆蓋。
   - Bootstrap Job 僅在首次安裝時執行（helm.sh/hook: post-install）。
   - Production 請設 mailpit.enabled=false 並配置外部 SMTP。
-  - Production 請設 storage.provider=Gcs 並改用 GCS（地端預設 Minio）。
+  - 檔案儲存預設 storage.provider=Gcs（雲端）；如需本地檔案系統可設 storage.provider=Local。
   - Ingress / TLS 由獨立的 infra/helm/infra chart 提供，請另行部署（見 README）。
