@@ -97,7 +97,7 @@ onMounted(store.load)
     <div class="card-pad review-toolbar">
       <div class="filter-bar">
         <div class="fb-group">
-          <div class="fb-field" style="flex:0 1 360px;">
+          <div class="fb-field" style="flex:1 1 auto;">
             <label class="fb-label">關鍵字</label>
             <n-input
               v-model:value="keyword"
