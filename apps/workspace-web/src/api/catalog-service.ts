@@ -10,33 +10,648 @@
  * ---------------------------------------------------------------
  */
 
-export interface CatalogCategoryDto {
-  /** @format uuid */
+/** 商品狀態。 */
+export enum CatalogStatus {
+  Draft = "Draft",
+  Published = "Published",
+  Archived = "Archived",
+  Suspended = "Suspended",
+}
+
+/** 商品展示型資產類型。 */
+export enum CatalogAssetType {
+  Thumbnail = "Thumbnail",
+  Screenshot = "Screenshot",
+  PreviewAudio = "PreviewAudio",
+  PreviewVideo = "PreviewVideo",
+}
+
+/** 展示型資產回應。 */
+export interface CatalogAssetDto {
+  /**
+   * 資產唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
   id?: string;
-  /** @format uuid */
+  /** 商品展示型資產類型。 */
+  type?: CatalogAssetType;
+  /**
+   * 原始檔名。
+   * @example "screenshot-1.png"
+   */
+  fileName?: string | null;
+  /**
+   * MIME 類型。
+   * @example "image/png"
+   */
+  contentType?: string | null;
+  /**
+   * 檔案大小（bytes）。
+   * @format int64
+   * @example 204800
+   */
+  fileSize?: number;
+  /**
+   * 同類型內顯示排序。
+   * @format int32
+   * @example 0
+   */
+  sortOrder?: number;
+  /**
+   * 公開讀取 URL。
+   * @example "http://localhost:5171/v1/files/blob/public/.../screenshot-1.png"
+   */
+  url?: string | null;
+  /**
+   * 建立時間。
+   * @format date-time
+   */
+  createdAt?: string;
+}
+
+/** 展示型資產上傳簽章 URL 回應。 */
+export interface CatalogAssetUploadUrlResponse {
+  /**
+   * 已建立的 Asset ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  assetId?: string;
+  /**
+   * 前端應使用此 URL 以 HTTP PUT 直傳檔案。
+   * @example "http://localhost:5171/v1/files/blob/public/.../screenshot-1.png?expires=1735689600&sig=..."
+   */
+  uploadUrl?: string | null;
+  /**
+   * 上傳完成後的公開讀取網址。
+   * @example "http://localhost:5171/v1/files/blob/public/.../screenshot-1.png"
+   */
+  publicUrl?: string | null;
+  /**
+   * 簽章 URL 過期時間（UTC）。
+   * @format date-time
+   */
+  expiresAt?: string;
+}
+
+/** 商品分類回應。 */
+export interface CatalogCategoryDto {
+  /**
+   * 分類唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 上層分類 ID；null 表示頂層分類。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
   parentId?: string | null;
+  /**
+   * 分類名稱。
+   * @example "音樂與音效"
+   */
   name?: string | null;
+  /**
+   * 分類代稱（全域唯一）。
+   * @example "audio"
+   */
   slug?: string | null;
-  /** @format int32 */
+  /**
+   * 同層顯示排序。
+   * @format int32
+   * @example 0
+   */
   sortOrder?: number;
 }
 
+/** 商品完整資訊回應（商品詳情頁）。 */
+export interface CatalogDto {
+  /**
+   * 商品唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 所屬商店 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  storeId?: string;
+  /**
+   * 所屬分類 ID；null 表示未分類。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  categoryId?: string | null;
+  /**
+   * 商品名稱。
+   * @example "像素風格音效包"
+   */
+  name?: string | null;
+  /**
+   * 商品代稱（同商店內唯一）。
+   * @example "pixel-sfx-pack"
+   */
+  slug?: string | null;
+  /**
+   * 商品描述。
+   * @example "200 個復古像素遊戲音效，WAV 格式。"
+   */
+  description?: string | null;
+  /**
+   * 一句話簡介（市集卡片短標語）；null 表示未設定。
+   * @example "復古像素遊戲必備的 8-bit 音效合輯。"
+   */
+  summary?: string | null;
+  /**
+   * 封面色相（0–359），無縮圖時生成漸層佔位封面。
+   * @format int32
+   * @example 256
+   */
+  coverHue?: number;
+  /** 商品狀態。 */
+  status?: CatalogStatus;
+  /**
+   * 售價。
+   * @format double
+   * @example 150
+   */
+  price?: number;
+  /**
+   * 幣別（ISO 4217）。
+   * @example "TWD"
+   */
+  currency?: string | null;
+  /**
+   * 縮圖公開 URL；null 表示尚未設定。
+   * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
+   */
+  thumbnailUrl?: string | null;
+  /** 商品版本回應。 */
+  currentVersion?: CatalogVersionDto;
+  /** 展示型資產（縮圖 / 截圖 / 預覽影音）清單。 */
+  assets?: CatalogAssetDto[] | null;
+  /**
+   * 標籤名稱清單。
+   * @example ["audio","retro","8bit"]
+   */
+  tags?: string[] | null;
+  /**
+   * 首次上架時間；null 表示尚未上架。
+   * @format date-time
+   */
+  publishedAt?: string | null;
+  /**
+   * 建立時間。
+   * @format date-time
+   */
+  createdAt?: string;
+  /**
+   * 最後更新時間。
+   * @format date-time
+   */
+  updatedAt?: string | null;
+}
+
+/** 商品列表項目（精簡欄位）。 */
+export interface CatalogSummaryDto {
+  /**
+   * 商品唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 所屬商店 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  storeId?: string;
+  /**
+   * 商品名稱。
+   * @example "像素風格音效包"
+   */
+  name?: string | null;
+  /**
+   * 商品代稱。
+   * @example "pixel-sfx-pack"
+   */
+  slug?: string | null;
+  /**
+   * 一句話簡介（市集卡片短標語）；null 表示未設定。
+   * @example "復古像素遊戲必備的 8-bit 音效合輯。"
+   */
+  summary?: string | null;
+  /**
+   * 封面色相（0–359），無縮圖時生成漸層佔位封面。
+   * @format int32
+   * @example 256
+   */
+  coverHue?: number;
+  /**
+   * 售價。
+   * @format double
+   * @example 150
+   */
+  price?: number;
+  /**
+   * 幣別（ISO 4217）。
+   * @example "TWD"
+   */
+  currency?: string | null;
+  /** 商品狀態。 */
+  status?: CatalogStatus;
+  /**
+   * 縮圖公開 URL；null 表示尚未設定。
+   * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
+   */
+  thumbnailUrl?: string | null;
+  /**
+   * 首次上架時間；null 表示尚未上架。
+   * @format date-time
+   */
+  publishedAt?: string | null;
+}
+
+/** 商品標籤回應。 */
+export interface CatalogTagDto {
+  /**
+   * 標籤唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 標籤名稱（小寫）。
+   * @example "retro"
+   */
+  name?: string | null;
+  /**
+   * 被商品引用的次數。
+   * @format int32
+   * @example 42
+   */
+  usageCount?: number;
+}
+
+/** 商品版本可下載檔案回應。 */
+export interface CatalogVersionAssetDto {
+  /**
+   * 資產唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 原始檔名。
+   * @example "pixel-sfx-pack-v1.zip"
+   */
+  fileName?: string | null;
+  /**
+   * MIME 類型。
+   * @example "application/pdf"
+   */
+  contentType?: string | null;
+  /**
+   * 檔案大小（bytes）。
+   * @format int64
+   * @example 10485760
+   */
+  fileSize?: number;
+  /**
+   * 同版本內顯示排序。
+   * @format int32
+   * @example 0
+   */
+  sortOrder?: number;
+  /**
+   * 建立時間。
+   * @format date-time
+   */
+  createdAt?: string;
+}
+
+/** 商品版本回應。 */
+export interface CatalogVersionDto {
+  /**
+   * 版本唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 所屬商品 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  catalogId?: string;
+  /**
+   * 版本字串。
+   * @example "1.0.0"
+   */
+  version?: string | null;
+  /**
+   * 版本說明 / 更新紀錄。
+   * @example "首次發行。"
+   */
+  releaseNote?: string | null;
+  /** 本版本的可下載檔案清單。 */
+  assets?: CatalogVersionAssetDto[] | null;
+  /**
+   * 建立時間。
+   * @format date-time
+   */
+  createdAt?: string;
+}
+
+/** 建立商品分類請求（平台維護）。 */
 export interface CreateCatalogCategoryRequest {
-  /** @format uuid */
+  /**
+   * 上層分類 ID；null 表示頂層分類。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
   parentId?: string | null;
+  /**
+   * 分類名稱（1–100 字）。
+   * @example "音樂與音效"
+   */
   name?: string | null;
+  /**
+   * 分類代稱（全域唯一，3–100 字小寫英數字與連字號）。
+   * @example "audio"
+   */
   slug?: string | null;
-  /** @format int32 */
+  /**
+   * 同層顯示排序。
+   * @format int32
+   * @example 0
+   */
   sortOrder?: number;
 }
 
-export interface UpdateCatalogCategoryRequest {
-  /** @format uuid */
-  parentId?: string | null;
+/** 建立商品請求。 */
+export interface CreateCatalogRequest {
+  /**
+   * 所屬商店 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  storeId?: string;
+  /**
+   * 商品名稱（1–200 字）。
+   * @example "像素風格音效包"
+   */
   name?: string | null;
+  /**
+   * 商品代稱（同商店內唯一，3–100 字小寫英數字與連字號）。
+   * @example "pixel-sfx-pack"
+   */
   slug?: string | null;
-  /** @format int32 */
+  /**
+   * 商品描述。
+   * @example "200 個復古像素遊戲音效，WAV 格式。"
+   */
+  description?: string | null;
+  /**
+   * 一句話簡介（市集卡片短標語，至多 200 字）；null 表示未設定。
+   * @example "復古像素遊戲必備的 8-bit 音效合輯。"
+   */
+  summary?: string | null;
+  /**
+   * 封面色相（0–359）；省略時預設 256。
+   * @format int32
+   * @example 256
+   */
+  coverHue?: number | null;
+  /**
+   * 所屬分類 ID；null 表示未分類。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  categoryId?: string | null;
+  /**
+   * 售價（>= 0）。
+   * @format double
+   * @example 150
+   */
+  price?: number;
+  /**
+   * 幣別（ISO 4217）；省略時預設 TWD。
+   * @example "TWD"
+   */
+  currency?: string | null;
+  /**
+   * 初始標籤名稱清單（強制小寫）。
+   * @example ["audio","retro"]
+   */
+  tags?: string[] | null;
+}
+
+/** 建立商品版本請求。 */
+export interface CreateCatalogVersionRequest {
+  /**
+   * 版本字串（同商品內唯一，1–50 字）。
+   * @example "1.0.0"
+   */
+  version?: string | null;
+  /**
+   * 版本說明 / 更新紀錄。
+   * @example "首次發行。"
+   */
+  releaseNote?: string | null;
+}
+
+/** 商品標籤分頁回應。 */
+export interface ListCatalogTagsResponse {
+  /**
+   * 符合條件的總筆數（未分頁）。
+   * @format int32
+   * @example 128
+   */
+  totalCount?: number;
+  /** 本頁標籤清單。 */
+  items?: CatalogTagDto[] | null;
+}
+
+/** 商品列表分頁回應。 */
+export interface ListCatalogsResponse {
+  /**
+   * 符合條件的總筆數（未分頁）。
+   * @format int32
+   * @example 42
+   */
+  totalCount?: number;
+  /** 本頁商品清單。 */
+  items?: CatalogSummaryDto[] | null;
+}
+
+/** 申請展示型資產上傳簽章 URL 請求。 */
+export interface RequestCatalogAssetUploadUrlRequest {
+  /** 商品展示型資產類型。 */
+  type?: CatalogAssetType;
+  /**
+   * 原始檔名（含副檔名）。
+   * @example "screenshot-1.png"
+   */
+  fileName?: string | null;
+  /**
+   * MIME 類型。
+   * @example "image/png"
+   */
+  contentType?: string | null;
+  /**
+   * 檔案大小（bytes）。
+   * @format int64
+   * @example 204800
+   */
+  sizeBytes?: number;
+}
+
+/** 申請版本可下載檔案上傳簽章 URL 請求。 */
+export interface RequestVersionAssetUploadUrlRequest {
+  /**
+   * 原始檔名（含副檔名）。
+   * @example "pixel-sfx-pack-v1.pdf"
+   */
+  fileName?: string | null;
+  /**
+   * MIME 類型。
+   * @example "application/pdf"
+   */
+  contentType?: string | null;
+  /**
+   * 檔案大小（bytes）。
+   * @format int64
+   * @example 10485760
+   */
+  sizeBytes?: number;
+}
+
+/** 設定商品分類請求。 */
+export interface SetCatalogCategoryRequest {
+  /**
+   * 分類 ID；null 表示移除分類。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  categoryId?: string | null;
+}
+
+/** 設定商品標籤請求（全量覆蓋）。 */
+export interface SetCatalogTagsRequest {
+  /**
+   * 標籤名稱清單（強制小寫，去重）。空陣列表示清除所有標籤。
+   * @example ["audio","retro","8bit"]
+   */
+  tags?: string[] | null;
+}
+
+/** StorageService `GET /v1/files/{id}/download-url` 回應。 */
+export interface StorageDownloadUrlResult {
+  /**
+   * 檔案 ID。
+   * @format uuid
+   */
+  fileId?: string;
+  /** 短效下載 URL。 */
+  downloadUrl?: string | null;
+  /**
+   * 簽章 URL 過期時間（UTC）。
+   * @format date-time
+   */
+  expiresAt?: string;
+}
+
+/** 更新商品分類請求（部分欄位，null 表示不變更）。 */
+export interface UpdateCatalogCategoryRequest {
+  /**
+   * 上層分類 ID；未提供（欄位缺省）表示不變更。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  parentId?: string | null;
+  /**
+   * 分類名稱；null 表示不變更。
+   * @example "音樂與音效"
+   */
+  name?: string | null;
+  /**
+   * 分類代稱；null 表示不變更。
+   * @example "audio"
+   */
+  slug?: string | null;
+  /**
+   * 同層顯示排序；null 表示不變更。
+   * @format int32
+   * @example 1
+   */
   sortOrder?: number | null;
+}
+
+/** 更新商品請求（部分欄位，null 表示不變更）。 */
+export interface UpdateCatalogRequest {
+  /**
+   * 商品名稱；null 表示不變更。
+   * @example "像素風格音效包 Vol.2"
+   */
+  name?: string | null;
+  /**
+   * 商品代稱；null 表示不變更。
+   * @example "pixel-sfx-pack-2"
+   */
+  slug?: string | null;
+  /**
+   * 商品描述；null 表示不變更，空字串表示清空。
+   * @example "新增 50 個音效。"
+   */
+  description?: string | null;
+  /**
+   * 一句話簡介；null 表示不變更，空字串表示清空。
+   * @example "全新擴充版，收錄 250 個音效。"
+   */
+  summary?: string | null;
+  /**
+   * 封面色相（0–359）；null 表示不變更。
+   * @format int32
+   * @example 320
+   */
+  coverHue?: number | null;
+  /**
+   * 售價；null 表示不變更。
+   * @format double
+   * @example 180
+   */
+  price?: number | null;
+  /**
+   * 幣別（ISO 4217）；null 表示不變更。
+   * @example "TWD"
+   */
+  currency?: string | null;
+}
+
+/** 版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。 */
+export interface VersionAssetUploadUrlResponse {
+  /**
+   * 已建立的 Asset ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  assetId?: string;
+  /**
+   * 前端應使用此 URL 以 HTTP PUT 直傳檔案。
+   * @example "http://localhost:5171/v1/files/blob/creators/.../pixel-sfx-pack-v1.pdf?expires=1735689600&sig=..."
+   */
+  uploadUrl?: string | null;
+  /**
+   * 簽章 URL 過期時間（UTC）。
+   * @format date-time
+   */
+  expiresAt?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -329,14 +944,12 @@ export class Api<SecurityDataType extends unknown> {
      * @name Create
      * @summary 建立分類。僅 Admin 可操作。
      * @request POST:/v1/catalog-categories
-     * @secure
      */
     create: (data: CreateCatalogCategoryRequest, params: RequestParams = {}) =>
       this.http.request<CatalogCategoryDto, any>({
         path: `/v1/catalog-categories`,
         method: "POST",
         body: data,
-        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -365,7 +978,6 @@ export class Api<SecurityDataType extends unknown> {
      * @name Update
      * @summary 更新分類。僅 Admin 可操作。
      * @request PATCH:/v1/catalog-categories/{id}
-     * @secure
      */
     update: (
       id: string,
@@ -376,7 +988,6 @@ export class Api<SecurityDataType extends unknown> {
         path: `/v1/catalog-categories/${id}`,
         method: "PATCH",
         body: data,
-        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -389,13 +1000,532 @@ export class Api<SecurityDataType extends unknown> {
      * @name Delete
      * @summary 刪除分類（不可有子分類或被商品引用）。僅 Admin 可操作。
      * @request DELETE:/v1/catalog-categories/{id}
-     * @secure
      */
     delete: (id: string, params: RequestParams = {}) =>
       this.http.request<void, any>({
         path: `/v1/catalog-categories/${id}`,
         method: "DELETE",
-        secure: true,
+        ...params,
+      }),
+  };
+  catalogs = {
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name List
+     * @summary 瀏覽已上架商品列表（公開）。
+     * @request GET:/v1/catalogs
+     */
+    list: (
+      query?: {
+        /**
+         * 限定商店 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        StoreId?: string;
+        /**
+         * 限定分類 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        CategoryId?: string;
+        /**
+         * 限定標籤名稱；null 表示不限。
+         * @example "retro"
+         */
+        Tag?: string;
+        /**
+         * 名稱關鍵字搜尋；null 表示不限。
+         * @example "音效"
+         */
+        Search?: string;
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListCatalogsResponse, any>({
+        path: `/v1/catalogs`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Create
+     * @summary 建立商品（草稿）。僅商店 Owner 可操作。
+     * @request POST:/v1/catalogs
+     */
+    create: (data: CreateCatalogRequest, params: RequestParams = {}) =>
+      this.http.request<CatalogDto, any>({
+        path: `/v1/catalogs`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name ListMine
+     * @summary 查詢登入使用者（商店 Owner）的商品列表，含未上架商品。
+     * @request GET:/v1/catalogs/mine
+     */
+    listMine: (
+      query?: {
+        /**
+         * 限定商店 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        StoreId?: string;
+        /**
+         * 限定分類 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        CategoryId?: string;
+        /**
+         * 限定標籤名稱；null 表示不限。
+         * @example "retro"
+         */
+        Tag?: string;
+        /**
+         * 名稱關鍵字搜尋；null 表示不限。
+         * @example "音效"
+         */
+        Search?: string;
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListCatalogsResponse, any>({
+        path: `/v1/catalogs/mine`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name ListByStore
+     * @summary 查詢指定商店的全部商品（含草稿 / 已下架 / 已停權）。僅 Admin 可操作。
+     * @request GET:/v1/catalogs/by-store/{storeId}
+     */
+    listByStore: (
+      storeId: string,
+      query?: {
+        /**
+         * 限定商店 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        StoreId?: string;
+        /**
+         * 限定分類 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        CategoryId?: string;
+        /**
+         * 限定標籤名稱；null 表示不限。
+         * @example "retro"
+         */
+        Tag?: string;
+        /**
+         * 名稱關鍵字搜尋；null 表示不限。
+         * @example "音效"
+         */
+        Search?: string;
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListCatalogsResponse, any>({
+        path: `/v1/catalogs/by-store/${storeId}`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Get
+     * @summary 查詢商品完整資訊。未上架商品僅 Owner 可見。
+     * @request GET:/v1/catalogs/{id}
+     */
+    get: (id: string, params: RequestParams = {}) =>
+      this.http.request<CatalogDto, any>({
+        path: `/v1/catalogs/${id}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Update
+     * @summary 更新商品基本資料。僅 Owner 可操作。
+     * @request PATCH:/v1/catalogs/{id}
+     */
+    update: (
+      id: string,
+      data: UpdateCatalogRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogDto, any>({
+        path: `/v1/catalogs/${id}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name SetCategory
+     * @summary 設定 / 移除商品分類。僅 Owner 可操作。
+     * @request PUT:/v1/catalogs/{id}/category
+     */
+    setCategory: (
+      id: string,
+      data: SetCatalogCategoryRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogDto, any>({
+        path: `/v1/catalogs/${id}/category`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name SetTags
+     * @summary 全量覆蓋商品標籤。僅 Owner 可操作。
+     * @request PUT:/v1/catalogs/{id}/tags
+     */
+    setTags: (
+      id: string,
+      data: SetCatalogTagsRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<string[], any>({
+        path: `/v1/catalogs/${id}/tags`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Publish
+     * @summary 上架商品（Draft/Archived → Published）。需已有目前版本。僅 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/publish
+     */
+    publish: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/publish`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Archive
+     * @summary 下架封存商品（Published → Archived）。僅 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/archive
+     */
+    archive: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/archive`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Suspend
+     * @summary 平台停權商品（任意狀態 → Suspended）。僅 Admin 可操作。
+     * @request POST:/v1/catalogs/{id}/suspend
+     */
+    suspend: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/suspend`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Unsuspend
+     * @summary 解除商品停權（Suspended → Archived）。僅 Admin 可操作。
+     * @request POST:/v1/catalogs/{id}/unsuspend
+     */
+    unsuspend: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/unsuspend`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name RequestAssetUploadUrl
+     * @summary 申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/assets/upload-url
+     */
+    requestAssetUploadUrl: (
+      id: string,
+      data: RequestCatalogAssetUploadUrlRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogAssetUploadUrlResponse, any>({
+        path: `/v1/catalogs/${id}/assets/upload-url`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name DeleteAsset
+     * @summary 刪除展示型資產。僅 Owner 可操作。
+     * @request DELETE:/v1/catalogs/{id}/assets/{assetId}
+     */
+    deleteAsset: (id: string, assetId: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/assets/${assetId}`,
+        method: "DELETE",
+        ...params,
+      }),
+  };
+  catalogService = {
+    /**
+     * No description
+     *
+     * @tags CatalogService
+     * @name HealthzList
+     * @request GET:/healthz
+     */
+    healthzList: (params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/healthz`,
+        method: "GET",
+        ...params,
+      }),
+  };
+  catalogTags = {
+    /**
+     * No description
+     *
+     * @tags CatalogTags
+     * @name List
+     * @summary 分頁查詢標籤（依使用次數遞減，公開）。
+     * @request GET:/v1/catalog-tags
+     */
+    list: (
+      query?: {
+        /**
+         * 名稱前綴關鍵字（強制小寫）；null 表示不限。
+         * @example "ret"
+         */
+        Search?: string;
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListCatalogTagsResponse, any>({
+        path: `/v1/catalog-tags`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+  };
+  catalogVersions = {
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name List
+     * @summary 列出商品的所有版本（新到舊）。
+     * @request GET:/v1/catalogs/{catalogId}/versions
+     */
+    list: (catalogId: string, params: RequestParams = {}) =>
+      this.http.request<CatalogVersionDto[], any>({
+        path: `/v1/catalogs/${catalogId}/versions`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name Create
+     * @summary 建立新版本，並設為商品的目前版本。
+     * @request POST:/v1/catalogs/{catalogId}/versions
+     */
+    create: (
+      catalogId: string,
+      data: CreateCatalogVersionRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogVersionDto, any>({
+        path: `/v1/catalogs/${catalogId}/versions`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name RequestAssetUploadUrl
+     * @summary 申請版本可下載檔案上傳簽章 URL（私有物件）。
+     * @request POST:/v1/catalogs/{catalogId}/versions/{versionId}/assets/upload-url
+     */
+    requestAssetUploadUrl: (
+      catalogId: string,
+      versionId: string,
+      data: RequestVersionAssetUploadUrlRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<VersionAssetUploadUrlResponse, any>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/upload-url`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name GetAssetDownloadUrl
+     * @summary 取得版本可下載檔案的下載簽章 URL（管理用途）。
+     * @request GET:/v1/catalogs/{catalogId}/versions/{versionId}/assets/{assetId}/download-url
+     */
+    getAssetDownloadUrl: (
+      catalogId: string,
+      versionId: string,
+      assetId: string,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageDownloadUrlResult, any>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}/download-url`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name DeleteAsset
+     * @summary 刪除版本可下載檔案。
+     * @request DELETE:/v1/catalogs/{catalogId}/versions/{versionId}/assets/{assetId}
+     */
+    deleteAsset: (
+      catalogId: string,
+      versionId: string,
+      assetId: string,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}`,
+        method: "DELETE",
         ...params,
       }),
   };

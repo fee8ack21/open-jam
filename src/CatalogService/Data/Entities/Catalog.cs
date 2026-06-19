@@ -26,6 +26,12 @@ public class Catalog : ICreatedAt, IUpdatedAt
     /// <summary>商品描述。</summary>
     public string? Description { get; set; }
 
+    /// <summary>一句話簡介（市集卡片用的短標語）；null 表示未設定。</summary>
+    public string? Summary { get; set; }
+
+    /// <summary>封面色相（0–359），無縮圖時用於生成漸層佔位封面，亦為跨站視覺識別色。</summary>
+    public int CoverHue { get; set; } = 256;
+
     /// <summary>商品狀態。</summary>
     public CatalogStatus Status { get; set; } = CatalogStatus.Draft;
 

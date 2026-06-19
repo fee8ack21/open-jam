@@ -45,6 +45,8 @@ public class CatalogManager(
             Name = name,
             Slug = slug,
             Description = string.IsNullOrEmpty(request.Description) ? null : request.Description,
+            Summary = string.IsNullOrWhiteSpace(request.Summary) ? null : request.Summary.Trim(),
+            CoverHue = request.CoverHue ?? 256,
             CategoryId = request.CategoryId,
             Price = request.Price,
             Currency = currency,
@@ -145,6 +147,12 @@ public class CatalogManager(
 
         if (request.Description is not null)
             catalog.Description = request.Description.Length == 0 ? null : request.Description;
+
+        if (request.Summary is not null)
+            catalog.Summary = request.Summary.Trim().Length == 0 ? null : request.Summary.Trim();
+
+        if (request.CoverHue is { } coverHue)
+            catalog.CoverHue = coverHue;
 
         if (request.Price is { } price)
             catalog.Price = price;

@@ -22,6 +22,16 @@ public class CreateCatalogRequestValidator : AbstractValidator<CreateCatalogRequ
             .Must(slug => CatalogSlugValidator.IsValidFormat(CatalogInputRules.NormalizeSlug(slug)))
             .WithMessage(CatalogInputRules.SlugFormatMessage);
 
+        RuleFor(x => x.Summary!)
+            .MaximumLength(200)
+            .When(x => x.Summary is not null)
+            .WithMessage(CatalogInputRules.SummaryLengthMessage);
+
+        RuleFor(x => x.CoverHue!.Value)
+            .InclusiveBetween(0, 359)
+            .When(x => x.CoverHue is not null)
+            .WithMessage(CatalogInputRules.CoverHueMessage);
+
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0).WithMessage("售價不得為負數。");
 
@@ -47,6 +57,16 @@ public class UpdateCatalogRequestValidator : AbstractValidator<UpdateCatalogRequ
             .Must(slug => CatalogSlugValidator.IsValidFormat(CatalogInputRules.NormalizeSlug(slug)))
             .When(x => x.Slug is not null)
             .WithMessage(CatalogInputRules.SlugFormatMessage);
+
+        RuleFor(x => x.Summary!)
+            .MaximumLength(200)
+            .When(x => x.Summary is not null)
+            .WithMessage(CatalogInputRules.SummaryLengthMessage);
+
+        RuleFor(x => x.CoverHue!.Value)
+            .InclusiveBetween(0, 359)
+            .When(x => x.CoverHue is not null)
+            .WithMessage(CatalogInputRules.CoverHueMessage);
 
         RuleFor(x => x.Price!.Value)
             .GreaterThanOrEqualTo(0)
@@ -97,6 +117,12 @@ internal static class CatalogInputRules
 
     /// <summary>幣別格式錯誤訊息。</summary>
     public const string CurrencyMessage = "幣別須為 3 碼英文字母（ISO 4217）。";
+
+    /// <summary>一句話簡介長度錯誤訊息。</summary>
+    public const string SummaryLengthMessage = "一句話簡介長度不得超過 200 字。";
+
+    /// <summary>封面色相範圍錯誤訊息。</summary>
+    public const string CoverHueMessage = "封面色相須介於 0–359。";
 
     /// <summary>與業務層一致的 slug 正規化（去空白、轉小寫）。</summary>
     public static string NormalizeSlug(string? slug) => (slug ?? string.Empty).Trim().ToLowerInvariant();

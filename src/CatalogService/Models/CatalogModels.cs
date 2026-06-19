@@ -29,6 +29,14 @@ public class CatalogDto
     /// <example>200 個復古像素遊戲音效，WAV 格式。</example>
     public string? Description { get; set; }
 
+    /// <summary>一句話簡介（市集卡片短標語）；null 表示未設定。</summary>
+    /// <example>復古像素遊戲必備的 8-bit 音效合輯。</example>
+    public string? Summary { get; set; }
+
+    /// <summary>封面色相（0–359），無縮圖時生成漸層佔位封面。</summary>
+    /// <example>256</example>
+    public int CoverHue { get; set; }
+
     /// <summary>商品狀態。</summary>
     /// <example>Published</example>
     public CatalogStatus Status { get; set; }
@@ -83,6 +91,14 @@ public class CatalogSummaryDto
     /// <summary>商品代稱。</summary>
     /// <example>pixel-sfx-pack</example>
     public string Slug { get; set; } = "";
+
+    /// <summary>一句話簡介（市集卡片短標語）；null 表示未設定。</summary>
+    /// <example>復古像素遊戲必備的 8-bit 音效合輯。</example>
+    public string? Summary { get; set; }
+
+    /// <summary>封面色相（0–359），無縮圖時生成漸層佔位封面。</summary>
+    /// <example>256</example>
+    public int CoverHue { get; set; }
 
     /// <summary>售價。</summary>
     /// <example>150.00</example>
@@ -158,6 +174,14 @@ public class CreateCatalogRequest
     /// <example>200 個復古像素遊戲音效，WAV 格式。</example>
     public string? Description { get; set; }
 
+    /// <summary>一句話簡介（市集卡片短標語，至多 200 字）；null 表示未設定。</summary>
+    /// <example>復古像素遊戲必備的 8-bit 音效合輯。</example>
+    public string? Summary { get; set; }
+
+    /// <summary>封面色相（0–359）；省略時預設 256。</summary>
+    /// <example>256</example>
+    public int? CoverHue { get; set; }
+
     /// <summary>所屬分類 ID；null 表示未分類。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? CategoryId { get; set; }
@@ -189,6 +213,14 @@ public class UpdateCatalogRequest
     /// <summary>商品描述；null 表示不變更，空字串表示清空。</summary>
     /// <example>新增 50 個音效。</example>
     public string? Description { get; set; }
+
+    /// <summary>一句話簡介；null 表示不變更，空字串表示清空。</summary>
+    /// <example>全新擴充版，收錄 250 個音效。</example>
+    public string? Summary { get; set; }
+
+    /// <summary>封面色相（0–359）；null 表示不變更。</summary>
+    /// <example>320</example>
+    public int? CoverHue { get; set; }
 
     /// <summary>售價；null 表示不變更。</summary>
     /// <example>180.00</example>

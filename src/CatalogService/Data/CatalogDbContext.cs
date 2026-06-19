@@ -41,6 +41,8 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
             e.HasKey(c => c.Id);
             e.Property(c => c.Name).HasMaxLength(200).IsRequired();
             e.Property(c => c.Slug).HasMaxLength(100).IsRequired();
+            e.Property(c => c.Summary).HasMaxLength(200);
+            e.Property(c => c.CoverHue).HasDefaultValue(256);
             e.Property(c => c.Currency).HasMaxLength(3).IsRequired();
             e.Property(c => c.Price).HasColumnType("numeric(18,2)");
 

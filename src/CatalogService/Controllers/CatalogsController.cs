@@ -30,6 +30,20 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     public async Task<ActionResult<ListCatalogsResponse>> ListMineAsync([FromQuery] ListCatalogsRequest request, CancellationToken ct) =>
         Ok(await catalogManager.ListAsync(request, publishedOnly: false, ct));
 
+    /// <summary>查詢指定商店的全部商品（含草稿 / 已下架 / 已停權）。僅 Admin 可操作。</summary>
+    /// <param name="storeId">商店 ID。</param>
+    /// <param name="request">查詢條件（分類 / 標籤 / 關鍵字 + 分頁）；StoreId 由路徑帶入。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet("by-store/{storeId:guid}")]
+    [Authorize(Policy = "Admin")]
+    [ProducesResponseType<ListCatalogsResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ListCatalogsResponse>> ListByStoreAsync(
+        Guid storeId, [FromQuery] ListCatalogsRequest request, CancellationToken ct)
+    {
+        request.StoreId = storeId;
+        return Ok(await catalogManager.ListAsync(request, publishedOnly: false, ct));
+    }
+
     /// <summary>查詢商品完整資訊。未上架商品僅 Owner 可見。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="ct">Cancellation token。</param>
