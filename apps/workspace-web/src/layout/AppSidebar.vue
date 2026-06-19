@@ -15,6 +15,7 @@ const NAV = {
     { view: 'products', label: '商品管理', icon: 'box', countKey: 'products' },
     { view: 'upload', label: '上架新作品', icon: 'upload' },
     { view: 'orders', label: '訂單管理', icon: 'receipt', countKey: 'orders' },
+    { view: 'store-settings', label: '商店設定', icon: 'gear' },
   ],
   buy: [
     { view: 'purchases', label: '購買紀錄', icon: 'bag', countKey: 'purchases' },

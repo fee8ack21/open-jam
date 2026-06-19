@@ -101,12 +101,11 @@ async function onSave() {
               </div>
 
               <div class="identity">
-                <div class="st-avatar-wrap" @click="pick('avatar')">
-                  <div class="st-avatar" :class="{ empty: !avatarUrl }"
-                       :style="avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : {}">
-                    <span v-if="!avatarUrl" class="st-avatar-initials">{{ F.initials(form.storeName || '店') }}</span>
-                    <div class="st-avatar-cam"><app-icon name="upload" :size="15" :stroke="2.2" /></div>
-                  </div>
+                <div class="st-avatar" :class="{ empty: !avatarUrl }"
+                     :style="avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : {}"
+                     @click="pick('avatar')">
+                  <span v-if="!avatarUrl" class="st-avatar-initials">{{ F.initials(form.storeName || '店') }}</span>
+                  <div class="st-avatar-cam"><app-icon name="upload" :size="15" :stroke="2.2" /></div>
                 </div>
                 <div class="identity-meta">
                   <div class="store-name">{{ form.storeName || '未命名商店' }}</div>
@@ -199,12 +198,13 @@ async function onSave() {
   margin-top: -34px;
   padding: 0 4px;
 }
-.st-avatar-wrap { cursor: pointer; flex: 0 0 auto; }
 .st-avatar {
   position: relative;
   box-sizing: border-box;
   width: 84px; height: 84px;
-  flex: 0 0 auto;
+  flex: 0 0 auto;          /* 固定尺寸的 flex 子項：永不被列高拉伸 */
+  align-self: center;       /* 與名稱垂直置中，不受容器 align 影響 */
+  cursor: pointer;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background-size: cover;

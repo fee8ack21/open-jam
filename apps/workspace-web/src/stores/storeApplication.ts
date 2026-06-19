@@ -19,6 +19,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
   const stores = ref<MyStoreDto[]>([]);                  // 核准後擁有的商店
   const loading = ref(false);
   const submitting = ref(false);
+  const saving = ref(false);                             // 商店設定儲存中（更新資料 / 上傳圖片）
   const error = ref<string | null>(null);
 
   /** 最新一筆申請（後端已依建立時間 desc 排序）。 */
@@ -87,11 +88,78 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
     }
   }
 
+  /** 更新目前商店的名稱 / 描述。成功回傳 true 並重新載入。 */
+  async function updateStore(input: { storeName?: string; description?: string }) {
+    const id = primaryStore.value?.id;
+    if (!id) {
+      error.value = '尚未建立商店。';
+      return false;
+    }
+    saving.value = true;
+    error.value = null;
+    try {
+      await storeApi.stores.update(id, {
+        storeName: input.storeName,
+        description: input.description,
+      });
+      await load();
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, '更新商店資料失敗。');
+      return false;
+    } finally {
+      saving.value = false;
+    }
+  }
+
+  /** 以 PUT 直傳檔案 bytes 到 StorageService 簽發的 uploadUrl。 */
+  async function putFile(uploadUrl: string, file: File) {
+    const res = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    if (!res.ok) throw new Error(`圖片上傳失敗（${res.status}）`);
+  }
+
+  /**
+   * 上傳商店頭像 / 橫幅：申請簽章 URL（後端即綁定該資產到商店）→ 直傳 bytes → 重新載入。
+   * 成功回傳 true。
+   */
+  async function uploadStoreImage(file: File, kind: 'avatar' | 'banner') {
+    const id = primaryStore.value?.id;
+    if (!id) {
+      error.value = '尚未建立商店。';
+      return false;
+    }
+    saving.value = true;
+    error.value = null;
+    try {
+      const payload = {
+        fileName: file.name,
+        contentType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+      };
+      const res = kind === 'avatar'
+        ? await storeApi.stores.requestAvatarUploadUrl(id, payload)
+        : await storeApi.stores.requestBannerUploadUrl(id, payload);
+      if (res.data.uploadUrl) await putFile(res.data.uploadUrl, file);
+      await load();
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, '上傳圖片失敗。');
+      return false;
+    } finally {
+      saving.value = false;
+    }
+  }
+
   return {
     applications,
     stores,
     loading,
     submitting,
+    saving,
     error,
     latestApplication,
     hasPending,
@@ -101,5 +169,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
     load,
     submit,
     withdraw,
+    updateStore,
+    uploadStoreImage,
   };
 });

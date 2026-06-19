@@ -17,6 +17,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },
   { path: '/upload', name: 'upload', component: () => import('@/views/UploadView.vue'), meta: { title: '上架新作品' } },
   { path: '/orders', name: 'orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單管理' } },
+  { path: '/store-settings', name: 'store-settings', component: () => import('@/views/StoreSettingsView.vue'), meta: { title: '商店設定' } },
   { path: '/purchases', name: 'purchases', component: () => import('@/views/PurchasesView.vue'), meta: { title: '購買紀錄' } },
   { path: '/wishlist', name: 'wishlist', component: () => import('@/views/WishlistView.vue'), meta: { title: 'Wishlist' } },
   { path: '/:pathMatch(.*)*', redirect: '/purchases' },
@@ -29,9 +30,9 @@ export const router = createRouter({
 })
 
 // 賣家（上架）流程相關路由：僅 role === "User" 可進入
-const SELL_ROUTES = ['overview', 'open-store', 'products', 'upload', 'orders']
+const SELL_ROUTES = ['overview', 'open-store', 'products', 'upload', 'orders', 'store-settings']
 // 需要先開店才能操作的路由：尚未開店時一律導回「開店」
-const REQUIRE_STORE_ROUTES = ['overview', 'products', 'upload', 'orders']
+const REQUIRE_STORE_ROUTES = ['overview', 'products', 'upload', 'orders', 'store-settings']
 // 平台管理員專屬路由：僅 role === "Admin" 可進入
 const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'catalog-categories', 'audit-log']
 
