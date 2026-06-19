@@ -149,17 +149,11 @@
     0);
 }
 .hero-collage .c-shape.sq { left: calc(50% - 600px); top: 8%; width: 50px; height: 50px; border-radius: 15px; background: var(--c-lime); box-shadow: 4px 4px 0 var(--text); --depth: 11px; --sdepth: -0.035; }
-.hero-collage .c-shape.sq::after {
-  content: ''; position: absolute; inset: 0; border-radius: inherit;
-  background: inherit; animation: fc-spin 18s linear infinite;
-}
 .hero-collage .c-shape.d1 { left: calc(50% - 524px); top: 47%; width: 36px; height: 36px; border-radius: 50%; background: var(--c-yellow); box-shadow: 3px 3px 0 rgba(26,22,38,.35); --depth: 7px; --sdepth: 0.04; }
 .hero-collage .c-shape.d2 { left: calc(50% + 600px); top: 70%; width: 28px; height: 28px; border-radius: 50%; background: var(--c-cyan); box-shadow: 3px 3px 0 rgba(26,22,38,.35); --depth: 12px; --sdepth: 0.05; }
-@keyframes fc-spin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-collage .fc-float,
-  .hero-collage .c-shape.sq::after { animation: none; }
+  .hero-collage .fc-float { animation: none; }
 }
 
 /* not enough side room to clear the centred content — keep the hero clean */
