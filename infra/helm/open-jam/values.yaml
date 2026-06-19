@@ -8,7 +8,7 @@ config:
   authPageUrl: "https://auth.openjam.co/"
   marketPageUrl: "https://openjam.co/"
   workspaceUrl: "https://workspace.openjam.co/"
-  creatorBaseUrl: "http://localhost:5174"
+  creatorBaseUrl: "https://<store-slug>.openjam.co"
   storeApiUrl: "https://api.openjam.co/store-service"
   oidcClientId: "open-jam-web"
   storagePublicBaseUrl: "https://assets.openjam.co"
