@@ -39,7 +39,7 @@ export default defineConfig({
   appearance: true,
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   ],
 
   markdown: {
