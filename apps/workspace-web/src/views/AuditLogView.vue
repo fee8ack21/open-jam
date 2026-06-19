@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuditLogStore } from '@/stores/auditLog'
 import type { AuditLogDto } from '@/api/log-service'
@@ -8,7 +8,7 @@ const store = useAuditLogStore()
 // 僅 ref / computed / getter 可由 storeToRefs 取出；pageSize 為常數純值，直接讀 store。
 const { items, totalCount, loading } = storeToRefs(store)
 
-// ── 篩選狀態（送出後才查詢，避免逐字打字打 API）─────────────
+// ── 篩選狀態（即時生效，以 debounce 收斂逐字輸入的 API 呼叫）─────
 const actionFilter = ref('')
 const targetFilter = ref('')
 const page = ref(1)
@@ -38,15 +38,17 @@ function resultTag(result?: string | null) {
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
+let filterTimer: ReturnType<typeof setTimeout> | undefined
 async function applyFilter() {
+  clearTimeout(filterTimer)
   page.value = 1
   await store.applyFilter({ action: actionFilter.value, target: targetFilter.value })
 }
-async function resetFilter() {
-  actionFilter.value = ''
-  targetFilter.value = ''
-  await applyFilter()
-}
+// 篩選即時生效：逐字輸入以 debounce 收斂，避免每次擊鍵都打 API（對齊其他管理頁的即時篩選）
+watch([actionFilter, targetFilter], () => {
+  clearTimeout(filterTimer)
+  filterTimer = setTimeout(applyFilter, 300)
+})
 async function changePage(p: number) {
   page.value = p
   await store.goPage(p)
@@ -106,10 +108,6 @@ onMounted(store.load)
               <template #prefix><app-icon name="tag" :size="16" /></template>
             </n-input>
           </div>
-        </div>
-        <div class="fb-group fb-actions">
-          <n-button type="primary" :loading="loading" @click="applyFilter">查詢</n-button>
-          <n-button quaternary @click="resetFilter">重設</n-button>
         </div>
       </div>
     </div>
@@ -215,7 +213,7 @@ onMounted(store.load)
   border-radius: 10px;
 }
 
-/* 篩選列：兩組並排，按鈕組對齊輸入框底部；不足時整組換行成最多兩行 */
+/* 篩選列：欄位並排撐滿；不足時換行 */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -229,11 +227,6 @@ onMounted(store.load)
   align-items: flex-end;
   flex: 1 1 360px;
   min-width: 0;
-}
-
-/* 按鈕組：不撐滿、靠右對齊欄位底部 */
-.fb-actions {
-  flex: 0 0 auto;
 }
 
 /* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
