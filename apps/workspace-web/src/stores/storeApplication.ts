@@ -32,6 +32,12 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
   /** 是否已擁有商店。 */
   const hasStore = computed(() => stores.value.length > 0);
 
+  /** 目前商店（取第一筆）。 */
+  const primaryStore = computed(() => stores.value[0]?.store ?? null);
+
+  /** 目前商店顯示名稱；尚未載入時為 null。 */
+  const storeName = computed(() => primaryStore.value?.storeName ?? null);
+
   /** 載入「我的申請」與「我的商店」。 */
   async function load() {
     loading.value = true;
@@ -90,6 +96,8 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
     latestApplication,
     hasPending,
     hasStore,
+    primaryStore,
+    storeName,
     load,
     submit,
     withdraw,

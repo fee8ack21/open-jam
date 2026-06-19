@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { JFmt as F, STATUS_LABEL } from '@/utils/format'
 import { ME as me, REVENUE as revenue } from '@/data/products'
 
 const store = useDashboardStore()
 const g = store
+
+const storeApplication = useStoreApplicationStore()
+const { storeName: apiStoreName, hasStore } = storeToRefs(storeApplication)
+onMounted(() => { if (!hasStore.value) storeApplication.load() })
+
+// 店名以 /v1/stores/me 為準，尚未載入時暫以 mock 名稱墊檔
+const storeName = computed(() => apiStoreName.value ?? me.storeName)
 
 const catMax = computed(() => Math.max(...revenue.byCategory.map(c => c.value)) || 1)
 const kpis = computed(() => [
@@ -21,7 +30,7 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
 <template>
   <div data-screen-label="儀表板">
     <div class="page-intro">
-      <p class="h-eyebrow">總覽 · {{ me.storeName }}</p>
+      <p class="h-eyebrow">總覽 · {{ storeName }}</p>
       <p class="h-sub">本月收入較上月成長 {{ g.monthDelta }}%，有 {{ g.statusCount('review') }} 件作品正在審核中。</p>
     </div>
 
