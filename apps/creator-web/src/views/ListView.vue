@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useShopStore } from '@/stores/shop';
-import { CATEGORIES, TAGS, PRODUCTS, type Product } from '@/data/products';
-import { STORE } from '@/data/store';
+import { CATEGORIES, TAGS, type Product } from '@/data/products';
 import ProductCard from '@/components/ProductCard.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const s = store;
+
+onMounted(store.loadCatalog);
 
 type SortKey = 'popular' | 'newest' | 'rating' | 'price-asc' | 'price-desc';
 const sortOptions: { label: string; value: SortKey }[] = [
@@ -37,16 +38,11 @@ const clear = () => store.clearFilters();
 const priceLabel = (v: number) => (v === 0 ? '免費' : '$' + v);
 
 // ----- grid badges (熱賣 / 新上架) — adds rhythm to the uniform grid -----
-const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
-const newestIds = new Set(
-  PRODUCTS.slice()
-    .sort((a, b) => (orderMap.get(b.id) ?? 0) - (orderMap.get(a.id) ?? 0))
-    .slice(0, 3)
-    .map((p) => p.id),
-);
+// 後端列表已依上架時間 desc，取前 3 筆視為「新上架」
+const newestIds = computed(() => new Set(store.products.slice(0, 3).map((p) => p.id)));
 function badgeFor(p: Product): { label: string; tone: 'hot' | 'new' | 'feat' } | null {
   if (p.sales >= 1500) return { label: '熱賣', tone: 'hot' };
-  if (newestIds.has(p.id)) return { label: '新上架', tone: 'new' };
+  if (newestIds.value.has(p.id)) return { label: '新上架', tone: 'new' };
   return null;
 }
 
@@ -74,7 +70,7 @@ const activeChips = computed(() => {
         <span class="shape s2"></span>
         <span class="shape s3"></span>
       </div>
-      <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · {{ STORE.storeName }}</p>
+      <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · {{ store.storefront.storeName }}</p>
       <h1 class="hero-title">把你的<span class="hl hl-lime">創造力</span><br>變成可以<span class="hl hl-pink">販售</span>的作品</h1>
       <p class="hero-sub">樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。</p>
       <div class="hero-cats">

@@ -1,0 +1,1182 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "StoreService",
+    "version": "v1"
+  },
+  "paths": {
+    "/v1/store-applications": {
+      "post": {
+        "tags": [
+          "StoreApplications"
+        ],
+        "summary": "提交開店申請。同一使用者僅能有一筆 Pending 申請。",
+        "operationId": "Submit",
+        "requestBody": {
+          "description": "商店顯示名稱與子網域代稱。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitStoreApplicationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitStoreApplicationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitStoreApplicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "StoreApplications"
+        ],
+        "summary": "查詢全平台開店申請列表，可依審核狀態篩選（分頁）。",
+        "operationId": "GetAll",
+        "parameters": [
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "description": "過濾審核狀態。",
+            "schema": {
+              "$ref": "#/components/schemas/StoreApplicationStatus"
+            },
+            "example": "Pending"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreApplicationsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreApplicationsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreApplicationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/store-applications/me": {
+      "get": {
+        "tags": [
+          "StoreApplications"
+        ],
+        "summary": "查詢自己的開店申請紀錄（分頁）。",
+        "operationId": "GetMine",
+        "parameters": [
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "description": "過濾審核狀態。",
+            "schema": {
+              "$ref": "#/components/schemas/StoreApplicationStatus"
+            },
+            "example": "Pending"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreApplicationsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreApplicationsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreApplicationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/store-applications/{id}/withdraw": {
+      "post": {
+        "tags": [
+          "StoreApplications"
+        ],
+        "summary": "撤回自己的待審核申請（Pending → Withdrawn），可重新提交。",
+        "operationId": "Withdraw",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "申請 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/store-applications/{id}/approve": {
+      "post": {
+        "tags": [
+          "StoreApplications"
+        ],
+        "summary": "核准開店申請（Pending → Approved），建立 Store 與 StoreMember(Owner)。",
+        "operationId": "Approve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "申請 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/store-applications/{id}/reject": {
+      "post": {
+        "tags": [
+          "StoreApplications"
+        ],
+        "summary": "駁回開店申請（Pending → Rejected），可重新提交。",
+        "operationId": "Reject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "申請 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "駁回原因。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectStoreApplicationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectStoreApplicationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectStoreApplicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreApplicationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}/follow": {
+      "post": {
+        "tags": [
+          "StoreFollowers"
+        ],
+        "summary": "追蹤商店。已追蹤則 no-op。",
+        "operationId": "Follow",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "追蹤者信箱。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowStoreRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowStoreRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowStoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "StoreFollowers"
+        ],
+        "summary": "取消追蹤商店。依 (StoreId, Email) 移除，未追蹤則 no-op。",
+        "operationId": "Unfollow",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "追蹤者信箱。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowStoreRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowStoreRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowStoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}/followers": {
+      "get": {
+        "tags": [
+          "StoreFollowers"
+        ],
+        "summary": "查詢商店追蹤者列表（分頁）。僅 Owner 可操作。",
+        "operationId": "GetFollowers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreFollowersResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreFollowersResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStoreFollowersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/stores/{idOrSlug}": {
+      "get": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "查詢商店基本資訊（公開）。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "idOrSlug",
+            "in": "path",
+            "description": "商店 ID 或 StoreSlug。",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/stores/me": {
+      "get": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "查詢登入使用者所屬的商店列表。",
+        "operationId": "GetMine",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyStoreDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyStoreDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyStoreDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}": {
+      "patch": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "更新商店基本資料（StoreName / Description）。僅 Owner 可操作。",
+        "operationId": "Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "欲更新的欄位。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStoreRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStoreRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}/suspend": {
+      "post": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "平台停權商店（Active → Suspended）。僅 Admin 可操作。",
+        "operationId": "Suspend",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}/unsuspend": {
+      "post": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "解除商店停權（Suspended → Active）。僅 Admin 可操作。",
+        "operationId": "Unsuspend",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}/close": {
+      "post": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "關閉商店（Active/Suspended → Closed，終態不可逆）。Owner 或 Admin 可操作。",
+        "operationId": "Close",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}/avatar/upload-url": {
+      "post": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "申請商店頭像（Avatar）上傳簽章 URL。僅 Owner 可操作。",
+        "operationId": "RequestAvatarUploadUrl",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "檔案資訊。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAssetUploadUrlRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAssetUploadUrlRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAssetUploadUrlRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUploadUrlResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUploadUrlResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUploadUrlResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/stores/{id}/banner/upload-url": {
+      "post": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "申請商店橫幅（Banner）上傳簽章 URL。僅 Owner 可操作。",
+        "operationId": "RequestBannerUploadUrl",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "檔案資訊。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAssetUploadUrlRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAssetUploadUrlRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAssetUploadUrlRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUploadUrlResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUploadUrlResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUploadUrlResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "StoreService"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssetUploadUrlResponse": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "description": "已建立的 Asset ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "uploadUrl": {
+            "type": "string",
+            "description": "前端應使用此 URL 以 HTTP PUT 直傳檔案。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/.../avatar.png?expires=1735689600&sig=..."
+          },
+          "publicUrl": {
+            "type": "string",
+            "description": "上傳完成後的公開讀取網址。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/.../avatar.png"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "簽章 URL 過期時間（UTC）。",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Avatar/Banner 上傳簽章 URL 回應。"
+      },
+      "FollowStoreRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "追蹤者電子信箱。",
+            "nullable": true,
+            "example": "follower@example.com"
+          }
+        },
+        "additionalProperties": false,
+        "description": "追蹤／取消追蹤商店請求。"
+      },
+      "GetStoreApplicationsResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 3
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreApplicationDto"
+            },
+            "description": "本頁開店申請清單。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "開店申請分頁查詢回應。"
+      },
+      "GetStoreFollowersResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 42
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreFollowerDto"
+            },
+            "description": "本頁追蹤者清單。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "商店追蹤者分頁查詢回應。"
+      },
+      "MyStoreDto": {
+        "type": "object",
+        "properties": {
+          "store": {
+            "$ref": "#/components/schemas/StoreDto"
+          },
+          "role": {
+            "$ref": "#/components/schemas/StoreMemberRole"
+          }
+        },
+        "additionalProperties": false,
+        "description": "登入使用者所屬商店資訊。"
+      },
+      "RejectStoreApplicationRequest": {
+        "type": "object",
+        "properties": {
+          "reviewComment": {
+            "type": "string",
+            "description": "駁回原因，將附於通知信中。",
+            "nullable": true,
+            "example": "商店名稱與既有品牌過於相似，請調整後重新申請。"
+          }
+        },
+        "additionalProperties": false,
+        "description": "駁回開店申請請求。"
+      },
+      "RequestAssetUploadUrlRequest": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "原始檔名（含副檔名）。",
+            "nullable": true,
+            "example": "avatar.png"
+          },
+          "contentType": {
+            "type": "string",
+            "description": "MIME 類型，僅允許 jpeg/png/gif/webp。",
+            "nullable": true,
+            "example": "image/png"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "description": "檔案大小（bytes）。",
+            "format": "int64",
+            "example": 204800
+          }
+        },
+        "additionalProperties": false,
+        "description": "申請 Avatar/Banner 上傳簽章 URL 請求。"
+      },
+      "StoreApplicationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "申請唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "userId": {
+            "type": "string",
+            "description": "申請人使用者 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "email": {
+            "type": "string",
+            "description": "申請人電子信箱。",
+            "nullable": true,
+            "example": "creator@example.com"
+          },
+          "storeName": {
+            "type": "string",
+            "description": "欲申請的商店顯示名稱。",
+            "nullable": true,
+            "example": "小明的數位商店"
+          },
+          "storeSlug": {
+            "type": "string",
+            "description": "欲申請的商店子網域代稱。",
+            "nullable": true,
+            "example": "xiaoming-shop"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StoreApplicationStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "提交時間。",
+            "format": "date-time"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "description": "審核時間；null 表示尚未審核。",
+            "format": "date-time",
+            "nullable": true
+          },
+          "reviewedBy": {
+            "type": "string",
+            "description": "審核管理員使用者 ID。",
+            "format": "uuid",
+            "nullable": true
+          },
+          "reviewComment": {
+            "type": "string",
+            "description": "審核意見，主要用於 Rejected。",
+            "nullable": true,
+            "example": "商店名稱與既有品牌過於相似，請調整後重新申請。"
+          }
+        },
+        "additionalProperties": false,
+        "description": "單筆開店申請回應。"
+      },
+      "StoreApplicationStatus": {
+        "enum": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Withdrawn"
+        ],
+        "type": "string",
+        "description": "開店申請審核狀態。"
+      },
+      "StoreDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "商店唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "storeName": {
+            "type": "string",
+            "description": "商店顯示名稱。",
+            "nullable": true,
+            "example": "小明的數位商店"
+          },
+          "storeSlug": {
+            "type": "string",
+            "description": "商店子網域代稱。",
+            "nullable": true,
+            "example": "xiaoming-shop"
+          },
+          "description": {
+            "type": "string",
+            "description": "商店描述。",
+            "nullable": true,
+            "example": "專注於數位插畫與素材販售。"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "商店頭像公開 URL；null 表示尚未設定。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/avatar.png"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "description": "商店橫幅公開 URL；null 表示尚未設定。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/banner.png"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StoreStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間。",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "最後更新時間。",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "商店基本資訊回應。"
+      },
+      "StoreFollowerDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "追蹤者電子信箱。",
+            "nullable": true,
+            "example": "follower@example.com"
+          },
+          "userId": {
+            "type": "string",
+            "description": "追蹤者使用者 ID；null 表示尚未關聯帳號（訪客憑信箱追蹤）。",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "追蹤建立時間。",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "單筆商店追蹤者回應。"
+      },
+      "StoreMemberRole": {
+        "enum": [
+          "Owner"
+        ],
+        "type": "string",
+        "description": "商店成員角色。"
+      },
+      "StoreStatus": {
+        "enum": [
+          "Active",
+          "Suspended",
+          "Closed"
+        ],
+        "type": "string",
+        "description": "商店狀態。"
+      },
+      "SubmitStoreApplicationRequest": {
+        "type": "object",
+        "properties": {
+          "storeName": {
+            "type": "string",
+            "description": "欲申請的商店顯示名稱。",
+            "nullable": true,
+            "example": "小明的數位商店"
+          },
+          "storeSlug": {
+            "type": "string",
+            "description": "欲申請的商店子網域代稱。小寫英數字 + 連字號，3–30 字，不可開頭/結尾為連字號。",
+            "nullable": true,
+            "example": "xiaoming-shop"
+          }
+        },
+        "additionalProperties": false,
+        "description": "提交開店申請請求。"
+      },
+      "UpdateStoreRequest": {
+        "type": "object",
+        "properties": {
+          "storeName": {
+            "type": "string",
+            "description": "商店顯示名稱；null 表示不變更。",
+            "nullable": true,
+            "example": "小明的數位商店"
+          },
+          "description": {
+            "type": "string",
+            "description": "商店描述；null 表示不變更，空字串表示清空。",
+            "nullable": true,
+            "example": "專注於數位插畫與素材販售。"
+          }
+        },
+        "additionalProperties": false,
+        "description": "更新商店資料請求（部分欄位，未提供者不變更）。"
+      }
+    }
+  }
+}

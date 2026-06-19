@@ -7,6 +7,11 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { PRODUCTS, type Product } from '@/data/products';
+import { STORE, type Store } from '@/data/store';
+import { catalogApi, storeApi } from '@/api';
+import { env } from '@/environment';
+import { categoryKeyResolver, toProduct, toStore, hueColor, type StoreInfo } from '@/data/mapCatalog';
+import type { CatalogCategoryDto } from '@/api/catalog-service';
 
 type Theme = 'light' | 'dark';
 type SortKey = 'popular' | 'newest' | 'price-asc' | 'price-desc' | 'rating';
@@ -46,6 +51,13 @@ export const useShopStore = defineStore('shop', () => {
   // theme / display
   const theme = ref<Theme>(load<Theme>('theme', 'light'));
 
+  // catalogue（由 CatalogService 載入；後端尚未可用時退回示範資料）
+  const products = ref<Product[]>([]);
+  const storefront = ref<Store>(STORE);
+  const categories = ref<CatalogCategoryDto[]>([]);
+  const loading = ref(false);
+  const loaded = ref(false);
+
   // catalogue search & filters
   const search = ref('');
   const category = ref('all');          // 'all' | music | photo | ebook
@@ -63,19 +75,19 @@ export const useShopStore = defineStore('shop', () => {
 
   // ── getters ────────────────────────────────────────────
   // arg-taking getters return a function
-  const product = computed(() => (id: string) => PRODUCTS.find((p) => p.id === id));
+  const product = computed(() => (id: string) => products.value.find((p) => p.id === id));
   const isFav = computed(() => (id: string) => favorites.value.includes(id));
   const inCart = computed(() => (id: string) => cart.value.some((c) => c.id === id));
 
   const cartProducts = computed<CartProduct[]>(() =>
     cart.value
-      .map((c) => ({ ...PRODUCTS.find((p) => p.id === c.id), qty: c.qty }))
+      .map((c) => ({ ...products.value.find((p) => p.id === c.id), qty: c.qty }))
       .filter((p): p is CartProduct => Boolean(p.id)));
   const cartCount = computed(() => cart.value.reduce((n, c) => n + c.qty, 0));
   const subtotal = computed(() => cartProducts.value.reduce((s, p) => s + p.price * p.qty, 0));
 
   const filtered = computed<Product[]>(() => {
-    let list = PRODUCTS.slice();
+    let list = products.value.slice();
     const q = search.value.trim().toLowerCase();
     if (q) list = list.filter((p) =>
       p.title.toLowerCase().includes(q) ||
@@ -103,6 +115,60 @@ export const useShopStore = defineStore('shop', () => {
   });
 
   // ── actions ────────────────────────────────────────────
+  /** 由子網域推導店面 slug；本機開發無子網域時用 env fallback。 */
+  function resolveSlug(): string {
+    const parts = window.location.hostname.split('.');
+    if (parts.length >= 3 && !['www', 'localhost'].includes(parts[0])) return parts[0];
+    return env.STORE_SLUG;
+  }
+
+  function storeInfo(): StoreInfo {
+    return {
+      creator: storefront.value.storeName,
+      handle: '@' + storefront.value.storeSlug,
+      avatar: hueColor(214),
+    };
+  }
+
+  /** 載入店面資訊與其已上架商品（CatalogService 公開端點）。 */
+  async function loadCatalog() {
+    if (loaded.value || loading.value) return;
+    loading.value = true;
+    try {
+      const storeRes = await storeApi.stores.get(resolveSlug());
+      storefront.value = toStore(storeRes.data);
+
+      const [catRes, listRes] = await Promise.all([
+        catalogApi.catalogCategories.list(),
+        catalogApi.catalogs.list({ StoreId: storefront.value.id, Offset: 0, Limit: 100 }),
+      ]);
+      categories.value = catRes.data ?? [];
+      const catKeyOf = categoryKeyResolver(categories.value);
+      const info = storeInfo();
+      products.value = (listRes.data.items ?? []).map((p) => toProduct(p, catKeyOf(p.categoryId), info));
+      loaded.value = true;
+    } catch {
+      // 後端尚未可用：退回示範資料，店面不致空白
+      if (!products.value.length) products.value = PRODUCTS.slice();
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /** 載入單一商品完整資訊（含描述 / 標籤），合併進列表。 */
+  async function loadProduct(id: string) {
+    try {
+      const res = await catalogApi.catalogs.get(id);
+      const catKeyOf = categoryKeyResolver(categories.value);
+      const mapped = toProduct(res.data, catKeyOf(res.data.categoryId), storeInfo());
+      const i = products.value.findIndex((p) => p.id === id);
+      if (i >= 0) products.value[i] = mapped;
+      else products.value.push(mapped);
+    } catch {
+      // 保留列表既有資料
+    }
+  }
+
   function setTheme(t: Theme) { theme.value = t; save('theme', t); }
   function toggleTheme() { setTheme(theme.value === 'light' ? 'dark' : 'light'); }
 
@@ -155,10 +221,12 @@ export const useShopStore = defineStore('shop', () => {
   return {
     // state
     theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order,
+    products, storefront, categories, loading, loaded,
     // getters
     product, isFav, inCart, cartProducts, cartCount, subtotal, filtered, activeFilterCount,
     // actions
     setTheme, toggleTheme, toggleFav, addToCart, setQty, removeFromCart, clearCart,
     setCategory, toggleTag, clearFilters, startCheckout, completeOrder,
+    loadCatalog, loadProduct,
   };
 });

@@ -14,7 +14,10 @@
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "gen:api": "pnpm gen:api:store && pnpm gen:api:catalog",
+    "gen:api:store": "swagger-typescript-api generate -p openapi/store-service.json -o src/api -n store-service.ts --single-http-client --module-name-first-tag",
+    "gen:api:catalog": "swagger-typescript-api generate -p openapi/catalog-service.json -o src/api -n catalog-service.ts --single-http-client --module-name-first-tag"
   },
   "dependencies": {
     "naive-ui": "^2.40.1",
@@ -35,6 +38,7 @@
     "prettier": "^3.3.3",
     "typescript": "~5.5.4",
     "vite": "^5.4.9",
-    "vue-tsc": "^2.1.0"
+    "vue-tsc": "^2.1.0",
+    "swagger-typescript-api": "^13.12.2"
   }
 }

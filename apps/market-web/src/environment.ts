@@ -6,6 +6,8 @@ class AppEnv {
   AUTH_PAGE_URL = 'http://localhost:5169';
   GITHUB_REPO_URL = 'https://github.com/fee8ack21/open-jam';
   DOCS_URL = 'https://docs.openjam.co';
+  CATALOG_API_URL = 'https://api.openjam.co/catalog-service';
+  STORE_API_URL = 'https://api.openjam.co/store-service';
   [key: string]: string;
 
   constructor() {

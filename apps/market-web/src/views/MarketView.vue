@@ -6,16 +6,17 @@
    ============================================================ */
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useShopStore } from '@/stores/shop.js';
-import { PRODUCTS, CATEGORIES, type Product } from '@/data/products';
+import { CATEGORIES, type Product } from '@/data/products';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
 import FeaturedCard from '@/components/FeaturedCard.vue';
 import OnboardingGuide from '@/components/OnboardingGuide.vue';
 
-const orderMap = new Map(PRODUCTS.map((p, i) => [p.id, i])); // catalogue order → newest = larger index
-
 const store = useShopStore();
+
+// 後端列表已依上架時間 desc：index 越小越新
+const orderMap = computed(() => new Map(store.products.map((p, i) => [p.id, i])));
 
 const cats = CATEGORIES;
 const keywords = ['爵士', '京都', '鋼琴', 'Notion', '街拍', '免費'];
@@ -53,7 +54,7 @@ function inBand(price: number): boolean {
 }
 
 const results = computed(() => {
-  let list = PRODUCTS.slice();
+  let list = store.products.slice();
   const q = search.value.trim().toLowerCase();
   if (q) {
     list = list.filter(
@@ -66,7 +67,7 @@ const results = computed(() => {
   if (category.value !== 'all') list = list.filter((p) => p.cat === category.value);
   list = list.filter((p) => inBand(p.price));
   switch (sort.value) {
-    case 'newest':     list.sort((a, b) => (orderMap.get(b.id) ?? 0) - (orderMap.get(a.id) ?? 0)); break;
+    case 'newest':     list.sort((a, b) => (orderMap.value.get(a.id) ?? 0) - (orderMap.value.get(b.id) ?? 0)); break;
     case 'rating':     list.sort((a, b) => b.rating - a.rating); break;
     case 'price-asc':  list.sort((a, b) => a.price - b.price); break;
     case 'price-desc': list.sort((a, b) => b.price - a.price); break;
@@ -99,7 +100,7 @@ const hasMore = computed(() => visibleCount.value < results.value.length);
 watch(results, () => { visibleCount.value = pageSize; });
 
 // ----- featured carousel (精選作品) -----
-const featured = computed(() => PRODUCTS.filter((p) => p.featured));
+const featured = computed(() => store.products.filter((p) => p.featured));
 const featTrack = ref<HTMLElement | null>(null);
 const canLeft = ref(false);
 const canRight = ref(false);
@@ -147,16 +148,11 @@ function onFeatClick(e: MouseEvent) {
 }
 
 // ----- grid badges (精選 / 熱賣 / 新上架) — adds rhythm to the otherwise uniform grid -----
-const newestIds = new Set(
-  PRODUCTS.slice()
-    .sort((a, b) => (orderMap.get(b.id) ?? 0) - (orderMap.get(a.id) ?? 0))
-    .slice(0, 3)
-    .map((p) => p.id),
-);
+const newestIds = computed(() => new Set(store.products.slice(0, 3).map((p) => p.id)));
 function badgeFor(p: Product): { label: string; tone: 'hot' | 'new' | 'feat' } | null {
   if (p.featured) return { label: '精選', tone: 'feat' };
   if (p.sales >= 1500) return { label: '熱賣', tone: 'hot' };
-  if (newestIds.has(p.id)) return { label: '新上架', tone: 'new' };
+  if (newestIds.value.has(p.id)) return { label: '新上架', tone: 'new' };
   return null;
 }
 
@@ -164,7 +160,7 @@ function catColor(id: string): string {
   const map: Record<string, string> = { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' };
   return map[id] ?? '';
 }
-function catCount(id: string): number { return id === 'all' ? PRODUCTS.length : PRODUCTS.filter((p) => p.cat === id).length; }
+function catCount(id: string): number { return id === 'all' ? store.products.length : store.products.filter((p) => p.cat === id).length; }
 function scrollToBrowse() {
   const el = document.getElementById('browse');
   if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
@@ -176,6 +172,7 @@ function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function loadMore() { visibleCount.value += pageSize; }
 
 onMounted(() => {
+  store.loadCatalog();
   window.addEventListener('scroll', onScroll);
   window.addEventListener('resize', updateFeatNav);
   updateFeatNav();
