@@ -18,6 +18,7 @@ export interface Category {
 /** 登入中的創作者。 */
 export interface Creator {
   name: string
+  storeName: string
   handle: string
   avatar: string
   bio: string
@@ -136,7 +137,7 @@ export const TAGS: Record<string, string[]> = {
 
 // ---- the signed-in creator ----
 export const ME: Creator = {
-  name: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
+  name: 'Mira Chen', storeName: 'Mira Studio', handle: '@mira.studio', avatar: '#6c4cf1',
   bio: '視覺設計師與攝影創作者，分享可商用的素材與模板。',
   email: 'mira@studiomail.co',
   joined: '2024-03',

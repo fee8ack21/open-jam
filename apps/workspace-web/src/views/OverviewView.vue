@@ -21,8 +21,7 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
 <template>
   <div data-screen-label="儀表板">
     <div class="page-intro">
-      <p class="h-eyebrow">總覽 · {{ me.handle }}</p>
-      <h1 class="h-title">嗨 Mira，今天表現不錯 👋</h1>
+      <p class="h-eyebrow">總覽 · {{ me.storeName }}</p>
       <p class="h-sub">本月收入較上月成長 {{ g.monthDelta }}%，有 {{ g.statusCount('review') }} 件作品正在審核中。</p>
     </div>
 
