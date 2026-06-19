@@ -84,7 +84,7 @@ onMounted(store.load)
 
         <!-- 已擁有商店 -->
         <template v-if="hasStore">
-        <div v-for="m in stores" :key="m.store?.id" class="card-pad">
+        <div v-for="m in stores" :key="m.store?.id" class="card-pad applications-card">
           <div style="display:flex; align-items:center; gap:14px;">
             <span class="kpi-ic" style="background:var(--c-violet)"><app-icon name="box" :size="20" /></span>
             <div style="flex:1;">
@@ -125,7 +125,7 @@ onMounted(store.load)
         </div>
 
         <!-- 申請表單（無商店、無待審申請） -->
-        <div v-else class="card-pad">
+        <div v-else class="card-pad applications-card">
           <div class="set-grid">
             <div class="sg-k">
               <div class="sgk-t">申請開店</div>
@@ -185,7 +185,7 @@ onMounted(store.load)
 </template>
 
 <style scoped>
-/* 申請紀錄卡片圓角對齊 admin 頁面的 10px */
+/* 開店頁所有卡片（狀態區塊與申請紀錄）圓角統一 10px，對齊 admin 頁面 */
 .applications-card {
   border-radius: 10px;
 }
