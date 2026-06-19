@@ -77,7 +77,7 @@ onMounted(load)
         <h1 class="h-title">商品管理</h1>
         <p class="h-sub">{{ products.length }} 件作品 · {{ catalog.publishedCount }} 件上架中</p>
       </div>
-      <button class="cta-pop" @click="dashboard.go('upload')"><app-icon name="plus" :size="16" :stroke="2.4" style="vertical-align:-3px; margin-right:4px;" />上架新商品</button>
+      <button class="cta-pop" @click="dashboard.go('upload')"><app-icon name="plus" :size="16" :stroke="2.4" />上架新商品</button>
     </div>
 
     <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px; flex-wrap:wrap;">

@@ -127,6 +127,7 @@ body {
 }
 
 .cta-pop {
+  display: inline-flex; align-items: center; gap: 4px;
   font-family: var(--oj-font); font-weight: 700; font-size: 14.5px;
   padding: 10px 18px; border-radius: 12px; cursor: pointer;
   color: #1a1626; background: linear-gradient(135deg, var(--c-yellow), var(--c-orange));
