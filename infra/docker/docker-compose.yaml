@@ -265,6 +265,14 @@ services:
     build:
       context: ../../apps/creator-web
     restart: unless-stopped
+    environment:
+      MARKET_PAGE_URL: ${MARKET_PAGE_URL}
+      CATALOG_API_URL: ${CATALOG_API_URL}
+      STORE_API_URL: ${STORE_API_URL}
+      STORE_SLUG: ${STORE_SLUG}
+      OIDC_AUTHORITY: ${AUTHORITY}
+      OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
+      AUTH_PAGE_URL: ${AUTH_PAGE_URL}
     ports:
       - "5173:80"
 
@@ -279,6 +287,10 @@ services:
       OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
+      GITHUB_REPO_URL: ${GITHUB_REPO_URL}
+      DOCS_URL: ${DOCS_URL}
+      CATALOG_API_URL: ${CATALOG_API_URL}
+      STORE_API_URL: ${STORE_API_URL}
     ports:
       - "5174:80"
 
@@ -294,6 +306,8 @@ services:
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
       STORE_API_URL: ${STORE_API_URL}
+      CATALOG_API_URL: ${CATALOG_API_URL}
+      LOG_API_URL: ${LOG_API_URL}
     ports:
       - "5175:80"
 

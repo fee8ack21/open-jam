@@ -28,6 +28,19 @@ spec:
           env:
             - name: MARKET_PAGE_URL
               value: {{ .Values.config.externalUrl | quote }}
+            - name: CATALOG_API_URL
+              value: {{ .Values.config.catalogApiUrl | quote }}
+            - name: STORE_API_URL
+              value: {{ .Values.config.storeApiUrl | quote }}
+            # 多租戶以子網域 (<slug>.openjam.co) 推導店面 slug；此處留空，僅本地無子網域時的 fallback 才用得到
+            - name: STORE_SLUG
+              value: ""
+            - name: OIDC_AUTHORITY
+              value: {{ include "open-jam.hydraPublicUrl" . | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.config.oidcClientId | quote }}
+            - name: AUTH_PAGE_URL
+              value: {{ .Values.config.authPageUrl | quote }}
           {{- with .Values.creatorWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

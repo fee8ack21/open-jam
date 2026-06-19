@@ -10,6 +10,10 @@ config:
   workspaceUrl: "https://workspace.openjam.co/"
   creatorBaseUrl: "https://<store-slug>.openjam.co"
   storeApiUrl: "https://api.openjam.co/store-service"
+  catalogApiUrl: "https://api.openjam.co/catalog-service"
+  logApiUrl: "https://api.openjam.co/log-service"
+  githubRepoUrl: "https://github.com/fee8ack21/open-jam"
+  docsUrl: "https://docs.openjam.co"
   oidcClientId: "open-jam-web"
   storagePublicBaseUrl: "https://assets.openjam.co"
 

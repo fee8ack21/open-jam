@@ -2,9 +2,14 @@
 import { computed } from 'vue';
 import AppNav from './layout/AppNav.vue';
 import { STORE } from './data/store';
+import { useAuthStore } from '@/stores/auth';
 
 // 店面瀏覽器標題：Open Jam · <店名>（待串接後端後改由 API 取得）
 document.title = `Open Jam · ${STORE.storeName}`;
+
+// 消費者免註冊，但若已於其他 .openjam.co 子網域登入，靜默讀取 SSO session，
+// 供「追蹤創作者」表單預填登入信箱（不強制登入，無 session 即略過）。
+useAuthStore().getUserIdentity();
 
 const naiveTheme = computed(() => null);
 const overrides = computed(() => ({

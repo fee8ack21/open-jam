@@ -14,4 +14,13 @@ export default defineConfig({
     strictPort: true,
     open: true,
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        callback: fileURLToPath(new URL('./callback.html', import.meta.url)),
+        'silent-renew': fileURLToPath(new URL('./silent-renew.html', import.meta.url)),
+      },
+    },
+  },
 });

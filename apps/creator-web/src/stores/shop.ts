@@ -73,6 +73,9 @@ export const useShopStore = defineStore('shop', () => {
   // checkout
   const order = ref<Order | null>(null);  // set after successful payment
 
+  // 追蹤創作者（依信箱訂閱本店面更新）
+  const following = ref(false);
+
   // ── getters ────────────────────────────────────────────
   // arg-taking getters return a function
   const product = computed(() => (id: string) => products.value.find((p) => p.id === id));
@@ -205,6 +208,14 @@ export const useShopStore = defineStore('shop', () => {
     onlyFree.value = false; search.value = '';
   }
 
+  /** 以信箱追蹤目前店面（StoreService POST /v1/stores/{id}/follow，已追蹤為 no-op）。 */
+  async function followStore(email: string) {
+    // 確保已載入真實店面 id（瀏覽時通常已載入，guard 後重呼為低成本）
+    await loadCatalog();
+    await storeApi.storeFollowers.follow(storefront.value.id, { email });
+    following.value = true;
+  }
+
   // checkout
   function startCheckout() { order.value = null; }
   function completeOrder(buyer: Buyer) {
@@ -220,13 +231,13 @@ export const useShopStore = defineStore('shop', () => {
 
   return {
     // state
-    theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order,
+    theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order, following,
     products, storefront, categories, loading, loaded,
     // getters
     product, isFav, inCart, cartProducts, cartCount, subtotal, filtered, activeFilterCount,
     // actions
     setTheme, toggleTheme, toggleFav, addToCart, setQty, removeFromCart, clearCart,
-    setCategory, toggleTag, clearFilters, startCheckout, completeOrder,
+    setCategory, toggleTag, clearFilters, startCheckout, completeOrder, followStore,
     loadCatalog, loadProduct,
   };
 });

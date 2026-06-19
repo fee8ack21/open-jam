@@ -1,27 +1,55 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useMessage } from 'naive-ui';
 import { useShopStore } from '@/stores/shop';
+import { useAuthStore } from '@/stores/auth';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
+const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
+const message = useMessage();
 
 const followEmail = ref('');
-const subscribed = ref(false);
+const emailEdited = ref(false);      // 使用者是否手動改過信箱欄位
+const submitting = ref(false);
 const mobileSearchOpen = ref(false);
 const mobileFollowOpen = ref(false);
 
+const subscribed = computed(() => store.following);
 const cartCount = computed(() => store.cartCount);
 // 404 等頁面只顯示 Logo，隱藏搜尋／購物車／追蹤等互動欄位
 const minimal = computed(() => route.name === 'not-found');
 
-const subscribe = () => {
+// 已登入則以登入信箱預填（仍可手動改動）；使用者一旦動過欄位就不再覆蓋。
+watch(
+  () => auth.userEmail,
+  (email) => {
+    if (email && !emailEdited.value) followEmail.value = email;
+  },
+  { immediate: true },
+);
+const onEmailInput = () => { emailEdited.value = true; };
+
+const subscribe = async () => {
+  if (submitting.value) return;
   const v = followEmail.value.trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return;
-  subscribed.value = true;
-  mobileFollowOpen.value = false;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+    message.warning('請輸入有效的電子信箱');
+    return;
+  }
+  submitting.value = true;
+  try {
+    await store.followStore(v);
+    mobileFollowOpen.value = false;
+    message.success('已開始追蹤這位創作者');
+  } catch {
+    message.error('追蹤失敗，請稍後再試');
+  } finally {
+    submitting.value = false;
+  }
 };
 const toggleSearch = () => { mobileSearchOpen.value = !mobileSearchOpen.value; mobileFollowOpen.value = false; };
 const toggleFollow = () => { mobileFollowOpen.value = !mobileFollowOpen.value; mobileSearchOpen.value = false; };
@@ -80,9 +108,9 @@ const onSearch = (v: string) => {
       <div v-if="!minimal" class="nav-follow" :class="{ 'is-open': mobileFollowOpen }">
         <form v-if="!subscribed" class="follow-form" @submit.prevent="subscribe">
           <span class="follow-icon"><app-icon name="mail" :size="16" /></span>
-          <input class="follow-input" type="email" v-model="followEmail"
-                 placeholder="輸入信箱，追蹤創作者" aria-label="訂閱信箱" />
-          <button class="follow-btn" type="submit">追蹤</button>
+          <input class="follow-input" type="email" v-model="followEmail" @input="onEmailInput"
+                 placeholder="輸入信箱，追蹤創作者" aria-label="訂閱信箱" :disabled="submitting" />
+          <button class="follow-btn" type="submit" :disabled="submitting">{{ submitting ? '追蹤中…' : '追蹤' }}</button>
         </form>
         <div v-else class="follow-done">
           <app-icon name="check" :size="16" /> 已追蹤

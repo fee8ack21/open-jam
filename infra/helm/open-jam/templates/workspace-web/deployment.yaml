@@ -38,6 +38,10 @@ spec:
               value: {{ .Values.config.authPageUrl | quote }}
             - name: STORE_API_URL
               value: {{ .Values.config.storeApiUrl | quote }}
+            - name: CATALOG_API_URL
+              value: {{ .Values.config.catalogApiUrl | quote }}
+            - name: LOG_API_URL
+              value: {{ .Values.config.logApiUrl | quote }}
           {{- with .Values.workspaceWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

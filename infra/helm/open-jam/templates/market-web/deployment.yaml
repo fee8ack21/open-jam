@@ -36,6 +36,14 @@ spec:
               value: {{ .Values.config.oidcClientId | quote }}
             - name: AUTH_PAGE_URL
               value: {{ .Values.config.authPageUrl | quote }}
+            - name: GITHUB_REPO_URL
+              value: {{ .Values.config.githubRepoUrl | quote }}
+            - name: DOCS_URL
+              value: {{ .Values.config.docsUrl | quote }}
+            - name: CATALOG_API_URL
+              value: {{ .Values.config.catalogApiUrl | quote }}
+            - name: STORE_API_URL
+              value: {{ .Values.config.storeApiUrl | quote }}
           {{- with .Values.marketWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
