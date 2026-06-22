@@ -13,10 +13,11 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
     /// <param name="sizeBytes">檔案大小（bytes）。</param>
     /// <param name="fileType">StorageService 媒體分類（Video=0, Image=1, Pdf=2）。</param>
     /// <param name="isPublic">是否為公開讀取物件（展示型資產為 true，下載檔為 false）。</param>
+    /// <param name="reservationId">配額預扣紀錄 ID；隨 FileReadyEvent 回帶供 QuotaService commit。</param>
     /// <param name="ct">Cancellation token。</param>
     public async Task<StorageUploadUrlResult> RequestUploadUrlAsync(
         Guid creatorId, Guid catalogId, string fileName, string contentType, long sizeBytes,
-        StorageFileType fileType, bool isPublic, CancellationToken ct)
+        StorageFileType fileType, bool isPublic, Guid reservationId, CancellationToken ct)
     {
         var client = httpClientFactory.CreateClient("storage");
 
@@ -24,6 +25,7 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
         {
             CreatorId = creatorId,
             ProductId = (Guid?)catalogId,
+            ReservationId = (Guid?)reservationId,
             OriginalName = fileName,
             ContentType = contentType,
             SizeBytes = sizeBytes,

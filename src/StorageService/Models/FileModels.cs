@@ -13,6 +13,10 @@ public class RequestUploadUrlRequest
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? ProductId { get; set; }
 
+    /// <summary>配額預扣紀錄 ID（QuotaService）；功能 API 預扣後帶入，隨 FileReadyEvent 回帶供 commit；null 表示未經配額預扣。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid? ReservationId { get; set; }
+
     /// <summary>使用者上傳時的原始檔名（含副檔名）。</summary>
     /// <example>intro-video.mp4</example>
     public string OriginalName { get; set; } = "";
@@ -74,6 +78,18 @@ public class GetDownloadUrlResponse
 
     /// <summary>簽章 URL 過期時間（UTC）。</summary>
     public DateTimeOffset ExpiresAt { get; set; }
+}
+
+/// <summary>租戶實際用量回應（每日對帳用，加總已 Ready 檔案大小）。</summary>
+public class TenantUsageResponse
+{
+    /// <summary>租戶（創作者）ID。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid CreatorId { get; set; }
+
+    /// <summary>該租戶已 Ready 檔案的位元組總和。</summary>
+    /// <example>1048576</example>
+    public long TotalBytes { get; set; }
 }
 
 /// <summary>檔案紀錄回應 DTO。</summary>

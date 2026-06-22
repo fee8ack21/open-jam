@@ -18,6 +18,7 @@ public class CatalogManager(
     IOptions<StorageOptions> storageOptions,
     StorageServiceClient storageClient,
     StoreServiceClient storeClient,
+    QuotaServiceClient quotaClient,
     AuditLogPublisher auditLog,
     IMapper mapper) : ICatalogManager
 {
@@ -205,12 +206,23 @@ public class CatalogManager(
         if (catalog.CurrentVersionId is null)
             throw new ValidationException("上架前須先建立至少一個版本。");
 
-        catalog.Status = CatalogStatus.Published;
-        catalog.PublishedAt ??= DateTimeOffset.UtcNow;
+        // 先佔用上架商品數額度（超上限拋 409）；若後續儲存失敗則補償回退。
+        await quotaClient.ChangeProductCountAsync(1, ct);
 
-        auditLog.Add(currentUser.UserId, "catalog.publish", "Catalog", catalog.Id, tenant: catalog.StoreId);
+        try
+        {
+            catalog.Status = CatalogStatus.Published;
+            catalog.PublishedAt ??= DateTimeOffset.UtcNow;
 
-        await db.SaveChangesAsync(ct);
+            auditLog.Add(currentUser.UserId, "catalog.publish", "Catalog", catalog.Id, tenant: catalog.StoreId);
+
+            await db.SaveChangesAsync(ct);
+        }
+        catch
+        {
+            await quotaClient.ChangeProductCountAsync(-1, ct);
+            throw;
+        }
     }
 
     /// <inheritdoc/>
@@ -226,6 +238,9 @@ public class CatalogManager(
         auditLog.Add(currentUser.UserId, "catalog.archive", "Catalog", catalog.Id, tenant: catalog.StoreId);
 
         await db.SaveChangesAsync(ct);
+
+        // 離開 Published 狀態，釋放上架商品數額度（best-effort）。
+        await quotaClient.ChangeProductCountAsync(-1, ct);
     }
 
     /// <inheritdoc/>
@@ -270,40 +285,51 @@ public class CatalogManager(
 
         var fileType = CatalogAssetContentTypes.Resolve(request.Type, request.ContentType);
 
-        var result = await storageClient.RequestUploadUrlAsync(
-            userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
-            fileType, isPublic: true, ct);
+        // 簽發上傳 URL 前先向 QuotaService 預扣；後續任何失敗都釋放預扣。
+        var reservationId = await quotaClient.ReserveAsync(request.SizeBytes, catalog.Id, ct);
 
-        var nextSortOrder = await db.CatalogAssets
-            .Where(a => a.CatalogId == catalog.Id && a.Type == request.Type)
-            .CountAsync(ct);
-
-        var asset = new CatalogAsset
+        try
         {
-            Id = result.FileId,
-            CatalogId = catalog.Id,
-            Type = request.Type,
-            FileName = request.FileName,
-            StorageKey = result.StorageKey,
-            FileSize = request.SizeBytes,
-            ContentType = request.ContentType,
-            SortOrder = nextSortOrder,
-        };
-        db.CatalogAssets.Add(asset);
+            var result = await storageClient.RequestUploadUrlAsync(
+                userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
+                fileType, isPublic: true, reservationId, ct);
 
-        // 首張縮圖自動設為商品縮圖。
-        if (request.Type == CatalogAssetType.Thumbnail && catalog.ThumbnailAssetId is null)
-            catalog.ThumbnailAssetId = asset.Id;
+            var nextSortOrder = await db.CatalogAssets
+                .Where(a => a.CatalogId == catalog.Id && a.Type == request.Type)
+                .CountAsync(ct);
 
-        await db.SaveChangesAsync(ct);
+            var asset = new CatalogAsset
+            {
+                Id = result.FileId,
+                CatalogId = catalog.Id,
+                Type = request.Type,
+                FileName = request.FileName,
+                StorageKey = result.StorageKey,
+                FileSize = request.SizeBytes,
+                ContentType = request.ContentType,
+                SortOrder = nextSortOrder,
+            };
+            db.CatalogAssets.Add(asset);
 
-        return new CatalogAssetUploadUrlResponse
+            // 首張縮圖自動設為商品縮圖。
+            if (request.Type == CatalogAssetType.Thumbnail && catalog.ThumbnailAssetId is null)
+                catalog.ThumbnailAssetId = asset.Id;
+
+            await db.SaveChangesAsync(ct);
+
+            return new CatalogAssetUploadUrlResponse
+            {
+                AssetId = asset.Id,
+                UploadUrl = result.UploadUrl,
+                PublicUrl = result.PublicUrl ?? BuildPublicUrl(result.StorageKey),
+                ExpiresAt = result.ExpiresAt,
+            };
+        }
+        catch
         {
-            AssetId = asset.Id,
-            UploadUrl = result.UploadUrl,
-            PublicUrl = result.PublicUrl ?? BuildPublicUrl(result.StorageKey),
-            ExpiresAt = result.ExpiresAt,
-        };
+            await quotaClient.ReleaseAsync(reservationId, ct);
+            throw;
+        }
     }
 
     /// <inheritdoc/>

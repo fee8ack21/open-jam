@@ -27,9 +27,10 @@ public class FileService(
 
         var file = new StoredFile
         {
-            CreatorId    = request.CreatorId,
-            ProductId    = request.ProductId,
-            OriginalName = request.OriginalName,
+            CreatorId     = request.CreatorId,
+            ProductId     = request.ProductId,
+            ReservationId = request.ReservationId,
+            OriginalName  = request.OriginalName,
             ContentType  = request.ContentType,
             SizeBytes    = request.SizeBytes,
             FileType     = request.FileType,
@@ -104,5 +105,17 @@ public class FileService(
         // BaseDbContext 會將 Remove() 自動轉為軟刪除並填入 DeletedAt / DeletedBy。
         db.StoredFiles.Remove(file);
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<TenantUsageResponse> GetTenantUsageAsync(Guid creatorId, CancellationToken ct)
+    {
+        // 全域 Query Filter 已排除軟刪除；僅加總已 Ready 檔案。
+        var total = await db.StoredFiles
+            .AsNoTracking()
+            .Where(f => f.CreatorId == creatorId && f.Status == FileStatus.Ready)
+            .SumAsync(f => f.SizeBytes ?? 0, ct);
+
+        return new TenantUsageResponse { CreatorId = creatorId, TotalBytes = total };
     }
 }

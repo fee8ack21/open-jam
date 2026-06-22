@@ -1,15 +1,12 @@
 using System.Text.Json.Serialization;
-using CatalogService.Data;
-using CatalogService.Options;
-using CatalogService.Services;
-using CatalogService.Services.Background;
-using CatalogService.Services.Catalogs;
-using CatalogService.Services.CatalogVersions;
-using CatalogService.Services.Categories;
-using CatalogService.Services.Favorites;
-using CatalogService.Services.Tags;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using QuotaService.Consumers;
+using QuotaService.Data;
+using QuotaService.Options;
+using QuotaService.Services;
+using QuotaService.Services.Background;
+using QuotaService.Services.Quotas;
 using Shared.Auth;
 using Shared.Middleware;
 using Shared.Web;
@@ -21,52 +18,51 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 
 // PostgreSQL + EF Core（snake_case 命名慣例）
-builder.Services.AddDbContext<CatalogDbContext>(opts =>
+builder.Services.AddDbContext<QuotaDbContext>(opts =>
     opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
             o => o.MigrationsHistoryTable("__ef_migrations_history"))
         .UseSnakeCaseNamingConvention());
 
-// MassTransit + RabbitMQ（publish only，Outbox 事件）
+// MassTransit + RabbitMQ（consumer：FileReadyEvent → commit 預扣）
 builder.Services.AddMassTransit(x =>
 {
-    x.UsingRabbitMq((_, cfg) =>
+    x.AddConsumer<FileReadyConsumer>(cfg =>
+    {
+        cfg.UseMessageRetry(r => r.Exponential(
+            retryLimit:    5,
+            minInterval:   TimeSpan.FromSeconds(1),
+            maxInterval:   TimeSpan.FromSeconds(30),
+            intervalDelta: TimeSpan.FromSeconds(2)));
+    });
+
+    x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
         });
+
+        cfg.ConfigureEndpoints(ctx);
     });
 });
 
-builder.Services.AddHostedService<OutboxRelayService>();
-
 // 強型別設定（Options pattern）
-builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
+builder.Services.Configure<QuotaOptions>(builder.Configuration.GetSection("Quota"));
 builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
 
-// 外部微服務 API client
+// 外部微服務 API client（對帳加總實際用量）
 var services = builder.Configuration.GetSection("Services").Get<ServiceOptions>() ?? new ServiceOptions();
-
 var storageBaseUrl = (services.StorageService.BaseUrl ?? "http://localhost:5171").TrimEnd('/') + "/";
 builder.Services.AddHttpClient("storage", client => client.BaseAddress = new Uri(storageBaseUrl));
 builder.Services.AddScoped<StorageServiceClient>();
 
-var storeBaseUrl = (services.StoreService.BaseUrl ?? "http://localhost:5172").TrimEnd('/') + "/";
-builder.Services.AddHttpClient("store", client => client.BaseAddress = new Uri(storeBaseUrl));
-builder.Services.AddScoped<StoreServiceClient>();
-
-var quotaBaseUrl = (services.QuotaService.BaseUrl ?? "http://localhost:5177").TrimEnd('/') + "/";
-builder.Services.AddHttpClient("quota", client => client.BaseAddress = new Uri(quotaBaseUrl));
-builder.Services.AddScoped<QuotaServiceClient>();
-
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
-builder.Services.AddScoped<AuditLogPublisher>();
-builder.Services.AddScoped<ICatalogManager, CatalogManager>();
-builder.Services.AddScoped<ICatalogVersionService, CatalogVersionService>();
-builder.Services.AddScoped<ICatalogCategoryService, CatalogCategoryService>();
-builder.Services.AddScoped<ICatalogTagService, CatalogTagService>();
-builder.Services.AddScoped<ICatalogFavoriteService, CatalogFavoriteService>();
+builder.Services.AddScoped<IQuotaManager, QuotaManager>();
+
+// 背景服務：逾時預扣 sweeper + 每日對帳
+builder.Services.AddHostedService<ReservationSweeperService>();
+builder.Services.AddHostedService<ReconciliationService>();
 
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
@@ -80,7 +76,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(opts =>
         opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenJamApiVersioning();
-builder.Services.AddOpenJamSwagger("CatalogService");
+builder.Services.AddOpenJamSwagger("QuotaService");
 
 // FluentValidation（model 驗證）+ AutoMapper（model 轉換）
 builder.Services.AddOpenJamValidation(typeof(Program).Assembly);
@@ -91,11 +87,11 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider
-        .GetRequiredService<CatalogDbContext>()
+        .GetRequiredService<QuotaDbContext>()
         .Database.MigrateAsync();
 }
 
-// PathBase：剝除 Ingress 轉發保留的服務前綴（如 /catalog-service），須為第一個 middleware
+// PathBase：剝除 Ingress 轉發保留的服務前綴（如 /quota-service），須為第一個 middleware
 app.UseOpenJamPathBase();
 
 app.UseExceptionMiddleware();

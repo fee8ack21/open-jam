@@ -108,6 +108,13 @@ StoreService Service URL (cluster-internal).
 {{- end }}
 
 {{/*
+QuotaService Service URL (cluster-internal).
+*/}}
+{{- define "open-jam.quotaServiceUrl" -}}
+{{- printf "http://%s-quota-service:8080" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
 Secret name.
 */}}
 {{- define "open-jam.secretName" -}}

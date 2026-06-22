@@ -33,6 +33,15 @@ public class FilesController(IFileService fileService) : ControllerBase
         [FromBody] RequestUploadUrlRequest request, CancellationToken ct) =>
         Ok(await fileService.RequestUploadUrlAsync(request, ct));
 
+    /// <summary>加總指定創作者已 Ready 檔案的位元組總和（QuotaService 每日對帳用）。</summary>
+    /// <param name="creatorId">創作者（租戶）ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet("usage")]
+    [ProducesResponseType<TenantUsageResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<TenantUsageResponse>> GetTenantUsageAsync(
+        [FromQuery] Guid creatorId, CancellationToken ct) =>
+        Ok(await fileService.GetTenantUsageAsync(creatorId, ct));
+
     /// <summary>查詢檔案元資訊與處理狀態。</summary>
     /// <param name="id">檔案 ID。</param>
     /// <param name="ct">Cancellation token。</param>

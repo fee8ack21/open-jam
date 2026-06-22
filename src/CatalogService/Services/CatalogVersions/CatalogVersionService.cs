@@ -15,6 +15,7 @@ public class CatalogVersionService(
     ICurrentUserAccessor currentUser,
     StorageServiceClient storageClient,
     StoreServiceClient storeClient,
+    QuotaServiceClient quotaClient,
     IMapper mapper) : ICatalogVersionService
 {
     /// <inheritdoc/>
@@ -73,34 +74,45 @@ public class CatalogVersionService(
 
         var fileType = CatalogAssetContentTypes.ResolveDownloadable(request.ContentType);
 
-        var result = await storageClient.RequestUploadUrlAsync(
-            userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
-            fileType, isPublic: false, ct);
+        // 簽發上傳 URL 前先向 QuotaService 預扣；後續任何失敗都釋放預扣。
+        var reservationId = await quotaClient.ReserveAsync(request.SizeBytes, catalog.Id, ct);
 
-        var nextSortOrder = await db.CatalogVersionAssets
-            .Where(a => a.CatalogVersionId == version.Id)
-            .CountAsync(ct);
-
-        var asset = new CatalogVersionAsset
+        try
         {
-            Id = result.FileId,
-            CatalogVersionId = version.Id,
-            FileName = request.FileName,
-            StorageKey = result.StorageKey,
-            FileSize = request.SizeBytes,
-            ContentType = request.ContentType,
-            SortOrder = nextSortOrder,
-        };
-        db.CatalogVersionAssets.Add(asset);
+            var result = await storageClient.RequestUploadUrlAsync(
+                userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
+                fileType, isPublic: false, reservationId, ct);
 
-        await db.SaveChangesAsync(ct);
+            var nextSortOrder = await db.CatalogVersionAssets
+                .Where(a => a.CatalogVersionId == version.Id)
+                .CountAsync(ct);
 
-        return new VersionAssetUploadUrlResponse
+            var asset = new CatalogVersionAsset
+            {
+                Id = result.FileId,
+                CatalogVersionId = version.Id,
+                FileName = request.FileName,
+                StorageKey = result.StorageKey,
+                FileSize = request.SizeBytes,
+                ContentType = request.ContentType,
+                SortOrder = nextSortOrder,
+            };
+            db.CatalogVersionAssets.Add(asset);
+
+            await db.SaveChangesAsync(ct);
+
+            return new VersionAssetUploadUrlResponse
+            {
+                AssetId = asset.Id,
+                UploadUrl = result.UploadUrl,
+                ExpiresAt = result.ExpiresAt,
+            };
+        }
+        catch
         {
-            AssetId = asset.Id,
-            UploadUrl = result.UploadUrl,
-            ExpiresAt = result.ExpiresAt,
-        };
+            await quotaClient.ReleaseAsync(reservationId, ct);
+            throw;
+        }
     }
 
     /// <inheritdoc/>

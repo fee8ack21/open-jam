@@ -18,5 +18,7 @@ public record FileReadyEvent(
     /// <summary>檔案大小（bytes）。</summary>
     long? SizeBytes,
     /// <summary>是否為公開預覽衍生檔。</summary>
-    bool IsPreview
+    bool IsPreview,
+    /// <summary>對應的配額預扣紀錄 ID（QuotaService）；null 表示此檔未經配額預扣（如系統衍生檔）。</summary>
+    Guid? ReservationId = null
 );

@@ -1,27 +1,27 @@
-{{- if .Values.catalogService.enabled }}
+{{- if .Values.quotaService.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "open-jam.fullname" . }}-catalog-service
+  name: {{ include "open-jam.fullname" . }}-quota-service
   labels:
     {{- include "open-jam.labels" . | nindent 4 }}
-    app.kubernetes.io/component: catalog-service
+    app.kubernetes.io/component: quota-service
 spec:
-  replicas: {{ .Values.catalogService.replicaCount }}
+  replicas: {{ .Values.quotaService.replicaCount }}
   selector:
     matchLabels:
       {{- include "open-jam.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: catalog-service
+      app.kubernetes.io/component: quota-service
   template:
     metadata:
       labels:
         {{- include "open-jam.labels" . | nindent 8 }}
-        app.kubernetes.io/component: catalog-service
+        app.kubernetes.io/component: quota-service
     spec:
       containers:
-        - name: catalog-service
-          image: {{ printf "%s:%s" .Values.catalogService.image.repository .Values.catalogService.image.tag | quote }}
-          imagePullPolicy: {{ .Values.catalogService.image.pullPolicy }}
+        - name: quota-service
+          image: {{ printf "%s:%s" .Values.quotaService.image.repository .Values.quotaService.image.tag | quote }}
+          imagePullPolicy: {{ .Values.quotaService.image.pullPolicy }}
           ports:
             - containerPort: 8080
               name: http
@@ -30,9 +30,6 @@ spec:
               value: Production
             - name: ASPNETCORE_HTTP_PORTS
               value: "8080"
-            # 對應 infra chart Ingress 的 path 前綴（GCE Ingress 不剝除，由服務自行剝除）
-            - name: PathBase
-              value: "/catalog-service"
             - name: Logging__LogLevel__Default
               value: "Warning"
             - name: Logging__LogLevel__Microsoft
@@ -43,7 +40,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}
-                  key: catalog-service-connection-string
+                  key: quota-service-connection-string
             - name: RabbitMQ__Host
               value: {{ include "open-jam.rabbitmqHost" . | quote }}
             - name: RabbitMQ__Username
@@ -53,19 +50,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}
                   key: rabbitmq-password
-            - name: Storage__PublicBaseUrl
-              value: {{ .Values.config.storagePublicBaseUrl | quote }}
             - name: Services__StorageService__BaseUrl
               value: {{ include "open-jam.storageServiceUrl" . | quote }}
-            - name: Services__StoreService__BaseUrl
-              value: {{ include "open-jam.storeServiceUrl" . | quote }}
-            - name: Services__QuotaService__BaseUrl
-              value: {{ include "open-jam.quotaServiceUrl" . | quote }}
             - name: Hydra__Issuer
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: Hydra__MetadataAddress
               value: {{ include "open-jam.hydraMetadataAddress" . | quote }}
-          {{- with .Values.catalogService.resources }}
+          {{- with .Values.quotaService.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -75,7 +66,7 @@ spec:
             - >
               /wait-for-it.sh {{ include "open-jam.postgresHost" . }}:5432 --timeout=60 --strict &&
               /wait-for-it.sh {{ include "open-jam.rabbitmqHost" . }}:5672 --timeout=60 --strict &&
-              dotnet CatalogService.dll
+              dotnet QuotaService.dll
           volumeMounts:
             - name: wait-for-it
               mountPath: /wait-for-it.sh

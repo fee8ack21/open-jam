@@ -16,4 +16,7 @@ public interface IFileService
 
     /// <summary>軟刪除檔案。</summary>
     Task DeleteAsync(Guid id, CancellationToken ct);
+
+    /// <summary>加總指定創作者已 Ready 檔案的位元組總和（QuotaService 每日對帳用）。</summary>
+    Task<TenantUsageResponse> GetTenantUsageAsync(Guid creatorId, CancellationToken ct);
 }

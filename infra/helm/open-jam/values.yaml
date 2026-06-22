@@ -265,6 +265,21 @@ catalogService:
       cpu: 300m
       memory: 512Mi
 
+quotaService:
+  enabled: true
+  image:
+    repository: open-jam/quota-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
 creatorWeb:
   enabled: true
   image:
