@@ -61,7 +61,7 @@ export default defineConfig({
         text: '功能規格',
         items: [
           { text: '認證授權 Auth', link: '/auth' },
-          { text: '商品 Product', link: '/product' },
+          { text: '商品 Catalog', link: '/catalog' },
           { text: '訂單 Order', link: '/order' },
           { text: '儲存 Storage', link: '/storage' },
           { text: '信件 Email', link: '/email' },

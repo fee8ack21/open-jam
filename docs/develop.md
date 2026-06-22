@@ -14,7 +14,8 @@ src/
   EmailService/     # 寄信服務
   StorageService/   # 檔案儲存 / 轉碼 / 預覽
   LogService/       # Audit Log / 日誌
-  ProductService/   # 商店與商品上下架
+  StoreService/     # 開店申請 / 商店 / 追蹤
+  CatalogService/   # 商品 / 版本 / 分類 / 標籤
   OrderService/     # 訂單與金流
   QuotaService/     # 資源配額計量
   Bootstrap/        # 平台初始化 seed

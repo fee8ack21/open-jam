@@ -5,7 +5,7 @@ EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[
 ## 服務範圍
 
 - **交易信（MVP）**：一對一、事件觸發的信（帳號開通、重置密碼、訂單確認等）。
-- **大量群發（bulk，預留）**：創作者 → 追蹤者的群發（見 [[Product]] 訂閱 / 追蹤）。MVP 不實作，但於架構上預留批次與退訂管理擴充點。
+- **大量群發（bulk，預留）**：創作者 → 追蹤者的群發（見 [[Catalog]] 訂閱 / 追蹤）。MVP 不實作，但於架構上預留批次與退訂管理擴充點。
 
 > **寄送層以 `IEmailSender` 抽象隔離**：正式環境接 SendGrid（支援退信 webhook、投訴回報，適合 bulk 擴充），地端開發改接 SMTP catcher，兩者切換不影響其他邏輯。
 
@@ -85,7 +85,7 @@ EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[
 ## 退信 / 投訴 / 退訂（預留）
 
 - SendGrid 提供退信（bounce）/ 投訴（complaint）webhook，可串接退訂與黑名單處理，MVP 階段先預留實作。
-- bulk / 訂閱信需支援 `List-Unsubscribe` 標頭與退訂管理（對應 [[Product]] 訂閱 / 追蹤），隨 bulk 功能一併實作。
+- bulk / 訂閱信需支援 `List-Unsubscribe` 標頭與退訂管理（對應 [[Catalog]] 訂閱 / 追蹤），隨 bulk 功能一併實作。
 
 ## 技術與架構
 

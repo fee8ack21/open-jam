@@ -41,7 +41,7 @@ QuotaService 負責**租戶（creator）資源配額的計量、預扣與回滾*
 
 ## 配額檢查與預扣流程（上傳）
 
-呼叫方為**功能 API（[[Product]] / CatalogService）**，QuotaService 不被 [[Storage]] 直接呼叫——[[Storage]] 維持為純儲存原語。
+呼叫方為**功能 API（[[Catalog]] / CatalogService）**，QuotaService 不被 [[Storage]] 直接呼叫——[[Storage]] 維持為純儲存原語。
 
 ```
 CatalogService 上傳流程：
@@ -130,4 +130,4 @@ CatalogService 上傳流程：
 - .NET 微服務（`src/QuotaService/`），整體結構慣例見 [[Develop]]，可參考 CatalogService / StoreService。
 - 資料庫 `open_jam_quota`（snake_case、`BaseDbContext` audit / 軟刪除慣例）。
 - 事件採 RabbitMQ + MassTransit（與 [[Storage]] / [[Email]] 一致）。
-- 跨服務關聯：上傳流程 [[Storage]]、商品上下架與額度語意 [[Product]]、租戶識別 [[Auth]]、稽核 [[Log]]。
+- 跨服務關聯：上傳流程 [[Storage]]、商品上下架與額度語意 [[Catalog]]、租戶識別 [[Auth]]、稽核 [[Log]]。

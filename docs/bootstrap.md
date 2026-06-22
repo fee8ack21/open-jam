@@ -21,13 +21,13 @@ Bootstrap 負責**預建平台運行所需的資料**。因架構採 **DB per se
 
 | 資料 | 歸屬 | 來源 |
 |------|------|------|
-| 子網域保留字 | Bootstrap（共用）| [[Product]] / [[Auth]] / [[Quota]] |
+| 子網域保留字 | Bootstrap（共用）| [[Catalog]] / [[Auth]] / [[Quota]] |
 | Hydra Client（各 SPA / API 的 OIDC client）| Bootstrap（基建）| [[Auth]] |
 | RBAC 角色與權限（Consumer / Creator / Admin）| Auth | [[Auth]] |
 | 初始 Admin 帳號與角色 | Auth | [[Auth]] |
 | Email Template | EmailService | [[Email]] |
-| 平台固定分類 | Product | [[Product]] |
-| 創作者方案定義 + 配額額度 | Product / Quota | [[Product]] / [[Quota]] |
+| 平台固定分類 | Catalog | [[Catalog]] |
+| 固定配額額度（設定值，不分方案）| Quota | [[Quota]] |
 
 ### 開發假資料（dev only）
 

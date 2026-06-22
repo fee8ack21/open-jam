@@ -18,7 +18,7 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 
 ## 上傳流程（簽章直傳）
 
-1. 前端向**功能 API** 請求上傳；功能 API **先檢查配額**（單檔 / 單商品 / 帳號總量上限，見 [[Product]]、[[Quota]]）。
+1. 前端向**功能 API** 請求上傳；功能 API **先檢查配額**（單檔 / 單商品 / 帳號總量上限，見 [[Catalog]]、[[Quota]]）。
 2. 通過後簽發 **upload signed URL**（內含大小、content-type 限制與時效）。
 3. 前端透過 signed URL **直傳** storage，不經功能 API 轉傳。
 4. 大檔（影片）支援 **resumable 上傳**（GCS resumable / S3 multipart），斷線可續傳。

@@ -12,7 +12,7 @@
 ## 購買流程
 
 - **結帳**：Payment Intent + 自訂 UI（Stripe Elements），支援登入與未登入（guest）結帳。
-- **定價**：依 [[Product]] 的固定價 / 免費 / 折扣碼；結帳時套用折扣碼。
+- **定價**：依 [[Catalog]] 的固定價 / 免費 / 折扣碼；結帳時套用折扣碼。
 - **免費商品**：憑信箱領取，不需付款流程。
 - **履約時機**：以 Stripe **webhook（`payment_intent.succeeded`）為唯一事實來源**，確認後才產生 entitlement 並寄送訂單確認信（[[Email]]）；前端僅顯示結果。
 - **成功路徑**：成功頁提供 order id 與下載連結 + 寄送訂單確認信。
@@ -29,7 +29,7 @@
 ## 下載授權（Entitlement）
 
 - 付款成功（webhook 確認）後產生 entitlement。
-- **範圍：永久下載**——只要商品存在即可重複下載；已售出商品的下載權保留呼應 [[Storage]] / [[Product]] / [[Auth]]。
+- **範圍：永久下載**——只要商品存在即可重複下載；已售出商品的下載權保留呼應 [[Storage]] / [[Catalog]] / [[Auth]]。
 - **關聯**：以 `user_id`（FK）為主，guest 階段以 email 記錄（資料模型已於 [[Auth]] 定）。
 - [[Storage]] 依 entitlement 簽發 signed URL / signed cookie。
 - 退款時撤銷 entitlement。
@@ -61,4 +61,4 @@
 ## 技術與架構
 
 - .NET 微服務，整體結構慣例見 [[Develop]]。
-- 跨服務關聯：下載 [[Storage]]、商品與定價 / 折扣 [[Product]]、身份與提領設定 [[Auth]]、訂單信 / 追蹤通知 [[Email]]、稽核 [[Log]]、配額 [[Quota]]。
+- 跨服務關聯：下載 [[Storage]]、商品與定價 / 折扣 [[Catalog]]、身份與提領設定 [[Auth]]、訂單信 / 追蹤通知 [[Email]]、稽核 [[Log]]、配額 [[Quota]]。

@@ -18,7 +18,7 @@
 |------|----------|------|
 | **Auth** | 註冊 / 登入 / 忘記密碼 / Email 驗證，整合 Ory Hydra（OIDC）；Argon2id 密碼雜湊 | [[Auth]] |
 | **StoreService** | 開店申請與管理員審核、商店資料（名稱 / 描述 / Avatar / Banner / 狀態）、商店成員（僅 Owner）、憑信箱追蹤 | [[Store]] |
-| **CatalogService** | 數位商品 CRUD、版本（CatalogVersion）、平台多層分類、創作者標籤、展示型與下載型資產、商品狀態機（Draft / Published / Archived / Suspended） | [[Product]] |
+| **CatalogService** | 數位商品 CRUD、版本（CatalogVersion）、平台多層分類、創作者標籤、展示型與下載型資產、商品狀態機（Draft / Published / Archived / Suspended） | [[Catalog]] |
 | **StorageService** | 簽發上傳 / 下載 URL、本地檔案儲存後端（LocalStorageProvider）、HMAC 簽章直傳、上傳確認、`FileReadyEvent`、孤兒檔清理 | [[Storage]] |
 | **EmailService** | 消費 `EmailRequestedEvent`，DB 模板渲染 → SMTP（地端）/ SendGrid（正式）寄送，指數退避重試 + 補償排程 | [[Email]] |
 | **LogService** | 消費 `AuditLogRequestedEvent` 寫入 `audit_log`，提供分頁查詢 REST API | [[Log]] |
@@ -91,4 +91,4 @@
 
 - [[Develop]] — 開發慣例與專案結構
 - [[Infra]] — 網域、站點、雲端資源、部署
-- 各功能規格：[[Auth]]、[[Store]]、[[Product]]、[[Order]]、[[Storage]]、[[Email]]、[[Quota]]、[[Log]]
+- 各功能規格：[[Auth]]、[[Store]]、[[Catalog]]、[[Order]]、[[Storage]]、[[Email]]、[[Quota]]、[[Log]]
