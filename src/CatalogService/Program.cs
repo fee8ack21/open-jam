@@ -11,6 +11,7 @@ using CatalogService.Services.Tags;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
+using Shared.Data;
 using Shared.Middleware;
 using Shared.Web;
 
@@ -22,9 +23,7 @@ builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 
 // PostgreSQL + EF Core（snake_case 命名慣例）
 builder.Services.AddDbContext<CatalogDbContext>(opts =>
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-            o => o.MigrationsHistoryTable("__ef_migrations_history"))
-        .UseSnakeCaseNamingConvention());
+    opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // MassTransit + RabbitMQ（publish only，Outbox 事件）
 builder.Services.AddMassTransit(x =>

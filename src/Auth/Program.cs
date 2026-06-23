@@ -7,6 +7,7 @@ using Auth.Services.Users;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
+using Shared.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +27,7 @@ builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 
 // PostgreSQL + EF Core（snake_case 命名慣例）
 builder.Services.AddDbContext<AppDbContext>(opts =>
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-            o => o.MigrationsHistoryTable("__ef_migrations_history"))
-        .UseSnakeCaseNamingConvention());
+    opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // MassTransit (publisher only)
 builder.Services.AddMassTransit(x =>

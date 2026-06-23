@@ -2,6 +2,7 @@ using System.Text.Json;
 using CatalogService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Shared.Data;
 using Shared.Events;
 
 namespace CatalogService.Services.Background;
@@ -38,37 +39,39 @@ public class OutboxRelayService(
         var db  = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
         var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        var messages = await db.OutboxMessages
-            .FromSqlRaw(
-                """
-                SELECT * FROM outbox_messages
-                WHERE processed_at IS NULL
-                ORDER BY created_at
-                LIMIT 10
-                FOR UPDATE SKIP LOCKED
-                """)
-            .ToListAsync(ct);
-
-        if (messages.Count == 0)
+        // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
+        await db.Database.ExecuteInTransactionAsync(async tx =>
         {
-            await tx.RollbackAsync(ct);
-            return;
-        }
+            var messages = await db.OutboxMessages
+                .FromSqlRaw(
+                    """
+                    SELECT * FROM outbox_messages
+                    WHERE processed_at IS NULL
+                    ORDER BY created_at
+                    LIMIT 10
+                    FOR UPDATE SKIP LOCKED
+                    """)
+                .ToListAsync(ct);
 
-        foreach (var message in messages)
-        {
-            // 目前 CatalogService 僅發布審計事件。
-            var evt = JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload)!;
+            if (messages.Count == 0)
+            {
+                await tx.RollbackAsync(ct);
+                return;
+            }
 
-            await bus.Publish(evt, ct);
-            message.ProcessedAt = DateTimeOffset.UtcNow;
-        }
+            foreach (var message in messages)
+            {
+                // 目前 CatalogService 僅發布審計事件。
+                var evt = JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload)!;
 
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+                await bus.Publish(evt, ct);
+                message.ProcessedAt = DateTimeOffset.UtcNow;
+            }
 
-        logger.LogInformation("OutboxRelay: 已發布 {Count} 筆訊息", messages.Count);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            logger.LogInformation("OutboxRelay: 已發布 {Count} 筆訊息", messages.Count);
+        }, ct);
     }
 }

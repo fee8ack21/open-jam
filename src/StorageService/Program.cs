@@ -3,6 +3,7 @@ using Google.Cloud.Storage.V1;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
+using Shared.Data;
 using Shared.Middleware;
 using Shared.Web;
 using StorageService.Data;
@@ -22,9 +23,7 @@ var storageOpts = builder.Configuration.GetSection("Storage").Get<StorageOptions
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 builder.Services.AddDbContext<StorageDbContext>(opts =>
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-            o => o.MigrationsHistoryTable("__ef_migrations_history"))
-        .UseSnakeCaseNamingConvention());
+    opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
 

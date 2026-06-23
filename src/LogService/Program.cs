@@ -3,6 +3,7 @@ using LogService.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
+using Shared.Data;
 using Shared.Middleware;
 using Shared.Web;
 
@@ -11,9 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // PostgreSQL + EF Core（snake_case 命名慣例）
 builder.Services.AddSingleton<ICurrentUserAccessor, NullCurrentUserAccessor>();
 builder.Services.AddDbContext<LogDbContext>(opts =>
-    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-            o => o.MigrationsHistoryTable("__ef_migrations_history"))
-        .UseSnakeCaseNamingConvention());
+    opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // MassTransit + RabbitMQ（consumer + 指數退避重試）
 builder.Services.AddMassTransit(x =>

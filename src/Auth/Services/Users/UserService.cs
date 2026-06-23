@@ -6,6 +6,7 @@ using Auth.Options;
 using Auth.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Shared.Data;
 using Shared.Events;
 
 namespace Auth.Services.Users;
@@ -25,37 +26,39 @@ public class UserService(
         if (existing is not null && existing.Status != UserStatus.Pending)
             return (false, "此電子信箱已被使用");
 
-        await using var tx = await db.Database.BeginTransactionAsync();
-
-        var hash = passwordHasher.Hash(password);
-        User user;
-
-        if (existing is not null)
+        // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
+        return await db.Database.ExecuteInTransactionAsync<(bool, string?)>(async tx =>
         {
-            // Squatting 防護：同一信箱已有 Pending 帳號 → 覆蓋並重發驗證信
-            existing.PasswordHash = hash;
+            var hash = passwordHasher.Hash(password);
+            User user;
 
-            // 作廢舊的未使用 token
-            await db.EmailVerificationTokens
-                .Where(t => t.UserId == existing.Id && t.UsedAt == null)
-                .ExecuteUpdateAsync(s => s.SetProperty(t => t.UsedAt, DateTimeOffset.UtcNow));
+            if (existing is not null)
+            {
+                // Squatting 防護：同一信箱已有 Pending 帳號 → 覆蓋並重發驗證信
+                existing.PasswordHash = hash;
 
-            user = existing;
-        }
-        else
-        {
-            user = new User { Email = email, PasswordHash = hash, Status = UserStatus.Pending };
-            db.Users.Add(user);
-        }
+                // 作廢舊的未使用 token
+                await db.EmailVerificationTokens
+                    .Where(t => t.UserId == existing.Id && t.UsedAt == null)
+                    .ExecuteUpdateAsync(s => s.SetProperty(t => t.UsedAt, DateTimeOffset.UtcNow));
 
-        var (token, outbox) = BuildVerificationOutbox(user.Id, email);
-        db.EmailVerificationTokens.Add(token);
-        db.OutboxMessages.Add(outbox);
+                user = existing;
+            }
+            else
+            {
+                user = new User { Email = email, PasswordHash = hash, Status = UserStatus.Pending };
+                db.Users.Add(user);
+            }
 
-        await db.SaveChangesAsync();
-        await tx.CommitAsync();
+            var (token, outbox) = BuildVerificationOutbox(user.Id, email);
+            db.EmailVerificationTokens.Add(token);
+            db.OutboxMessages.Add(outbox);
 
-        return (true, null);
+            await db.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return (true, null);
+        });
     }
 
     /// <inheritdoc/>
@@ -116,21 +119,23 @@ public class UserService(
         if (user is null || user.Status is UserStatus.Deleted)
             return (true, null);
 
-        await using var tx = await db.Database.BeginTransactionAsync();
+        // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
+        return await db.Database.ExecuteInTransactionAsync<(bool, string?)>(async tx =>
+        {
+            // 作廢舊的未使用重置 token
+            await db.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && t.UsedAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.UsedAt, DateTimeOffset.UtcNow));
 
-        // 作廢舊的未使用重置 token
-        await db.PasswordResetTokens
-            .Where(t => t.UserId == user.Id && t.UsedAt == null)
-            .ExecuteUpdateAsync(s => s.SetProperty(t => t.UsedAt, DateTimeOffset.UtcNow));
+            var (resetToken, outbox) = BuildPasswordResetOutbox(user.Id, email);
+            db.PasswordResetTokens.Add(resetToken);
+            db.OutboxMessages.Add(outbox);
 
-        var (resetToken, outbox) = BuildPasswordResetOutbox(user.Id, email);
-        db.PasswordResetTokens.Add(resetToken);
-        db.OutboxMessages.Add(outbox);
+            await db.SaveChangesAsync();
+            await tx.CommitAsync();
 
-        await db.SaveChangesAsync();
-        await tx.CommitAsync();
-
-        return (true, null);
+            return (true, null);
+        });
     }
 
     /// <inheritdoc/>

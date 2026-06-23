@@ -5,6 +5,7 @@ using QuotaService.Data.Entities;
 using QuotaService.Models;
 using QuotaService.Options;
 using Shared.Auth;
+using Shared.Data;
 using Shared.Exceptions;
 
 namespace QuotaService.Services.Quotas;
@@ -31,93 +32,97 @@ public class QuotaManager(
 
         var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_opts.ReservationTtlMinutes);
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        // 1. lazy upsert 租戶用量（quota 取設定快照）
-        await UpsertTenantUsageAsync(tenantId, ct);
-
-        // 2. 冪等插入 reservation：同 ID 重送 → 0 rows，回傳既有結果不重複預扣
-        var inserted = await db.Database.ExecuteSqlInterpolatedAsync($"""
-            INSERT INTO reservations (id, tenant_id, product_id, size, status, expires_at, created_at)
-            VALUES ({request.ReservationId}, {tenantId}, {request.ProductId}, {request.Size},
-                    {(int)ReservationStatus.Reserved}, {expiresAt}, now())
-            ON CONFLICT (id) DO NOTHING
-            """, ct);
-
-        if (inserted == 0)
+        // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
+        return await db.Database.ExecuteInTransactionAsync<ReservationResponse>(async tx =>
         {
+            // 1. lazy upsert 租戶用量（quota 取設定快照）
+            await UpsertTenantUsageAsync(tenantId, ct);
+
+            // 2. 冪等插入 reservation：同 ID 重送 → 0 rows，回傳既有結果不重複預扣
+            var inserted = await db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO reservations (id, tenant_id, product_id, size, status, expires_at, created_at)
+                VALUES ({request.ReservationId}, {tenantId}, {request.ProductId}, {request.Size},
+                        {(int)ReservationStatus.Reserved}, {expiresAt}, now())
+                ON CONFLICT (id) DO NOTHING
+                """, ct);
+
+            if (inserted == 0)
+            {
+                await tx.CommitAsync(ct);
+                var existing = await db.Reservations.AsNoTracking()
+                    .FirstAsync(r => r.Id == request.ReservationId, ct);
+                return ToResponse(existing);
+            }
+
+            // 3. 單商品總量上限（加總該商品已 committed 用量 + 本次）
+            if (request.ProductId is Guid productId)
+            {
+                var committed = await db.Reservations.AsNoTracking()
+                    .Where(r => r.ProductId == productId && r.Status == ReservationStatus.Committed)
+                    .SumAsync(r => (long?)r.Size, ct) ?? 0;
+
+                if (committed + request.Size > _opts.MaxProductTotalBytes)
+                    throw new ValidationException($"單一商品檔案總量超過上限 {_opts.MaxProductTotalBytes} bytes。");
+            }
+
+            // 4. 原子預扣：以影響行數判斷成敗，無需顯式鎖
+            var reservedRows = await db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE tenant_usages
+                SET reserved = reserved + {request.Size}, updated_at = now()
+                WHERE tenant_id = {tenantId} AND used + reserved + {request.Size} <= quota
+                """, ct);
+
+            if (reservedRows == 0)
+                throw new ConflictException("帳號儲存空間配額不足。");
+
             await tx.CommitAsync(ct);
-            var existing = await db.Reservations.AsNoTracking()
-                .FirstAsync(r => r.Id == request.ReservationId, ct);
-            return ToResponse(existing);
-        }
 
-        // 3. 單商品總量上限（加總該商品已 committed 用量 + 本次）
-        if (request.ProductId is Guid productId)
-        {
-            var committed = await db.Reservations.AsNoTracking()
-                .Where(r => r.ProductId == productId && r.Status == ReservationStatus.Committed)
-                .SumAsync(r => (long?)r.Size, ct) ?? 0;
-
-            if (committed + request.Size > _opts.MaxProductTotalBytes)
-                throw new ValidationException($"單一商品檔案總量超過上限 {_opts.MaxProductTotalBytes} bytes。");
-        }
-
-        // 4. 原子預扣：以影響行數判斷成敗，無需顯式鎖
-        var reservedRows = await db.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE tenant_usages
-            SET reserved = reserved + {request.Size}, updated_at = now()
-            WHERE tenant_id = {tenantId} AND used + reserved + {request.Size} <= quota
-            """, ct);
-
-        if (reservedRows == 0)
-            throw new ConflictException("帳號儲存空間配額不足。");
-
-        await tx.CommitAsync(ct);
-
-        return new ReservationResponse
-        {
-            ReservationId = request.ReservationId,
-            Status = ReservationStatus.Reserved,
-            ExpiresAt = expiresAt,
-        };
+            return new ReservationResponse
+            {
+                ReservationId = request.ReservationId,
+                Status = ReservationStatus.Reserved,
+                ExpiresAt = expiresAt,
+            };
+        }, ct);
     }
 
     /// <inheritdoc/>
     public async Task CommitAsync(Guid reservationId, long actualSize, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        var r = await db.Reservations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == reservationId, ct);
-        if (r is null || r.Status == ReservationStatus.Committed)
+        // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
+        await db.Database.ExecuteInTransactionAsync(async tx =>
         {
-            await tx.RollbackAsync(ct); // 未知預扣或重複事件：冪等跳過
-            return;
-        }
+            var r = await db.Reservations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == reservationId, ct);
+            if (r is null || r.Status == ReservationStatus.Committed)
+            {
+                await tx.RollbackAsync(ct); // 未知預扣或重複事件：冪等跳過
+                return;
+            }
 
-        if (r.Status == ReservationStatus.Reserved)
-        {
-            // used 加實際大小、reserved 釋放當初預扣量（兩者可能不同）
+            if (r.Status == ReservationStatus.Reserved)
+            {
+                // used 加實際大小、reserved 釋放當初預扣量（兩者可能不同）
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    UPDATE tenant_usages
+                    SET used = used + {actualSize}, reserved = reserved - {r.Size}, updated_at = now()
+                    WHERE tenant_id = {r.TenantId}
+                    """, ct);
+            }
+            else // Released：遲到 commit，reserved 已於 release 扣回，僅補記 used
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    UPDATE tenant_usages
+                    SET used = used + {actualSize}, updated_at = now()
+                    WHERE tenant_id = {r.TenantId}
+                    """, ct);
+            }
+
             await db.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE tenant_usages
-                SET used = used + {actualSize}, reserved = reserved - {r.Size}, updated_at = now()
-                WHERE tenant_id = {r.TenantId}
+                UPDATE reservations SET status = {(int)ReservationStatus.Committed} WHERE id = {reservationId}
                 """, ct);
-        }
-        else // Released：遲到 commit，reserved 已於 release 扣回，僅補記 used
-        {
-            await db.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE tenant_usages
-                SET used = used + {actualSize}, updated_at = now()
-                WHERE tenant_id = {r.TenantId}
-                """, ct);
-        }
 
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE reservations SET status = {(int)ReservationStatus.Committed} WHERE id = {reservationId}
-            """, ct);
-
-        await tx.CommitAsync(ct);
+            await tx.CommitAsync(ct);
+        }, ct);
     }
 
     /// <inheritdoc/>
@@ -151,32 +156,34 @@ public class QuotaManager(
     /// <summary>釋放單筆預扣。回傳 null=不存在、false=狀態非 Reserved（no-op）、true=已釋放。</summary>
     private async Task<bool?> ReleaseInternalAsync(Guid reservationId, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        var r = await db.Reservations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == reservationId, ct);
-        if (r is null)
+        // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
+        return await db.Database.ExecuteInTransactionAsync<bool?>(async tx =>
         {
-            await tx.RollbackAsync(ct);
-            return null;
-        }
+            var r = await db.Reservations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == reservationId, ct);
+            if (r is null)
+            {
+                await tx.RollbackAsync(ct);
+                return null;
+            }
 
-        if (r.Status != ReservationStatus.Reserved)
-        {
-            await tx.RollbackAsync(ct);
-            return false;
-        }
+            if (r.Status != ReservationStatus.Reserved)
+            {
+                await tx.RollbackAsync(ct);
+                return false;
+            }
 
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE tenant_usages SET reserved = reserved - {r.Size}, updated_at = now()
-            WHERE tenant_id = {r.TenantId}
-            """, ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE tenant_usages SET reserved = reserved - {r.Size}, updated_at = now()
+                WHERE tenant_id = {r.TenantId}
+                """, ct);
 
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE reservations SET status = {(int)ReservationStatus.Released} WHERE id = {reservationId}
-            """, ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE reservations SET status = {(int)ReservationStatus.Released} WHERE id = {reservationId}
+                """, ct);
 
-        await tx.CommitAsync(ct);
-        return true;
+            await tx.CommitAsync(ct);
+            return true;
+        }, ct);
     }
 
     /// <inheritdoc/>
@@ -184,28 +191,31 @@ public class QuotaManager(
     {
         var tenantId = currentUser.UserId ?? throw new UnauthorizedException();
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-        await UpsertTenantUsageAsync(tenantId, ct);
-
-        if (delta > 0)
+        // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
+        await db.Database.ExecuteInTransactionAsync(async tx =>
         {
-            var rows = await db.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE tenant_usages SET product_count = product_count + {delta}, updated_at = now()
-                WHERE tenant_id = {tenantId} AND product_count + {delta} <= {_opts.MaxPublishedProducts}
-                """, ct);
+            await UpsertTenantUsageAsync(tenantId, ct);
 
-            if (rows == 0)
-                throw new ConflictException($"上架商品數已達上限 {_opts.MaxPublishedProducts}。");
-        }
-        else
-        {
-            await db.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE tenant_usages SET product_count = GREATEST(product_count + {delta}, 0), updated_at = now()
-                WHERE tenant_id = {tenantId}
-                """, ct);
-        }
+            if (delta > 0)
+            {
+                var rows = await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    UPDATE tenant_usages SET product_count = product_count + {delta}, updated_at = now()
+                    WHERE tenant_id = {tenantId} AND product_count + {delta} <= {_opts.MaxPublishedProducts}
+                    """, ct);
 
-        await tx.CommitAsync(ct);
+                if (rows == 0)
+                    throw new ConflictException($"上架商品數已達上限 {_opts.MaxPublishedProducts}。");
+            }
+            else
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    UPDATE tenant_usages SET product_count = GREATEST(product_count + {delta}, 0), updated_at = now()
+                    WHERE tenant_id = {tenantId}
+                    """, ct);
+            }
+
+            await tx.CommitAsync(ct);
+        }, ct);
     }
 
     /// <inheritdoc/>
