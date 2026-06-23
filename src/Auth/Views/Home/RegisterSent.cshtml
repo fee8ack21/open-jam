@@ -1,12 +1,12 @@
 @{
-    ViewData["Title"] = "Open Jam · 確認信箱";
+    ViewData["Title"] = T["RegisterSent.PageTitle"];
     var email = ViewBag.Email as string ?? "";
 }
 
 <div class="auth-shell" data-screen="register-sent">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
-        Headline = "把作品<br/>變成 <span class=\"hl hl-yellow\">收入</span>。",
-        Sub = "加入 12,400+ 創作者，今天就開始在 Open Jam 上架你的數位作品。"
+        Headline = T["Register.BrandHeadline"].Value,
+        Sub = T["Register.BrandSub"].Value
     })
     <main class="form-panel">
         <div class="mobile-brand">
@@ -18,17 +18,17 @@
         <div class="form-wrap">
             <div class="screen">
                 <div class="success-ring cyan">@IconHelper.Render("mail", 40)</div>
-                <h2 class="form-title">確認你的信箱</h2>
-                <p class="form-sub">帳號快好了！我們寄了一封確認信到：</p>
+                <h2 class="form-title">@T["RegisterSent.Title"]</h2>
+                <p class="form-sub">@T["RegisterSent.Sub"]</p>
                 <div class="email-chip">@IconHelper.Render("mail", 16) @email</div>
-                <p class="form-sub" style="margin-top:18px">點擊信中的按鈕完成驗證，就能開始上架你的第一件作品。</p>
+                <p class="form-sub" style="margin-top:18px">@T["RegisterSent.Instruction"]</p>
                 <div class="form-body">
                     <a class="btn-pop" asp-action="Login">
-                        @IconHelper.Render("check", 18, 2.4) 我驗證好了，去登入
+                        @IconHelper.Render("check", 18, 2.4) @T["RegisterSent.VerifyDone"]
                     </a>
                 </div>
                 <p class="resend" style="text-align:center" data-resend-screen="register-sent" data-resend-email="@email">
-                    沒收到信？<span class="resend-slot"></span>
+                    @T["RegisterSent.NotReceived"] <span class="resend-slot"></span>
                 </p>
             </div>
         </div>

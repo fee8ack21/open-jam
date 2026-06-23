@@ -1,94 +1,94 @@
 <div id="legal-scrim" class="modal-scrim" style="display:none" data-legal-scrim>
 
-    <div id="legal-terms-card" class="modal-card" role="dialog" aria-modal="true" aria-label="服務條款" style="display:none">
+    <div id="legal-terms-card" class="modal-card" role="dialog" aria-modal="true" aria-label="@T["LegalTerms.AriaLabel"]" style="display:none">
         <div class="modal-head">
             <div class="modal-badge terms">@IconHelper.Render("note", 22)</div>
-            <h3 class="modal-title">服務條款</h3>
-            <p class="modal-meta">Open Jam · 最後更新 2026-05-31</p>
-            <button class="modal-x" data-legal-close aria-label="關閉">
+            <h3 class="modal-title">@T["LegalTerms.Title"]</h3>
+            <p class="modal-meta">Open Jam · @T["LegalTerms.LastUpdated"] 2026-05-31</p>
+            <button class="modal-x" data-legal-close aria-label="@T["LegalTerms.CloseAria"]">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
             </button>
         </div>
         <div class="modal-body">
             <div class="legal-sec">
-                <h4><span class="num">01</span> 歡迎加入 Open Jam</h4>
-                <p>Open Jam 是一個讓創作者上架與販售數位作品（音樂、圖像、電子書等）的市集平台。當你建立帳號或使用本服務，即表示你同意以下條款。</p>
+                <h4><span class="num">01</span> @T["LegalTerms.Section1.Title"]</h4>
+                <p>@T["LegalTerms.Section1.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">02</span> 帳號與資格</h4>
-                <p>你必須年滿 13 歲才能註冊。你需對帳號活動與密碼安全負責，並承諾提供正確的註冊資訊。</p>
+                <h4><span class="num">02</span> @T["LegalTerms.Section2.Title"]</h4>
+                <p>@T["LegalTerms.Section2.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">03</span> 創作者責任</h4>
-                <p>你上架的所有作品必須為你本人擁有或已取得授權的內容。嚴禁上架以下類型：</p>
+                <h4><span class="num">03</span> @T["LegalTerms.Section3.Title"]</h4>
+                <p>@T["LegalTerms.Section3.Body"]</p>
                 <ul>
-                    <li>侵害他人智慧財產權的內容</li>
-                    <li>惡意程式、病毒或誤導性檔案</li>
-                    <li>違反當地法律或本平台社群守則之內容</li>
+                    <li>@T["LegalTerms.Section3.Item1"]</li>
+                    <li>@T["LegalTerms.Section3.Item2"]</li>
+                    <li>@T["LegalTerms.Section3.Item3"]</li>
                 </ul>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">04</span> 費用與結算</h4>
-                <p>Open Jam 採免月費制，作品成功售出後平台收取 3% 手續費。款項將依結算週期撥付至你綁定的收款帳戶。</p>
+                <h4><span class="num">04</span> @T["LegalTerms.Section4.Title"]</h4>
+                <p>@T["LegalTerms.Section4.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">05</span> 內容授權</h4>
-                <p>你保留作品的完整著作權。為了在平台上展示與銷售，你授予 Open Jam 一項非專屬、全球性的授權以託管、展示與推廣你的作品。</p>
+                <h4><span class="num">05</span> @T["LegalTerms.Section5.Title"]</h4>
+                <p>@T["LegalTerms.Section5.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">06</span> 帳號終止</h4>
-                <p>若你違反本條款，我們有權暫停或終止你的帳號。你也可以隨時於設定中刪除帳號。</p>
+                <h4><span class="num">06</span> @T["LegalTerms.Section6.Title"]</h4>
+                <p>@T["LegalTerms.Section6.Body"]</p>
             </div>
         </div>
         <div class="modal-foot">
-            <button class="btn-ghost" data-legal-close>關閉</button>
-            <button class="btn-pop violet" data-legal-ack>@IconHelper.Render("check", 17, 2.4) 我了解了</button>
+            <button class="btn-ghost" data-legal-close>@T["LegalTerms.Close"]</button>
+            <button class="btn-pop violet" data-legal-ack>@IconHelper.Render("check", 17, 2.4) @T["LegalTerms.Acknowledge"]</button>
         </div>
     </div>
 
-    <div id="legal-privacy-card" class="modal-card" role="dialog" aria-modal="true" aria-label="隱私政策" style="display:none">
+    <div id="legal-privacy-card" class="modal-card" role="dialog" aria-modal="true" aria-label="@T["LegalPrivacy.AriaLabel"]" style="display:none">
         <div class="modal-head">
             <div class="modal-badge privacy">@IconHelper.Render("shield", 22)</div>
-            <h3 class="modal-title">隱私政策</h3>
-            <p class="modal-meta">Open Jam · 最後更新 2026-05-31</p>
-            <button class="modal-x" data-legal-close aria-label="關閉">
+            <h3 class="modal-title">@T["LegalPrivacy.Title"]</h3>
+            <p class="modal-meta">Open Jam · @T["LegalTerms.LastUpdated"] 2026-05-31</p>
+            <button class="modal-x" data-legal-close aria-label="@T["LegalTerms.CloseAria"]">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
             </button>
         </div>
         <div class="modal-body">
             <div class="legal-sec">
-                <h4><span class="num">01</span> 我們重視你的隱私</h4>
-                <p>本政策說明 Open Jam 如何蒐集、使用與保護你的個人資料。使用本服務即表示你了解並同意以下作法。</p>
+                <h4><span class="num">01</span> @T["LegalPrivacy.Section1.Title"]</h4>
+                <p>@T["LegalPrivacy.Section1.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">02</span> 我們蒐集的資料</h4>
-                <p>為提供服務，我們會蒐集以下資訊：</p>
+                <h4><span class="num">02</span> @T["LegalPrivacy.Section2.Title"]</h4>
+                <p>@T["LegalPrivacy.Section2.Body"]</p>
                 <ul>
-                    <li>帳號資料：暱稱、電子信箱、密碼（加密儲存）</li>
-                    <li>交易資料：購買與銷售紀錄、收款帳戶</li>
-                    <li>使用資料：裝置、瀏覽器與互動行為紀錄</li>
+                    <li>@T["LegalPrivacy.Section2.Item1"]</li>
+                    <li>@T["LegalPrivacy.Section2.Item2"]</li>
+                    <li>@T["LegalPrivacy.Section2.Item3"]</li>
                 </ul>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">03</span> 資料的使用方式</h4>
-                <p>我們使用你的資料來營運平台、處理交易、提供客戶支援，以及在你同意的前提下寄送產品更新與行銷通知。</p>
+                <h4><span class="num">03</span> @T["LegalPrivacy.Section3.Title"]</h4>
+                <p>@T["LegalPrivacy.Section3.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">04</span> 資料分享</h4>
-                <p>我們不會販售你的個人資料。僅在金流處理、法律要求或經你授權的情況下，與必要的第三方服務商分享。</p>
+                <h4><span class="num">04</span> @T["LegalPrivacy.Section4.Title"]</h4>
+                <p>@T["LegalPrivacy.Section4.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">05</span> 資料安全</h4>
-                <p>我們以業界標準加密保護你的密碼與敏感資料，並定期檢視安全機制。但沒有任何系統能保證百分之百安全。</p>
+                <h4><span class="num">05</span> @T["LegalPrivacy.Section5.Title"]</h4>
+                <p>@T["LegalPrivacy.Section5.Body"]</p>
             </div>
             <div class="legal-sec">
-                <h4><span class="num">06</span> 你的權利</h4>
-                <p>你有權查詢、更正或刪除你的個人資料，也可隨時取消行銷通知的訂閱。相關需求可透過設定頁或聯絡客服處理。</p>
+                <h4><span class="num">06</span> @T["LegalPrivacy.Section6.Title"]</h4>
+                <p>@T["LegalPrivacy.Section6.Body"]</p>
             </div>
         </div>
         <div class="modal-foot">
-            <button class="btn-ghost" data-legal-close>關閉</button>
-            <button class="btn-pop violet" data-legal-ack>@IconHelper.Render("check", 17, 2.4) 我了解了</button>
+            <button class="btn-ghost" data-legal-close>@T["LegalTerms.Close"]</button>
+            <button class="btn-pop violet" data-legal-ack>@IconHelper.Render("check", 17, 2.4) @T["LegalTerms.Acknowledge"]</button>
         </div>
     </div>
 

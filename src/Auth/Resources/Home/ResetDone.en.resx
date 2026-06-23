@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ResetDone.PageTitle" xml:space="preserve"><value>Open Jam · Password Updated</value></data>
+  <data name="Reset.BrandHeadline" xml:space="preserve"><value>Set a<br/><span class="hl hl-lime">new password</span>.</value></data>
+  <data name="Reset.BrandSub" xml:space="preserve"><value>Choose a strong password to protect your creative assets.</value></data>
+  <data name="ResetDone.Title" xml:space="preserve"><value>Password Updated 🎉</value></data>
+  <data name="ResetDone.Sub" xml:space="preserve"><value>Your password has been reset. You can now log in to Open Jam with your new password.</value></data>
+  <data name="ResetDone.Login" xml:space="preserve"><value>Go to Log In</value></data>
+</root>

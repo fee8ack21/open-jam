@@ -1,17 +1,17 @@
 @model RegisterViewModel
 @{
-    ViewData["Title"] = "Open Jam · 建立帳號";
+    ViewData["Title"] = T["Register.PageTitle"];
     var agreeLabel =
-        "我已閱讀並同意 " +
-        "<button type=\"button\" class=\"legal-link\" data-legal-open=\"terms\">服務條款<span class=\"read-tick\" data-tick=\"terms\"></span></button>" +
-        " 與 " +
-        "<button type=\"button\" class=\"legal-link\" data-legal-open=\"privacy\">隱私政策<span class=\"read-tick\" data-tick=\"privacy\"></span></button>";
+        T["Register.AgreePrefix"] +
+        "<button type=\"button\" class=\"legal-link\" data-legal-open=\"terms\">" + T["Register.TermsOfService"] + "<span class=\"read-tick\" data-tick=\"terms\"></span></button>" +
+        T["Register.And"] +
+        "<button type=\"button\" class=\"legal-link\" data-legal-open=\"privacy\">" + T["Register.PrivacyPolicy"] + "<span class=\"read-tick\" data-tick=\"privacy\"></span></button>";
 }
 
 <div class="auth-shell" data-screen="register">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
-        Headline = "把作品<br/>變成 <span class=\"hl hl-yellow\">收入</span>。",
-        Sub = "加入 12,400+ 創作者，今天就開始在 Open Jam 上架你的數位作品。"
+        Headline = T["Register.BrandHeadline"].Value,
+        Sub = T["Register.BrandSub"].Value
     })
     <main class="form-panel">
         <div class="mobile-brand">
@@ -22,15 +22,15 @@
         </div>
         <div class="form-wrap">
             <div class="screen">
-                <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) 開始創作</p>
-                <h2 class="form-title">建立帳號</h2>
-                <p class="form-sub">免費開店、零月費，售出才收 3% 手續費。30 秒就能上手。</p>
+                <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) @T["Register.Eyebrow"]</p>
+                <h2 class="form-title">@T["Register.Title"]</h2>
+                <p class="form-sub">@T["Register.Sub"]</p>
                 <form asp-action="Register" method="post" novalidate>
                     <input type="hidden" asp-for="LoginChallenge">
                     <div class="form-body">
 
                         <div class="field" data-field="Email">
-                            <label class="field-label" asp-for="Email">電子信箱</label>
+                            <label class="field-label" asp-for="Email">@T["Register.EmailLabel"]</label>
                             <div class="input-shell @(ViewData.ModelState["Email"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("mail", 18)</span>
                                 <input asp-for="Email" data-input="Email"
@@ -40,13 +40,13 @@
                         </div>
 
                         <div class="field" data-field="Password" data-strength="1">
-                            <label class="field-label" asp-for="Password">密碼</label>
+                            <label class="field-label" asp-for="Password">@T["Register.PasswordLabel"]</label>
                             <div class="input-shell @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("lock", 18)</span>
                                 <input asp-for="Password" type="password" data-input="Password" data-pw="1"
-                                       data-val-minpasswordstrength="密碼需含大小寫英文、數字及特殊符號（8–20 字元）"
-                                       placeholder="設定一組密碼" autocomplete="new-password">
-                                <button type="button" class="pw-toggle" data-pwtoggle="Password" title="顯示密碼">
+                                       data-val-minpasswordstrength="@T["Register.PasswordStrength"]"
+                                       placeholder="@T["Register.PasswordPlaceholder"]" autocomplete="new-password">
+                                <button type="button" class="pw-toggle" data-pwtoggle="Password" title="@T["Login.ShowPassword"]">
                                     @IconHelper.Render("eye", 18)
                                 </button>
                             </div>
@@ -54,12 +54,12 @@
                         </div>
 
                         <div class="field" data-field="ConfirmPassword">
-                            <label class="field-label" asp-for="ConfirmPassword">確認密碼</label>
+                            <label class="field-label" asp-for="ConfirmPassword">@T["Register.ConfirmPasswordLabel"]</label>
                             <div class="input-shell @(ViewData.ModelState["ConfirmPassword"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("lock", 18)</span>
                                 <input asp-for="ConfirmPassword" type="password" data-input="ConfirmPassword" data-pw="1"
-                                       placeholder="再輸入一次密碼" autocomplete="new-password">
-                                <button type="button" class="pw-toggle" data-pwtoggle="ConfirmPassword" title="顯示密碼">
+                                       placeholder="@T["Register.ConfirmPasswordPlaceholder"]" autocomplete="new-password">
+                                <button type="button" class="pw-toggle" data-pwtoggle="ConfirmPassword" title="@T["Login.ShowPassword"]">
                                     @IconHelper.Render("eye", 18)
                                 </button>
                             </div>
@@ -78,11 +78,11 @@
                         </div>
 
                         <button type="submit" class="btn-pop">
-                            @IconHelper.Render("sparkle", 18) 建立帳號
+                            @IconHelper.Render("sparkle", 18) @T["Register.Submit"]
                         </button>
                     </div>
                 </form>
-                <p class="form-foot">已經有帳號了？<a asp-action="Login" asp-route-login_challenge="@Model.LoginChallenge" class="link-strong">前往登入</a></p>
+                <p class="form-foot">@T["Register.HasAccount"] <a asp-action="Login" asp-route-login_challenge="@Model.LoginChallenge" class="link-strong">@T["Register.Login"]</a></p>
             </div>
         </div>
     </main>

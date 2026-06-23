@@ -1,11 +1,11 @@
 @{
-    ViewData["Title"] = "Open Jam · 信箱驗證成功";
+    ViewData["Title"] = T["VerifyDone.PageTitle"];
 }
 
 <div class="auth-shell" data-screen="verify-done">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
-        Headline = "你已<br/><span class=\"hl hl-lime\">驗證成功</span>！",
-        Sub = "帳號已開通，開始在 Open Jam 上分享你的創作。"
+        Headline = T["VerifyDone.BrandHeadline"].Value,
+        Sub = T["VerifyDone.BrandSub"].Value
     })
     <main class="form-panel">
         <div class="mobile-brand">
@@ -17,11 +17,11 @@
         <div class="form-wrap">
             <div class="screen">
                 <div class="success-ring cyan">@IconHelper.Render("check", 40)</div>
-                <h2 class="form-title">信箱驗證成功</h2>
-                <p class="form-sub">你的帳號已開通！現在可以登入，開始探索或上架你的第一件作品。</p>
+                <h2 class="form-title">@T["VerifyDone.Title"]</h2>
+                <p class="form-sub">@T["VerifyDone.Sub"]</p>
                 <div class="form-body">
                     <a class="btn-pop violet" asp-action="Login" style="text-decoration:none">
-                        @IconHelper.Render("arrowRight", 18) 前往登入
+                        @IconHelper.Render("arrowRight", 18) @T["VerifyDone.Login"]
                     </a>
                 </div>
             </div>

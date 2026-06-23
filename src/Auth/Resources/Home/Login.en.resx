@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Login.PageTitle" xml:space="preserve"><value>Open Jam · Log In</value></data>
+  <data name="Login.BrandHeadline" xml:space="preserve"><value>Welcome back,<br/>keep <span class="hl hl-lime">creating</span>.</value></data>
+  <data name="Login.BrandSub" xml:space="preserve"><value>Log in to Open Jam to manage your work, track sales, and shine with creators worldwide.</value></data>
+  <data name="Login.Eyebrow" xml:space="preserve"><value>Welcome back</value></data>
+  <data name="Login.BackLink" xml:space="preserve"><value>Back to Platform</value></data>
+  <data name="Login.Title" xml:space="preserve"><value>Log In to Open Jam</value></data>
+  <data name="Login.Sub" xml:space="preserve"><value>Not ready yet? No problem. Enter your account to continue your creative journey.</value></data>
+  <data name="Login.EmailLabel" xml:space="preserve"><value>Email</value></data>
+  <data name="Login.EmailPlaceholder" xml:space="preserve"><value>you@example.com</value></data>
+  <data name="Login.PasswordLabel" xml:space="preserve"><value>Password</value></data>
+  <data name="Login.ForgotPassword" xml:space="preserve"><value>Forgot password?</value></data>
+  <data name="Login.PasswordPlaceholder" xml:space="preserve"><value>Enter your password</value></data>
+  <data name="Login.ShowPassword" xml:space="preserve"><value>Show password</value></data>
+  <data name="Login.Remember" xml:space="preserve"><value>Remember me</value></data>
+  <data name="Login.Submit" xml:space="preserve"><value>Log In</value></data>
+  <data name="Login.NoAccount" xml:space="preserve"><value>Don't have an account?</value></data>
+  <data name="Login.SignUp" xml:space="preserve"><value>Sign Up Free</value></data>
+</root>

@@ -1,11 +1,11 @@
 @{
-    ViewData["Title"] = "Open Jam · 登入失敗";
+    ViewData["Title"] = T["Error.PageTitle"];
 }
 
 <div class="auth-shell" data-screen="login-error">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
-        Headline = "讓我們<br/>再試一次。",
-        Sub = "帳號或密碼有點問題，確認後再登入一次吧。"
+        Headline = T["Error.BrandHeadline"].Value,
+        Sub = T["Error.BrandSub"].Value
     })
     <main class="form-panel">
         <div class="mobile-brand">
@@ -14,6 +14,6 @@
             </span>
             <span class="brand-name">Open Jam</span>
         </div>
-        <div class="form-wrap"><div class="screen"><div class="success-ring danger">@IconHelper.Render("alert", 42, 2.2)</div><h2 class="form-title">登入沒有完成</h2><p class="form-sub">我們無法完成這次的第三方登入驗證。多半是授權逾時，或瀏覽器在分頁之間遺失了登入狀態所致 — 你的帳號是安全的。</p><div class="callout">@IconHelper.Render("shield", 18)<span><b>請完全關閉瀏覽器</b>，重新開啟後再試一次登入。這會清除殘留的登入狀態，通常就能解決問題。</span></div><div class="form-body"><a class="btn-pop violet" asp-action="Login" asp-controller="Home"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex:none;"><path d="M5 12h14M13 6l6 6-6 6"></path></svg> 重新登入</a></div><p class="err-code"><span class="dot"></span>錯誤代碼 <b>OIDC_CORRELATION_FAILED</b></p></div></div>
+        <div class="form-wrap"><div class="screen"><div class="success-ring danger">@IconHelper.Render("alert", 42, 2.2)</div><h2 class="form-title">@T["Error.Title"]</h2><p class="form-sub">@T["Error.Sub"]</p><div class="callout">@IconHelper.Render("shield", 18)<span>@Html.Raw(T["Error.Callout"])</span></div><div class="form-body"><a class="btn-pop violet" asp-action="Login" asp-controller="Home"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="display:block;flex:none;"><path d="M5 12h14M13 6l6 6-6 6"></path></svg> @T["Error.Retry"]</a></div><p class="err-code"><span class="dot"></span>@T["Error.Code"] <b>OIDC_CORRELATION_FAILED</b></p></div></div>
     </main>
 </div>

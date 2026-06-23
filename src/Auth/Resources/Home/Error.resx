@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.PageTitle" xml:space="preserve"><value>Open Jam · 登入失敗</value></data>
+  <data name="Error.BrandHeadline" xml:space="preserve"><value>讓我們<br/>再試一次。</value></data>
+  <data name="Error.BrandSub" xml:space="preserve"><value>帳號或密碼有點問題，確認後再登入一次吧。</value></data>
+  <data name="Error.Title" xml:space="preserve"><value>登入沒有完成</value></data>
+  <data name="Error.Sub" xml:space="preserve"><value>我們無法完成這次的第三方登入驗證。多半是授權逾時，或瀏覽器在分頁之間遺失了登入狀態所致 — 你的帳號是安全的。</value></data>
+  <data name="Error.Callout" xml:space="preserve"><value><![CDATA[<b>請完全關閉瀏覽器</b>，重新開啟後再試一次登入。這會清除殘留的登入狀態，通常就能解決問題。]]></value></data>
+  <data name="Error.Retry" xml:space="preserve"><value>重新登入</value></data>
+  <data name="Error.Code" xml:space="preserve"><value>錯誤代碼</value></data>
+</root>

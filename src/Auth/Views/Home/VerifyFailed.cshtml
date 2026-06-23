@@ -1,11 +1,11 @@
 @{
-    ViewData["Title"] = "Open Jam · 驗證連結無效";
+    ViewData["Title"] = T["VerifyFailed.PageTitle"];
 }
 
 <div class="auth-shell" data-screen="verify-failed">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
-        Headline = "連結<br/><span class=\"hl hl-pink\">已失效</span>。",
-        Sub = "驗證連結可能已過期或使用過，請重新申請。"
+        Headline = T["VerifyFailed.BrandHeadline"].Value,
+        Sub = T["VerifyFailed.BrandSub"].Value
     })
     <main class="form-panel">
         <div class="mobile-brand">
@@ -16,14 +16,14 @@
         </div>
         <div class="form-wrap">
             <div class="screen">
-                <p class="form-eyebrow">@IconHelper.Render("alert", 13) 連結問題</p>
-                <h2 class="form-title">驗證連結無效</h2>
-                <p class="form-sub">此連結可能已過期（有效期 24 小時）、已使用過，或網址不完整。</p>
+                <p class="form-eyebrow">@IconHelper.Render("alert", 13) @T["VerifyFailed.Eyebrow"]</p>
+                <h2 class="form-title">@T["VerifyFailed.Title"]</h2>
+                <p class="form-sub">@T["VerifyFailed.Sub"]</p>
                 <div class="form-body">
                     <a class="btn-pop violet" asp-action="Register">
-                        @IconHelper.Render("arrowRight", 18) 重新註冊取得新連結
+                        @IconHelper.Render("arrowRight", 18) @T["VerifyFailed.Reregister"]
                     </a>
-                    <a class="btn-ghost" asp-action="Login">返回登入</a>
+                    <a class="btn-ghost" asp-action="Login">@T["VerifyFailed.Back"]</a>
                 </div>
             </div>
         </div>

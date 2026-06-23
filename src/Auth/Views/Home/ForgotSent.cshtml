@@ -1,12 +1,12 @@
 @{
-    ViewData["Title"] = "Open Jam · 信件已寄出";
+    ViewData["Title"] = T["ForgotSent.PageTitle"];
     var email = ViewBag.Email as string ?? "";
 }
 
 <div class="auth-shell" data-screen="forgot-sent">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
-        Headline = "別擔心，<br/>我們<span class=\"hl hl-cyan\">幫你</span>。",
-        Sub = "輸入註冊信箱，我們會立刻把重置連結寄給你。"
+        Headline = T["Forgot.BrandHeadline"].Value,
+        Sub = T["Forgot.BrandSub"].Value
     })
     <main class="form-panel">
         <div class="mobile-brand">
@@ -18,17 +18,17 @@
         <div class="form-wrap">
             <div class="screen">
                 <div class="success-ring violet">@IconHelper.Render("mail", 40)</div>
-                <h2 class="form-title">信件已寄出！</h2>
-                <p class="form-sub">我們把重置連結寄到了：</p>
+                <h2 class="form-title">@T["ForgotSent.Title"]</h2>
+                <p class="form-sub">@T["ForgotSent.Sub"]</p>
                 <div class="email-chip">@IconHelper.Render("mail", 16) @email</div>
-                <p class="form-sub" style="margin-top:18px">打開信件並點擊連結即可設定新密碼。沒看到？記得檢查垃圾信匣。</p>
+                <p class="form-sub" style="margin-top:18px">@T["ForgotSent.Instruction"]</p>
                 <div class="form-body">
                     <a class="btn-pop violet" asp-action="Login">
-                        @IconHelper.Render("arrowRight", 17) 返回登入
+                        @IconHelper.Render("arrowRight", 17) @T["ForgotSent.Back"]
                     </a>
                 </div>
                 <p class="resend" style="text-align:center" data-resend-screen="forgot-sent" data-resend-email="@email">
-                    沒收到？<span class="resend-slot"></span>
+                    @T["ForgotSent.NotReceived"] <span class="resend-slot"></span>
                 </p>
             </div>
         </div>

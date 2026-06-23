@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="LegalTerms.AriaLabel" xml:space="preserve"><value>Terms of Service</value></data>
+  <data name="LegalTerms.Title" xml:space="preserve"><value>Terms of Service</value></data>
+  <data name="LegalTerms.LastUpdated" xml:space="preserve"><value>Last updated</value></data>
+  <data name="LegalTerms.Close" xml:space="preserve"><value>Close</value></data>
+  <data name="LegalTerms.CloseAria" xml:space="preserve"><value>Close</value></data>
+  <data name="LegalTerms.Acknowledge" xml:space="preserve"><value>I Understand</value></data>
+  <data name="LegalTerms.Section1.Title" xml:space="preserve"><value>Welcome to Open Jam</value></data>
+  <data name="LegalTerms.Section1.Body" xml:space="preserve"><value>Open Jam is a marketplace platform for creators to list and sell digital works (music, images, ebooks, etc.). By creating an account or using the service, you agree to the following terms.</value></data>
+  <data name="LegalTerms.Section2.Title" xml:space="preserve"><value>Account &amp; Eligibility</value></data>
+  <data name="LegalTerms.Section2.Body" xml:space="preserve"><value>You must be at least 13 years old to register. You are responsible for your account activity and password security, and you agree to provide accurate registration information.</value></data>
+  <data name="LegalTerms.Section3.Title" xml:space="preserve"><value>Creator Responsibilities</value></data>
+  <data name="LegalTerms.Section3.Body" xml:space="preserve"><value>All works you list must be owned by you or properly licensed. The following types of content are strictly prohibited:</value></data>
+  <data name="LegalTerms.Section3.Item1" xml:space="preserve"><value>Content that infringes on intellectual property rights</value></data>
+  <data name="LegalTerms.Section3.Item2" xml:space="preserve"><value>Malware, viruses, or misleading files</value></data>
+  <data name="LegalTerms.Section3.Item3" xml:space="preserve"><value>Content that violates local laws or community guidelines</value></data>
+  <data name="LegalTerms.Section4.Title" xml:space="preserve"><value>Fees &amp; Payouts</value></data>
+  <data name="LegalTerms.Section4.Body" xml:space="preserve"><value>Open Jam has no monthly fees. A 3% commission is charged on each successful sale. Payouts are made according to the settlement schedule to your linked payout account.</value></data>
+  <data name="LegalTerms.Section5.Title" xml:space="preserve"><value>Content License</value></data>
+  <data name="LegalTerms.Section5.Body" xml:space="preserve"><value>You retain full copyright of your works. To display and sell on the platform, you grant Open Jam a non-exclusive, worldwide license to host, display, and promote your works.</value></data>
+  <data name="LegalTerms.Section6.Title" xml:space="preserve"><value>Account Termination</value></data>
+  <data name="LegalTerms.Section6.Body" xml:space="preserve"><value>If you violate these terms, we have the right to suspend or terminate your account. You may also delete your account at any time in your settings.</value></data>
+  <data name="LegalPrivacy.AriaLabel" xml:space="preserve"><value>Privacy Policy</value></data>
+  <data name="LegalPrivacy.Title" xml:space="preserve"><value>Privacy Policy</value></data>
+  <data name="LegalPrivacy.Section1.Title" xml:space="preserve"><value>We Value Your Privacy</value></data>
+  <data name="LegalPrivacy.Section1.Body" xml:space="preserve"><value>This policy explains how Open Jam collects, uses, and protects your personal data. By using the service, you understand and agree to the practices described here.</value></data>
+  <data name="LegalPrivacy.Section2.Title" xml:space="preserve"><value>Data We Collect</value></data>
+  <data name="LegalPrivacy.Section2.Body" xml:space="preserve"><value>To provide our services, we collect the following information:</value></data>
+  <data name="LegalPrivacy.Section2.Item1" xml:space="preserve"><value>Account info: name, email, password (encrypted)</value></data>
+  <data name="LegalPrivacy.Section2.Item2" xml:space="preserve"><value>Transaction data: purchase and sales records, payout account</value></data>
+  <data name="LegalPrivacy.Section2.Item3" xml:space="preserve"><value>Usage data: device, browser, and interaction logs</value></data>
+  <data name="LegalPrivacy.Section3.Title" xml:space="preserve"><value>How We Use Your Data</value></data>
+  <data name="LegalPrivacy.Section3.Body" xml:space="preserve"><value>We use your data to operate the platform, process transactions, provide customer support, and — with your consent — send product updates and marketing communications.</value></data>
+  <data name="LegalPrivacy.Section4.Title" xml:space="preserve"><value>Data Sharing</value></data>
+  <data name="LegalPrivacy.Section4.Body" xml:space="preserve"><value>We do not sell your personal data. It is only shared with necessary third-party services for payment processing, legal requirements, or when authorized by you.</value></data>
+  <data name="LegalPrivacy.Section5.Title" xml:space="preserve"><value>Data Security</value></data>
+  <data name="LegalPrivacy.Section5.Body" xml:space="preserve"><value>We use industry-standard encryption to protect your password and sensitive data, and we regularly review our security measures. However, no system can guarantee 100% security.</value></data>
+  <data name="LegalPrivacy.Section6.Title" xml:space="preserve"><value>Your Rights</value></data>
+  <data name="LegalPrivacy.Section6.Body" xml:space="preserve"><value>You have the right to access, correct, or delete your personal data, and you may unsubscribe from marketing communications at any time. Requests can be handled through your settings or by contacting support.</value></data>
+</root>

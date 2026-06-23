@@ -5,13 +5,30 @@ using Auth.Services.Hydra;
 using Auth.Services.Security;
 using Auth.Services.Users;
 using MassTransit;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
 using Shared.Data;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+// Localization
+builder.Services.AddLocalization();
+
+var supportedCultures = new[] { new CultureInfo("zh-Hant"), new CultureInfo("en") };
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("zh-Hant");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders.Clear();
+    options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
+    options.RequestCultureProviders.Add(new CookieRequestCultureProvider());
+    options.RequestCultureProviders.Add(new AcceptLanguageHeaderRequestCultureProvider());
+});
 
 // Hydra Admin API client
 var hydraAdminUrl = (builder.Configuration["Hydra:AdminUrl"] ?? "http://localhost:4445").TrimEnd('/') + "/";
@@ -65,6 +82,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseRequestLocalization();
 app.UseAuthorization();
 
 // K8s liveness/readiness probe 用，固定回 200，避免 MVC `/` 302 導頁誤判為 unhealthy

@@ -1,13 +1,13 @@
 @model LoginViewModel
 @inject Microsoft.Extensions.Options.IOptions<Auth.Options.AppOptions> AppOptions
 @{
-    ViewData["Title"] = "Open Jam · 登入";
+    ViewData["Title"] = T["Login.PageTitle"];
 }
 
 <div class="auth-shell" data-screen="login">
     @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
-        Headline = "歡迎回來，<br/>繼續 <span class=\"hl hl-lime\">創作</span>。",
-        Sub = "登入 Open Jam，管理你的作品、追蹤銷售，與全球創作者一起發光。"
+        Headline = T["Login.BrandHeadline"].Value,
+        Sub = T["Login.BrandSub"].Value
     })
     <main class="form-panel">
         <div class="mobile-brand">
@@ -19,13 +19,13 @@
         <div class="form-wrap">
             <div class="screen">
                 <div class="screen-head">
-                    <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) 歡迎回來</p>
+                    <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) @T["Login.Eyebrow"]</p>
                     <a href="@AppOptions.Value.MarketUrl" class="back-link">
-                        @IconHelper.Render("arrowLeft", 16) 返回平台
+                        @IconHelper.Render("arrowLeft", 16) @T["Login.BackLink"]
                     </a>
                 </div>
-                <h2 class="form-title">登入 Open Jam</h2>
-                <p class="form-sub">還沒準備好？先逛逛也沒關係。輸入帳號繼續你的創作旅程。</p>
+                <h2 class="form-title">@T["Login.Title"]</h2>
+                <p class="form-sub">@T["Login.Sub"]</p>
                 <form asp-action="Login" method="post" novalidate>
                     <input type="hidden" asp-for="Challenge">
                     <div class="form-body">
@@ -35,25 +35,25 @@
                         }
 
                         <div class="field" data-field="Email">
-                            <label class="field-label" asp-for="Email">電子信箱</label>
+                            <label class="field-label" asp-for="Email">@T["Login.EmailLabel"]</label>
                             <div class="input-shell @(ViewData.ModelState["Email"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("mail", 18)</span>
                                 <input asp-for="Email" data-input="Email"
-                                       placeholder="you@example.com" autocomplete="email">
+                                       placeholder="@T["Login.EmailPlaceholder"]" autocomplete="email">
                             </div>
                             <span asp-validation-for="Email" class="field-err"></span>
                         </div>
 
                         <div class="field" data-field="Password">
                             <label class="field-label">
-                                <span>密碼</span>
-                                <a asp-action="ForgotPassword" asp-route-login_challenge="@Model.Challenge" class="link-strong">忘記密碼？</a>
+                                <span>@T["Login.PasswordLabel"]</span>
+                                <a asp-action="ForgotPassword" asp-route-login_challenge="@Model.Challenge" class="link-strong">@T["Login.ForgotPassword"]</a>
                             </label>
                             <div class="input-shell @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "err" : "")">
                                 <span class="lead">@IconHelper.Render("lock", 18)</span>
                                 <input asp-for="Password" type="password" data-input="Password" data-pw="1"
-                                       placeholder="輸入你的密碼" autocomplete="current-password">
-                                <button type="button" class="pw-toggle" data-pwtoggle="Password" title="顯示密碼">
+                                       placeholder="@T["Login.PasswordPlaceholder"]" autocomplete="current-password">
+                                <button type="button" class="pw-toggle" data-pwtoggle="Password" title="@T["Login.ShowPassword"]">
                                     @IconHelper.Render("eye", 18)
                                 </button>
                             </div>
@@ -64,18 +64,18 @@
                             <div class="checkbox @(Model.Remember ? "on" : "")" data-checkbox="Remember"
                                  role="checkbox" aria-checked="@(Model.Remember ? "true" : "false")" tabindex="0">
                                 <span class="box">@IconHelper.Render("check", 13, 2.6)</span>
-                                <span>記住我</span>
+                                <span>@T["Login.Remember"]</span>
                             </div>
                             <input asp-for="Remember"
                                    style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
                         </div>
 
                         <button type="submit" class="btn-pop violet">
-                            @IconHelper.Render("arrowRight", 18) 登入
+                            @IconHelper.Render("arrowRight", 18) @T["Login.Submit"]
                         </button>
                     </div>
                 </form>
-                <p class="form-foot">還沒有帳號？<a asp-action="Register" asp-route-login_challenge="@Model.Challenge" class="link-strong">免費註冊</a></p>
+                <p class="form-foot">@T["Login.NoAccount"] <a asp-action="Register" asp-route-login_challenge="@Model.Challenge" class="link-strong">@T["Login.SignUp"]</a></p>
             </div>
         </div>
     </main>

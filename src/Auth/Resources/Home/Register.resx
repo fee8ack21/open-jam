@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Register.PageTitle" xml:space="preserve"><value>Open Jam · 建立帳號</value></data>
+  <data name="Register.BrandHeadline" xml:space="preserve"><value>把作品<br/>變成 <span class="hl hl-yellow">收入</span>。</value></data>
+  <data name="Register.BrandSub" xml:space="preserve"><value>加入 12,400+ 創作者，今天就開始在 Open Jam 上架你的數位作品。</value></data>
+  <data name="Register.Eyebrow" xml:space="preserve"><value>開始創作</value></data>
+  <data name="Register.Title" xml:space="preserve"><value>建立帳號</value></data>
+  <data name="Register.Sub" xml:space="preserve"><value>免費開店、零月費，售出才收 3% 手續費。30 秒就能上手。</value></data>
+  <data name="Register.EmailLabel" xml:space="preserve"><value>電子信箱</value></data>
+  <data name="Register.PasswordLabel" xml:space="preserve"><value>密碼</value></data>
+  <data name="Register.PasswordPlaceholder" xml:space="preserve"><value>設定一組密碼</value></data>
+  <data name="Register.PasswordStrength" xml:space="preserve"><value>密碼需含大小寫英文、數字及特殊符號（8–20 字元）</value></data>
+  <data name="Register.ConfirmPasswordLabel" xml:space="preserve"><value>確認密碼</value></data>
+  <data name="Register.ConfirmPasswordPlaceholder" xml:space="preserve"><value>再輸入一次密碼</value></data>
+  <data name="Register.AgreePrefix" xml:space="preserve"><value>我已閱讀並同意 </value></data>
+  <data name="Register.TermsOfService" xml:space="preserve"><value>服務條款</value></data>
+  <data name="Register.And" xml:space="preserve"><value> 與 </value></data>
+  <data name="Register.PrivacyPolicy" xml:space="preserve"><value>隱私政策</value></data>
+  <data name="Register.Submit" xml:space="preserve"><value>建立帳號</value></data>
+  <data name="Register.HasAccount" xml:space="preserve"><value>已經有帳號了？</value></data>
+  <data name="Register.Login" xml:space="preserve"><value>前往登入</value></data>
+  <data name="Login.ShowPassword" xml:space="preserve"><value>顯示密碼</value></data>
+</root>

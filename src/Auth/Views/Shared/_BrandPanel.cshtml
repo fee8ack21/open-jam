@@ -40,7 +40,7 @@
                 <div class="fc-body">
                     <div class="fc-title">插畫家手冊</div>
                     <div class="fc-foot">
-                        <span class="fc-price">免費</span>
+                        <span class="fc-price">@T["Brand.Free"]</span>
                         <span class="fc-star">@IconHelper.Render("star", 11, 1.9, fill: true, style: "color:#f0a92b;") 5.0</span>
                     </div>
                 </div>
@@ -55,16 +55,16 @@
             <span class="brand-name">Open Jam</span>
         </div>
         <div class="brand-mid">
-            <span class="brand-eyebrow">@IconHelper.Render("sparkle", 13) 創作者數位市集</span>
+            <span class="brand-eyebrow">@IconHelper.Render("sparkle", 13) @T["Brand.Eyebrow"]</span>
             <h1 class="brand-headline">@Html.Raw(Model.Headline)</h1>
             <p class="brand-sub">@Model.Sub</p>
         </div>
         <div class="brand-foot">
-            <span>12,400+ 創作者</span>
+            <span>@T["Brand.FooterCreators"]</span>
             <span class="foot-divider"></span>
-            <span>86,000+ 作品</span>
+            <span>@T["Brand.FooterWorks"]</span>
             <span class="foot-divider"></span>
-            <span>安全付款</span>
+            <span>@T["Brand.FooterPayments"]</span>
         </div>
     </div>
 </aside>

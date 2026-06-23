@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="VerifyFailed.PageTitle" xml:space="preserve"><value>Open Jam · Invalid Verification Link</value></data>
+  <data name="VerifyFailed.BrandHeadline" xml:space="preserve"><value>Link<br/><span class="hl hl-pink">expired</span>.</value></data>
+  <data name="VerifyFailed.BrandSub" xml:space="preserve"><value>The verification link may have expired or already been used. Please request a new one.</value></data>
+  <data name="VerifyFailed.Eyebrow" xml:space="preserve"><value>Link Issue</value></data>
+  <data name="VerifyFailed.Title" xml:space="preserve"><value>Invalid Verification Link</value></data>
+  <data name="VerifyFailed.Sub" xml:space="preserve"><value>This link may have expired (valid for 24 hours), already been used, or the URL is incomplete.</value></data>
+  <data name="VerifyFailed.Reregister" xml:space="preserve"><value>Register Again for a New Link</value></data>
+  <data name="VerifyFailed.Back" xml:space="preserve"><value>Back to Log In</value></data>
+</root>
