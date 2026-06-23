@@ -2,6 +2,7 @@ using Auth.Models;
 using Auth.Options;
 using Auth.Services.Hydra;
 using Auth.Services.Users;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -228,4 +229,15 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
     /// <summary>錯誤頁。</summary>
     [HttpGet("error")]
     public IActionResult Error() => View();
+
+    /// <summary>切換語系，設定 Cookie 後導回原頁。</summary>
+    [HttpGet("set-language")]
+    public IActionResult SetLanguage(string culture, string? returnUrl)
+    {
+        Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+            new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), HttpOnly = true, SameSite = SameSiteMode.Lax });
+        return LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
+    }
 }

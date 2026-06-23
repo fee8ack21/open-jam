@@ -24,6 +24,7 @@ public static class IconHelper
         ["book"]       = "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13",
         ["send"]       = "M22 2 11 13 M22 2 15 22l-4-9-9-4 20-7z",
         ["key"]        = "M15 7a4 4 0 1 1-3.9 5H8v2H6v2H3v-3l5.1-5.1A4 4 0 0 1 15 7zM16 8h.01",
+        ["globe"]      = "M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z",
     };
 
     public static HtmlString Render(string name, int size = 20, double stroke = 1.9, bool fill = false, string? style = null)
