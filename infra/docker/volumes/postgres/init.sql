@@ -4,3 +4,4 @@ CREATE DATABASE open_jam_email;
 CREATE DATABASE open_jam_hydra;
 CREATE DATABASE open_jam_storage;
 CREATE DATABASE open_jam_store;
+CREATE DATABASE open_jam_payment;

@@ -44,6 +44,8 @@ ingress:
           serviceName: open-jam-catalog-service
         - path: /log-service
           serviceName: open-jam-log-service
+        - path: /payment-service
+          serviceName: open-jam-payment-service
     - host: docs.openjam.co
       serviceName: open-jam-docs
     - host: "*.openjam.co"

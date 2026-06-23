@@ -115,6 +115,13 @@ QuotaService Service URL (cluster-internal).
 {{- end }}
 
 {{/*
+PaymentService Service URL (cluster-internal).
+*/}}
+{{- define "open-jam.paymentServiceUrl" -}}
+{{- printf "http://%s-payment-service:8080" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
 Secret name.
 */}}
 {{- define "open-jam.secretName" -}}

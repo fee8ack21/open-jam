@@ -7,5 +7,6 @@
     <Project Path="src/Bootstrap/Bootstrap.csproj" />
     <Project Path="src/Shared/Shared.csproj" />
     <Project Path="src/StoreService/StoreService.csproj" />
+    <Project Path="src/PaymentService/PaymentService.csproj" />
   </Folder>
 </Solution>
