@@ -301,6 +301,21 @@ paymentService:
       cpu: 300m
       memory: 512Mi
 
+orderService:
+  enabled: true
+  image:
+    repository: open-jam/order-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
 creatorWeb:
   enabled: true
   image:
