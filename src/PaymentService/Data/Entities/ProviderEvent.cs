@@ -16,7 +16,10 @@ public class ProviderEvent : ICreatedAt
     /// <summary>事件類型（如 "checkout.session.completed"）。</summary>
     public string EventType { get; set; } = "";
 
-    /// <summary>處理完成時間（UTC）；null 表示尚未處理完畢。</summary>
+    /// <summary>原始 webhook payload（JSON 字串），供 BackgroundService 非同步處理；接收時已驗證簽章。</summary>
+    public string RawPayload { get; set; } = "";
+
+    /// <summary>處理完成時間（UTC）；null 表示尚未處理完畢，由 <c>StripeWebhookProcessorService</c> 排程處理。</summary>
     public DateTimeOffset? ProcessedAt { get; set; }
 
     /// <inheritdoc/>

@@ -7,4 +7,5 @@ public enum PaymentStatus
     Succeeded = 2,
     Failed = 3,
     Cancelled = 4,
+    Expired = 5,
 }

@@ -50,4 +50,6 @@ public class PaymentResponse
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? PaidAt { get; set; }
     public DateTimeOffset? FailedAt { get; set; }
+    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExpiredAt { get; set; }
 }

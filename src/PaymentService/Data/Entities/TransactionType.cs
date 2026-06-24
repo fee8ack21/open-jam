@@ -7,4 +7,5 @@ public enum TransactionType
     Success = 2,
     Fail = 3,
     Cancel = 4,
+    Expired = 5,
 }

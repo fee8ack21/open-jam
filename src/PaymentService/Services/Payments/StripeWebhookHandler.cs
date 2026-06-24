@@ -14,10 +14,11 @@ public class StripeWebhookHandler(
     IOptions<StripeOptions> stripeOptions,
     ILogger<StripeWebhookHandler> logger)
 {
-    public async Task<string> HandleAsync(string body, string signature, CancellationToken ct)
+    /// <summary>驗證簽章並落地原始事件後立即返回，業務處理交由 <c>StripeWebhookProcessorService</c> 非同步執行，
+    /// 避免服務在處理過程中掛掉導致 webhook 遺失（事件已落地，重啟後仍會被排程處理）。</summary>
+    public async Task<string> ReceiveAsync(string body, string signature, CancellationToken ct)
     {
         var opts = stripeOptions.Value;
-        StripeConfiguration.ApiKey = opts.SecretKey;
 
         var evt = EventUtility.ConstructEvent(body, signature, opts.WebhookSecret);
         var eventId = evt.Id;
@@ -31,41 +32,52 @@ public class StripeWebhookHandler(
         if (existing != null)
         {
             logger.LogInformation("Duplicate webhook skipped: {EventId}", eventId);
-            return evt.Type;
+            return eventType;
         }
 
-        var providerEvent = new ProviderEvent
+        db.ProviderEvents.Add(new ProviderEvent
         {
             Id = Guid.NewGuid(),
             Provider = "stripe",
             EventId = eventId,
             EventType = eventType,
-        };
-        db.ProviderEvents.Add(providerEvent);
+            RawPayload = body,
+        });
 
-        switch (eventType)
+        await db.SaveChangesAsync(ct);
+
+        return eventType;
+    }
+
+    /// <summary>由 <c>StripeWebhookProcessorService</c> 排程呼叫，處理尚未完成的事件。呼叫端負責 <c>SaveChangesAsync</c>。</summary>
+    public async Task ProcessPendingAsync(ProviderEvent providerEvent, CancellationToken ct)
+    {
+        var opts = stripeOptions.Value;
+        StripeConfiguration.ApiKey = opts.SecretKey;
+
+        var evt = EventUtility.ParseEvent(providerEvent.RawPayload, throwOnApiVersionMismatch: false);
+
+        switch (evt.Type)
         {
             case "checkout.session.completed":
-                await HandleCheckoutCompletedAsync(evt, ct);
-                break;
             case "checkout.session.async_payment_succeeded":
                 await HandleCheckoutCompletedAsync(evt, ct);
                 break;
             case "checkout.session.async_payment_failed":
                 await HandleCheckoutFailedAsync(evt, ct);
                 break;
+            case "checkout.session.expired":
+                await HandleCheckoutExpiredAsync(evt, ct);
+                break;
             case "payment_intent.payment_failed":
                 await HandlePaymentFailedAsync(evt, ct);
                 break;
             default:
-                logger.LogInformation("Unhandled webhook type: {EventType}", eventType);
+                logger.LogInformation("Unhandled webhook type: {EventType}", evt.Type);
                 break;
         }
 
         providerEvent.ProcessedAt = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync(ct);
-
-        return evt.Type;
     }
 
     private async Task HandleCheckoutCompletedAsync(Event evt, CancellationToken ct)
@@ -138,6 +150,35 @@ public class StripeWebhookHandler(
         });
 
         logger.LogInformation("Payment failed (async): {PaymentId} {CheckoutSessionId}", payment.Id, session.Id);
+    }
+
+    private async Task HandleCheckoutExpiredAsync(Event evt, CancellationToken ct)
+    {
+        var session = evt.Data.Object as Stripe.Checkout.Session;
+        if (session == null) return;
+
+        var paymentId = GetPaymentId(session);
+        if (paymentId == null) return;
+
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == paymentId.Value, ct);
+        if (payment == null) return;
+
+        // 只有仍是 Pending 才標記過期；若已成功 / 失敗則維持原狀態。
+        if (payment.Status != PaymentStatus.Pending) return;
+
+        payment.Status = PaymentStatus.Expired;
+        payment.ExpiredAt = DateTimeOffset.UtcNow;
+
+        db.PaymentTransactions.Add(new PaymentTransaction
+        {
+            Id = Guid.NewGuid(),
+            PaymentId = payment.Id,
+            TransactionType = TransactionType.Expired,
+            ProviderTransactionId = session.Id,
+            RawPayload = evt.Data.RawObject?.ToJson(),
+        });
+
+        logger.LogInformation("Checkout session expired: {PaymentId} {CheckoutSessionId}", payment.Id, session.Id);
     }
 
     private async Task HandlePaymentFailedAsync(Event evt, CancellationToken ct)

@@ -21,7 +21,7 @@ public class WebhookController(StripeWebhookHandler handler) : ControllerBase
 
         try
         {
-            var type = await handler.HandleAsync(body, signature, ct);
+            var type = await handler.ReceiveAsync(body, signature, ct);
             return Ok(new { received = true, type });
         }
         catch (Exception ex)

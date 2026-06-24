@@ -41,6 +41,7 @@ builder.Services.AddScoped<StripeWebhookHandler>();
 builder.Services.AddScoped<AuditLogPublisher>();
 
 builder.Services.AddHostedService<OutboxRelayService>();
+builder.Services.AddHostedService<StripeWebhookProcessorService>();
 
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
 builder.Services.AddOpenJamCors(builder.Configuration);

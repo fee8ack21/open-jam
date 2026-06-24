@@ -34,6 +34,12 @@ public class Payment : ICreatedAt, IUpdatedAt
     /// <summary>第三方金流的結帳階段 ID（Stripe CheckoutSession ID）。</summary>
     public string? ProviderCheckoutId { get; set; }
 
+    /// <summary>Stripe Checkout 頁面網址，供同一訂單重複請求時直接重用，避免建立重複 Session。</summary>
+    public string? CheckoutUrl { get; set; }
+
+    /// <summary>Stripe Checkout Session 到期時間（UTC），到期前同一訂單的請求會重用此筆付款。</summary>
+    public DateTimeOffset? ExpiresAt { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 
@@ -45,4 +51,7 @@ public class Payment : ICreatedAt, IUpdatedAt
 
     /// <summary>付款失敗時間（UTC）。</summary>
     public DateTimeOffset? FailedAt { get; set; }
+
+    /// <summary>使用者未完成付款、Stripe Checkout Session 過期時間（UTC）。</summary>
+    public DateTimeOffset? ExpiredAt { get; set; }
 }
