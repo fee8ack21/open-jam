@@ -8,7 +8,7 @@ import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { PRODUCTS, type Product } from '@/data/products';
 import { STORE, type Store } from '@/data/store';
-import { catalogApi, storeApi } from '@/api';
+import { catalogApi, orderApi, paymentApi, storeApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { env } from '@/environment';
 import { categoryKeyResolver, toProduct, toStore, hueColor, type StoreInfo } from '@/data/mapCatalog';
@@ -39,6 +39,19 @@ interface Order {
   total: number;
   buyer: Buyer;
   date: Date;
+}
+
+/**
+ * 結帳後、導向 Stripe 前暫存的訂單資訊。
+ * Stripe 付款頁會整頁離開 SPA，回到成功頁時記憶體狀態已遺失，
+ * 故以 localStorage 暫存，供成功頁還原訂單摘要並清空購物車。
+ */
+interface PendingOrder {
+  orderId: string;
+  orderNumber: string;
+  buyer: Buyer;
+  items: CartProduct[];
+  total: number;
 }
 
 const load = <T>(k: string, fb: T): T => {
@@ -74,6 +87,8 @@ export const useShopStore = defineStore('shop', () => {
 
   // checkout
   const order = ref<Order | null>(null);  // set after successful payment
+  const pendingOrder = ref<PendingOrder | null>(load<PendingOrder | null>('pendingOrder', null));
+  const checkingOut = ref(false);
 
   // 追蹤創作者（依信箱訂閱本店面更新）
   const following = ref(false);
@@ -256,26 +271,101 @@ export const useShopStore = defineStore('shop', () => {
 
   // checkout
   function startCheckout() { order.value = null; }
-  function completeOrder(buyer: Buyer) {
+
+  /**
+   * 結帳：於 OrderService 建立訂單，再向 PaymentService 取得 Stripe Checkout Session，
+   * 回傳應導向的 Stripe 付款頁 URL（由呼叫端 `window.location.href` 跳轉填寫信用卡資訊）。
+   * 金額一律以最低貨幣單位（cents）送出；訂單總額以後端回傳為準，確保與實際扣款一致。
+   */
+  async function checkout(buyer: Buyer): Promise<string> {
+    if (!cartProducts.value.length) throw new Error('購物車是空的');
+    checkingOut.value = true;
+    try {
+      // 下單需商品版本 ID；列表載入的精簡資料未含版本，故補載缺漏項目的商品詳情。
+      const missing = cartProducts.value.filter((p) => !p.versionId).map((p) => p.id);
+      await Promise.all(missing.map((id) => loadProduct(id)));
+
+      const lines = cartProducts.value;
+      if (lines.some((p) => !p.versionId)) {
+        throw new Error('部分商品尚無可購買的版本，請稍後再試');
+      }
+
+      const currency = (lines[0].currency || 'usd').toLowerCase();
+      const items = lines.map((p) => ({
+        catalogId: p.id,
+        catalogVersionId: p.versionId as string,
+        catalogName: p.title,
+        unitPrice: Math.round(p.price * 100 * p.qty),
+      }));
+
+      const orderRes = await orderApi.orders.create({ buyerEmail: buyer.email, currency, items });
+      const created = orderRes.data;
+
+      const productName = lines.length === 1
+        ? lines[0].title
+        : `${lines[0].title} 等 ${lines.length} 件商品`;
+      const amount = created.totalAmount ?? Math.round(subtotal.value * 100);
+
+      const sessionRes = await paymentApi.payments.createCheckoutSession({
+        orderId: created.id as string,
+        email: buyer.email,
+        amount,
+        currency,
+        productName,
+      });
+
+      pendingOrder.value = {
+        orderId: created.id as string,
+        orderNumber: created.orderNumber ?? '',
+        buyer,
+        items: lines,
+        total: subtotal.value,
+      };
+      save('pendingOrder', pendingOrder.value);
+
+      const url = sessionRes.data.url;
+      if (!url) throw new Error('無法取得付款頁面網址');
+      return url;
+    } finally {
+      checkingOut.value = false;
+    }
+  }
+
+  /**
+   * 由 Stripe 成功頁回到本站時呼叫：以暫存的訂單摘要組出完成畫面、清空購物車與暫存。
+   * 回傳 false 表示沒有可還原的訂單（例如直接造訪成功頁）。
+   */
+  function finishCheckout(): boolean {
+    const p = pendingOrder.value;
+    if (!p) return false;
     order.value = {
-      id: 'JUN-' + Math.random().toString(36).slice(2, 7).toUpperCase(),
-      items: cartProducts.value,
-      total: subtotal.value,
-      buyer,
+      id: p.orderNumber || p.orderId,
+      items: p.items,
+      total: p.total,
+      buyer: p.buyer,
       date: new Date(),
     };
     clearCart();
+    pendingOrder.value = null;
+    save('pendingOrder', null);
+    return true;
+  }
+
+  /** 取消結帳（自 Stripe 取消頁返回）：保留購物車，僅清除暫存的待付款訂單。 */
+  function cancelCheckout() {
+    pendingOrder.value = null;
+    save('pendingOrder', null);
   }
 
   return {
     // state
     theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order, following,
-    products, storefront, categories, loading, loaded,
+    products, storefront, categories, loading, loaded, pendingOrder, checkingOut,
     // getters
     product, isFav, inCart, cartProducts, cartCount, subtotal, filtered, activeFilterCount,
     // actions
     setTheme, toggleTheme, toggleFav, addToCart, setQty, removeFromCart, clearCart,
-    setCategory, toggleTag, clearFilters, startCheckout, completeOrder, followStore,
+    setCategory, toggleTag, clearFilters, startCheckout, checkout, finishCheckout, cancelCheckout, followStore,
     loadCatalog, loadProduct, loadFavorites,
   };
 });

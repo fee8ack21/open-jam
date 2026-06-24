@@ -15,9 +15,11 @@
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "gen:api": "pnpm gen:api:store && pnpm gen:api:catalog",
+    "gen:api": "pnpm gen:api:store && pnpm gen:api:catalog && pnpm gen:api:order && pnpm gen:api:payment",
     "gen:api:store": "swagger-typescript-api generate -p openapi/store-service.json -o src/api -n store-service.ts --single-http-client --module-name-first-tag",
-    "gen:api:catalog": "swagger-typescript-api generate -p openapi/catalog-service.json -o src/api -n catalog-service.ts --single-http-client --module-name-first-tag"
+    "gen:api:catalog": "swagger-typescript-api generate -p openapi/catalog-service.json -o src/api -n catalog-service.ts --single-http-client --module-name-first-tag",
+    "gen:api:order": "swagger-typescript-api generate -p openapi/order-service.json -o src/api -n order-service.ts --single-http-client --module-name-first-tag",
+    "gen:api:payment": "swagger-typescript-api generate -p openapi/payment-service.json -o src/api -n payment-service.ts --single-http-client --module-name-first-tag"
   },
   "dependencies": {
     "naive-ui": "^2.40.1",

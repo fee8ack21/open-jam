@@ -1,0 +1,232 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PaymentService",
+    "version": "v1"
+  },
+  "paths": {
+    "/v1/payments/checkout-session": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "建立 Stripe Checkout Session，回傳前端應導向的付款頁 URL。",
+        "operationId": "CreateCheckoutSession",
+        "requestBody": {
+          "description": "訂單 ID、買家信箱、金額與商品名稱。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/payments/{id}": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "查詢付款紀錄。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PaymentStatus": {
+        "enum": [
+          "Pending",
+          "Processing",
+          "Succeeded",
+          "Failed",
+          "Cancelled",
+          "Expired"
+        ],
+        "type": "string"
+      },
+      "CreateCheckoutSessionRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "description": "商品訂單 ID。",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "description": "購買者電子信箱。",
+            "nullable": true
+          },
+          "amount": {
+            "type": "integer",
+            "description": "付款金額（最低貨幣單位，如 cents）。",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string",
+            "description": "貨幣代碼（小寫，如 \"usd\"、\"twd\"）。",
+            "nullable": true
+          },
+          "productName": {
+            "type": "string",
+            "description": "商品名稱（顯示於 Stripe Checkout 頁面）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "建立 Stripe Checkout Session 請求。"
+      },
+      "CheckoutSessionResponse": {
+        "type": "object",
+        "properties": {
+          "paymentId": {
+            "type": "string",
+            "description": "付款 ID。",
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Stripe Checkout Session ID。",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Stripe Checkout URL（前端導向此 URL 完成付款）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Checkout Session 建立回應。"
+      },
+      "PaymentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentStatus"
+          },
+          "providerPaymentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerCheckoutId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expiredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "付款紀錄回應。"
+      }
+    }
+  }
+}

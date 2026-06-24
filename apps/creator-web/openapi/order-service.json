@@ -1,0 +1,602 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "OrderService",
+    "version": "v1"
+  },
+  "paths": {
+    "/v1/orders": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "建立訂單（結帳）。消費者免註冊，憑 Email 即可下單。",
+        "operationId": "Create",
+        "requestBody": {
+          "description": "買家 Email、貨幣與訂單項目。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "查詢全部訂單列表（含各狀態），可依買家 / 狀態過濾。僅 Admin 可操作。",
+        "operationId": "List",
+        "parameters": [
+          {
+            "name": "BuyerUserId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "BuyerEmail",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            }
+          },
+          {
+            "name": "Offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "查詢訂單完整資訊（含項目與狀態歷程）。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/orders/by-number/{orderNumber}": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "以訂單編號查詢訂單完整資訊。",
+        "operationId": "GetByNumber",
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/orders/mine": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "查詢登入使用者本人的訂單列表（分頁）。",
+        "operationId": "ListMine",
+        "parameters": [
+          {
+            "name": "BuyerUserId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "BuyerEmail",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            }
+          },
+          {
+            "name": "Offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "取消未付款的訂單。具名買家僅本人可取消；匿名訂單憑訂單 ID 取消。",
+        "operationId": "Cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "取消原因（選填）。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrderStatus": {
+        "enum": [
+          "Pending",
+          "Paid",
+          "Completed",
+          "Cancelled",
+          "Refunded"
+        ],
+        "type": "string",
+        "description": "訂單狀態。數位商品付款成功後即視為履約完成（Completed）。"
+      },
+      "CreateOrderItemRequest": {
+        "type": "object",
+        "properties": {
+          "catalogId": {
+            "type": "string",
+            "description": "商品 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "catalogVersionId": {
+            "type": "string",
+            "description": "商品版本 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "catalogName": {
+            "type": "string",
+            "description": "商品名稱（下單當下快照）。",
+            "nullable": true,
+            "example": "復古 8-bit 音效包"
+          },
+          "unitPrice": {
+            "type": "integer",
+            "description": "單價（最低貨幣單位，如 cents）。",
+            "format": "int64",
+            "example": 1990
+          }
+        },
+        "additionalProperties": false,
+        "description": "建立訂單時的單一項目。"
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "properties": {
+          "buyerEmail": {
+            "type": "string",
+            "description": "購買者電子信箱。",
+            "nullable": true,
+            "example": "buyer@example.com"
+          },
+          "currency": {
+            "type": "string",
+            "description": "貨幣代碼（小寫，如 \"usd\"、\"twd\"）。",
+            "nullable": true,
+            "example": "usd"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemRequest"
+            },
+            "description": "訂單項目（至少一筆）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "建立訂單（結帳）請求。"
+      },
+      "CancelOrderRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "取消原因（選填）。",
+            "nullable": true,
+            "example": "改變心意"
+          }
+        },
+        "additionalProperties": false,
+        "description": "取消訂單請求。"
+      },
+      "OrderItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "項目 ID。",
+            "format": "uuid"
+          },
+          "catalogId": {
+            "type": "string",
+            "description": "商品 ID。",
+            "format": "uuid"
+          },
+          "catalogVersionId": {
+            "type": "string",
+            "description": "商品版本 ID。",
+            "format": "uuid"
+          },
+          "catalogName": {
+            "type": "string",
+            "description": "商品名稱（下單快照）。",
+            "nullable": true,
+            "example": "復古 8-bit 音效包"
+          },
+          "unitPrice": {
+            "type": "integer",
+            "description": "單價（最低貨幣單位）。",
+            "format": "int64",
+            "example": 1990
+          }
+        },
+        "additionalProperties": false,
+        "description": "訂單項目回應。"
+      },
+      "OrderStatusHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "oldStatus": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "newStatus": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "reason": {
+            "type": "string",
+            "description": "變更原因。",
+            "nullable": true,
+            "example": "Payment succeeded"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "變更時間（UTC）。",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "訂單狀態歷程回應。"
+      },
+      "OrderResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "訂單 ID。",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string",
+            "description": "人類可讀訂單編號。",
+            "nullable": true,
+            "example": "OJ-20260624-1A2B3C4D"
+          },
+          "buyerUserId": {
+            "type": "string",
+            "description": "購買者使用者 ID；null 表示匿名購買。",
+            "format": "uuid",
+            "nullable": true
+          },
+          "buyerEmail": {
+            "type": "string",
+            "description": "購買者電子信箱。",
+            "nullable": true,
+            "example": "buyer@example.com"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "currency": {
+            "type": "string",
+            "description": "貨幣代碼。",
+            "nullable": true,
+            "example": "usd"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "description": "訂單總金額（最低貨幣單位）。",
+            "format": "int64",
+            "example": 1990
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間（UTC）。",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "最後更新時間（UTC）。",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "description": "履約完成時間（UTC）；null 表示尚未完成。",
+            "format": "date-time",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemResponse"
+            },
+            "description": "訂單項目。",
+            "nullable": true
+          },
+          "statusHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderStatusHistoryResponse"
+            },
+            "description": "狀態變更歷程（依時間排序）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "訂單完整資訊回應（含項目與狀態歷程）。"
+      },
+      "OrderSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "訂單 ID。",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string",
+            "description": "人類可讀訂單編號。",
+            "nullable": true,
+            "example": "OJ-20260624-1A2B3C4D"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "currency": {
+            "type": "string",
+            "description": "貨幣代碼。",
+            "nullable": true,
+            "example": "usd"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "description": "訂單總金額（最低貨幣單位）。",
+            "format": "int64",
+            "example": 1990
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間（UTC）。",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "description": "履約完成時間（UTC）；null 表示尚未完成。",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "訂單列表項目（精簡）。"
+      },
+      "ListOrdersResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 42
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderSummaryDto"
+            },
+            "description": "本頁訂單清單。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "訂單列表分頁回應。"
+      }
+    }
+  }
+}

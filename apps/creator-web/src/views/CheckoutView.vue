@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { FormInst, FormRules } from 'naive-ui';
+import { useMessage, type FormInst, type FormRules } from 'naive-ui';
 import { useShopStore } from '@/stores/shop';
 import ProductThumb from '@/components/ProductThumb.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const router = useRouter();
+const message = useMessage();
 
 const form = ref<FormInst | null>(null);
 const processing = ref(false);
-const model = reactive({ name: '', email: '', cardName: '', cardNumber: '', expiry: '', cvc: '' });
+const model = reactive({ name: '', email: '' });
 
 const rules: FormRules = {
   name: { required: true, message: '請輸入姓名', trigger: ['blur', 'input'] },
@@ -19,21 +20,11 @@ const rules: FormRules = {
     { required: true, message: '請輸入電子信箱', trigger: ['blur', 'input'] },
     { validator: (_, v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), message: '信箱格式不正確', trigger: ['blur'] },
   ],
-  cardName: { required: true, message: '請輸入持卡人姓名', trigger: ['blur', 'input'] },
-  cardNumber: { validator: (_, v: string) => (v || '').replace(/\s/g, '').length === 16, message: '請輸入 16 位卡號', trigger: ['blur', 'input'] },
-  expiry: { validator: (_, v: string) => /^\d{2}\/\d{2}$/.test(v || ''), message: 'MM/YY', trigger: ['blur', 'input'] },
-  cvc: { validator: (_, v: string) => /^\d{3,4}$/.test(v || ''), message: '3–4 位', trigger: ['blur', 'input'] },
 };
 
 const items = computed(() => store.cartProducts);
 const subtotal = computed(() => store.subtotal);
-const fee = computed(() => (subtotal.value === 0 ? 0 : Math.round(subtotal.value * 0.03 * 100) / 100));
-const total = computed(() => subtotal.value + fee.value);
-const order = computed(() => store.order);
-const cardMasked = computed(() => {
-  const raw = model.cardNumber.replace(/\s/g, '');
-  return raw.padEnd(16, '•').replace(/(.{4})/g, '$1 ').trim();
-});
+const total = computed(() => subtotal.value);
 
 onMounted(() => {
   store.startCheckout();
@@ -41,70 +32,29 @@ onMounted(() => {
 
 const goList = () => router.push({ name: 'list' });
 const openProduct = (id: string) => router.push({ name: 'product', params: { id } });
-const initials = (name: string) => name.split(' ').map((s) => s[0]).slice(0, 2).join('');
-const onCardInput = (v: string) => {
-  const raw = v.replace(/\D/g, '').slice(0, 16);
-  model.cardNumber = raw.replace(/(.{4})/g, '$1 ').trim();
-};
-const onExpiry = (v: string) => {
-  let raw = v.replace(/\D/g, '').slice(0, 4);
-  if (raw.length >= 3) raw = raw.slice(0, 2) + '/' + raw.slice(2);
-  model.expiry = raw;
-};
-const onCvc = (v: string) => { model.cvc = v.replace(/\D/g, '').slice(0, 4); };
+
+/** 建立訂單 + Stripe Checkout Session，導向 Stripe 安全頁面填寫信用卡資訊。 */
 const pay = async () => {
   try {
     await form.value!.validate();
-  } catch (e) { return; }
+  } catch { return; }
   processing.value = true;
-  setTimeout(() => {
-    store.completeOrder({ name: model.name, email: model.email });
+  try {
+    const url = await store.checkout({ name: model.name, email: model.email });
+    // 整頁導向 Stripe 託管的付款頁（卡號 / 有效期限 / CVC 一律在 Stripe 上輸入）。
+    window.location.href = url;
+  } catch (e) {
     processing.value = false;
-    window.scrollTo({ top: 0 });
-  }, 1300);
+    message.error(e instanceof Error ? e.message : '結帳失敗，請稍後再試');
+  }
 };
 </script>
 
 <template>
   <div class="page page-pad" data-screen-label="結帳頁">
 
-    <!-- SUCCESS -->
-    <div v-if="order" class="success-wrap">
-      <div class="success-ring"><app-icon name="check" :size="44" :stroke="2.4" /></div>
-      <p class="h-eyebrow" style="text-align:center">訂單 {{ order.id }}</p>
-      <h1 class="h-title" style="text-align:center">購買完成</h1>
-      <p class="h-sub" style="text-align:center">
-        收據與下載連結已寄至 <b style="color:var(--text)">{{ order.buyer.email }}</b>
-      </p>
-
-      <div class="panel" style="margin-top:30px; text-align:left;">
-        <div v-for="it in order.items" :key="it.id" class="cart-item">
-          <product-thumb :product="it" :glyph-size="34" :show-cat="false" hide-label />
-          <div class="cart-item-body">
-            <div class="cart-item-title">{{ it.title }}</div>
-            <div class="cart-item-creator">{{ it.creator }} · {{ it.totalSize }}</div>
-            <div class="cart-item-foot">
-              <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono)">{{ it.formats.join(' · ') }}</span>
-              <n-button size="small" type="primary" secondary>
-                <template #icon><app-icon name="download" :size="15" /></template>
-                下載
-              </n-button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
-        <n-button size="large" @click="goList">繼續探索</n-button>
-        <n-button size="large" type="primary">
-          <template #icon><app-icon name="download" :size="18" /></template>
-          下載全部
-        </n-button>
-      </div>
-    </div>
-
     <!-- EMPTY -->
-    <div v-else-if="!items.length" class="empty">
+    <div v-if="!items.length" class="empty">
       <app-icon name="cart" :size="44" style="margin-bottom:14px; opacity:.5;" />
       <p style="font-size:18px; font-weight:600; color:var(--text-soft);">購物車是空的</p>
       <p style="margin-top:6px;">挑幾件喜歡的作品，回來這裡結帳吧。</p>
@@ -172,32 +122,14 @@ const pay = async () => {
                 <h3>付款方式</h3>
               </div>
 
-              <div class="cc-visual">
-                <app-icon name="card" :size="26" />
-                <div class="cc-num">{{ cardMasked }}</div>
-                <div class="cc-bottom">
-                  <div><span class="lab">持卡人</span>{{ model.cardName || 'YOUR NAME' }}</div>
-                  <div><span class="lab">有效期限</span>{{ model.expiry || 'MM/YY' }}</div>
-                </div>
-              </div>
-
-              <div class="field-grid">
-                <n-form-item label="持卡人姓名" path="cardName">
-                  <n-input v-model:value="model.cardName" placeholder="WANG XIAO MING" size="large" />
-                </n-form-item>
-                <n-form-item label="卡號" path="cardNumber">
-                  <n-input :value="model.cardNumber" @update:value="onCardInput"
-                           placeholder="1234 5678 9012 3456" size="large">
-                    <template #suffix><app-icon name="card" :size="18" style="color:var(--text-faint)" /></template>
-                  </n-input>
-                </n-form-item>
-                <div class="field-grid two">
-                  <n-form-item label="有效期限" path="expiry">
-                    <n-input :value="model.expiry" @update:value="onExpiry" placeholder="MM/YY" size="large" />
-                  </n-form-item>
-                  <n-form-item label="安全碼 CVC" path="cvc">
-                    <n-input :value="model.cvc" @update:value="onCvc" placeholder="123" size="large" />
-                  </n-form-item>
+              <div class="stripe-note">
+                <div class="stripe-note-icon"><app-icon name="lock" :size="20" /></div>
+                <div>
+                  <div class="stripe-note-title">由 Stripe 安全處理付款</div>
+                  <p class="stripe-note-sub">
+                    點擊「前往付款」後，將跳轉至 Stripe 託管的安全頁面輸入信用卡資訊。
+                    我們不會接觸或儲存您的卡號。
+                  </p>
                 </div>
               </div>
             </div>
@@ -208,13 +140,12 @@ const pay = async () => {
             <div class="panel">
               <h3 style="margin:0 0 18px; font-size:18px; font-weight:700;">訂單摘要</h3>
               <div class="sum-row"><span>小計（{{ items.length }} 件）</span><span>${{ subtotal }}</span></div>
-              <div class="sum-row"><span>平台手續費 (3%)</span><span>${{ fee }}</span></div>
               <div class="sum-row total"><span>總計</span><span>${{ total }}</span></div>
 
               <n-button type="primary" size="large" block strong style="margin-top:22px;"
                         :loading="processing" :disabled="processing" @click="pay">
                 <template #icon v-if="!processing"><app-icon name="lock" :size="17" /></template>
-                {{ processing ? '安全付款中…' : '確認付款 $' + total }}
+                {{ processing ? '前往付款頁…' : '前往付款 $' + total }}
               </n-button>
 
               <div class="trust" style="margin-top:16px;">
@@ -227,3 +158,27 @@ const pay = async () => {
     </template>
   </div>
 </template>
+
+<style scoped>
+.stripe-note {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2, rgba(127, 127, 127, 0.05));
+}
+.stripe-note-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--brand, #635bff);
+  background: color-mix(in srgb, var(--brand, #635bff) 12%, transparent);
+}
+.stripe-note-title { font-weight: 600; font-size: 15px; }
+.stripe-note-sub { margin: 4px 0 0; font-size: 12.5px; color: var(--text-faint); line-height: 1.6; }
+</style>

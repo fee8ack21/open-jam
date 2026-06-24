@@ -77,6 +77,8 @@ export function toProduct(
     contents: [],
     previews: 0,
     image: dto.thumbnailUrl ?? undefined,
+    versionId: detail.currentVersion?.id ?? undefined,
+    currency: dto.currency ?? undefined,
   };
 }
 
