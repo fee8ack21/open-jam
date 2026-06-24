@@ -14,11 +14,12 @@ const NAV = {
     { view: 'open-store', label: '開店', icon: 'rocket' },
     { view: 'products', label: '商品管理', icon: 'box', countKey: 'products' },
     { view: 'upload', label: '上架新作品', icon: 'upload' },
-    { view: 'orders', label: '訂單管理', icon: 'receipt', countKey: 'orders' },
+    { view: 'orders', label: '訂單管理', icon: 'receipt' },
     { view: 'store-settings', label: '商店設定', icon: 'gear' },
   ],
   buy: [
     { view: 'purchases', label: '購買紀錄', icon: 'bag', countKey: 'purchases' },
+    { view: 'my-orders', label: '我的訂單', icon: 'receipt' },
     { view: 'wishlist', label: 'Wishlist', icon: 'heart', countKey: 'wishlist' },
   ],
 }
@@ -109,6 +110,10 @@ function isActive(view: string) { return route.name === view }
           <div class="nav-item" :class="{ on: isActive('catalog-categories') }" @click="nav('catalog-categories')">
             <span class="nav-ic"><app-icon name="tag" :size="19" /></span>
             <span>商品分類</span>
+          </div>
+          <div class="nav-item" :class="{ on: isActive('admin-orders') }" @click="nav('admin-orders')">
+            <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
+            <span>訂單列表</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('audit-log') }" @click="nav('audit-log')">
             <span class="nav-ic"><app-icon name="note" :size="19" /></span>

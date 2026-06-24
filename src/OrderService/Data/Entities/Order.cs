@@ -10,6 +10,9 @@ public class Order : ICreatedAt, IUpdatedAt
     /// <summary>對外顯示的人類可讀訂單編號（如 OJ-20260624-1A2B3C4D），全域唯一。</summary>
     public string OrderNumber { get; set; } = "";
 
+    /// <summary>訂單所屬商店 ID（賣方）。一張訂單對應單一商店，供賣家視角查詢用。</summary>
+    public Guid StoreId { get; set; }
+
     /// <summary>購買者使用者 ID（已登入用戶）；null 表示以 Email 匿名購買。</summary>
     public Guid? BuyerUserId { get; set; }
 

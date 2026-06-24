@@ -57,8 +57,18 @@ public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor c
         return Ok(await orderManager.ListAsync(request, ct));
     }
 
-    /// <summary>查詢全部訂單列表（含各狀態），可依買家 / 狀態過濾。僅 Admin 可操作。</summary>
-    /// <param name="request">查詢條件（買家 / 狀態 + 分頁）。</param>
+    /// <summary>查詢指定商店收到的訂單列表（賣家視角，分頁）。僅該商店 Owner 可操作。</summary>
+    /// <param name="storeId">商店 ID（賣方）。</param>
+    /// <param name="request">查詢條件（買家 / 狀態 + 分頁）；商店 ID 取自路由。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet("store/{storeId:guid}")]
+    [Authorize]
+    [ProducesResponseType<ListOrdersResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ListOrdersResponse>> ListByStore(Guid storeId, [FromQuery] ListOrdersRequest request, CancellationToken ct) =>
+        Ok(await orderManager.ListByStoreAsync(storeId, request, ct));
+
+    /// <summary>查詢全部訂單列表（含各狀態），可依商店 / 買家 / 狀態過濾。僅 Admin 可操作。</summary>
+    /// <param name="request">查詢條件（商店 / 買家 / 狀態 + 分頁）。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet]
     [Authorize(Policy = "Admin")]

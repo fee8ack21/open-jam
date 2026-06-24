@@ -12,6 +12,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/stores', name: 'stores', component: () => import('@/views/StoresView.vue'), meta: { title: '商店列表' } },
   { path: '/stores/:id/products', name: 'store-products', component: () => import('@/views/StoreProductsView.vue'), meta: { title: '商店商品' } },
   { path: '/catalog-categories', name: 'catalog-categories', component: () => import('@/views/CatalogCategoriesView.vue'), meta: { title: '商品分類' } },
+  { path: '/admin-orders', name: 'admin-orders', component: () => import('@/views/AdminOrdersView.vue'), meta: { title: '訂單列表' } },
   { path: '/audit-log', name: 'audit-log', component: () => import('@/views/AuditLogView.vue'), meta: { title: '稽核日誌' } },
   { path: '/open-store', name: 'open-store', component: () => import('@/views/OpenStoreView.vue'), meta: { title: '開店' } },
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },
@@ -19,6 +20,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/orders', name: 'orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單管理' } },
   { path: '/store-settings', name: 'store-settings', component: () => import('@/views/StoreSettingsView.vue'), meta: { title: '商店設定' } },
   { path: '/purchases', name: 'purchases', component: () => import('@/views/PurchasesView.vue'), meta: { title: '購買紀錄' } },
+  { path: '/my-orders', name: 'my-orders', component: () => import('@/views/MyOrdersView.vue'), meta: { title: '我的訂單' } },
   { path: '/wishlist', name: 'wishlist', component: () => import('@/views/WishlistView.vue'), meta: { title: 'Wishlist' } },
   { path: '/:pathMatch(.*)*', redirect: '/purchases' },
 ]
@@ -34,7 +36,7 @@ const SELL_ROUTES = ['overview', 'open-store', 'products', 'upload', 'orders', '
 // 需要先開店才能操作的路由：尚未開店時一律導回「開店」
 const REQUIRE_STORE_ROUTES = ['overview', 'products', 'upload', 'orders', 'store-settings']
 // 平台管理員專屬路由：僅 role === "Admin" 可進入
-const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'catalog-categories', 'audit-log']
+const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'catalog-categories', 'admin-orders', 'audit-log']
 
 let userLoaded = false
 let storeStateLoaded = false

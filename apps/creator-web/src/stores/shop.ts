@@ -298,7 +298,12 @@ export const useShopStore = defineStore('shop', () => {
         unitPrice: Math.round(p.price * 100 * p.qty),
       }));
 
-      const orderRes = await orderApi.orders.create({ buyerEmail: buyer.email, currency, items });
+      const orderRes = await orderApi.orders.create({
+        storeId: storefront.value.id,
+        buyerEmail: buyer.email,
+        currency,
+        items,
+      });
       const created = orderRes.data;
 
       const productName = lines.length === 1

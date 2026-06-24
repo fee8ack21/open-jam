@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useSellerOrdersStore } from '@/stores/sellerOrders'
-import { useStoreApplicationStore } from '@/stores/storeApplication'
+import { useAdminOrdersStore } from '@/stores/adminOrders'
 import OrderDetailModal from '@/components/OrderDetailModal.vue'
 import { ORDER_STATUS_OPTIONS, formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
 import type { OrderStatus, OrderSummaryDto } from '@/api/order-service'
 
-const store = useSellerOrdersStore()
-const storeApp = useStoreApplicationStore()
+const store = useAdminOrdersStore()
 const { items, totalCount, loading, error, detail, detailLoading, detailError } = storeToRefs(store)
-
-// 賣家本人商店 ID（開店資料由 router guard 先載入）；變動時重新綁定查詢來源。
-const myStoreId = computed(() => storeApp.primaryStore?.id ?? null)
 
 // 篩選狀態（買家信箱即時 debounce，狀態下拉即時生效）
 const emailFilter = ref('')
@@ -27,6 +22,7 @@ async function applyFilter() {
   page.value = 1
   await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value })
 }
+// 買家信箱逐字輸入以 debounce 收斂；狀態變更即時套用（對齊其他管理頁的即時篩選）
 watch(emailFilter, () => {
   clearTimeout(filterTimer)
   filterTimer = setTimeout(applyFilter, 300)
@@ -48,24 +44,15 @@ async function openDetail(row: OrderSummaryDto) {
   await store.loadDetail(row.id)
 }
 
-/** 綁定（或切換）查詢商店並重置篩選表單。 */
-async function bindStore(id: string) {
-  emailFilter.value = ''
-  statusFilter.value = null
-  page.value = 1
-  await store.setStore(id)
-}
-
-watch(myStoreId, (id) => { if (id) bindStore(id) })
-onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
+onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="訂單管理">
+  <div data-screen-label="訂單列表">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">賣家工作室</p>
-        <h1 class="h-title">訂單管理</h1>
+        <p class="h-eyebrow">平台管理</p>
+        <h1 class="h-title">訂單列表</h1>
         <p class="h-sub">共 {{ totalCount }} 筆訂單</p>
       </div>
     </div>
@@ -104,8 +91,8 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
             <thead>
               <tr>
                 <th>訂單編號</th>
-                <th>買家</th>
-                <th class="hide-sm">狀態</th>
+                <th class="hide-sm">買家</th>
+                <th>狀態</th>
                 <th class="num">金額</th>
                 <th class="hide-sm">建立時間</th>
                 <th style="width:64px; text-align:right;">明細</th>
@@ -123,10 +110,8 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
               </tr>
               <tr v-for="o in items" :key="o.id">
                 <td><span class="history-mono" style="font-size:12.5px;">{{ o.orderNumber || '—' }}</span></td>
-                <td>
-                  <span class="history-mono" :title="o.id" style="font-size:12px;">{{ o.id ? o.id.slice(0, 8) : '—' }}</span>
-                </td>
-                <td class="hide-sm"><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ orderStatusMeta(o.status).label }}</n-tag></td>
+                <td class="hide-sm history-mono" :title="o.id" style="font-size:12px;">{{ o.id ? o.id.slice(0, 8) : '—' }}</td>
+                <td><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ orderStatusMeta(o.status).label }}</n-tag></td>
                 <td class="num" style="font-weight:700;">{{ formatOrderAmount(o.totalAmount, o.currency) }}</td>
                 <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ formatOrderTime(o.createdAt) }}</span></td>
                 <td style="text-align:right;">
@@ -217,7 +202,7 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
 }
 
 .history-table {
-  min-width: 760px;
+  min-width: 820px;
 }
 
 .history-table thead th {

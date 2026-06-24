@@ -22,6 +22,7 @@ public class OrderDbContext(DbContextOptions<OrderDbContext> options, ICurrentUs
             e.Property(o => o.BuyerEmail).HasMaxLength(320).IsRequired();
             e.Property(o => o.Currency).HasMaxLength(3).IsRequired();
             e.HasIndex(o => o.OrderNumber).IsUnique();
+            e.HasIndex(o => o.StoreId);
             e.HasIndex(o => o.BuyerUserId);
             e.HasIndex(o => o.BuyerEmail);
             e.HasIndex(o => o.Status);

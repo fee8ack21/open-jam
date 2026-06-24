@@ -5,6 +5,10 @@ namespace OrderService.Models;
 /// <summary>建立訂單（結帳）請求。</summary>
 public class CreateOrderRequest
 {
+    /// <summary>訂單所屬商店 ID（賣方）。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid StoreId { get; set; }
+
     /// <summary>購買者電子信箱。</summary>
     /// <example>buyer@example.com</example>
     public string BuyerEmail { get; set; } = "";
@@ -48,6 +52,10 @@ public class CancelOrderRequest
 /// <summary>訂單列表查詢請求（分頁採 offset / limit）。</summary>
 public class ListOrdersRequest
 {
+    /// <summary>限定所屬商店 ID（賣方）；null 表示不限。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid? StoreId { get; set; }
+
     /// <summary>限定購買者使用者 ID；null 表示不限。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? BuyerUserId { get; set; }
@@ -90,6 +98,10 @@ public class OrderSummaryDto
     /// <example>OJ-20260624-1A2B3C4D</example>
     public string OrderNumber { get; set; } = "";
 
+    /// <summary>訂單所屬商店 ID（賣方）。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid StoreId { get; set; }
+
     /// <summary>訂單狀態。</summary>
     /// <example>Completed</example>
     public OrderStatus Status { get; set; }
@@ -118,6 +130,10 @@ public class OrderResponse
     /// <summary>人類可讀訂單編號。</summary>
     /// <example>OJ-20260624-1A2B3C4D</example>
     public string OrderNumber { get; set; } = "";
+
+    /// <summary>訂單所屬商店 ID（賣方）。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid StoreId { get; set; }
 
     /// <summary>購買者使用者 ID；null 表示匿名購買。</summary>
     public Guid? BuyerUserId { get; set; }

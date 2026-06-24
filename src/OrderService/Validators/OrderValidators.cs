@@ -8,6 +8,7 @@ public class CreateOrderRequestValidator : AbstractValidator<CreateOrderRequest>
 {
     public CreateOrderRequestValidator()
     {
+        RuleFor(r => r.StoreId).NotEmpty().WithMessage("商店 ID 不得為空。");
         RuleFor(r => r.BuyerEmail).NotEmpty().EmailAddress().WithMessage("Email 格式不正確。");
         RuleFor(r => r.Currency).NotEmpty().Length(3).WithMessage("貨幣代碼須為 3 字元。");
         RuleFor(r => r.Items).NotEmpty().WithMessage("訂單至少須包含一個項目。");

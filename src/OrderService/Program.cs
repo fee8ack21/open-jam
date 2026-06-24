@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Consumers;
 using OrderService.Data;
+using OrderService.Options;
 using OrderService.Services;
 using OrderService.Services.Background;
 using OrderService.Services.Orders;
@@ -41,6 +42,14 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureEndpoints(ctx);
     });
 });
+
+builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
+
+// 賣家視角訂單查詢需向 StoreService 驗證商店 Owner 身分（轉發呼叫者 Bearer token）。
+var services = builder.Configuration.GetSection("Services").Get<ServiceOptions>() ?? new ServiceOptions();
+var storeBaseUrl = (services.StoreService.BaseUrl ?? "http://localhost:5172").TrimEnd('/') + "/";
+builder.Services.AddHttpClient("store", client => client.BaseAddress = new Uri(storeBaseUrl));
+builder.Services.AddScoped<StoreServiceClient>();
 
 builder.Services.AddScoped<IOrderManager, OrderManager>();
 builder.Services.AddScoped<AuditLogPublisher>();

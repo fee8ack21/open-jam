@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderService.Data;
 using OrderService.Data.Entities;
 using OrderService.Models;
+using OrderService.Services;
 using Shared.Exceptions;
 
 namespace OrderService.Services.Orders;
@@ -12,6 +13,7 @@ namespace OrderService.Services.Orders;
 public class OrderManager(
     OrderDbContext db,
     IMapper mapper,
+    StoreServiceClient storeClient,
     AuditLogPublisher auditLog) : IOrderManager
 {
     /// <inheritdoc/>
@@ -23,6 +25,7 @@ public class OrderManager(
         {
             Id          = Guid.NewGuid(),
             OrderNumber = OrderNumberGenerator.Next(),
+            StoreId     = request.StoreId,
             BuyerUserId = userId,
             BuyerEmail  = request.BuyerEmail,
             Currency    = currency,
@@ -61,6 +64,9 @@ public class OrderManager(
     {
         var query = db.Orders.AsNoTracking().AsQueryable();
 
+        if (request.StoreId is { } storeId)
+            query = query.Where(o => o.StoreId == storeId);
+
         if (request.BuyerUserId is { } buyerUserId)
             query = query.Where(o => o.BuyerUserId == buyerUserId);
 
@@ -83,6 +89,15 @@ public class OrderManager(
             .ToListAsync(ct);
 
         return new ListOrdersResponse { TotalCount = total, Items = items };
+    }
+
+    /// <inheritdoc/>
+    public async Task<ListOrdersResponse> ListByStoreAsync(Guid storeId, ListOrdersRequest request, CancellationToken ct)
+    {
+        // 賣家視角：先確認呼叫者為該商店 Owner，再以商店 ID 限縮查詢（覆寫客戶端傳入值，避免越權）。
+        await storeClient.EnsureStoreOwnerAsync(storeId, ct);
+        request.StoreId = storeId;
+        return await ListAsync(request, ct);
     }
 
     /// <inheritdoc/>

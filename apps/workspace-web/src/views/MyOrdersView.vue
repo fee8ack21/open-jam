@@ -1,41 +1,21 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useSellerOrdersStore } from '@/stores/sellerOrders'
-import { useStoreApplicationStore } from '@/stores/storeApplication'
+import { useMyOrdersStore } from '@/stores/myOrders'
 import OrderDetailModal from '@/components/OrderDetailModal.vue'
 import { ORDER_STATUS_OPTIONS, formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
 import type { OrderStatus, OrderSummaryDto } from '@/api/order-service'
 
-const store = useSellerOrdersStore()
-const storeApp = useStoreApplicationStore()
-const { items, totalCount, loading, error, detail, detailLoading, detailError } = storeToRefs(store)
+const store = useMyOrdersStore()
+const { items, totalCount, loading, error, status, detail, detailLoading, detailError } = storeToRefs(store)
 
-// 賣家本人商店 ID（開店資料由 router guard 先載入）；變動時重新綁定查詢來源。
-const myStoreId = computed(() => storeApp.primaryStore?.id ?? null)
-
-// 篩選狀態（買家信箱即時 debounce，狀態下拉即時生效）
-const emailFilter = ref('')
-const statusFilter = ref<OrderStatus | null>(null)
 const page = ref(1)
-
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
-let filterTimer: ReturnType<typeof setTimeout> | undefined
-async function applyFilter() {
-  clearTimeout(filterTimer)
+async function applyStatus(next: OrderStatus | null) {
   page.value = 1
-  await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value })
+  await store.applyStatus(next)
 }
-watch(emailFilter, () => {
-  clearTimeout(filterTimer)
-  filterTimer = setTimeout(applyFilter, 300)
-})
-watch(statusFilter, () => {
-  clearTimeout(filterTimer)
-  applyFilter()
-})
-
 async function changePage(p: number) {
   page.value = p
   await store.goPage(p)
@@ -48,24 +28,15 @@ async function openDetail(row: OrderSummaryDto) {
   await store.loadDetail(row.id)
 }
 
-/** 綁定（或切換）查詢商店並重置篩選表單。 */
-async function bindStore(id: string) {
-  emailFilter.value = ''
-  statusFilter.value = null
-  page.value = 1
-  await store.setStore(id)
-}
-
-watch(myStoreId, (id) => { if (id) bindStore(id) })
-onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
+onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="訂單管理">
+  <div data-screen-label="我的訂單">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">賣家工作室</p>
-        <h1 class="h-title">訂單管理</h1>
+        <p class="h-eyebrow">我的收藏庫</p>
+        <h1 class="h-title">我的訂單</h1>
         <p class="h-sub">共 {{ totalCount }} 筆訂單</p>
       </div>
     </div>
@@ -74,21 +45,12 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
     <div class="card-pad history-toolbar">
       <div class="filter-bar">
         <div class="fb-group">
-          <div class="fb-field" style="flex:2 1 240px;">
-            <label class="fb-label">買家信箱</label>
-            <n-input
-              v-model:value="emailFilter"
-              clearable
-              placeholder="搜尋買家 Email"
-              @keyup.enter="applyFilter">
-              <template #prefix><app-icon name="search" :size="16" /></template>
-            </n-input>
-          </div>
-          <div class="fb-field" style="flex:1 1 180px;">
+          <div class="fb-field" style="flex:1 1 200px;">
             <label class="fb-label">訂單狀態</label>
             <n-select
-              v-model:value="statusFilter"
-              :options="ORDER_STATUS_OPTIONS" />
+              :value="status"
+              :options="ORDER_STATUS_OPTIONS"
+              @update:value="applyStatus" />
           </div>
         </div>
       </div>
@@ -104,10 +66,10 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
             <thead>
               <tr>
                 <th>訂單編號</th>
-                <th>買家</th>
-                <th class="hide-sm">狀態</th>
+                <th>狀態</th>
                 <th class="num">金額</th>
                 <th class="hide-sm">建立時間</th>
+                <th class="hide-sm">完成時間</th>
                 <th style="width:64px; text-align:right;">明細</th>
               </tr>
             </thead>
@@ -117,18 +79,16 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="receipt" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">尚無訂單</div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    沒有符合條件的訂單，試試調整或重設篩選條件。
+                    沒有符合所選狀態的訂單，試試調整或重設篩選條件。
                   </div>
                 </td>
               </tr>
               <tr v-for="o in items" :key="o.id">
                 <td><span class="history-mono" style="font-size:12.5px;">{{ o.orderNumber || '—' }}</span></td>
-                <td>
-                  <span class="history-mono" :title="o.id" style="font-size:12px;">{{ o.id ? o.id.slice(0, 8) : '—' }}</span>
-                </td>
-                <td class="hide-sm"><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ orderStatusMeta(o.status).label }}</n-tag></td>
+                <td><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ orderStatusMeta(o.status).label }}</n-tag></td>
                 <td class="num" style="font-weight:700;">{{ formatOrderAmount(o.totalAmount, o.currency) }}</td>
                 <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ formatOrderTime(o.createdAt) }}</span></td>
+                <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ formatOrderTime(o.completedAt) }}</span></td>
                 <td style="text-align:right;">
                   <n-button text @click="openDetail(o)"><app-icon name="eye" :size="18" /></n-button>
                 </td>
@@ -160,16 +120,9 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
   border-radius: 10px;
 }
 
-.history-toolbar :deep(.n-input),
-.history-toolbar :deep(.n-input-wrapper),
 .history-toolbar :deep(.n-base-selection),
 .history-toolbar :deep(.n-base-selection__border),
 .history-toolbar :deep(.n-base-selection__state-border) {
-  border-radius: 10px;
-}
-
-.history-toolbar :deep(.n-input__border),
-.history-toolbar :deep(.n-input__state-border) {
   border-radius: 10px;
 }
 
@@ -177,7 +130,7 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .fb-group {
