@@ -9,6 +9,7 @@ config:
   marketPageUrl: "https://openjam.co/"
   workspaceUrl: "https://workspace.openjam.co/"
   creatorBaseUrl: "https://<store-slug>.openjam.co"
+  authApiUrl: "https://api.openjam.co/auth-service"
   storeApiUrl: "https://api.openjam.co/store-service"
   catalogApiUrl: "https://api.openjam.co/catalog-service"
   logApiUrl: "https://api.openjam.co/log-service"

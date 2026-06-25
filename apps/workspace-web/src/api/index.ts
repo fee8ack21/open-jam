@@ -11,6 +11,7 @@ import { Api as StoreApi, HttpClient as StoreHttpClient } from '@/api/store-serv
 import { Api as CatalogApi, HttpClient as CatalogHttpClient } from '@/api/catalog-service';
 import { Api as LogApi, HttpClient as LogHttpClient } from '@/api/log-service';
 import { Api as OrderApi, HttpClient as OrderHttpClient } from '@/api/order-service';
+import { Api as AuthApi, HttpClient as AuthHttpClient } from '@/api/auth-service';
 import { env } from '@/environment';
 import { userManager } from '@/oidc/auth';
 
@@ -47,6 +48,11 @@ const orderHttp = new OrderHttpClient({
   customFetch: authFetch,
 });
 
+const authHttp = new AuthHttpClient({
+  baseUrl: env.AUTH_API_URL,
+  customFetch: authFetch,
+});
+
 /** StoreService API client（store-applications / stores / followers）。 */
 export const storeApi = new StoreApi(storeHttp);
 
@@ -58,3 +64,6 @@ export const logApi = new LogApi(logHttp);
 
 /** OrderService API client（orders 訂單列表 / 明細查詢）。 */
 export const orderApi = new OrderApi(orderHttp);
+
+/** Auth service REST API client（users 平台會員列表，管理員專屬）。 */
+export const authApi = new AuthApi(authHttp);

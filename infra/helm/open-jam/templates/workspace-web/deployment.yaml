@@ -36,6 +36,8 @@ spec:
               value: {{ .Values.config.oidcClientId | quote }}
             - name: AUTH_PAGE_URL
               value: {{ .Values.config.authPageUrl | quote }}
+            - name: AUTH_API_URL
+              value: {{ .Values.config.authApiUrl | quote }}
             - name: STORE_API_URL
               value: {{ .Values.config.storeApiUrl | quote }}
             - name: CATALOG_API_URL

@@ -6,6 +6,7 @@ class AppEnv {
   OIDC_AUTHORITY = "https://hydra.openjam.co";
   OIDC_CLIENT_ID = "open-jam-web";
   AUTH_PAGE_URL = "http://localhost:5169";
+  AUTH_API_URL = "https://api.openjam.co/auth-service";
   STORE_API_URL = "https://api.openjam.co/store-service";
   CATALOG_API_URL = "https://api.openjam.co/catalog-service";
   LOG_API_URL = "https://api.openjam.co/log-service";

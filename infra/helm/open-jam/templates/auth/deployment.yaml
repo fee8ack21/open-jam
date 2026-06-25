@@ -30,6 +30,9 @@ spec:
               value: Production
             - name: ASPNETCORE_HTTP_PORTS
               value: "8080"
+            # REST API 掛在 api.openjam.co/auth-service 之下，App 自行剝除前綴（見 Program.cs UseOpenJamPathBase）
+            - name: PathBase
+              value: "/auth-service"
             - name: Logging__LogLevel__Default
               value: "Warning"
             - name: Logging__LogLevel__Microsoft
@@ -50,6 +53,11 @@ spec:
                   key: rabbitmq-password
             - name: Hydra__AdminUrl
               value: {{ include "open-jam.hydraAdminUrl" . | quote }}
+            # JWT Bearer 驗證（保護 /v1 管理 API）需驗 Hydra 簽發的 access token
+            - name: Hydra__Issuer
+              value: {{ include "open-jam.hydraPublicUrl" . | quote }}
+            - name: Hydra__MetadataAddress
+              value: {{ include "open-jam.hydraMetadataAddress" . | quote }}
             - name: App__BaseUrl
               value: {{ .Values.config.authPageUrl | quote }}
             - name: App__WorkspaceUrl

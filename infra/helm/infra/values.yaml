@@ -38,6 +38,8 @@ ingress:
       serviceName: open-jam-workspace-web
     - host: api.openjam.co
       paths:
+        - path: /auth-service
+          serviceName: open-jam-auth
         - path: /store-service
           serviceName: open-jam-store-service
         - path: /catalog-service

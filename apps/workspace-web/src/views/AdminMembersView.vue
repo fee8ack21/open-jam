@@ -1,53 +1,66 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useMemberListStore, type MemberRole, type MemberStatus } from '@/stores/memberList'
+import { useMemberListStore } from '@/stores/memberList'
+import { UserRole, UserStatus, type UserSummaryDto } from '@/api/auth-service'
 
 const store = useMemberListStore()
 const { items, loading } = storeToRefs(store)
 
 onMounted(store.load)
 
+// 帳號狀態 → 顯示用標籤
+const STATUS = {
+  [UserStatus.Active]:      { label: '啟用中', type: 'success' as const },
+  [UserStatus.Pending]:     { label: '待驗證', type: 'info' as const },
+  [UserStatus.Locked]:      { label: '已鎖定', type: 'warning' as const },
+  [UserStatus.Suspended]:   { label: '已停權', type: 'warning' as const },
+  [UserStatus.Deactivated]: { label: '已停用', type: 'default' as const },
+  [UserStatus.Deleted]:     { label: '已刪除', type: 'error' as const },
+}
+function statusOf(s?: UserStatus) {
+  return (s != null && STATUS[s]) || { label: '—', type: 'default' as const }
+}
+function roleOf(r?: UserRole) {
+  return r === UserRole.Admin
+    ? { label: '管理員', type: 'info' as const }
+    : { label: '一般會員', type: 'default' as const }
+}
+
 // ── 篩選 / 排序狀態 ──────────────────────────────────────────
 const keyword = ref('')
 /** 角色篩選：all | User | Admin */
-const roleFilter = ref<'all' | MemberRole>('all')
-/** 狀態篩選：all | Active | Suspended */
-const statusFilter = ref<'all' | MemberStatus>('all')
-const sortKey = ref<'email' | 'createdAt' | 'lastLoginAt'>('createdAt')
+const roleFilter = ref<'all' | UserRole>('all')
+/** 狀態篩選：all | <UserStatus> */
+const statusFilter = ref<'all' | UserStatus>('all')
+const sortKey = ref<'email' | 'createdAt' | 'updatedAt'>('createdAt')
 const sortDesc = ref(true)
 
 const roleOptions = [
   { label: '全部角色', value: 'all' },
-  { label: '一般會員', value: 'User' },
-  { label: '管理員', value: 'Admin' },
+  { label: '一般會員', value: UserRole.User },
+  { label: '管理員', value: UserRole.Admin },
 ]
 const statusOptions = [
   { label: '全部狀態', value: 'all' },
-  { label: '啟用中', value: 'Active' },
-  { label: '已停權', value: 'Suspended' },
+  { label: '啟用中', value: UserStatus.Active },
+  { label: '待驗證', value: UserStatus.Pending },
+  { label: '已鎖定', value: UserStatus.Locked },
+  { label: '已停權', value: UserStatus.Suspended },
+  { label: '已停用', value: UserStatus.Deactivated },
+  { label: '已刪除', value: UserStatus.Deleted },
 ]
 const columns = [
   { key: 'email', label: '會員', hideSm: false },
   { key: 'createdAt', label: '註冊時間', hideSm: true },
-  { key: 'lastLoginAt', label: '最後登入', hideSm: true },
+  { key: 'updatedAt', label: '最後更新', hideSm: true },
 ] as const
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '從未登入'
+  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
 }
-function initial(name?: string | null, email?: string) {
-  return (name?.charAt(0) || email?.charAt(0) || '?').toUpperCase()
-}
-function roleTag(role: MemberRole) {
-  return role === 'Admin'
-    ? { label: '管理員', type: 'info' as const }
-    : { label: '一般會員', type: 'default' as const }
-}
-function statusTag(status: MemberStatus) {
-  return status === 'Active'
-    ? { label: '啟用中', type: 'success' as const }
-    : { label: '已停權', type: 'warning' as const }
+function initial(email?: string | null) {
+  return (email?.charAt(0) || '?').toUpperCase()
 }
 
 function toggleSort(key: typeof sortKey.value) {
@@ -60,17 +73,13 @@ function toggleSort(key: typeof sortKey.value) {
 }
 
 /** 套用關鍵字、角色 / 狀態篩選與排序後的清單。 */
-const visible = computed(() => {
+const visible = computed<UserSummaryDto[]>(() => {
   const q = keyword.value.trim().toLowerCase()
   let list = items.value.slice()
 
   if (roleFilter.value !== 'all') list = list.filter((m) => m.role === roleFilter.value)
   if (statusFilter.value !== 'all') list = list.filter((m) => m.status === statusFilter.value)
-  if (q) {
-    list = list.filter((m) =>
-      [m.email, m.displayName].some((f) => (f ?? '').toLowerCase().includes(q)),
-    )
-  }
+  if (q) list = list.filter((m) => (m.email ?? '').toLowerCase().includes(q))
 
   const dir = sortDesc.value ? -1 : 1
   list.sort((a, b) => {
@@ -91,7 +100,7 @@ const visible = computed(() => {
         <p class="h-eyebrow">平台管理</p>
         <h1 class="h-title">會員列表</h1>
         <p class="h-sub">
-          共 {{ items.length }} 位會員 · {{ store.sellerCount }} 位賣家 · {{ store.adminCount }} 位管理員
+          共 {{ items.length }} 位會員 · {{ store.activeCount }} 位啟用中 · {{ store.adminCount }} 位管理員
         </p>
       </div>
     </div>
@@ -105,7 +114,7 @@ const visible = computed(() => {
             <n-input
               v-model:value="keyword"
               clearable
-              placeholder="搜尋 Email 或名稱">
+              placeholder="搜尋 Email">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
@@ -148,17 +157,17 @@ const visible = computed(() => {
                     {{ items.length ? '沒有符合條件的會員' : '尚無會員' }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    試試調整關鍵字或篩選條件。
+                    {{ items.length ? '試試調整關鍵字或篩選條件。' : '會員註冊後會顯示於此。' }}
                   </div>
                 </td>
               </tr>
               <tr v-for="m in visible" v-else :key="m.id">
                 <td>
                   <div class="prod-cell">
-                    <span class="store-rank">{{ initial(m.displayName, m.email) }}</span>
+                    <span class="store-rank">{{ initial(m.email) }}</span>
                     <div style="min-width:0;">
                       <div class="pc-title">
-                        {{ m.displayName || '（未設定名稱）' }}
+                        {{ m.email }}
                         <app-icon
                           v-if="!m.emailVerified"
                           name="mail"
@@ -166,10 +175,7 @@ const visible = computed(() => {
                           title="Email 尚未驗證"
                           style="color:var(--c-orange); vertical-align:-2px; margin-left:4px;" />
                       </div>
-                      <div class="pc-meta store-mono">
-                        {{ m.email }}
-                        <span v-if="m.hasStore"> · 賣家</span>
-                      </div>
+                      <div class="pc-meta store-mono">{{ m.id }}</div>
                     </div>
                   </div>
                 </td>
@@ -177,13 +183,13 @@ const visible = computed(() => {
                   <span class="store-mono">{{ fmtDate(m.createdAt) }}</span>
                 </td>
                 <td class="hide-sm">
-                  <span class="store-mono">{{ fmtDate(m.lastLoginAt) }}</span>
+                  <span class="store-mono">{{ fmtDate(m.updatedAt) }}</span>
                 </td>
                 <td class="hide-sm">
-                  <n-tag :type="roleTag(m.role).type" size="small" round>{{ roleTag(m.role).label }}</n-tag>
+                  <n-tag :type="roleOf(m.role).type" size="small" round>{{ roleOf(m.role).label }}</n-tag>
                 </td>
                 <td class="hide-sm">
-                  <n-tag :type="statusTag(m.status).type" size="small" round>{{ statusTag(m.status).label }}</n-tag>
+                  <n-tag :type="statusOf(m.status).type" size="small" round>{{ statusOf(m.status).label }}</n-tag>
                 </td>
               </tr>
             </tbody>

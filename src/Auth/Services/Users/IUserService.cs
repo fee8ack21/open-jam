@@ -1,10 +1,19 @@
 using Auth.Data.Entities;
+using Auth.Models;
 
 namespace Auth.Services.Users;
 
 /// <summary>帳號相關業務邏輯服務介面。</summary>
 public interface IUserService
 {
+    /// <summary>
+    /// 查詢平台使用者列表（分頁，支援關鍵字 / 角色 / 狀態篩選）。管理員後台使用。
+    /// </summary>
+    /// <param name="request">篩選與分頁參數。</param>
+    /// <param name="ct">Cancellation token。</param>
+    /// <returns>符合條件的使用者分頁結果。</returns>
+    Task<ListUsersResponse> ListAsync(ListUsersRequest request, CancellationToken ct = default);
+
     /// <summary>
     /// 註冊新帳號。若同一信箱已有 Pending 帳號（squatting）則覆蓋並重發驗證信；
     /// 若已是 Active 等已驗證狀態則回傳衝突錯誤。

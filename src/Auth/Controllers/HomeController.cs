@@ -9,6 +9,8 @@ using Microsoft.Extensions.Options;
 namespace Auth.Controllers;
 
 /// <summary>Auth service 的主要 MVC Controller，處理登入、註冊、信箱驗證、忘記密碼及重置密碼流程。</summary>
+/// <remarks>純 MVC 視圖流程，非 REST API；以 IgnoreApi 排除於 OpenAPI 文件外。</remarks>
+[ApiExplorerSettings(IgnoreApi = true)]
 public class HomeController(IHydraService hydra, IUserService userService, IOptions<AppOptions> appOptions) : Controller
 {
     /// <summary>Hydra session / consent 的記住時長（30 天），login 與 consent 端點共用。</summary>

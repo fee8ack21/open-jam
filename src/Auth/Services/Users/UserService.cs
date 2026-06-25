@@ -1,7 +1,10 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Auth.Data;
 using Auth.Data.Entities;
+using Auth.Models;
 using Auth.Options;
 using Auth.Services.Security;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +18,38 @@ namespace Auth.Services.Users;
 public class UserService(
     AppDbContext db,
     IPasswordHasher passwordHasher,
+    IMapper mapper,
     IOptions<AppOptions> appOptions) : IUserService
 {
+    /// <inheritdoc/>
+    public async Task<ListUsersResponse> ListAsync(ListUsersRequest request, CancellationToken ct = default)
+    {
+        var query = db.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var keyword = request.Search.Trim().ToLower();
+            query = query.Where(u => u.Email.ToLower().Contains(keyword));
+        }
+
+        if (request.Role.HasValue)
+            query = query.Where(u => u.Role == request.Role);
+
+        if (request.Status.HasValue)
+            query = query.Where(u => u.Status == request.Status);
+
+        var total = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip(request.Offset)
+            .Take(request.Limit)
+            .ProjectTo<UserSummaryDto>(mapper.ConfigurationProvider)
+            .ToListAsync(ct);
+
+        return new ListUsersResponse { TotalCount = total, Items = items };
+    }
+
     /// <inheritdoc/>
     public async Task<(bool Success, string? Error)> RegisterAsync(string email, string password)
     {
