@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { useStoreReviewStore } from '@/stores/storeReview'
 import { useStoreListStore } from '@/stores/storeList'
+import { useMemberListStore } from '@/stores/memberList'
 
 /** 賣家 / 買家兩組導覽項目；countKey 對應 store 中的數量。 */
 const NAV = {
@@ -35,6 +36,7 @@ const authStore = useAuthStore()
 const storeAppStore = useStoreApplicationStore()
 const reviewStore = useStoreReviewStore()
 const storeListStore = useStoreListStore()
+const memberListStore = useMemberListStore()
 
 /** 已有可用身份時才呈現選單；登出卸載 user 後到導頁前保持空白，避免閃現錯誤角色項目。 */
 const isReady = computed(() => authStore.isReady && authStore.isAuthenticated)
@@ -107,6 +109,15 @@ function isActive(view: string) { return route.name === view }
             <span>商店列表</span>
             <span v-if="storeListStore.activeCount" class="nav-count">{{ storeListStore.activeCount }}</span>
           </div>
+          <div class="nav-item" :class="{ on: isActive('members') }" @click="nav('members')">
+            <span class="nav-ic"><app-icon name="users" :size="19" /></span>
+            <span>會員列表</span>
+            <span v-if="memberListStore.activeCount" class="nav-count">{{ memberListStore.activeCount }}</span>
+          </div>
+          <div class="nav-item" :class="{ on: isActive('admin-products') }" @click="nav('admin-products')">
+            <span class="nav-ic"><app-icon name="box" :size="19" /></span>
+            <span>商品列表</span>
+          </div>
           <div class="nav-item" :class="{ on: isActive('catalog-categories') }" @click="nav('catalog-categories')">
             <span class="nav-ic"><app-icon name="tag" :size="19" /></span>
             <span>商品分類</span>
@@ -114,6 +125,10 @@ function isActive(view: string) { return route.name === view }
           <div class="nav-item" :class="{ on: isActive('admin-orders') }" @click="nav('admin-orders')">
             <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
             <span>訂單列表</span>
+          </div>
+          <div class="nav-item" :class="{ on: isActive('resource-usage') }" @click="nav('resource-usage')">
+            <span class="nav-ic"><app-icon name="layers" :size="19" /></span>
+            <span>資源用量</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('audit-log') }" @click="nav('audit-log')">
             <span class="nav-ic"><app-icon name="note" :size="19" /></span>

@@ -11,8 +11,11 @@ const routes: RouteRecordRaw[] = [
   { path: '/review-history', name: 'review-history', component: () => import('@/views/ReviewHistoryView.vue'), meta: { title: '審核紀錄' } },
   { path: '/stores', name: 'stores', component: () => import('@/views/StoresView.vue'), meta: { title: '商店列表' } },
   { path: '/stores/:id/products', name: 'store-products', component: () => import('@/views/StoreProductsView.vue'), meta: { title: '商店商品' } },
+  { path: '/members', name: 'members', component: () => import('@/views/AdminMembersView.vue'), meta: { title: '會員列表' } },
+  { path: '/admin-products', name: 'admin-products', component: () => import('@/views/AdminProductsView.vue'), meta: { title: '商品列表' } },
   { path: '/catalog-categories', name: 'catalog-categories', component: () => import('@/views/CatalogCategoriesView.vue'), meta: { title: '商品分類' } },
   { path: '/admin-orders', name: 'admin-orders', component: () => import('@/views/AdminOrdersView.vue'), meta: { title: '訂單列表' } },
+  { path: '/resource-usage', name: 'resource-usage', component: () => import('@/views/AdminUsageView.vue'), meta: { title: '資源用量' } },
   { path: '/audit-log', name: 'audit-log', component: () => import('@/views/AuditLogView.vue'), meta: { title: '稽核日誌' } },
   { path: '/open-store', name: 'open-store', component: () => import('@/views/OpenStoreView.vue'), meta: { title: '開店' } },
   { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '商品管理' } },
@@ -36,7 +39,7 @@ const SELL_ROUTES = ['overview', 'open-store', 'products', 'upload', 'orders', '
 // 需要先開店才能操作的路由：尚未開店時一律導回「開店」
 const REQUIRE_STORE_ROUTES = ['overview', 'products', 'upload', 'orders', 'store-settings']
 // 平台管理員專屬路由：僅 role === "Admin" 可進入
-const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'catalog-categories', 'admin-orders', 'audit-log']
+const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'members', 'admin-products', 'catalog-categories', 'admin-orders', 'resource-usage', 'audit-log']
 
 let userLoaded = false
 let storeStateLoaded = false
