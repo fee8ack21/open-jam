@@ -106,6 +106,20 @@ public class ListCatalogsRequestValidator : AbstractValidator<ListCatalogsReques
     {
         RuleFor(x => x.Offset).ValidOffset();
         RuleFor(x => x.Limit).ValidLimit();
+
+        RuleFor(x => x.MinPrice!.Value)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.MinPrice is not null)
+            .WithMessage("售價下限不得為負數。");
+
+        RuleFor(x => x.MaxPrice!.Value)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.MaxPrice is not null)
+            .WithMessage("售價上限不得為負數。");
+
+        RuleFor(x => x)
+            .Must(x => x.MinPrice is null || x.MaxPrice is null || x.MinPrice <= x.MaxPrice)
+            .WithMessage("售價下限不得大於上限。");
     }
 }
 

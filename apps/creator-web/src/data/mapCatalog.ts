@@ -68,7 +68,7 @@ export function toProduct(
     rating: 0,
     ratingCount: 0,
     sales: 0,
-    tags: detail.tags ?? [],
+    tags: dto.tags ?? [],
     blurb: dto.summary ?? '',
     desc: description ? description.split(/\n+/).map((s) => s.trim()).filter(Boolean) : [],
     files: [],

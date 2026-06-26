@@ -273,6 +273,36 @@
             "example": "音效"
           },
           {
+            "name": "MinPrice",
+            "in": "query",
+            "description": "售價下限（含）；null 表示不限。",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "MaxPrice",
+            "in": "query",
+            "description": "售價上限（含）；null 表示不限。",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 30
+            },
+            "example": 30
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "description": "排序方式；省略時預設最新上架。",
+            "schema": {
+              "$ref": "#/components/schemas/CatalogSort"
+            }
+          },
+          {
             "name": "Offset",
             "in": "query",
             "description": "略過筆數。",
@@ -1719,6 +1749,19 @@
             "nullable": true,
             "example": "http://localhost:5171/v1/files/blob/public/.../thumb.png"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "標籤名稱清單（市集卡片標籤、標籤搜尋用）。",
+            "nullable": true,
+            "example": [
+              "audio",
+              "retro",
+              "8bit"
+            ]
+          },
           "publishedAt": {
             "type": "string",
             "description": "首次上架時間；null 表示尚未上架。",
@@ -2236,6 +2279,15 @@
         },
         "additionalProperties": false,
         "description": "版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。"
+      },
+      "CatalogSort": {
+        "enum": [
+          "Newest",
+          "PriceLowToHigh",
+          "PriceHighToLow"
+        ],
+        "type": "string",
+        "description": "商品列表排序方式。"
       }
     }
   }

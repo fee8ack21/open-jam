@@ -55,7 +55,7 @@ export function toProduct(
     rating: 0,
     ratingCount: 0,
     sales: 0,
-    tags: [],
+    tags: dto.tags ?? [],
     blurb: dto.summary ?? '',
     desc: [],
     files: [],

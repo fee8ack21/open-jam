@@ -10,6 +10,13 @@
  * ---------------------------------------------------------------
  */
 
+/** 商品列表排序方式。 */
+export enum CatalogSort {
+  Newest = "Newest",
+  PriceLowToHigh = "PriceLowToHigh",
+  PriceHighToLow = "PriceHighToLow",
+}
+
 /** 商品狀態。 */
 export enum CatalogStatus {
   Draft = "Draft",
@@ -281,6 +288,11 @@ export interface CatalogSummaryDto {
    * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
    */
   thumbnailUrl?: string | null;
+  /**
+   * 標籤名稱清單（市集卡片標籤、標籤搜尋用）。
+   * @example ["audio","retro","8bit"]
+   */
+  tags?: string[] | null;
   /**
    * 首次上架時間；null 表示尚未上架。
    * @format date-time
@@ -1062,6 +1074,20 @@ export class Api<SecurityDataType extends unknown> {
          * @example "音效"
          */
         Search?: string;
+        /**
+         * 售價下限（含）；null 表示不限。
+         * @format double
+         * @example 0
+         */
+        MinPrice?: number;
+        /**
+         * 售價上限（含）；null 表示不限。
+         * @format double
+         * @example 30
+         */
+        MaxPrice?: number;
+        /** 排序方式；省略時預設最新上架。 */
+        Sort?: CatalogSort;
         /**
          * 略過筆數。
          * @format int32

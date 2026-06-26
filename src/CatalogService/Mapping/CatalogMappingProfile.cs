@@ -18,7 +18,8 @@ public class CatalogMappingProfile : Profile
             .ForMember(d => d.Tags, o => o.Ignore());
 
         CreateMap<Catalog, CatalogSummaryDto>()
-            .ForMember(d => d.ThumbnailUrl, o => o.Ignore());
+            .ForMember(d => d.ThumbnailUrl, o => o.Ignore())
+            .ForMember(d => d.Tags, o => o.Ignore());
 
         // Url 由 StorageKey 組合，由 service 補值。
         CreateMap<CatalogAsset, CatalogAssetDto>()

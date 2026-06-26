@@ -120,6 +120,10 @@ public class CatalogSummaryDto
     /// <example>http://localhost:5171/v1/files/blob/public/.../thumb.png</example>
     public string? ThumbnailUrl { get; set; }
 
+    /// <summary>標籤名稱清單（市集卡片標籤、標籤搜尋用）。</summary>
+    /// <example>["audio","retro","8bit"]</example>
+    public List<string> Tags { get; set; } = [];
+
     /// <summary>首次上架時間；null 表示尚未上架。</summary>
     public DateTimeOffset? PublishedAt { get; set; }
 }
@@ -251,6 +255,19 @@ public class SetCatalogTagsRequest
     public List<string> Tags { get; set; } = [];
 }
 
+/// <summary>商品列表排序方式。</summary>
+public enum CatalogSort
+{
+    /// <summary>最新上架（依上架時間，未上架者依建立時間）由新到舊——預設。</summary>
+    Newest = 0,
+
+    /// <summary>價格由低到高。</summary>
+    PriceLowToHigh = 1,
+
+    /// <summary>價格由高到低。</summary>
+    PriceHighToLow = 2,
+}
+
 /// <summary>商品列表查詢請求（分頁採 offset / limit）。</summary>
 public class ListCatalogsRequest
 {
@@ -269,6 +286,18 @@ public class ListCatalogsRequest
     /// <summary>名稱關鍵字搜尋；null 表示不限。</summary>
     /// <example>音效</example>
     public string? Search { get; set; }
+
+    /// <summary>售價下限（含）；null 表示不限。</summary>
+    /// <example>0</example>
+    public decimal? MinPrice { get; set; }
+
+    /// <summary>售價上限（含）；null 表示不限。</summary>
+    /// <example>30</example>
+    public decimal? MaxPrice { get; set; }
+
+    /// <summary>排序方式；省略時預設最新上架。</summary>
+    /// <example>Newest</example>
+    public CatalogSort Sort { get; set; } = CatalogSort.Newest;
 
     /// <summary>略過筆數。</summary>
     /// <example>0</example>

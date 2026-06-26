@@ -112,19 +112,43 @@ public class CatalogManager(
                 select c;
         }
 
+        if (request.MinPrice is { } minPrice)
+            query = query.Where(c => c.Price >= minPrice);
+
+        if (request.MaxPrice is { } maxPrice)
+            query = query.Where(c => c.Price <= maxPrice);
+
         var total = await query.CountAsync(ct);
 
+        // 價格排序仍以上架時間為次序鍵，確保同價商品有穩定順序。
+        query = request.Sort switch
+        {
+            CatalogSort.PriceLowToHigh => query.OrderBy(c => c.Price).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
+            CatalogSort.PriceHighToLow => query.OrderByDescending(c => c.Price).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
+            _ => query.OrderByDescending(c => c.PublishedAt ?? c.CreatedAt),
+        };
+
         var catalogs = await query
-            .OrderByDescending(c => c.PublishedAt ?? c.CreatedAt)
             .Skip(request.Offset)
             .Take(request.Limit)
             .ToListAsync(ct);
+
+        // 本頁商品標籤一次查回，避免逐筆 N+1。
+        var ids = catalogs.Select(c => c.Id).ToList();
+        var tagPairs = await db.CatalogTagMappings.AsNoTracking()
+            .Where(m => ids.Contains(m.CatalogId))
+            .Join(db.CatalogTags.AsNoTracking(), m => m.TagId, t => t.Id, (m, t) => new { m.CatalogId, t.Name })
+            .ToListAsync(ct);
+        var tagsByCatalog = tagPairs
+            .GroupBy(x => x.CatalogId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Name).OrderBy(n => n, StringComparer.Ordinal).ToList());
 
         var items = new List<CatalogSummaryDto>(catalogs.Count);
         foreach (var c in catalogs)
         {
             var summary = mapper.Map<CatalogSummaryDto>(c);
             summary.ThumbnailUrl = await GetAssetUrlAsync(c.ThumbnailAssetId, ct);
+            summary.Tags = tagsByCatalog.GetValueOrDefault(c.Id) ?? [];
             items.Add(summary);
         }
 
