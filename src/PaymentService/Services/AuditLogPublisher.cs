@@ -24,7 +24,7 @@ public class AuditLogPublisher(PaymentDbContext db)
             Tenant: tenant,
             OccurredAt: DateTimeOffset.UtcNow,
             CorrelationId: null
-        ));
+        ), OutboxJson.Options);
         db.OutboxMessages.Add(outbox);
     }
 }

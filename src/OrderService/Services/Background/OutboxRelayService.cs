@@ -11,11 +11,6 @@ public class OutboxRelayService(
     IServiceScopeFactory scopeFactory,
     ILogger<OutboxRelayService> logger) : BackgroundService
 {
-    private static readonly JsonSerializerOptions JsonOpts = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-    };
-
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         logger.LogInformation("OutboxRelayService started.");
@@ -42,12 +37,12 @@ public class OutboxRelayService(
                         {
                             if (msg.EventType.StartsWith("audit."))
                             {
-                                var evt = JsonSerializer.Deserialize<AuditLogRequestedEvent>(msg.Payload, JsonOpts);
+                                var evt = JsonSerializer.Deserialize<AuditLogRequestedEvent>(msg.Payload, OutboxJson.Options);
                                 if (evt != null) await bus.Publish(evt, ct);
                             }
                             else if (msg.EventType == OrderEventPublisher.OrderCompletedType)
                             {
-                                var evt = JsonSerializer.Deserialize<OrderCompletedEvent>(msg.Payload, JsonOpts);
+                                var evt = JsonSerializer.Deserialize<OrderCompletedEvent>(msg.Payload, OutboxJson.Options);
                                 if (evt != null) await bus.Publish(evt, ct);
                             }
 

@@ -11,12 +11,6 @@ namespace OrderService.Services;
 /// </summary>
 public class OrderEventPublisher(OrderDbContext db)
 {
-    /// <summary>Outbox payload 序列化設定，須與 OutboxRelayService 的反序列化一致。</summary>
-    internal static readonly JsonSerializerOptions JsonOpts = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-    };
-
     /// <summary>訂單完成事件的 Outbox EventType。</summary>
     public const string OrderCompletedType = "order.completed";
 
@@ -32,7 +26,7 @@ public class OrderEventPublisher(OrderDbContext db)
             Items: order.Items
                 .Select(i => new OrderCompletedItem(i.CatalogId, i.CatalogVersionId))
                 .ToList());
-        outbox.Payload = JsonSerializer.Serialize(evt, JsonOpts);
+        outbox.Payload = JsonSerializer.Serialize(evt, OutboxJson.Options);
         db.OutboxMessages.Add(outbox);
     }
 }
