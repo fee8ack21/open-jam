@@ -53,6 +53,10 @@ public class CatalogDto
     /// <example>0</example>
     public long SalesCount { get; set; }
 
+    /// <summary>是否為編輯精選（平台策展）。</summary>
+    /// <example>false</example>
+    public bool IsFeatured { get; set; }
+
     /// <summary>縮圖公開 URL；null 表示尚未設定。</summary>
     /// <example>http://localhost:5171/v1/files/blob/public/.../thumb.png</example>
     public string? ThumbnailUrl { get; set; }
@@ -123,6 +127,10 @@ public class CatalogSummaryDto
     /// <summary>累計銷量。</summary>
     /// <example>0</example>
     public long SalesCount { get; set; }
+
+    /// <summary>是否為編輯精選（平台策展）。</summary>
+    /// <example>false</example>
+    public bool IsFeatured { get; set; }
 
     /// <summary>縮圖公開 URL；null 表示尚未設定。</summary>
     /// <example>http://localhost:5171/v1/files/blob/public/.../thumb.png</example>
@@ -294,6 +302,10 @@ public class ListCatalogsRequest
     /// <summary>名稱關鍵字搜尋；null 表示不限。</summary>
     /// <example>音效</example>
     public string? Search { get; set; }
+
+    /// <summary>僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。</summary>
+    /// <example>true</example>
+    public bool? Featured { get; set; }
 
     /// <summary>售價下限（含）；null 表示不限。</summary>
     /// <example>0</example>

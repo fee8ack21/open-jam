@@ -47,6 +47,9 @@ public class Catalog : ICreatedAt, IUpdatedAt
     /// <summary>累計銷量（已完成訂單中此商品出現的次數）；由 OrderCompletedEvent 累加。</summary>
     public long SalesCount { get; set; }
 
+    /// <summary>是否為編輯精選（平台策展）；由 Admin 設定，市集首頁精選輪播取用。</summary>
+    public bool IsFeatured { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 

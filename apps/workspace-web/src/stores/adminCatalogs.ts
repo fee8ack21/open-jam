@@ -42,6 +42,26 @@ export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
     }
   }
 
+  /**
+   * 設定 / 取消商品的編輯精選旗標（Admin）。樂觀更新，失敗則還原並回報錯誤。
+   * 回傳是否成功。
+   */
+  async function setFeatured(id: string, featured: boolean): Promise<boolean> {
+    const item = items.value.find((p) => p.id === id);
+    if (!item) return false;
+    const prev = item.isFeatured ?? false;
+    item.isFeatured = featured; // 樂觀更新
+    try {
+      if (featured) await catalogApi.catalogs.feature(id);
+      else await catalogApi.catalogs.unfeature(id);
+      return true;
+    } catch (err) {
+      item.isFeatured = prev; // 還原
+      error.value = messageOf(err, '更新精選狀態失敗。');
+      return false;
+    }
+  }
+
   return {
     items,
     totalCount,
@@ -49,5 +69,6 @@ export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
     error,
     publishedCount,
     load,
+    setFeatured,
   };
 });

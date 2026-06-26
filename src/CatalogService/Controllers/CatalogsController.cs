@@ -137,6 +137,30 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>設為編輯精選（市集首頁精選輪播）。僅 Admin 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/feature")]
+    [Authorize(Policy = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> FeatureAsync(Guid id, CancellationToken ct)
+    {
+        await catalogManager.SetFeaturedAsync(id, featured: true, ct);
+        return NoContent();
+    }
+
+    /// <summary>取消編輯精選。僅 Admin 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/unfeature")]
+    [Authorize(Policy = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UnfeatureAsync(Guid id, CancellationToken ct)
+    {
+        await catalogManager.SetFeaturedAsync(id, featured: false, ct);
+        return NoContent();
+    }
+
     /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="request">資產資訊。</param>

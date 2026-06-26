@@ -273,6 +273,16 @@
             "example": "音效"
           },
           {
+            "name": "Featured",
+            "in": "query",
+            "description": "僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
+          },
+          {
             "name": "MinPrice",
             "in": "query",
             "description": "售價下限（含）；null 表示不限。",
@@ -926,6 +936,58 @@
         ],
         "summary": "解除商品停權（Suspended → Archived）。僅 Admin 可操作。",
         "operationId": "Unsuspend",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/catalogs/{id}/feature": {
+      "post": {
+        "tags": [
+          "Catalogs"
+        ],
+        "summary": "設為編輯精選（市集首頁精選輪播）。僅 Admin 可操作。",
+        "operationId": "Feature",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/catalogs/{id}/unfeature": {
+      "post": {
+        "tags": [
+          "Catalogs"
+        ],
+        "summary": "取消編輯精選。僅 Admin 可操作。",
+        "operationId": "Unfeature",
         "parameters": [
           {
             "name": "id",
@@ -1621,6 +1683,11 @@
             "format": "int64",
             "example": 0
           },
+          "isFeatured": {
+            "type": "boolean",
+            "description": "是否為編輯精選（平台策展）。",
+            "example": false
+          },
           "thumbnailUrl": {
             "type": "string",
             "description": "縮圖公開 URL；null 表示尚未設定。",
@@ -1748,6 +1815,11 @@
             "description": "累計銷量。",
             "format": "int64",
             "example": 0
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "description": "是否為編輯精選（平台策展）。",
+            "example": false
           },
           "thumbnailUrl": {
             "type": "string",

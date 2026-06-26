@@ -35,6 +35,9 @@ public interface ICatalogManager
     /// <summary>解除商品停權（Suspended → Archived，需 Owner 重新上架）。僅 Admin 可操作。</summary>
     Task UnsuspendAsync(Guid id, CancellationToken ct);
 
+    /// <summary>設定 / 取消商品的編輯精選旗標。僅 Admin 可操作。</summary>
+    Task SetFeaturedAsync(Guid id, bool featured, CancellationToken ct);
+
     /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。</summary>
     Task<CatalogAssetUploadUrlResponse> RequestAssetUploadUrlAsync(
         Guid id, RequestCatalogAssetUploadUrlRequest request, CancellationToken ct);

@@ -12,6 +12,10 @@ const props = defineProps<{ product: Product }>();
 
 const href = computed(() => `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', props.product.storeSlug)}/products/${props.product.id}`);
 const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
+// 誠實標示：人工策展的標「編輯精選」，演算法補入的標「熱門」，不讓熱門商品冒充編輯精選。
+const tag = computed(() =>
+  props.product.featured ? { icon: 'sparkle', label: '編輯精選' } : { icon: 'star', label: '熱門' },
+);
 </script>
 
 <template>
@@ -20,7 +24,7 @@ const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]
       <product-thumb :product="product" hide-label />
     </div>
     <div class="feat-info">
-      <span class="feat-tag"><app-icon name="sparkle" :size="12" /> 編輯精選</span>
+      <span class="feat-tag" :class="{ 'feat-tag-hot': !product.featured }"><app-icon :name="tag.icon" :size="12" /> {{ tag.label }}</span>
       <h3 class="feat-title">{{ product.title }}</h3>
       <p class="feat-blurb">{{ product.blurb }}</p>
       <div class="feat-creator">

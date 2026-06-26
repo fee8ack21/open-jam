@@ -200,6 +200,11 @@ export interface CatalogDto {
    */
   salesCount?: number;
   /**
+   * 是否為編輯精選（平台策展）。
+   * @example false
+   */
+  isFeatured?: boolean;
+  /**
    * 縮圖公開 URL；null 表示尚未設定。
    * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
    */
@@ -290,6 +295,11 @@ export interface CatalogSummaryDto {
    * @example 0
    */
   salesCount?: number;
+  /**
+   * 是否為編輯精選（平台策展）。
+   * @example false
+   */
+  isFeatured?: boolean;
   /**
    * 縮圖公開 URL；null 表示尚未設定。
    * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
@@ -1078,6 +1088,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         Search?: string;
         /**
+         * 僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。
+         * @example true
+         */
+        Featured?: boolean;
+        /**
          * 售價下限（含）；null 表示不限。
          * @format double
          * @example 0
@@ -1381,6 +1396,36 @@ export class Api<SecurityDataType extends unknown> {
     unsuspend: (id: string, params: RequestParams = {}) =>
       this.http.request<void, any>({
         path: `/v1/catalogs/${id}/unsuspend`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Feature
+     * @summary 設為編輯精選（市集首頁精選輪播）。僅 Admin 可操作。
+     * @request POST:/v1/catalogs/{id}/feature
+     */
+    feature: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/feature`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Unfeature
+     * @summary 取消編輯精選。僅 Admin 可操作。
+     * @request POST:/v1/catalogs/{id}/unfeature
+     */
+    unfeature: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/unfeature`,
         method: "POST",
         ...params,
       }),

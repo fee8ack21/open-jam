@@ -64,6 +64,6 @@ export function toProduct(
     contents: [],
     previews: 0,
     image: dto.thumbnailUrl ?? undefined,
-    featured: false,
+    featured: dto.isFeatured ?? false,
   };
 }

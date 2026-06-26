@@ -101,6 +101,9 @@ public class CatalogManager(
             query = query.Where(c => EF.Functions.ILike(c.Name, $"%{term}%"));
         }
 
+        if (request.Featured is { } featured)
+            query = query.Where(c => c.IsFeatured == featured);
+
         if (!string.IsNullOrWhiteSpace(request.Tag))
         {
             var tag = request.Tag.Trim().ToLowerInvariant();
@@ -296,6 +299,23 @@ public class CatalogManager(
         catalog.Status = CatalogStatus.Archived;
 
         auditLog.Add(currentUser.UserId, "catalog.unsuspend", "Catalog", catalog.Id, tenant: catalog.StoreId);
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task SetFeaturedAsync(Guid id, bool featured, CancellationToken ct)
+    {
+        var catalog = await db.Catalogs.FirstOrDefaultAsync(c => c.Id == id, ct)
+            ?? throw new NotFoundException("找不到商品。");
+
+        if (catalog.IsFeatured == featured)
+            return; // 冪等：狀態未變則不重複寫入 / 記錄。
+
+        catalog.IsFeatured = featured;
+
+        auditLog.Add(currentUser.UserId, featured ? "catalog.feature" : "catalog.unfeature",
+            "Catalog", catalog.Id, tenant: catalog.StoreId);
 
         await db.SaveChangesAsync(ct);
     }

@@ -260,6 +260,8 @@
   color: #5b3d00; background: var(--c-yellow); border: 1.5px solid var(--text);
   padding: 4px 10px; border-radius: 999px; box-shadow: var(--pop-1); margin-bottom: 14px;
 }
+/* 演算法補入的熱門卡片：以不同底色與「編輯精選」區隔，避免混淆 */
+.feat-tag.feat-tag-hot { color: #fff; background: var(--c-pink); }
 .feat-title {
   font-family: var(--oj-display); font-weight: 800; font-size: 19px; line-height: 1.18;
   letter-spacing: -.5px; color: var(--text); margin: 0 0 9px; text-wrap: pretty;

@@ -83,6 +83,18 @@ const visible = computed<CatalogSummaryDto[]>(() => {
   return list
 })
 
+/** 切換中的商品 ID（避免重複點擊）。 */
+const featuring = ref<string | null>(null)
+async function onToggleFeatured(p: CatalogSummaryDto) {
+  if (!p.id || featuring.value) return
+  featuring.value = p.id
+  try {
+    await store.setFeatured(p.id, !(p.isFeatured ?? false))
+  } finally {
+    featuring.value = null
+  }
+}
+
 onMounted(store.load)
 </script>
 
@@ -136,11 +148,12 @@ onMounted(store.load)
                 </th>
                 <th class="hide-sm">商店</th>
                 <th class="hide-sm">狀態</th>
+                <th>精選</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="!loading && !visible.length">
-                <td :colspan="columns.length + 2" style="text-align:center; padding:48px 24px;">
+                <td :colspan="columns.length + 3" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-pink); margin:0 auto 14px;"><app-icon name="box" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
                     {{ items.length ? '沒有符合條件的商品' : '尚無商品' }}
@@ -168,6 +181,18 @@ onMounted(store.load)
                 </td>
                 <td class="hide-sm">
                   <n-tag :type="statusOf(p.status).type" size="small" round>{{ statusOf(p.status).label }}</n-tag>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="feat-toggle"
+                    :class="{ on: p.isFeatured }"
+                    :disabled="featuring === p.id"
+                    :title="p.isFeatured ? '取消精選' : '設為精選'"
+                    :aria-pressed="p.isFeatured ?? false"
+                    @click="onToggleFeatured(p)">
+                    <app-icon :name="p.isFeatured ? 'star' : 'sparkle'" :size="16" />
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -277,5 +302,34 @@ onMounted(store.load)
 .store-mono {
   font-family: var(--oj-mono);
   color: var(--text-soft);
+}
+
+.feat-toggle {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.feat-toggle:hover:not(:disabled) {
+  color: var(--oj-primary);
+  border-color: var(--oj-primary);
+}
+
+.feat-toggle.on {
+  color: #f0a020;
+  border-color: #f0a020;
+  background: rgba(240, 160, 32, 0.1);
+}
+
+.feat-toggle:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 </style>

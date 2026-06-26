@@ -100,7 +100,23 @@ const hasMore = computed(() => visibleCount.value < results.value.length);
 watch(results, () => { visibleCount.value = pageSize; });
 
 // ----- featured carousel (精選作品) -----
-const featured = computed(() => store.products.filter((p) => p.featured));
+// 混合策展：少量「人工精選」(後端 isFeatured) + 其餘以「銷量熱門」自動補滿。
+// 人工精選設上限，避免壟斷整個輪播造成不公平；演算法部分讓有銷量的新店也有機會曝光。
+const FEATURED_SLOTS = 8;   // 輪播總格數
+const MAX_CURATED = 4;      // 人工精選最多佔幾格，其餘保留給熱門
+const featured = computed(() => {
+  const all = store.products;
+  // 人工精選優先，但限量
+  const curated = all.filter((p) => p.featured).slice(0, MAX_CURATED);
+  const picked = new Set(curated.map((p) => p.id));
+  // 其餘格數以銷量由高到低補滿；同銷量維持後端順序（上架時間新→舊），故新品自然靠前
+  const hot = all
+    .filter((p) => !picked.has(p.id))
+    .slice()
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, FEATURED_SLOTS - curated.length);
+  return [...curated, ...hot];
+});
 const featTrack = ref<HTMLElement | null>(null);
 const canLeft = ref(false);
 const canRight = ref(false);
@@ -213,7 +229,7 @@ onBeforeUnmount(() => {
       <section v-if="featured.length" class="sec featured" id="featured">
         <div class="feat-head">
           <div class="feat-head-text">
-            <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> 編輯精選</p>
+            <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> 精選 · 熱門</p>
             <h2 class="browse-title">精選作品</h2>
           </div>
           <div class="feat-nav">
