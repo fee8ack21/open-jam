@@ -60,6 +60,9 @@ const load = <T>(k: string, fb: T): T => {
 };
 const save = (k: string, v: unknown) => { try { localStorage.setItem('openjam.' + k, JSON.stringify(v)); } catch (e) {} };
 
+/** 瀏覽計數去重視窗：同一瀏覽器在此時間內對同商品只計一次（6 小時）。 */
+const VIEW_DEDUP_MS = 6 * 60 * 60 * 1000;
+
 export const useShopStore = defineStore('shop', () => {
   // ── state ──────────────────────────────────────────────
   // theme / display
@@ -175,14 +178,23 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
-  /** 記錄一次商品瀏覽（詳情頁進入時呼叫，fire-and-forget）。 */
+  /**
+   * 記錄一次商品瀏覽（詳情頁進入時呼叫，fire-and-forget）。
+   * 以 localStorage 時間窗去重：同一瀏覽器在 VIEW_DEDUP_MS 內對同商品只計一次，
+   * 避免重整 / 短時間回訪灌數。（無法阻擋清除儲存或機器人，需要時可另加後端節流。）
+   */
   async function recordView(id: string) {
+    const key = 'viewed.' + id;
+    const last = load<number>(key, 0);
+    if (Date.now() - last < VIEW_DEDUP_MS) return; // 視窗內已記過，略過
+    save(key, Date.now());
+
     const p = products.value.find((x) => x.id === id);
     if (p) p.views = (p.views ?? 0) + 1; // 樂觀更新本地顯示
     try {
       await catalogApi.catalogs.incrementView(id);
     } catch {
-      // 瀏覽計數失敗不影響瀏覽體驗
+      // 瀏覽計數失敗不影響瀏覽體驗（已記時間戳，不立即重試灌數）
     }
   }
 
