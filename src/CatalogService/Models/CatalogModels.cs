@@ -49,6 +49,10 @@ public class CatalogDto
     /// <example>TWD</example>
     public string Currency { get; set; } = "";
 
+    /// <summary>累計銷量。</summary>
+    /// <example>0</example>
+    public long SalesCount { get; set; }
+
     /// <summary>縮圖公開 URL；null 表示尚未設定。</summary>
     /// <example>http://localhost:5171/v1/files/blob/public/.../thumb.png</example>
     public string? ThumbnailUrl { get; set; }
@@ -115,6 +119,10 @@ public class CatalogSummaryDto
     /// <summary>商品狀態。</summary>
     /// <example>Published</example>
     public CatalogStatus Status { get; set; }
+
+    /// <summary>累計銷量。</summary>
+    /// <example>0</example>
+    public long SalesCount { get; set; }
 
     /// <summary>縮圖公開 URL；null 表示尚未設定。</summary>
     /// <example>http://localhost:5171/v1/files/blob/public/.../thumb.png</example>

@@ -14,7 +14,8 @@ public class OrderManager(
     OrderDbContext db,
     IMapper mapper,
     StoreServiceClient storeClient,
-    AuditLogPublisher auditLog) : IOrderManager
+    AuditLogPublisher auditLog,
+    OrderEventPublisher orderEvents) : IOrderManager
 {
     /// <inheritdoc/>
     public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid? userId, CancellationToken ct)
@@ -124,7 +125,7 @@ public class OrderManager(
     /// <inheritdoc/>
     public async Task CompleteFromPaymentAsync(Guid orderId, DateTimeOffset paidAt, CancellationToken ct)
     {
-        var order = await db.Orders.FirstOrDefaultAsync(o => o.Id == orderId, ct);
+        var order = await db.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == orderId, ct);
         if (order is null)
             throw new NotFoundException($"找不到訂單 {orderId}。");
 
@@ -135,6 +136,8 @@ public class OrderManager(
         order.CompletedAt = paidAt;
         TransitionTo(order, OrderStatus.Completed, "Payment succeeded");
         auditLog.Add(order.BuyerUserId, "order.complete", "Order", order.Id, tenant: null);
+        // 同一 transaction 內發出履約完成事件（攜帶商品明細，供 CatalogService 累加銷量等）。
+        orderEvents.AddOrderCompleted(order);
 
         await db.SaveChangesAsync(ct);
     }

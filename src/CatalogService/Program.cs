@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using CatalogService.Consumers;
 using CatalogService.Data;
 using CatalogService.Options;
 using CatalogService.Services;
@@ -25,16 +26,27 @@ builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 builder.Services.AddDbContext<CatalogDbContext>(opts =>
     opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// MassTransit + RabbitMQ（publish only，Outbox 事件）
+// MassTransit + RabbitMQ（Outbox 事件發布 + 消費 OrderCompletedEvent 累加銷量）
 builder.Services.AddMassTransit(x =>
 {
-    x.UsingRabbitMq((_, cfg) =>
+    x.AddConsumer<OrderCompletedConsumer>(cfg =>
+    {
+        cfg.UseMessageRetry(r => r.Exponential(
+            retryLimit:    5,
+            minInterval:   TimeSpan.FromSeconds(1),
+            maxInterval:   TimeSpan.FromSeconds(30),
+            intervalDelta: TimeSpan.FromSeconds(2)));
+    });
+
+    x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
         });
+
+        cfg.ConfigureEndpoints(ctx);
     });
 });
 

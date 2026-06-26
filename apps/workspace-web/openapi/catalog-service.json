@@ -1621,6 +1621,12 @@
             "nullable": true,
             "example": "TWD"
           },
+          "salesCount": {
+            "type": "integer",
+            "description": "累計銷量。",
+            "format": "int64",
+            "example": 0
+          },
           "thumbnailUrl": {
             "type": "string",
             "description": "縮圖公開 URL；null 表示尚未設定。",
@@ -1742,6 +1748,12 @@
           },
           "status": {
             "$ref": "#/components/schemas/CatalogStatus"
+          },
+          "salesCount": {
+            "type": "integer",
+            "description": "累計銷量。",
+            "format": "int64",
+            "example": 0
           },
           "thumbnailUrl": {
             "type": "string",

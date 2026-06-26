@@ -36,6 +36,9 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
     /// <summary>Outbox 訊息資料表。</summary>
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    /// <summary>已消費事件去重資料表（inbox）。</summary>
+    public DbSet<ProcessedEvent> ProcessedEvents => Set<ProcessedEvent>();
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -115,6 +118,14 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
         {
             e.HasKey(o => o.Id);
             e.HasIndex(o => o.ProcessedAt);
+        });
+
+        model.Entity<ProcessedEvent>(e =>
+        {
+            e.HasKey(p => p.Id);
+            // 去重鍵：同一來源訊息至多處理一次
+            e.HasIndex(p => p.OutboxMessageId).IsUnique();
+            e.Property(p => p.EventType).HasMaxLength(100).IsRequired();
         });
 
         base.OnModelCreating(model);

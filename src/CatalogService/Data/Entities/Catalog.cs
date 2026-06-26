@@ -44,6 +44,9 @@ public class Catalog : ICreatedAt, IUpdatedAt
     /// <summary>幣別（ISO 4217，例如 TWD）。</summary>
     public string Currency { get; set; } = "TWD";
 
+    /// <summary>累計銷量（已完成訂單中此商品出現的次數）；由 OrderCompletedEvent 累加。</summary>
+    public long SalesCount { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 

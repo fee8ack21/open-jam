@@ -199,6 +199,12 @@ export interface CatalogDto {
    */
   currency?: string | null;
   /**
+   * 累計銷量。
+   * @format int64
+   * @example 0
+   */
+  salesCount?: number;
+  /**
    * 縮圖公開 URL；null 表示尚未設定。
    * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
    */
@@ -283,6 +289,12 @@ export interface CatalogSummaryDto {
   currency?: string | null;
   /** 商品狀態。 */
   status?: CatalogStatus;
+  /**
+   * 累計銷量。
+   * @format int64
+   * @example 0
+   */
+  salesCount?: number;
   /**
    * 縮圖公開 URL；null 表示尚未設定。
    * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"

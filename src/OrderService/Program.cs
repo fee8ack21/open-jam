@@ -53,6 +53,7 @@ builder.Services.AddScoped<StoreServiceClient>();
 
 builder.Services.AddScoped<IOrderManager, OrderManager>();
 builder.Services.AddScoped<AuditLogPublisher>();
+builder.Services.AddScoped<OrderEventPublisher>();
 
 builder.Services.AddHostedService<OutboxRelayService>();
 

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MassTransit;
 using OrderService.Data;
+using OrderService.Services;
 using Shared.Data;
 using Shared.Events;
 
@@ -42,6 +43,11 @@ public class OutboxRelayService(
                             if (msg.EventType.StartsWith("audit."))
                             {
                                 var evt = JsonSerializer.Deserialize<AuditLogRequestedEvent>(msg.Payload, JsonOpts);
+                                if (evt != null) await bus.Publish(evt, ct);
+                            }
+                            else if (msg.EventType == OrderEventPublisher.OrderCompletedType)
+                            {
+                                var evt = JsonSerializer.Deserialize<OrderCompletedEvent>(msg.Payload, JsonOpts);
                                 if (evt != null) await bus.Publish(evt, ct);
                             }
 
