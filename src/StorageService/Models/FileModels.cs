@@ -92,6 +92,57 @@ public class TenantUsageResponse
     public long TotalBytes { get; set; }
 }
 
+/// <summary>單一創作者用量明細。</summary>
+public class CreatorUsageDto
+{
+    /// <summary>創作者 ID。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid CreatorId { get; set; }
+
+    /// <summary>已 Ready 檔案數。</summary>
+    /// <example>312</example>
+    public int FileCount { get; set; }
+
+    /// <summary>已 Ready 檔案位元組總和。</summary>
+    /// <example>19783458816</example>
+    public long Bytes { get; set; }
+}
+
+/// <summary>
+/// 平台儲存用量彙總（Admin）。僅涵蓋 StorageService 可實際統計的指標：
+/// 物件數量 / 大小（依公開展示 vs 私有可下載拆分）與孤兒檔。
+/// 下載流量與歷史趨勢需另建指標管線，不在此端點。
+/// </summary>
+public class PlatformUsageResponse
+{
+    /// <summary>已 Ready 檔案位元組總和（公開 + 私有）。</summary>
+    /// <example>71403606016</example>
+    public long UsedBytes { get; set; }
+
+    /// <summary>已 Ready 檔案總數。</summary>
+    /// <example>1180</example>
+    public int FileCount { get; set; }
+
+    /// <summary>公開展示型資產（預覽 / 縮圖）位元組總和。</summary>
+    /// <example>21260124160</example>
+    public long PublicBytes { get; set; }
+
+    /// <summary>私有可下載資產位元組總和。</summary>
+    /// <example>50143481856</example>
+    public long PrivateBytes { get; set; }
+
+    /// <summary>孤兒檔數量（上傳未完成 / 處理失敗，保留期過後將清理）。</summary>
+    /// <example>23</example>
+    public int OrphanFileCount { get; set; }
+
+    /// <summary>孤兒檔位元組總和（含未確認大小者以 0 計）。</summary>
+    /// <example>104857600</example>
+    public long OrphanBytes { get; set; }
+
+    /// <summary>用量前幾名的創作者明細（依位元組數遞減）。</summary>
+    public List<CreatorUsageDto> ByCreator { get; set; } = [];
+}
+
 /// <summary>檔案紀錄回應 DTO。</summary>
 public class FileDto
 {

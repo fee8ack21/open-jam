@@ -12,6 +12,7 @@ import { Api as CatalogApi, HttpClient as CatalogHttpClient } from '@/api/catalo
 import { Api as LogApi, HttpClient as LogHttpClient } from '@/api/log-service';
 import { Api as OrderApi, HttpClient as OrderHttpClient } from '@/api/order-service';
 import { Api as AuthApi, HttpClient as AuthHttpClient } from '@/api/auth-service';
+import { Api as StorageApi, HttpClient as StorageHttpClient } from '@/api/storage-service';
 import { env } from '@/environment';
 import { userManager } from '@/oidc/auth';
 
@@ -53,6 +54,11 @@ const authHttp = new AuthHttpClient({
   customFetch: authFetch,
 });
 
+const storageHttp = new StorageHttpClient({
+  baseUrl: env.STORAGE_API_URL,
+  customFetch: authFetch,
+});
+
 /** StoreService API client（store-applications / stores / followers）。 */
 export const storeApi = new StoreApi(storeHttp);
 
@@ -67,3 +73,6 @@ export const orderApi = new OrderApi(orderHttp);
 
 /** Auth service REST API client（users 平台會員列表，管理員專屬）。 */
 export const authApi = new AuthApi(authHttp);
+
+/** StorageService API client（files 平台儲存用量彙總，管理員專屬）。 */
+export const storageApi = new StorageApi(storageHttp);

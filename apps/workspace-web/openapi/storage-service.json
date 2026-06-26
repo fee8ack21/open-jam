@@ -1,0 +1,59 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "StorageService",
+    "version": "1.0"
+  },
+  "paths": {
+    "/v1/files/usage/summary": {
+      "get": {
+        "tags": ["Files"],
+        "summary": "彙總全平台儲存用量（數量 / 大小 / 公開私有 / 孤兒檔 / 創作者明細）。僅 Admin 可操作。",
+        "operationId": "GetPlatformUsage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": { "schema": { "$ref": "#/components/schemas/PlatformUsageResponse" } },
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlatformUsageResponse" } },
+              "text/json": { "schema": { "$ref": "#/components/schemas/PlatformUsageResponse" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreatorUsageDto": {
+        "type": "object",
+        "properties": {
+          "creatorId": { "type": "string", "format": "uuid", "description": "創作者 ID。" },
+          "fileCount": { "type": "integer", "format": "int32", "description": "已 Ready 檔案數。" },
+          "bytes": { "type": "integer", "format": "int64", "description": "已 Ready 檔案位元組總和。" }
+        },
+        "additionalProperties": false,
+        "description": "單一創作者用量明細。"
+      },
+      "PlatformUsageResponse": {
+        "type": "object",
+        "properties": {
+          "usedBytes": { "type": "integer", "format": "int64", "description": "已 Ready 檔案位元組總和（公開 + 私有）。" },
+          "fileCount": { "type": "integer", "format": "int32", "description": "已 Ready 檔案總數。" },
+          "publicBytes": { "type": "integer", "format": "int64", "description": "公開展示型資產位元組總和。" },
+          "privateBytes": { "type": "integer", "format": "int64", "description": "私有可下載資產位元組總和。" },
+          "orphanFileCount": { "type": "integer", "format": "int32", "description": "孤兒檔數量。" },
+          "orphanBytes": { "type": "integer", "format": "int64", "description": "孤兒檔位元組總和。" },
+          "byCreator": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CreatorUsageDto" },
+            "description": "用量前幾名的創作者明細（依位元組數遞減）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "平台儲存用量彙總。"
+      }
+    }
+  }
+}

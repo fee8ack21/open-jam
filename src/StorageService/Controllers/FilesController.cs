@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StorageService.Models;
 using StorageService.Services.Files;
@@ -41,6 +42,14 @@ public class FilesController(IFileService fileService) : ControllerBase
     public async Task<ActionResult<TenantUsageResponse>> GetTenantUsageAsync(
         [FromQuery] Guid creatorId, CancellationToken ct) =>
         Ok(await fileService.GetTenantUsageAsync(creatorId, ct));
+
+    /// <summary>彙總全平台儲存用量（數量 / 大小 / 公開私有 / 孤兒檔 / 創作者明細）。僅 Admin 可操作。</summary>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet("usage/summary")]
+    [Authorize(Policy = "Admin")]
+    [ProducesResponseType<PlatformUsageResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PlatformUsageResponse>> GetPlatformUsageAsync(CancellationToken ct) =>
+        Ok(await fileService.GetPlatformUsageAsync(ct));
 
     /// <summary>查詢檔案元資訊與處理狀態。</summary>
     /// <param name="id">檔案 ID。</param>

@@ -19,4 +19,7 @@ public interface IFileService
 
     /// <summary>加總指定創作者已 Ready 檔案的位元組總和（QuotaService 每日對帳用）。</summary>
     Task<TenantUsageResponse> GetTenantUsageAsync(Guid creatorId, CancellationToken ct);
+
+    /// <summary>彙總全平台儲存用量（數量 / 大小 / 公開私有拆分 / 孤兒檔 / 創作者明細）。Admin 用。</summary>
+    Task<PlatformUsageResponse> GetPlatformUsageAsync(CancellationToken ct);
 }

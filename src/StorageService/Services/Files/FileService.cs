@@ -118,4 +118,44 @@ public class FileService(
 
         return new TenantUsageResponse { CreatorId = creatorId, TotalBytes = total };
     }
+
+    /// <inheritdoc/>
+    public async Task<PlatformUsageResponse> GetPlatformUsageAsync(CancellationToken ct)
+    {
+        // 全域 Query Filter 已排除軟刪除。已 Ready 檔案才計入容量；公開 = 預覽 / 縮圖（IsPreview）。
+        var ready = db.StoredFiles.AsNoTracking().Where(f => f.Status == FileStatus.Ready);
+
+        var publicBytes = await ready.Where(f => f.IsPreview).SumAsync(f => f.SizeBytes ?? 0, ct);
+        var privateBytes = await ready.Where(f => !f.IsPreview).SumAsync(f => f.SizeBytes ?? 0, ct);
+        var fileCount = await ready.CountAsync(ct);
+
+        // 孤兒檔：上傳未完成（Uploading）或處理失敗（Failed），保留期過後由 OrphanCleanupService 清理。
+        var orphans = db.StoredFiles.AsNoTracking()
+            .Where(f => f.Status == FileStatus.Uploading || f.Status == FileStatus.Failed);
+        var orphanFileCount = await orphans.CountAsync(ct);
+        var orphanBytes = await orphans.SumAsync(f => f.SizeBytes ?? 0, ct);
+
+        var byCreator = await ready
+            .GroupBy(f => f.CreatorId)
+            .Select(g => new CreatorUsageDto
+            {
+                CreatorId = g.Key,
+                FileCount = g.Count(),
+                Bytes = g.Sum(f => f.SizeBytes ?? 0),
+            })
+            .OrderByDescending(c => c.Bytes)
+            .Take(10)
+            .ToListAsync(ct);
+
+        return new PlatformUsageResponse
+        {
+            UsedBytes = publicBytes + privateBytes,
+            FileCount = fileCount,
+            PublicBytes = publicBytes,
+            PrivateBytes = privateBytes,
+            OrphanFileCount = orphanFileCount,
+            OrphanBytes = orphanBytes,
+            ByCreator = byCreator,
+        };
+    }
 }
