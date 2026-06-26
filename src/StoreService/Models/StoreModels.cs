@@ -2,6 +2,37 @@ using StoreService.Data.Entities;
 
 namespace StoreService.Models;
 
+/// <summary>全平台商店列表查詢請求（分頁採 offset / limit）。僅 Admin 使用。</summary>
+public class ListStoresRequest
+{
+    /// <summary>限定商店狀態；null 表示不限。</summary>
+    /// <example>Active</example>
+    public StoreStatus? Status { get; set; }
+
+    /// <summary>名稱 / 代稱關鍵字搜尋；null 表示不限。</summary>
+    /// <example>小明</example>
+    public string? Search { get; set; }
+
+    /// <summary>略過筆數。</summary>
+    /// <example>0</example>
+    public int Offset { get; set; } = 0;
+
+    /// <summary>每頁筆數（最大 100）。</summary>
+    /// <example>20</example>
+    public int Limit { get; set; } = 20;
+}
+
+/// <summary>全平台商店列表分頁回應。</summary>
+public class ListStoresResponse
+{
+    /// <summary>符合條件的總筆數（未分頁）。</summary>
+    /// <example>42</example>
+    public int TotalCount { get; set; }
+
+    /// <summary>本頁商店清單。</summary>
+    public List<StoreDto> Items { get; set; } = [];
+}
+
 /// <summary>商店基本資訊回應。</summary>
 public class StoreDto
 {

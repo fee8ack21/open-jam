@@ -1,7 +1,19 @@
 using FluentValidation;
+using Shared.Web;
 using StoreService.Models;
 
 namespace StoreService.Validators;
+
+/// <summary>全平台商店列表查詢請求驗證：分頁範圍。</summary>
+public class ListStoresRequestValidator : AbstractValidator<ListStoresRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public ListStoresRequestValidator()
+    {
+        RuleFor(x => x.Offset).ValidOffset();
+        RuleFor(x => x.Limit).ValidLimit();
+    }
+}
 
 /// <summary>更新商店資料請求驗證：商店名稱長度（提供時）。</summary>
 public class UpdateStoreRequestValidator : AbstractValidator<UpdateStoreRequest>

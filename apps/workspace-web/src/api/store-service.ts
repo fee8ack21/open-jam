@@ -76,6 +76,18 @@ export interface GetStoreApplicationsResponse {
   items?: StoreApplicationDto[] | null;
 }
 
+/** 全平台商店列表分頁回應。 */
+export interface ListStoresResponse {
+  /**
+   * 符合條件的總筆數（未分頁）。
+   * @format int32
+   * @example 42
+   */
+  totalCount?: number;
+  /** 本頁商店清單。 */
+  items?: StoreDto[] | null;
+}
+
 /** 商店追蹤者分頁查詢回應。 */
 export interface GetStoreFollowersResponse {
   /**
@@ -792,6 +804,49 @@ export class Api<SecurityDataType extends unknown> {
       this.http.request<MyStoreDto[], any>({
         path: `/v1/stores/me`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Stores
+     * @name List
+     * @summary 分頁查詢全平台商店列表（可依狀態 / 關鍵字過濾）。僅 Admin 可操作。
+     * @request GET:/v1/stores
+     */
+    list: (
+      query?: {
+        /**
+         * 限定商店狀態；null 表示不限。
+         * @example "Active"
+         */
+        Status?: StoreStatus;
+        /**
+         * 名稱 / 代稱關鍵字搜尋；null 表示不限。
+         * @example "小明"
+         */
+        Search?: string;
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListStoresResponse, any>({
+        path: `/v1/stores`,
+        method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),

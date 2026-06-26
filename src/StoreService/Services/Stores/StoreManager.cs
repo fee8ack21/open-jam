@@ -50,6 +50,37 @@ public class StoreManager(
     }
 
     /// <inheritdoc/>
+    public async Task<ListStoresResponse> ListAsync(ListStoresRequest request, CancellationToken ct)
+    {
+        var query = db.Stores.AsNoTracking().AsQueryable();
+
+        if (request.Status is { } status)
+            query = query.Where(s => s.Status == status);
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var term = request.Search.Trim();
+            query = query.Where(s =>
+                EF.Functions.ILike(s.StoreName, $"%{term}%") ||
+                EF.Functions.ILike(s.StoreSlug, $"%{term}%"));
+        }
+
+        var total = await query.CountAsync(ct);
+
+        var stores = await query
+            .OrderByDescending(s => s.CreatedAt)
+            .Skip(request.Offset)
+            .Take(request.Limit)
+            .ToListAsync(ct);
+
+        var items = new List<StoreDto>(stores.Count);
+        foreach (var store in stores)
+            items.Add(await ToDtoAsync(store, ct));
+
+        return new ListStoresResponse { TotalCount = total, Items = items };
+    }
+
+    /// <inheritdoc/>
     public async Task<StoreDto> UpdateAsync(Guid id, UpdateStoreRequest request, CancellationToken ct)
     {
         var userId = currentUser.UserId ?? throw new UnauthorizedException();

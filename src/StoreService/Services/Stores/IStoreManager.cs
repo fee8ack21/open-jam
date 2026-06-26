@@ -11,6 +11,9 @@ public interface IStoreManager
     /// <summary>查詢登入使用者所屬的商店列表。</summary>
     Task<List<MyStoreDto>> GetMineAsync(CancellationToken ct);
 
+    /// <summary>分頁查詢全平台商店列表（可依狀態 / 關鍵字過濾）。僅 Admin 可操作。</summary>
+    Task<ListStoresResponse> ListAsync(ListStoresRequest request, CancellationToken ct);
+
     /// <summary>更新商店基本資料（StoreName / Description）。僅 Owner 可操作。</summary>
     Task<StoreDto> UpdateAsync(Guid id, UpdateStoreRequest request, CancellationToken ct);
 

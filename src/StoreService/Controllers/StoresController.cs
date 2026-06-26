@@ -29,6 +29,15 @@ public class StoresController(IStoreManager storeManager) : ControllerBase
     public async Task<ActionResult<List<MyStoreDto>>> GetMineAsync(CancellationToken ct) =>
         Ok(await storeManager.GetMineAsync(ct));
 
+    /// <summary>分頁查詢全平台商店列表（可依狀態 / 關鍵字過濾）。僅 Admin 可操作。</summary>
+    /// <param name="request">查詢條件（狀態 / 關鍵字 + 分頁）。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet]
+    [Authorize(Policy = "Admin")]
+    [ProducesResponseType<ListStoresResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ListStoresResponse>> ListAsync([FromQuery] ListStoresRequest request, CancellationToken ct) =>
+        Ok(await storeManager.ListAsync(request, ct));
+
     /// <summary>更新商店基本資料（StoreName / Description）。僅 Owner 可操作。</summary>
     /// <param name="id">商店 ID。</param>
     /// <param name="request">欲更新的欄位。</param>
