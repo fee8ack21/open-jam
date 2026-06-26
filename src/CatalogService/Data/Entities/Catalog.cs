@@ -50,6 +50,12 @@ public class Catalog : ICreatedAt, IUpdatedAt
     /// <summary>是否為編輯精選（平台策展）；由 Admin 設定，市集首頁精選輪播取用。</summary>
     public bool IsFeatured { get; set; }
 
+    /// <summary>平均評分（0–5）；由評論彙總，無評論時為 0。</summary>
+    public double RatingAverage { get; set; }
+
+    /// <summary>評論數。</summary>
+    public int RatingCount { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 

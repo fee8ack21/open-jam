@@ -142,6 +142,13 @@ public class OrderManager(
         await db.SaveChangesAsync(ct);
     }
 
+    /// <inheritdoc/>
+    public Task<bool> HasPurchasedAsync(Guid catalogId, Guid userId, CancellationToken ct) =>
+        db.Orders
+            .AsNoTracking()
+            .Where(o => o.BuyerUserId == userId && o.Status == OrderStatus.Completed)
+            .AnyAsync(o => o.Items.Any(i => i.CatalogId == catalogId), ct);
+
     private static void TransitionTo(Order order, OrderStatus next, string? reason)
     {
         order.StatusHistory.Add(NewHistory(order.Status, next, reason));

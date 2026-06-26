@@ -6,6 +6,7 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { CatalogStatus, type CatalogSummaryDto } from '@/api/catalog-service'
+import ReviewList from '@/components/ReviewList.vue'
 
 const STATUS = {
   [CatalogStatus.Published]: { label: '已上架', type: 'success' as const },
@@ -31,6 +32,10 @@ const keyword = ref('')
 
 // 目前登入創作者的商店 id（取第一間）
 const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
+
+// 評論檢視 drawer
+const reviewing = ref<CatalogSummaryDto | null>(null)
+function openReviews(p: CatalogSummaryDto) { reviewing.value = p }
 
 // 狀態下拉選項（含各狀態件數），對齊訂單管理的下拉篩選
 const statusOptions = computed(() => [
@@ -189,6 +194,7 @@ onMounted(load)
                     <span v-else style="font-size:12px; color:var(--text-faint); font-family:var(--oj-mono); margin-right:6px;">
                       {{ p.status === CatalogStatus.Suspended ? '已停權' : '草稿' }}
                     </span>
+                    <button class="ic-act" title="查看評論" @click="openReviews(p)"><app-icon name="star" :size="17" /></button>
                     <button class="ic-act" title="編輯" @click="dashboard.go('upload')"><app-icon name="edit" :size="17" /></button>
                   </div>
                 </td>
@@ -198,6 +204,13 @@ onMounted(load)
         </div>
       </div>
     </n-spin>
+
+    <!-- 評論檢視 -->
+    <n-drawer :show="!!reviewing" :width="440" placement="right" @update:show="(v: boolean) => { if (!v) reviewing = null }">
+      <n-drawer-content :title="reviewing?.name || '買家評價'" closable>
+        <review-list v-if="reviewing?.id" :catalog-id="reviewing.id" />
+      </n-drawer-content>
+    </n-drawer>
   </div>
 </template>
 

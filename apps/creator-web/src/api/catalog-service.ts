@@ -205,6 +205,18 @@ export interface CatalogDto {
    */
   isFeatured?: boolean;
   /**
+   * 平均評分（0–5）；無評論時為 0。
+   * @format double
+   * @example 4.6
+   */
+  ratingAverage?: number;
+  /**
+   * 評論數。
+   * @format int32
+   * @example 128
+   */
+  ratingCount?: number;
+  /**
    * 縮圖公開 URL；null 表示尚未設定。
    * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
    */
@@ -300,6 +312,18 @@ export interface CatalogSummaryDto {
    * @example false
    */
   isFeatured?: boolean;
+  /**
+   * 平均評分（0–5）；無評論時為 0。
+   * @format double
+   * @example 4.6
+   */
+  ratingAverage?: number;
+  /**
+   * 評論數。
+   * @format int32
+   * @example 128
+   */
+  ratingCount?: number;
   /**
    * 縮圖公開 URL；null 表示尚未設定。
    * @example "http://localhost:5171/v1/files/blob/public/.../thumb.png"
@@ -698,6 +722,82 @@ export interface VersionAssetUploadUrlResponse {
 export interface CatalogFavoritesResponse {
   /** 目前使用者已收藏的商品 ID 清單（依收藏時間遞減）。 */
   catalogIds?: string[] | null;
+}
+
+/** 商品評論回應。 */
+export interface CatalogReviewDto {
+  /**
+   * 評論唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 所屬商品 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  catalogId?: string;
+  /**
+   * 評論者使用者 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  reviewerUserId?: string;
+  /**
+   * 評分（1–5）。
+   * @format int32
+   * @example 5
+   */
+  rating?: number;
+  /**
+   * 留言內容；null 表示僅評分未留言。
+   * @example "非常實用，物超所值！"
+   */
+  comment?: string | null;
+  /**
+   * 建立時間。
+   * @format date-time
+   */
+  createdAt?: string;
+  /**
+   * 最後更新時間；null 表示未曾更新。
+   * @format date-time
+   */
+  updatedAt?: string | null;
+}
+
+/** 新增 / 更新評論請求（同一使用者對同一商品為 upsert）。 */
+export interface UpsertReviewRequest {
+  /**
+   * 評分（1–5）。
+   * @format int32
+   * @example 5
+   */
+  rating?: number;
+  /**
+   * 留言內容（至多 2000 字）；null 或空字串表示僅評分。
+   * @example "非常實用，物超所值！"
+   */
+  comment?: string | null;
+}
+
+/** 商品評論列表分頁回應（含彙總）。 */
+export interface ListReviewsResponse {
+  /**
+   * 平均評分（0–5）；無評論時為 0。
+   * @format double
+   * @example 4.6
+   */
+  ratingAverage?: number;
+  /**
+   * 評論總數。
+   * @format int32
+   * @example 128
+   */
+  ratingCount?: number;
+  /** 本頁評論清單（依時間新到舊）。 */
+  items?: CatalogReviewDto[] | null;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -1667,6 +1767,94 @@ export class Api<SecurityDataType extends unknown> {
     remove: (id: string, params: RequestParams = {}) =>
       this.http.request<void, any>({
         path: `/v1/catalogs/${id}/favorite`,
+        method: "DELETE",
+        ...params,
+      }),
+  };
+  catalogReviews = {
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name List
+     * @summary 分頁列出商品評論（公開），含平均分與評論數。
+     * @request GET:/v1/catalogs/{catalogId}/reviews
+     */
+    list: (
+      catalogId: string,
+      query?: {
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListReviewsResponse, any>({
+        path: `/v1/catalogs/${catalogId}/reviews`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name GetMine
+     * @summary 取得目前使用者對此商品的評論；尚未評論回傳 204。
+     * @request GET:/v1/catalogs/{catalogId}/reviews/mine
+     */
+    getMine: (catalogId: string, params: RequestParams = {}) =>
+      this.http.request<CatalogReviewDto, any>({
+        path: `/v1/catalogs/${catalogId}/reviews/mine`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name UpsertMine
+     * @summary 新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。
+     * @request PUT:/v1/catalogs/{catalogId}/reviews/mine
+     */
+    upsertMine: (
+      catalogId: string,
+      data: UpsertReviewRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogReviewDto, any>({
+        path: `/v1/catalogs/${catalogId}/reviews/mine`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name DeleteMine
+     * @summary 刪除本人對此商品的評論。
+     * @request DELETE:/v1/catalogs/{catalogId}/reviews/mine
+     */
+    deleteMine: (catalogId: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${catalogId}/reviews/mine`,
         method: "DELETE",
         ...params,
       }),

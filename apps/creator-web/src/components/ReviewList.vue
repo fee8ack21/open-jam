@@ -1,0 +1,105 @@
+<script setup lang="ts">
+/* ============================================================
+   ReviewList — 公開買家評價列表（星等 + 留言 + 日期）。
+   讀公開端點 catalogReviews.list；評論者以「買家」匿名呈現。
+   ============================================================ */
+import { onMounted, ref } from 'vue';
+import { catalogApi } from '@/api';
+import type { CatalogReviewDto } from '@/api/catalog-service';
+import Stars from '@/components/Stars.vue';
+import AppIcon from '@/components/app-icon';
+
+const props = defineProps<{ catalogId: string }>();
+const PAGE = 10;
+
+const items = ref<CatalogReviewDto[]>([]);
+const average = ref(0);
+const count = ref(0);
+const loading = ref(false);
+const loaded = ref(false);
+
+async function load(append = false) {
+  if (loading.value || !props.catalogId) return;
+  loading.value = true;
+  try {
+    const res = await catalogApi.catalogReviews.list(props.catalogId, {
+      Offset: append ? items.value.length : 0,
+      Limit: PAGE,
+    });
+    average.value = res.data.ratingAverage ?? 0;
+    count.value = res.data.ratingCount ?? 0;
+    const batch = res.data.items ?? [];
+    items.value = append ? [...items.value, ...batch] : batch;
+    loaded.value = true;
+  } catch {
+    // 取不到評論時靜默（不影響商品頁其他內容）
+  } finally {
+    loading.value = false;
+  }
+}
+
+const fmtDate = (v?: string | null) => (v ? new Date(v).toLocaleDateString('zh-TW') : '');
+const hasMore = () => items.value.length < count.value;
+
+onMounted(() => load());
+</script>
+
+<template>
+  <div v-if="loaded" class="review-list">
+    <div class="rl-head">
+      <h2 class="section-title" style="margin:0;">買家評價</h2>
+      <stars v-if="count" :value="average" :count="count" :size="15" />
+    </div>
+
+    <div v-if="!count" class="rl-empty">
+      <app-icon name="star" :size="28" style="opacity:.4" />
+      <p>還沒有評價，成為第一個分享心得的人。</p>
+    </div>
+
+    <div v-else class="rl-items">
+      <div v-for="r in items" :key="r.id" class="rl-item">
+        <span class="rl-avatar"><app-icon name="user" :size="16" /></span>
+        <div class="rl-body">
+          <div class="rl-meta">
+            <n-rate :value="r.rating" readonly size="small" />
+            <span class="rl-date">{{ fmtDate(r.createdAt) }}</span>
+          </div>
+          <p v-if="r.comment" class="rl-comment">{{ r.comment }}</p>
+          <p v-else class="rl-nocomment">（未留言）</p>
+        </div>
+      </div>
+
+      <button v-if="hasMore()" type="button" class="rl-more" :disabled="loading" @click="load(true)">
+        載入更多評價
+      </button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.review-list { margin-top: 40px; }
+.rl-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.rl-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 28px; color: var(--text-faint); font-size: 14px;
+  border: 1px dashed var(--border); border-radius: var(--r-lg);
+}
+.rl-items { display: flex; flex-direction: column; gap: 18px; }
+.rl-item { display: flex; gap: 12px; }
+.rl-avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--oj-primary-wash, rgba(22,160,122,.12)); color: var(--oj-primary, #16a07a);
+}
+.rl-body { flex: 1; min-width: 0; }
+.rl-meta { display: flex; align-items: center; gap: 10px; }
+.rl-date { font-size: 12px; color: var(--text-faint); font-family: var(--oj-mono); }
+.rl-comment { margin: 6px 0 0; font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; }
+.rl-nocomment { margin: 6px 0 0; font-size: 13px; color: var(--text-faint); }
+.rl-more {
+  align-self: flex-start; margin-top: 4px;
+  border: 1.5px solid var(--border); background: transparent; color: var(--text-soft);
+  padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.rl-more:disabled { opacity: .5; cursor: default; }
+</style>

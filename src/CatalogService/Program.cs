@@ -8,6 +8,7 @@ using CatalogService.Services.Catalogs;
 using CatalogService.Services.CatalogVersions;
 using CatalogService.Services.Categories;
 using CatalogService.Services.Favorites;
+using CatalogService.Services.Reviews;
 using CatalogService.Services.Tags;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,10 @@ var quotaBaseUrl = (services.QuotaService.BaseUrl ?? "http://localhost:5177").Tr
 builder.Services.AddHttpClient("quota", client => client.BaseAddress = new Uri(quotaBaseUrl));
 builder.Services.AddScoped<QuotaServiceClient>();
 
+var orderBaseUrl = (services.OrderService.BaseUrl ?? "http://localhost:5179").TrimEnd('/') + "/";
+builder.Services.AddHttpClient("order", client => client.BaseAddress = new Uri(orderBaseUrl));
+builder.Services.AddScoped<OrderServiceClient>();
+
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
 builder.Services.AddScoped<AuditLogPublisher>();
 builder.Services.AddScoped<ICatalogManager, CatalogManager>();
@@ -78,6 +83,7 @@ builder.Services.AddScoped<ICatalogVersionService, CatalogVersionService>();
 builder.Services.AddScoped<ICatalogCategoryService, CatalogCategoryService>();
 builder.Services.AddScoped<ICatalogTagService, CatalogTagService>();
 builder.Services.AddScoped<ICatalogFavoriteService, CatalogFavoriteService>();
+builder.Services.AddScoped<ICatalogReviewService, CatalogReviewService>();
 
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);

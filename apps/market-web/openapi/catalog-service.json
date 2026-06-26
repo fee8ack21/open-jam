@@ -1477,6 +1477,202 @@
           }
         }
       }
+    },
+    "/v1/catalogs/{catalogId}/reviews": {
+      "get": {
+        "tags": [
+          "CatalogReviews"
+        ],
+        "summary": "分頁列出商品評論（公開），含平均分與評論數。",
+        "operationId": "List",
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListReviewsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListReviewsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListReviewsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalogs/{catalogId}/reviews/mine": {
+      "get": {
+        "tags": [
+          "CatalogReviews"
+        ],
+        "summary": "取得目前使用者對此商品的評論；尚未評論回傳 204。",
+        "operationId": "GetMine",
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReviewDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReviewDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReviewDto"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CatalogReviews"
+        ],
+        "summary": "新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。",
+        "operationId": "UpsertMine",
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "評分與留言。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertReviewRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertReviewRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReviewDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReviewDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogReviewDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CatalogReviews"
+        ],
+        "summary": "刪除本人對此商品的評論。",
+        "operationId": "DeleteMine",
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1688,6 +1884,18 @@
             "description": "是否為編輯精選（平台策展）。",
             "example": false
           },
+          "ratingAverage": {
+            "type": "number",
+            "description": "平均評分（0–5）；無評論時為 0。",
+            "format": "double",
+            "example": 4.6
+          },
+          "ratingCount": {
+            "type": "integer",
+            "description": "評論數。",
+            "format": "int32",
+            "example": 128
+          },
           "thumbnailUrl": {
             "type": "string",
             "description": "縮圖公開 URL；null 表示尚未設定。",
@@ -1820,6 +2028,18 @@
             "type": "boolean",
             "description": "是否為編輯精選（平台策展）。",
             "example": false
+          },
+          "ratingAverage": {
+            "type": "number",
+            "description": "平均評分（0–5）；無評論時為 0。",
+            "format": "double",
+            "example": 4.6
+          },
+          "ratingCount": {
+            "type": "integer",
+            "description": "評論數。",
+            "format": "int32",
+            "example": 128
           },
           "thumbnailUrl": {
             "type": "string",
@@ -2354,6 +2574,100 @@
         ],
         "type": "string",
         "description": "商品列表排序方式。"
+      },
+      "CatalogReviewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "評論唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "catalogId": {
+            "type": "string",
+            "description": "所屬商品 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "reviewerUserId": {
+            "type": "string",
+            "description": "評論者使用者 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "rating": {
+            "type": "integer",
+            "description": "評分（1–5）。",
+            "format": "int32",
+            "example": 5
+          },
+          "comment": {
+            "type": "string",
+            "description": "留言內容；null 表示僅評分未留言。",
+            "nullable": true,
+            "example": "非常實用，物超所值！"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間。",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "最後更新時間；null 表示未曾更新。",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "商品評論回應。"
+      },
+      "UpsertReviewRequest": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "description": "評分（1–5）。",
+            "format": "int32",
+            "example": 5
+          },
+          "comment": {
+            "type": "string",
+            "description": "留言內容（至多 2000 字）；null 或空字串表示僅評分。",
+            "nullable": true,
+            "example": "非常實用，物超所值！"
+          }
+        },
+        "additionalProperties": false,
+        "description": "新增 / 更新評論請求（同一使用者對同一商品為 upsert）。"
+      },
+      "ListReviewsResponse": {
+        "type": "object",
+        "properties": {
+          "ratingAverage": {
+            "type": "number",
+            "description": "平均評分（0–5）；無評論時為 0。",
+            "format": "double",
+            "example": 4.6
+          },
+          "ratingCount": {
+            "type": "integer",
+            "description": "評論總數。",
+            "format": "int32",
+            "example": 128
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogReviewDto"
+            },
+            "description": "本頁評論清單（依時間新到舊）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "商品評論列表分頁回應（含彙總）。"
       }
     }
   }

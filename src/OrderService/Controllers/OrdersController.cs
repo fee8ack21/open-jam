@@ -76,6 +76,18 @@ public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor c
     public async Task<ActionResult<ListOrdersResponse>> List([FromQuery] ListOrdersRequest request, CancellationToken ct) =>
         Ok(await orderManager.ListAsync(request, ct));
 
+    /// <summary>查詢登入使用者是否已購買（已完成訂單）某商品。供評論前的購買驗證。</summary>
+    /// <param name="catalogId">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet("purchased/{catalogId:guid}")]
+    [ProducesResponseType<PurchaseCheckResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PurchaseCheckResponse>> HasPurchased(Guid catalogId, CancellationToken ct)
+    {
+        var userId = currentUser.UserId ?? throw new UnauthorizedException();
+        var purchased = await orderManager.HasPurchasedAsync(catalogId, userId, ct);
+        return Ok(new PurchaseCheckResponse { Purchased = purchased });
+    }
+
     /// <summary>取消未付款的訂單。具名買家僅本人可取消；匿名訂單憑訂單 ID 取消。</summary>
     /// <param name="id">訂單 ID。</param>
     /// <param name="request">取消原因（選填）。</param>

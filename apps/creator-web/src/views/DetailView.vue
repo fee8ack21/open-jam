@@ -6,6 +6,7 @@ import { CATEGORIES } from '@/data/products';
 import ProductThumb from '@/components/ProductThumb.vue';
 import AppIcon from '@/components/app-icon';
 import Stars from '@/components/Stars.vue';
+import ReviewList from '@/components/ReviewList.vue';
 
 const FILE_COLORS: Record<string, string> = {
   PDF: '#e0573e', MIDI: '#6151f0', MSCZ: '#7a6cff', AUDIO: '#c94f9e', WAV: '#c94f9e',
@@ -101,6 +102,8 @@ const goCart = () => router.push({ name: 'checkout' });
             </div>
           </div>
         </div>
+
+        <review-list :catalog-id="p.id" />
       </div>
 
       <!-- right: buy card -->

@@ -11,6 +11,9 @@ public class ServiceOptions
 
     /// <summary>QuotaService（資源配額 API）端點設定。</summary>
     public ServiceEndpointOptions QuotaService { get; set; } = new();
+
+    /// <summary>OrderService（訂單 API，用於評論購買驗證）端點設定。</summary>
+    public ServiceEndpointOptions OrderService { get; set; } = new();
 }
 
 /// <summary>單一外部服務端點設定。</summary>

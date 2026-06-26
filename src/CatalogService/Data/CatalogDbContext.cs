@@ -33,6 +33,9 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
     /// <summary>使用者商品收藏（wishlist）資料表。</summary>
     public DbSet<CatalogFavorite> CatalogFavorites => Set<CatalogFavorite>();
 
+    /// <summary>商品評論資料表。</summary>
+    public DbSet<CatalogReview> CatalogReviews => Set<CatalogReview>();
+
     /// <summary>Outbox 訊息資料表。</summary>
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
@@ -112,6 +115,16 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
             e.HasKey(f => new { f.CatalogId, f.UserId });
             // 查詢某使用者的收藏清單（ListMine 以 UserId 過濾；主鍵以 CatalogId 為首，故另建）
             e.HasIndex(f => f.UserId);
+        });
+
+        model.Entity<CatalogReview>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.Property(r => r.Comment).HasMaxLength(2000);
+            // 一人一商品至多一則評論
+            e.HasIndex(r => new { r.CatalogId, r.ReviewerUserId }).IsUnique();
+            // 列出某商品評論（依時間）
+            e.HasIndex(r => r.CatalogId);
         });
 
         model.Entity<OutboxMessage>(e =>

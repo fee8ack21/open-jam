@@ -14,6 +14,9 @@ public interface IOrderManager
 
     Task<OrderResponse> CancelAsync(Guid id, CancelOrderRequest request, Guid? userId, CancellationToken ct);
 
+    /// <summary>查詢指定使用者是否曾以已完成訂單購買某商品（供評論購買驗證）。</summary>
+    Task<bool> HasPurchasedAsync(Guid catalogId, Guid userId, CancellationToken ct);
+
     /// <summary>付款成功時履約完成訂單（由 <c>PaymentSucceededEvent</c> consumer 呼叫，冪等）。</summary>
     Task CompleteFromPaymentAsync(Guid orderId, DateTimeOffset paidAt, CancellationToken ct);
 }

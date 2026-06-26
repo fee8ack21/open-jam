@@ -123,6 +123,33 @@ public class ListCatalogsRequestValidator : AbstractValidator<ListCatalogsReques
     }
 }
 
+/// <summary>新增 / 更新評論請求驗證：評分範圍與留言長度。</summary>
+public class UpsertReviewRequestValidator : AbstractValidator<UpsertReviewRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public UpsertReviewRequestValidator()
+    {
+        RuleFor(x => x.Rating)
+            .InclusiveBetween(1, 5).WithMessage("評分須介於 1–5。");
+
+        RuleFor(x => x.Comment!)
+            .MaximumLength(2000)
+            .When(x => x.Comment is not null)
+            .WithMessage("留言長度不得超過 2000 字。");
+    }
+}
+
+/// <summary>評論列表查詢請求驗證：分頁範圍。</summary>
+public class ListReviewsRequestValidator : AbstractValidator<ListReviewsRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public ListReviewsRequestValidator()
+    {
+        RuleFor(x => x.Offset).ValidOffset();
+        RuleFor(x => x.Limit).ValidLimit();
+    }
+}
+
 /// <summary>CatalogService 共用的無狀態輸入驗證輔助（與業務層正規化邏輯一致）。</summary>
 internal static class CatalogInputRules
 {

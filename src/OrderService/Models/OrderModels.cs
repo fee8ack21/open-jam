@@ -191,6 +191,14 @@ public class OrderItemResponse
     public long UnitPrice { get; set; }
 }
 
+/// <summary>商品購買驗證回應。</summary>
+public class PurchaseCheckResponse
+{
+    /// <summary>登入使用者是否曾以已完成訂單購買此商品。</summary>
+    /// <example>true</example>
+    public bool Purchased { get; set; }
+}
+
 /// <summary>訂單狀態歷程回應。</summary>
 public class OrderStatusHistoryResponse
 {

@@ -34,5 +34,7 @@ public class CatalogMappingProfile : Profile
         CreateMap<CatalogCategory, CatalogCategoryDto>();
 
         CreateMap<CatalogTag, CatalogTagDto>();
+
+        CreateMap<CatalogReview, CatalogReviewDto>();
     }
 }

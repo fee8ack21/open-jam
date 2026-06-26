@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useShopStore } from '@/stores/shop';
 import ProductThumb from '@/components/ProductThumb.vue';
+import ReviewWidget from '@/components/ReviewWidget.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
@@ -54,6 +55,7 @@ const goCheckout = () => router.push({ name: 'checkout' });
                 下載
               </n-button>
             </div>
+            <review-widget :catalog-id="it.id" />
           </div>
         </div>
       </div>

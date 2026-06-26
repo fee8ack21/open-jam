@@ -57,6 +57,14 @@ public class CatalogDto
     /// <example>false</example>
     public bool IsFeatured { get; set; }
 
+    /// <summary>平均評分（0–5）；無評論時為 0。</summary>
+    /// <example>4.6</example>
+    public double RatingAverage { get; set; }
+
+    /// <summary>評論數。</summary>
+    /// <example>128</example>
+    public int RatingCount { get; set; }
+
     /// <summary>縮圖公開 URL；null 表示尚未設定。</summary>
     /// <example>http://localhost:5171/v1/files/blob/public/.../thumb.png</example>
     public string? ThumbnailUrl { get; set; }
@@ -131,6 +139,14 @@ public class CatalogSummaryDto
     /// <summary>是否為編輯精選（平台策展）。</summary>
     /// <example>false</example>
     public bool IsFeatured { get; set; }
+
+    /// <summary>平均評分（0–5）；無評論時為 0。</summary>
+    /// <example>4.6</example>
+    public double RatingAverage { get; set; }
+
+    /// <summary>評論數。</summary>
+    /// <example>128</example>
+    public int RatingCount { get; set; }
 
     /// <summary>縮圖公開 URL；null 表示尚未設定。</summary>
     /// <example>http://localhost:5171/v1/files/blob/public/.../thumb.png</example>
