@@ -38,6 +38,9 @@ public interface ICatalogManager
     /// <summary>設定 / 取消商品的編輯精選旗標。僅 Admin 可操作。</summary>
     Task SetFeaturedAsync(Guid id, bool featured, CancellationToken ct);
 
+    /// <summary>商品詳情頁瀏覽次數 +1（公開，原子累加）。</summary>
+    Task IncrementViewAsync(Guid id, CancellationToken ct);
+
     /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。</summary>
     Task<CatalogAssetUploadUrlResponse> RequestAssetUploadUrlAsync(
         Guid id, RequestCatalogAssetUploadUrlRequest request, CancellationToken ct);

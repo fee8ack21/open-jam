@@ -137,6 +137,18 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>商品詳情頁瀏覽次數 +1（公開）。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/view")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> IncrementViewAsync(Guid id, CancellationToken ct)
+    {
+        await catalogManager.IncrementViewAsync(id, ct);
+        return NoContent();
+    }
+
     /// <summary>設為編輯精選（市集首頁精選輪播）。僅 Admin 可操作。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="ct">Cancellation token。</param>

@@ -200,6 +200,12 @@ export interface CatalogDto {
    */
   salesCount?: number;
   /**
+   * 商品詳情頁累計瀏覽次數。
+   * @format int64
+   * @example 0
+   */
+  viewCount?: number;
+  /**
    * 是否為編輯精選（平台策展）。
    * @example false
    */
@@ -307,6 +313,12 @@ export interface CatalogSummaryDto {
    * @example 0
    */
   salesCount?: number;
+  /**
+   * 商品詳情頁累計瀏覽次數。
+   * @format int64
+   * @example 0
+   */
+  viewCount?: number;
   /**
    * 是否為編輯精選（平台策展）。
    * @example false
@@ -1393,6 +1405,21 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name IncrementView
+     * @summary 商品詳情頁瀏覽次數 +1（公開）。
+     * @request POST:/v1/catalogs/{id}/view
+     */
+    incrementView: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/view`,
+        method: "POST",
         ...params,
       }),
 

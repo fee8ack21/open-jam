@@ -34,6 +34,7 @@ async function ensureLoaded(id: string) {
   await store.loadCatalog();
   await store.loadProduct(id);
   ready.value = true;
+  store.recordView(id); // 進頁瀏覽 +1（fire-and-forget，不阻塞畫面）
 }
 onMounted(() => ensureLoaded(String(route.params.id)));
 watch(() => route.params.id, (id) => { active.value = 0; ensureLoaded(String(id)); });
@@ -166,6 +167,10 @@ const goCart = () => router.push({ name: 'checkout' });
             <div class="spec-row">
               <span class="spec-k"><app-icon name="user" :size="16" /> 已售出</span>
               <span class="spec-v">{{ p.sales.toLocaleString() }} 份</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k"><app-icon name="search" :size="16" /> 瀏覽次數</span>
+              <span class="spec-v">{{ (p.views ?? 0).toLocaleString() }} 次</span>
             </div>
           </div>
         </div>

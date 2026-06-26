@@ -716,6 +716,32 @@
         }
       }
     },
+    "/v1/catalogs/{id}/view": {
+      "post": {
+        "tags": [
+          "Catalogs"
+        ],
+        "summary": "商品詳情頁瀏覽次數 +1（公開）。",
+        "operationId": "IncrementView",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/v1/catalogs/{id}/category": {
       "put": {
         "tags": [
@@ -1960,6 +1986,12 @@
             "format": "int64",
             "example": 0
           },
+          "viewCount": {
+            "type": "integer",
+            "description": "商品詳情頁累計瀏覽次數。",
+            "format": "int64",
+            "example": 0
+          },
           "isFeatured": {
             "type": "boolean",
             "description": "是否為編輯精選（平台策展）。",
@@ -2102,6 +2134,12 @@
           "salesCount": {
             "type": "integer",
             "description": "累計銷量。",
+            "format": "int64",
+            "example": 0
+          },
+          "viewCount": {
+            "type": "integer",
+            "description": "商品詳情頁累計瀏覽次數。",
             "format": "int64",
             "example": 0
           },

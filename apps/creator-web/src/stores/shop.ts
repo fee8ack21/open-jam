@@ -175,6 +175,17 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
+  /** 記錄一次商品瀏覽（詳情頁進入時呼叫，fire-and-forget）。 */
+  async function recordView(id: string) {
+    const p = products.value.find((x) => x.id === id);
+    if (p) p.views = (p.views ?? 0) + 1; // 樂觀更新本地顯示
+    try {
+      await catalogApi.catalogs.incrementView(id);
+    } catch {
+      // 瀏覽計數失敗不影響瀏覽體驗
+    }
+  }
+
   /** 載入單一商品完整資訊（含描述 / 標籤），合併進列表。 */
   async function loadProduct(id: string) {
     try {
@@ -371,6 +382,6 @@ export const useShopStore = defineStore('shop', () => {
     // actions
     setTheme, toggleTheme, toggleFav, addToCart, setQty, removeFromCart, clearCart,
     setCategory, toggleTag, clearFilters, startCheckout, checkout, finishCheckout, cancelCheckout, followStore,
-    loadCatalog, loadProduct, loadFavorites,
+    loadCatalog, loadProduct, loadFavorites, recordView,
   };
 });

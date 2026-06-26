@@ -53,6 +53,10 @@ public class CatalogDto
     /// <example>0</example>
     public long SalesCount { get; set; }
 
+    /// <summary>商品詳情頁累計瀏覽次數。</summary>
+    /// <example>0</example>
+    public long ViewCount { get; set; }
+
     /// <summary>是否為編輯精選（平台策展）。</summary>
     /// <example>false</example>
     public bool IsFeatured { get; set; }
@@ -135,6 +139,10 @@ public class CatalogSummaryDto
     /// <summary>累計銷量。</summary>
     /// <example>0</example>
     public long SalesCount { get; set; }
+
+    /// <summary>商品詳情頁累計瀏覽次數。</summary>
+    /// <example>0</example>
+    public long ViewCount { get; set; }
 
     /// <summary>是否為編輯精選（平台策展）。</summary>
     /// <example>false</example>

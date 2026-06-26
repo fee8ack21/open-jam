@@ -48,6 +48,8 @@ export interface Product {
   rating: number;
   ratingCount: number;
   sales: number;
+  /** 詳情頁累計瀏覽次數（mock 資料未提供）。 */
+  views?: number;
   tags: string[];
   blurb: string;
   desc: string[];

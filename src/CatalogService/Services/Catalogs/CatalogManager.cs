@@ -304,6 +304,13 @@ public class CatalogManager(
     }
 
     /// <inheritdoc/>
+    public Task IncrementViewAsync(Guid id, CancellationToken ct) =>
+        // 高頻寫入，直接原子累加（不經 SaveChanges、不寫 audit、不動 UpdatedAt）；查無此商品則影響 0 列。
+        db.Catalogs
+            .Where(c => c.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.ViewCount, c => c.ViewCount + 1), ct);
+
+    /// <inheritdoc/>
     public async Task SetFeaturedAsync(Guid id, bool featured, CancellationToken ct)
     {
         var catalog = await db.Catalogs.FirstOrDefaultAsync(c => c.Id == id, ct)

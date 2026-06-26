@@ -68,6 +68,7 @@ export function toProduct(
     rating: dto.ratingAverage ?? 0,
     ratingCount: dto.ratingCount ?? 0,
     sales: dto.salesCount ?? 0,
+    views: dto.viewCount ?? 0,
     tags: dto.tags ?? [],
     blurb: dto.summary ?? '',
     desc: description ? description.split(/\n+/).map((s) => s.trim()).filter(Boolean) : [],

@@ -158,6 +158,7 @@ onMounted(load)
                 <th>作品</th>
                 <th class="hide-sm">狀態</th>
                 <th class="num hide-sm">售價</th>
+                <th class="num hide-sm">瀏覽</th>
                 <th class="num hide-sm">上架時間</th>
                 <th style="width:160px; text-align:right;">上架</th>
               </tr>
@@ -165,7 +166,7 @@ onMounted(load)
             <tbody>
               <!-- 無紀錄：整列佔滿全部欄位 -->
               <tr v-if="!loading && !rows.length">
-                <td colspan="5" style="text-align:center; padding:48px 24px;">
+                <td colspan="6" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="box" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">沒有符合的作品</div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
@@ -187,6 +188,7 @@ onMounted(load)
                 </td>
                 <td class="hide-sm"><n-tag :type="statusOf(p.status).type" size="small" round>{{ statusOf(p.status).label }}</n-tag></td>
                 <td class="num hide-sm">{{ p.price === 0 ? '免費' : '$' + p.price }}</td>
+                <td class="num hide-sm">{{ (p.viewCount ?? 0).toLocaleString('en-US') }}</td>
                 <td class="num hide-sm"><span class="history-mono" style="font-size:12px;">{{ fmtDate(p.publishedAt) }}</span></td>
                 <td>
                   <div class="row-actions">
