@@ -5,16 +5,20 @@
    creator's storefront like <product-card>.
    ============================================================ */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { env } from '@/environment.js';
 import type { Product } from '@/data/products';
 
 const props = defineProps<{ product: Product }>();
+const { t } = useI18n();
 
 const href = computed(() => `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', props.product.storeSlug)}/products/${props.product.id}`);
 const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
 // 誠實標示：人工策展的標「編輯精選」，演算法補入的標「熱門」，不讓熱門商品冒充編輯精選。
 const tag = computed(() =>
-  props.product.featured ? { icon: 'sparkle', label: '編輯精選' } : { icon: 'star', label: '熱門' },
+  props.product.featured
+    ? { icon: 'sparkle', label: t('card.editorPick') }
+    : { icon: 'star', label: t('card.hot') },
 );
 </script>
 
@@ -33,7 +37,7 @@ const tag = computed(() =>
       </div>
       <div class="feat-foot">
         <span class="feat-price" :class="{ free: product.price === 0 }">
-          {{ product.price === 0 ? '免費' : '$' + product.price }}
+          {{ product.price === 0 ? t('common.free') : '$' + product.price }}
         </span>
         <stars :value="product.rating" :count="product.ratingCount" />
       </div>

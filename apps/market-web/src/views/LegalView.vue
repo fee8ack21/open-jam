@@ -4,40 +4,65 @@
    文案沿用 Auth 服務的 legal dialog（src/data/legal.ts）。
    ============================================================ */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop.js';
-import { LEGAL, type LegalKey } from '@/data/legal.js';
+import { LEGAL_META, type LegalKey } from '@/data/legal.js';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 
 const props = defineProps<{ doc: LegalKey }>();
 
 const store = useShopStore();
-const current = computed(() => LEGAL[props.doc]);
-const other = computed(() => LEGAL[props.doc === 'terms' ? 'privacy' : 'terms']);
+const { t, tm, rt } = useI18n();
+
+interface Section {
+  n: string;
+  h: string;
+  p: string;
+  list?: string[];
+}
+
+const meta = computed(() => LEGAL_META[props.doc]);
+const otherKey = computed<LegalKey>(() => (props.doc === 'terms' ? 'privacy' : 'terms'));
+
+const title = computed(() => t(`legal.${props.doc}.title`));
+const otherTitle = computed(() => t(`legal.${otherKey.value}.title`));
+
+// 章節文案來自 i18n（legal.<doc>.sections）；編號 n 由索引推算
+const sections = computed<Section[]>(() =>
+  (tm(`legal.${props.doc}.sections`) as { h: string; p: string; list?: string[] }[]).map(
+    (s, i) => ({
+      n: String(i + 1).padStart(2, '0'),
+      h: rt(s.h),
+      p: rt(s.p),
+      list: s.list ? s.list.map((item) => rt(item)) : undefined,
+    }),
+  ),
+);
 </script>
 
 <template>
-  <div class="oj-root" :class="'font-' + store.font" :data-screen-label="current.title">
+  <div class="oj-root" :class="'font-' + store.font" :data-screen-label="title">
     <!-- ============ NAV ============ -->
     <app-nav />
 
     <main class="page legal-page">
-      <nav class="breadcrumb" aria-label="麵包屑">
-        <router-link to="/">市集</router-link>
+      <nav class="breadcrumb" :aria-label="t('common.breadcrumb')">
+        <router-link to="/">{{ t('common.marketplace') }}</router-link>
         <app-icon name="chevron" :size="14" />
-        <span>{{ current.title }}</span>
+        <span>{{ title }}</span>
       </nav>
 
       <article class="legal-card">
         <header class="legal-head">
           <div class="legal-badge" :class="doc">
-            <app-icon :name="current.icon" :size="24" />
+            <app-icon :name="meta.icon" :size="24" />
           </div>
-          <h1 class="legal-title">{{ current.title }}</h1>
-          <p class="legal-meta">Open Jam · 最後更新 {{ current.updated }}</p>
+          <h1 class="legal-title">{{ title }}</h1>
+          <p class="legal-meta">{{ t('legal.metaUpdated', { date: meta.updated }) }}</p>
         </header>
 
-        <section v-for="s in current.sections" :key="s.n" class="legal-sec">
+        <section v-for="s in sections" :key="s.n" class="legal-sec">
           <h2><span class="num">{{ s.n }}</span> {{ s.h }}</h2>
           <p>{{ s.p }}</p>
           <ul v-if="s.list">
@@ -46,8 +71,8 @@ const other = computed(() => LEGAL[props.doc === 'terms' ? 'privacy' : 'terms'])
         </section>
 
         <div class="legal-switch">
-          <router-link :to="'/' + other.key">
-            前往閱讀「{{ other.title }}」 <app-icon name="chevron" :size="15" />
+          <router-link :to="'/' + otherKey">
+            {{ t('legal.switchTo', { title: otherTitle }) }} <app-icon name="chevron" :size="15" />
           </router-link>
         </div>
       </article>

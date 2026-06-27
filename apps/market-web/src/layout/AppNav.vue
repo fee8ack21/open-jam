@@ -1,14 +1,23 @@
 <script setup lang="ts">
 /* ============================================================
    AppNav — market-web 全站頂部導覽列
-   全站一致顯示登入／後台／登出。
+   全站一致顯示語言切換／登入／後台／登出。
    ============================================================ */
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.js';
 import { env } from '@/environment.js';
+import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n';
 
 const auth = useAuthStore();
+const { t, locale } = useI18n();
 
 function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
+
+const langOptions = computed(() =>
+  SUPPORTED_LOCALES.map((code) => ({ label: t(`language.${code}`), key: code })),
+);
+function onSelectLang(key: string) { setLocale(key as Locale); }
 </script>
 
 <template>
@@ -27,23 +36,28 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
       <div class="nav-spacer"></div>
 
       <div class="nav-actions">
-        <a class="nav-link" :href="env.GITHUB_REPO_URL" target="_blank" rel="noopener noreferrer" title="GitHub 原始碼">
+        <n-dropdown trigger="click" :options="langOptions" :value="locale" @select="onSelectLang">
+          <a class="nav-link" href="#" :title="t('language.label')" @click.prevent>
+            <app-icon name="globe" :size="18" />
+          </a>
+        </n-dropdown>
+        <a class="nav-link" :href="env.GITHUB_REPO_URL" target="_blank" rel="noopener noreferrer" :title="t('nav.github')">
           <app-icon name="github" :size="18" />
         </a>
-        <a class="nav-link" :href="env.DOCS_URL" target="_blank" rel="noopener noreferrer" title="專案文件">
+        <a class="nav-link" :href="env.DOCS_URL" target="_blank" rel="noopener noreferrer" :title="t('nav.docs')">
           <app-icon name="book" :size="18" />
         </a>
         <template v-if="auth.isAuthenticated">
-          <a class="nav-admin" href="#" title="前往後台" @click.prevent="goWorkspace">
-            <app-icon name="user" :size="18" /> <span class="nav-admin-label">前往後台</span>
+          <a class="nav-admin" href="#" :title="t('nav.workspace')" @click.prevent="goWorkspace">
+            <app-icon name="user" :size="18" /> <span class="nav-admin-label">{{ t('nav.workspace') }}</span>
           </a>
-          <a class="nav-logout" href="#" title="登出" @click.prevent="auth.logout()">
+          <a class="nav-logout" href="#" :title="t('nav.logout')" @click.prevent="auth.logout()">
             <app-icon name="logout" :size="17" />
           </a>
         </template>
         <template v-else>
-          <a class="nav-admin" href="#" title="登入" @click.prevent="auth.login()">
-            <app-icon name="user" :size="18" /> 登入
+          <a class="nav-admin" href="#" :title="t('nav.login')" @click.prevent="auth.login()">
+            <app-icon name="user" :size="18" /> {{ t('nav.login') }}
           </a>
         </template>
       </div>

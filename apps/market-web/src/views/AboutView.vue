@@ -3,6 +3,8 @@
    AboutView — 關於 Open Jam 靜態介紹頁（/about）
    說明平台用途：創作者子網域開店、消費者免註冊憑信箱購買。
    ============================================================ */
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop.js';
 import { CATEGORIES } from '@/data/products';
 import { env } from '@/environment.js';
@@ -10,25 +12,17 @@ import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 
 const store = useShopStore();
+const { t, tm, rt } = useI18n();
 
-// 平台三大特色 — 對應 Controller/Service 的核心流程
-const features = [
-  {
-    icon: 'bag',
-    title: '一鍵開店',
-    text: '創作者申請後即可在專屬子網域 <creator>.openjam.co 開設店面，上架樂譜、照片集或電子書。',
-  },
-  {
-    icon: 'mail',
-    title: '免註冊購買',
-    text: '消費者無需建立帳號，結帳時憑電子信箱即可完成購買，下載連結直接寄送到信箱。',
-  },
-  {
-    icon: 'download',
-    title: '安全下載',
-    text: '購買後由平台簽發具時效的下載連結，檔案經處理確認後才開放，保障創作者作品。',
-  },
-];
+// 平台三大特色 — 圖示留在程式碼，文案由 i18n（about.features）提供
+const featureIcons = ['bag', 'mail', 'download'];
+const features = computed(() =>
+  (tm('about.features') as { title: string; text: string }[]).map((f, i) => ({
+    icon: featureIcons[i],
+    title: rt(f.title),
+    text: rt(f.text),
+  })),
+);
 
 // 平台目前支援的數位商品分類
 const categories = CATEGORIES;
@@ -37,15 +31,15 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 </script>
 
 <template>
-  <div class="oj-root" :class="'font-' + store.font" data-screen-label="關於 Open Jam">
+  <div class="oj-root" :class="'font-' + store.font" :data-screen-label="t('about.screenLabel')">
     <!-- ============ NAV ============ -->
     <app-nav />
 
     <main class="page about-page">
-      <nav class="breadcrumb" aria-label="麵包屑">
-        <router-link to="/">市集</router-link>
+      <nav class="breadcrumb" :aria-label="t('common.breadcrumb')">
+        <router-link to="/">{{ t('common.marketplace') }}</router-link>
         <app-icon name="chevron" :size="14" />
-        <span>關於 Open Jam</span>
+        <span>{{ t('about.breadcrumb') }}</span>
       </nav>
 
       <article class="about-card">
@@ -53,24 +47,17 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
           <div class="about-badge">
             <app-icon name="sparkle" :size="24" />
           </div>
-          <h1 class="about-title">關於 Open Jam</h1>
-          <p class="about-lede">
-            Open Jam 是台灣的創作者數位商品市集。我們讓創作者把樂譜、攝影作品與電子書直接賣給支持者，
-            也讓每一位消費者用最少的步驟，買到值得收藏的數位作品。
-          </p>
+          <h1 class="about-title">{{ t('about.title') }}</h1>
+          <p class="about-lede">{{ t('about.lede') }}</p>
         </header>
 
         <section class="about-sec">
-          <h2><span class="num">01</span> 平台是做什麼的</h2>
-          <p>
-            Open Jam 參考 Gumroad 的精神打造：創作者專注創作，平台負責開店、金流與檔案配送。
-            創作者在自己的子網域開設店面、上架商品；消費者瀏覽市集、選購喜歡的作品，
-            整個過程不需要繁瑣的註冊或下載 App。
-          </p>
+          <h2><span class="num">01</span> {{ t('about.sec1.title') }}</h2>
+          <p>{{ t('about.sec1.body') }}</p>
         </section>
 
         <section class="about-sec">
-          <h2><span class="num">02</span> 它如何運作</h2>
+          <h2><span class="num">02</span> {{ t('about.sec2.title') }}</h2>
           <div class="feature-grid">
             <div v-for="f in features" :key="f.title" class="feature-cell">
               <span class="feature-ic"><app-icon :name="f.icon" :size="20" /></span>
@@ -81,20 +68,20 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
         </section>
 
         <section class="about-sec">
-          <h2><span class="num">03</span> 你可以買到什麼</h2>
-          <p>目前市集支援以下數位商品分類，並會持續擴充：</p>
+          <h2><span class="num">03</span> {{ t('about.sec3.title') }}</h2>
+          <p>{{ t('about.sec3.body') }}</p>
           <ul class="cat-list">
             <li v-for="c in categories" :key="c.id">
               <app-icon :name="c.glyph" :size="17" />
-              <span>{{ c.label }}</span>
+              <span>{{ t('category.' + c.id) }}</span>
             </li>
           </ul>
         </section>
 
         <div class="about-cta">
-          <p>是創作者嗎？把你的作品帶到 Open Jam。</p>
+          <p>{{ t('about.cta.text') }}</p>
           <button type="button" class="cta-btn" @click="goWorkspace">
-            成為創作者 <app-icon name="chevron" :size="15" />
+            {{ t('about.cta.button') }} <app-icon name="chevron" :size="15" />
           </button>
         </div>
       </article>

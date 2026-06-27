@@ -1,0 +1,246 @@
+{
+  "common": {
+    "search": "Search",
+    "free": "Free",
+    "breadcrumb": "Breadcrumb",
+    "marketplace": "Marketplace"
+  },
+  "language": {
+    "label": "Language",
+    "zh-TW": "繁體中文",
+    "en": "English"
+  },
+  "nav": {
+    "github": "GitHub source",
+    "docs": "Documentation",
+    "workspace": "Go to workspace",
+    "login": "Sign in",
+    "logout": "Sign out"
+  },
+  "footer": {
+    "links": "Footer links",
+    "about": "About Open Jam",
+    "becomeCreator": "Become a creator",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2026 Open Jam · A marketplace for creators"
+  },
+  "category": {
+    "music": "Sheet music / Audio",
+    "photo": "Photography",
+    "ebook": "E-books / Documents"
+  },
+  "creatorFallback": "Creator",
+  "market": {
+    "screenLabel": "Marketplace home",
+    "toTop": "Back to top",
+    "hero": {
+      "eyebrow": "OPEN JAM · A marketplace for creators",
+      "title": "Discover {creator} {works} worth {collect}",
+      "collect": "collecting",
+      "creator": "creators’",
+      "works": "digital works",
+      "searchPlaceholder": "Search works, creators, or tags…",
+      "searchAria": "Search the marketplace",
+      "popularSearch": "Popular",
+      "keywords": [
+        "Jazz",
+        "Kyoto",
+        "Piano",
+        "Notion",
+        "Street",
+        "Free"
+      ]
+    },
+    "featured": {
+      "eyebrow": "Featured · Popular",
+      "title": "Featured works",
+      "prevAria": "Previous featured",
+      "nextAria": "Next featured"
+    },
+    "browse": {
+      "eyebrow": "Explore the marketplace",
+      "title": "Browse all works",
+      "sub": "Thousands of music, photography, and e-book works from independent creators — each ready to download and own instantly.",
+      "allWorks": "All works",
+      "count": "{cat} · {count} works",
+      "sortLabel": "Sort",
+      "sortAria": "Sort by",
+      "filter": "Filter",
+      "categoryGroup": "Category",
+      "categoryAria": "Work category",
+      "priceGroup": "Price",
+      "priceAria": "Price range",
+      "optionCount": "{label} ({count})",
+      "clearAll": "Clear all filters",
+      "filtering": "Filtering",
+      "clearAllShort": "Clear all",
+      "loadMore": "Load more",
+      "loadMoreCount": "({count} more)",
+      "emptyTitle": "No matching works found",
+      "emptyDesc": "Try loosening the filters or clearing your search keywords."
+    },
+    "sort": {
+      "popular": "Most popular",
+      "newest": "Newest",
+      "rating": "Top rated",
+      "priceAsc": "Price: low → high",
+      "priceDesc": "Price: high → low"
+    },
+    "price": {
+      "all": "Any",
+      "free": "Free",
+      "low": "$1–15",
+      "mid": "$16–30",
+      "high": "$30+"
+    },
+    "badge": {
+      "feat": "Featured",
+      "hot": "Bestseller",
+      "new": "New"
+    }
+  },
+  "card": {
+    "editorPick": "Editor’s pick",
+    "hot": "Popular"
+  },
+  "collage": {
+    "card1": "Midnight Jazz Piano",
+    "card2": "Illustrator’s Handbook",
+    "card3": "Neon City Nights",
+    "card4": "Lo-Fi Beat Pack"
+  },
+  "about": {
+    "screenLabel": "About Open Jam",
+    "breadcrumb": "About Open Jam",
+    "title": "About Open Jam",
+    "lede": "Open Jam is Taiwan’s marketplace for creators’ digital goods. We let creators sell their sheet music, photography, and e-books directly to supporters, and let every shopper buy collectible digital works in just a few steps.",
+    "sec1": {
+      "title": "What the platform does",
+      "body": "Open Jam is built in the spirit of Gumroad: creators focus on creating while the platform handles storefronts, payments, and file delivery. Creators open a shop on their own subdomain and list their works; shoppers browse the marketplace and buy what they love — all without tedious sign-ups or app downloads."
+    },
+    "sec2": {
+      "title": "How it works"
+    },
+    "sec3": {
+      "title": "What you can buy",
+      "body": "The marketplace currently supports the following digital product categories, and keeps expanding:"
+    },
+    "features": [
+      {
+        "title": "One-click storefront",
+        "text": "Once approved, creators can open a shop on a dedicated subdomain <creator>.openjam.co and list sheet music, photo collections, or e-books."
+      },
+      {
+        "title": "Buy without signing up",
+        "text": "Shoppers don’t need an account — just an email at checkout to complete a purchase, and the download link is sent straight to their inbox."
+      },
+      {
+        "title": "Secure downloads",
+        "text": "After purchase the platform issues a time-limited download link, opened only after the file is processed and verified, protecting creators’ work."
+      }
+    ],
+    "cta": {
+      "text": "Are you a creator? Bring your work to Open Jam.",
+      "button": "Become a creator"
+    }
+  },
+  "legal": {
+    "metaUpdated": "Open Jam · Last updated {date}",
+    "switchTo": "Read the “{title}”",
+    "terms": {
+      "title": "Terms of Service",
+      "sections": [
+        {
+          "h": "Welcome to Open Jam",
+          "p": "Open Jam is a marketplace platform where creators list and sell digital works (music, images, e-books, and more). By creating an account or using the service, you agree to the following terms."
+        },
+        {
+          "h": "Account and eligibility",
+          "p": "You must be at least 13 years old to register. You are responsible for your account activity and password security, and you agree to provide accurate registration information."
+        },
+        {
+          "h": "Creator responsibilities",
+          "p": "All works you list must be content you own or are licensed to use. The following are strictly prohibited:",
+          "list": [
+            "Content that infringes others’ intellectual property rights",
+            "Malware, viruses, or misleading files",
+            "Content that violates local law or our community guidelines"
+          ]
+        },
+        {
+          "h": "Fees and settlement",
+          "p": "Open Jam charges no monthly fee; once a work sells, the platform takes a 3% transaction fee. Funds are paid out to your linked payout account according to the settlement cycle."
+        },
+        {
+          "h": "Content license",
+          "p": "You retain full copyright in your works. To display and sell them on the platform, you grant Open Jam a non-exclusive, worldwide license to host, display, and promote your works."
+        },
+        {
+          "h": "Account termination",
+          "p": "If you violate these terms, we may suspend or terminate your account. You may also delete your account at any time in settings."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "sections": [
+        {
+          "h": "We value your privacy",
+          "p": "This policy explains how Open Jam collects, uses, and protects your personal data. By using the service, you acknowledge and agree to the practices below."
+        },
+        {
+          "h": "Data we collect",
+          "p": "To provide the service, we collect the following information:",
+          "list": [
+            "Account data: display name, email, password (stored encrypted)",
+            "Transaction data: purchase and sales records, payout account",
+            "Usage data: device, browser, and interaction records"
+          ]
+        },
+        {
+          "h": "How we use data",
+          "p": "We use your data to operate the platform, process transactions, provide customer support, and — with your consent — send product updates and marketing notices."
+        },
+        {
+          "h": "Data sharing",
+          "p": "We do not sell your personal data. We share it with necessary third-party providers only for payment processing, when required by law, or when you have authorized it."
+        },
+        {
+          "h": "Data security",
+          "p": "We protect your password and sensitive data with industry-standard encryption and review our security measures regularly. However, no system can guarantee absolute security."
+        },
+        {
+          "h": "Your rights",
+          "p": "You have the right to access, correct, or delete your personal data, and you may unsubscribe from marketing notices at any time. You can handle these requests via the settings page or by contacting support."
+        }
+      ]
+    }
+  },
+  "onboarding": {
+    "modalAria": "Platform notice",
+    "title": "About this platform",
+    "meta": "OPEN JAM · SIDE PROJECT",
+    "closeAria": "Close",
+    "s1": {
+      "title": "This is a side project",
+      "body": "Open Jam is a personal side project, built purely for technical experimentation and as a portfolio showcase — it is not a commercially operated platform."
+    },
+    "s2": {
+      "title": "Payments are in test mode",
+      "body": "Checkout only connects to Stripe’s {testMode}, so no real charges are ever made. Please do not enter real credit card details; you can use a Stripe test card number (for example {card}).",
+      "testMode": "Test Mode"
+    },
+    "s3": {
+      "title": "Data is for demonstration only",
+      "body": "The works and data on the site are sample content and may be changed or reset at any time. Please do not use it for real transactions."
+    },
+    "start": "Got it, start browsing",
+    "coachEyebrow": "Top-right toolbar",
+    "coachGithubTitle": "GitHub source",
+    "coachGithubDesc": "The platform’s full source code repository",
+    "coachDocsTitle": "Documentation",
+    "coachDocsDesc": "System design and specification docs",
+    "coachDone": "Got it"
+  }
+}

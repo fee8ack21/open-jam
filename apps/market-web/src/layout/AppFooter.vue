@@ -3,7 +3,10 @@
    AppFooter — market-web 全站頁尾
    品牌標誌 + 連結列 + 版權字樣。
    ============================================================ */
+import { useI18n } from 'vue-i18n';
 import { env } from '@/environment.js';
+
+const { t } = useI18n();
 
 function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 </script>
@@ -19,12 +22,12 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
       </span>
       <span class="brand-name">Open Jam</span>
     </router-link>
-    <nav class="mkt-foot-links" aria-label="頁尾連結">
-      <router-link to="/about">關於 Open Jam</router-link>
-      <a href="#" @click.prevent="goWorkspace">成為創作者</a>
-      <router-link to="/privacy">隱私權政策</router-link>
-      <router-link to="/terms">服務條款</router-link>
+    <nav class="mkt-foot-links" :aria-label="t('footer.links')">
+      <router-link to="/about">{{ t('footer.about') }}</router-link>
+      <a href="#" @click.prevent="goWorkspace">{{ t('footer.becomeCreator') }}</a>
+      <router-link to="/privacy">{{ t('footer.privacy') }}</router-link>
+      <router-link to="/terms">{{ t('footer.terms') }}</router-link>
     </nav>
-    <div class="mkt-foot-copy">© 2026 Open Jam · 創作者數位市集</div>
+    <div class="mkt-foot-copy">{{ t('footer.copyright') }}</div>
   </footer>
 </template>

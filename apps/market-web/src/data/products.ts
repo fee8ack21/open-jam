@@ -55,14 +55,14 @@ export interface Product {
 
 export interface Category {
   id: string;
-  label: string;
   glyph: string;
 }
 
+// 顯示名稱改由 i18n 提供（key：`category.<id>`），此處僅保留 id 與圖示。
 export const CATEGORIES: Category[] = [
-  { id: 'music', label: '樂譜 / 音樂', glyph: 'note' },
-  { id: 'photo', label: '攝影 / 照片集', glyph: 'image' },
-  { id: 'ebook', label: '電子書 / 文件', glyph: 'book' },
+  { id: 'music', glyph: 'note' },
+  { id: 'photo', glyph: 'image' },
+  { id: 'ebook', glyph: 'book' },
 ];
 
 export const TAGS: Record<string, string[]> = {

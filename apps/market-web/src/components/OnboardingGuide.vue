@@ -8,8 +8,11 @@
    then writes a cookie so it never shows again.
    ============================================================ */
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppIcon from '@/components/app-icon/AppIcon.vue';
 import { env } from '@/environment.js';
+
+const { t } = useI18n();
 
 const COOKIE = 'oj_market_onboarded';
 
@@ -102,32 +105,35 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 <template>
   <!-- 1) intro modal — Auth legal-modal styling -->
   <div v-if="step === 'modal'" class="modal-scrim" @click.self="goCoach">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-label="平台說明">
+    <div class="modal-card" role="dialog" aria-modal="true" :aria-label="t('onboarding.modalAria')">
       <div class="modal-head">
         <div class="modal-badge info"><app-icon name="sparkle" :size="22" /></div>
-        <h3 class="modal-title">關於這個平台</h3>
-        <p class="modal-meta">OPEN JAM · SIDE PROJECT</p>
-        <button class="modal-x" aria-label="關閉" @click="goCoach">
+        <h3 class="modal-title">{{ t('onboarding.title') }}</h3>
+        <p class="modal-meta">{{ t('onboarding.meta') }}</p>
+        <button class="modal-x" :aria-label="t('onboarding.closeAria')" @click="goCoach">
           <app-icon name="close" :size="16" :stroke="2.2" />
         </button>
       </div>
       <div class="modal-body">
         <div class="legal-sec">
-          <h4><span class="num">01</span> 這是一個 Side Project</h4>
-          <p>Open Jam 是個人開發的 side project，純粹作為技術測試與作品集展示之用，並非正式營運的商業平台。</p>
+          <h4><span class="num">01</span> {{ t('onboarding.s1.title') }}</h4>
+          <p>{{ t('onboarding.s1.body') }}</p>
         </div>
         <div class="legal-sec">
-          <h4><span class="num">02</span> 金流為測試模式</h4>
-          <p>結帳僅串接 Stripe 金流的 <b>Test Mode</b>，不會產生任何真實扣款。請勿輸入真實信用卡資訊，可使用 Stripe 提供的測試卡號（例如 <b>4242 4242 4242 4242</b>）。</p>
+          <h4><span class="num">02</span> {{ t('onboarding.s2.title') }}</h4>
+          <i18n-t keypath="onboarding.s2.body" tag="p" scope="global">
+            <template #testMode><b>{{ t('onboarding.s2.testMode') }}</b></template>
+            <template #card><b>4242 4242 4242 4242</b></template>
+          </i18n-t>
         </div>
         <div class="legal-sec">
-          <h4><span class="num">03</span> 資料僅供展示</h4>
-          <p>站上的作品與資料皆為示範內容，可能隨時調整或重置，請勿用於正式交易。</p>
+          <h4><span class="num">03</span> {{ t('onboarding.s3.title') }}</h4>
+          <p>{{ t('onboarding.s3.body') }}</p>
         </div>
       </div>
       <div class="modal-foot">
         <button class="btn-pop violet" @click="goCoach">
-          <app-icon name="check" :size="17" :stroke="2.4" /> 我知道了，開始逛逛
+          <app-icon name="check" :size="17" :stroke="2.4" /> {{ t('onboarding.start') }}
         </button>
       </div>
     </div>
@@ -142,17 +148,17 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
     ></div>
     <div class="coach-card" :style="cardStyle" @click.stop>
       <span class="coach-arrow"></span>
-      <p class="coach-eyebrow">右上角工具列</p>
+      <p class="coach-eyebrow">{{ t('onboarding.coachEyebrow') }}</p>
       <a class="coach-row" :href="env.GITHUB_REPO_URL" target="_blank" rel="noopener noreferrer">
         <span class="coach-ic"><app-icon name="github" :size="18" /></span>
-        <span class="coach-txt"><b>GitHub 原始碼</b><span>本平台完整原始碼 repository</span></span>
+        <span class="coach-txt"><b>{{ t('onboarding.coachGithubTitle') }}</b><span>{{ t('onboarding.coachGithubDesc') }}</span></span>
       </a>
       <a class="coach-row" :href="env.DOCS_URL" target="_blank" rel="noopener noreferrer">
         <span class="coach-ic"><app-icon name="book" :size="18" /></span>
-        <span class="coach-txt"><b>專案文件</b><span>系統設計與規格說明文件</span></span>
+        <span class="coach-txt"><b>{{ t('onboarding.coachDocsTitle') }}</b><span>{{ t('onboarding.coachDocsDesc') }}</span></span>
       </a>
       <button class="btn-pop violet coach-done" @click="finish">
-        <app-icon name="check" :size="16" :stroke="2.4" /> 知道了
+        <app-icon name="check" :size="16" :stroke="2.4" /> {{ t('onboarding.coachDone') }}
       </button>
     </div>
   </div>

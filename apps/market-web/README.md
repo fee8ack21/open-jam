@@ -18,10 +18,39 @@ Vue 3 + Vite + Pinia + Vue Router 單頁應用（SPA）。
 
 ```bash
 pnpm install
-pnpm dev        # 啟動 Vite 開發伺服器 (http://localhost:5173)
+pnpm dev        # 啟動 Vite 開發伺服器 (http://localhost:5174)
 pnpm build      # 產出 dist/
 pnpm preview    # 預覽 build 結果
 ```
+
+## 多語系（i18n）
+
+以 **vue-i18n** 提供繁體中文（`zh-TW`，預設）與英文（`en`）。語系切換在頂部導覽列的
+地球圖示，選擇後寫入 `localStorage`（key `openjam.market.locale`）並更新 `<html lang>`；
+首次造訪則依瀏覽器語言推斷。
+
+**翻譯流程：開發者改 Excel，腳本轉成 vue-i18n JSON。** 不手動編輯產生出來的 JSON。
+
+| 檔案 | 角色 |
+| --- | --- |
+| `i18n.xlsx` | **可編輯來源**（譯者維護）。欄位：`key \| zh-TW \| en \| …`，一列一個鍵 |
+| `src/i18n/locales/<locale>.json` | **產生檔**（app 載入用），由腳本從 xlsx 轉出，請勿手改 |
+| `src/i18n/index.ts` | vue-i18n 啟動：偵測語系、`setLocale()` |
+
+```bash
+pnpm gen:i18n        # ⭐ 日常：i18n.xlsx → src/i18n/locales/*.json
+pnpm gen:i18n:xlsx   # 反向：在程式碼直接新增鍵（改 JSON）後，回寫更新 xlsx 供譯者編輯
+```
+
+- **鍵命名**：點號階層（如 `market.browse.title`）。陣列以數字段表示（如
+  `market.hero.keywords.0`、`legal.terms.sections.2.list.0`），腳本會還原成 JSON 陣列。
+- **插值**：以 `{name}` 命名參數（如 `market.browse.count` 的 `{cat}`／`{count}`）。
+  需要在文字中嵌入 HTML（粗體、彩色 span）的，模板用 `<i18n-t keypath="…" scope="global">`
+  搭配具名 slot。
+- **新增鍵**：建議直接在 `src/i18n/locales/*.json` 補齊各語系後，跑 `pnpm gen:i18n:xlsx`
+  把鍵同步進 xlsx；之後譯者的修訂再以 `pnpm gen:i18n` 轉回 JSON。兩個方向皆可無損 round-trip。
+- **新增語系**：在 xlsx 增加一欄（標題為 locale 代碼），跑 `pnpm gen:i18n` 產生對應 JSON，
+  再於 `src/i18n/index.ts` 的 `SUPPORTED_LOCALES` 與 `messages` 註冊。
 
 ## 目錄結構
 

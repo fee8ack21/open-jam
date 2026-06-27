@@ -14,8 +14,11 @@
    depths + composition live in CSS so transforms compose with the
    static rotation on .fc-card and the bob on .fc-float.
    ============================================================ */
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppIcon from '@/components/app-icon/AppIcon.vue';
+
+const { t } = useI18n();
 
 interface CollageCard {
   cls: string; // position + rotation class (fc-1 … fc-4)
@@ -28,12 +31,12 @@ interface CollageCard {
   rating: string;
 }
 
-const cards: CollageCard[] = [
-  { cls: 'fc-1', grad: 'linear-gradient(135deg,#6c4cf1,#ff4d9d)', cat: 'SCORE', glyph: 'note',  title: '午夜爵士鋼琴',   price: '$18', rating: '4.9' },
-  { cls: 'fc-2', grad: 'linear-gradient(135deg,#ffc83a,#ff7a2f)', cat: 'EBOOK', glyph: 'book',  title: '插畫家手冊',     price: '免費', free: true, rating: '5.0' },
-  { cls: 'fc-3', grad: 'linear-gradient(135deg,#ff7a2f,#ff4d9d)', cat: 'PHOTO', glyph: 'image', title: '霓虹城市夜景',   price: '$24', rating: '4.8' },
-  { cls: 'fc-4', grad: 'linear-gradient(135deg,#1fd6c6,#6c4cf1)', cat: 'SCORE', glyph: 'note',  title: 'Lo-Fi 節拍包',   price: '$15', rating: '4.7' },
-];
+const cards = computed<CollageCard[]>(() => [
+  { cls: 'fc-1', grad: 'linear-gradient(135deg,#6c4cf1,#ff4d9d)', cat: 'SCORE', glyph: 'note',  title: t('collage.card1'), price: '$18', rating: '4.9' },
+  { cls: 'fc-2', grad: 'linear-gradient(135deg,#ffc83a,#ff7a2f)', cat: 'EBOOK', glyph: 'book',  title: t('collage.card2'), price: t('common.free'), free: true, rating: '5.0' },
+  { cls: 'fc-3', grad: 'linear-gradient(135deg,#ff7a2f,#ff4d9d)', cat: 'PHOTO', glyph: 'image', title: t('collage.card3'), price: '$24', rating: '4.8' },
+  { cls: 'fc-4', grad: 'linear-gradient(135deg,#1fd6c6,#6c4cf1)', cat: 'SCORE', glyph: 'note',  title: t('collage.card4'), price: '$15', rating: '4.7' },
+]);
 
 /* ---- pointer + scroll parallax driver ---------------------------- */
 const root = ref<HTMLElement | null>(null);

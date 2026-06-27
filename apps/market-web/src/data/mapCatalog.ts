@@ -10,6 +10,7 @@ import type {
 } from '@/api/catalog-service';
 import type { StoreDto } from '@/api/store-service';
 import type { Product } from '@/data/products';
+import i18n from '@/i18n';
 
 const ROOT_SLUG_TO_KEY: Record<string, string> = {
   music: 'music',
@@ -48,7 +49,7 @@ export function toProduct(
     cat: catKey,
     hue: dto.coverHue ?? 256,
     title: dto.name ?? '',
-    creator: store?.storeName ?? '創作者',
+    creator: store?.storeName ?? i18n.global.t('creatorFallback'),
     handle: store?.storeSlug ? '@' + store.storeSlug : '',
     avatar: hueColor(dto.coverHue ?? 256),
     price: dto.price ?? 0,

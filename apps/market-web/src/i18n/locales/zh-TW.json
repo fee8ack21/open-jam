@@ -1,0 +1,246 @@
+{
+  "common": {
+    "search": "搜尋",
+    "free": "免費",
+    "breadcrumb": "麵包屑",
+    "marketplace": "市集"
+  },
+  "language": {
+    "label": "語言",
+    "zh-TW": "繁體中文",
+    "en": "English"
+  },
+  "nav": {
+    "github": "GitHub 原始碼",
+    "docs": "專案文件",
+    "workspace": "前往後台",
+    "login": "登入",
+    "logout": "登出"
+  },
+  "footer": {
+    "links": "頁尾連結",
+    "about": "關於 Open Jam",
+    "becomeCreator": "成為創作者",
+    "privacy": "隱私權政策",
+    "terms": "服務條款",
+    "copyright": "© 2026 Open Jam · 創作者數位市集"
+  },
+  "category": {
+    "music": "樂譜 / 音樂",
+    "photo": "攝影 / 照片集",
+    "ebook": "電子書 / 文件"
+  },
+  "creatorFallback": "創作者",
+  "market": {
+    "screenLabel": "市場集首頁",
+    "toTop": "回到頂部",
+    "hero": {
+      "eyebrow": "OPEN JAM · 創作者數位市集",
+      "title": "發現值得{collect}的{creator}{works}",
+      "collect": "收藏",
+      "creator": "創作者",
+      "works": "數位作品",
+      "searchPlaceholder": "搜尋作品、創作者或標籤…",
+      "searchAria": "搜尋市集",
+      "popularSearch": "熱門搜尋",
+      "keywords": [
+        "爵士",
+        "京都",
+        "鋼琴",
+        "Notion",
+        "街拍",
+        "免費"
+      ]
+    },
+    "featured": {
+      "eyebrow": "精選 · 熱門",
+      "title": "精選作品",
+      "prevAria": "上一個精選",
+      "nextAria": "下一個精選"
+    },
+    "browse": {
+      "eyebrow": "探索市集",
+      "title": "探索所有作品",
+      "sub": "數千件來自獨立創作者的音樂、攝影與電子書，每一件都能立即下載擁有。",
+      "allWorks": "全部作品",
+      "count": "{cat} · 共 {count} 件作品",
+      "sortLabel": "排序",
+      "sortAria": "排序方式",
+      "filter": "篩選",
+      "categoryGroup": "分類",
+      "categoryAria": "作品分類",
+      "priceGroup": "價格",
+      "priceAria": "價格區間",
+      "optionCount": "{label}（{count}）",
+      "clearAll": "清除全部篩選",
+      "filtering": "篩選中",
+      "clearAllShort": "清除全部",
+      "loadMore": "載入更多",
+      "loadMoreCount": "（還有 {count} 件）",
+      "emptyTitle": "找不到符合的作品",
+      "emptyDesc": "試著放寬篩選條件或清除搜尋關鍵字。"
+    },
+    "sort": {
+      "popular": "最熱門",
+      "newest": "最新上架",
+      "rating": "評分最高",
+      "priceAsc": "價格低 → 高",
+      "priceDesc": "價格高 → 低"
+    },
+    "price": {
+      "all": "不限",
+      "free": "免費",
+      "low": "$1–15",
+      "mid": "$16–30",
+      "high": "$30+"
+    },
+    "badge": {
+      "feat": "精選",
+      "hot": "熱賣",
+      "new": "新上架"
+    }
+  },
+  "card": {
+    "editorPick": "編輯精選",
+    "hot": "熱門"
+  },
+  "collage": {
+    "card1": "午夜爵士鋼琴",
+    "card2": "插畫家手冊",
+    "card3": "霓虹城市夜景",
+    "card4": "Lo-Fi 節拍包"
+  },
+  "about": {
+    "screenLabel": "關於 Open Jam",
+    "breadcrumb": "關於 Open Jam",
+    "title": "關於 Open Jam",
+    "lede": "Open Jam 是台灣的創作者數位商品市集。我們讓創作者把樂譜、攝影作品與電子書直接賣給支持者，也讓每一位消費者用最少的步驟，買到值得收藏的數位作品。",
+    "sec1": {
+      "title": "平台是做什麼的",
+      "body": "Open Jam 參考 Gumroad 的精神打造：創作者專注創作，平台負責開店、金流與檔案配送。創作者在自己的子網域開設店面、上架商品；消費者瀏覽市集、選購喜歡的作品，整個過程不需要繁瑣的註冊或下載 App。"
+    },
+    "sec2": {
+      "title": "它如何運作"
+    },
+    "sec3": {
+      "title": "你可以買到什麼",
+      "body": "目前市集支援以下數位商品分類，並會持續擴充："
+    },
+    "features": [
+      {
+        "title": "一鍵開店",
+        "text": "創作者申請後即可在專屬子網域 <creator>.openjam.co 開設店面，上架樂譜、照片集或電子書。"
+      },
+      {
+        "title": "免註冊購買",
+        "text": "消費者無需建立帳號，結帳時憑電子信箱即可完成購買，下載連結直接寄送到信箱。"
+      },
+      {
+        "title": "安全下載",
+        "text": "購買後由平台簽發具時效的下載連結，檔案經處理確認後才開放，保障創作者作品。"
+      }
+    ],
+    "cta": {
+      "text": "是創作者嗎？把你的作品帶到 Open Jam。",
+      "button": "成為創作者"
+    }
+  },
+  "legal": {
+    "metaUpdated": "Open Jam · 最後更新 {date}",
+    "switchTo": "前往閱讀「{title}」",
+    "terms": {
+      "title": "服務條款",
+      "sections": [
+        {
+          "h": "歡迎加入 Open Jam",
+          "p": "Open Jam 是一個讓創作者上架與販售數位作品（音樂、圖像、電子書等）的市集平台。當你建立帳號或使用本服務，即表示你同意以下條款。"
+        },
+        {
+          "h": "帳號與資格",
+          "p": "你必須年滿 13 歲才能註冊。你需對帳號活動與密碼安全負責，並承諾提供正確的註冊資訊。"
+        },
+        {
+          "h": "創作者責任",
+          "p": "你上架的所有作品必須為你本人擁有或已取得授權的內容。嚴禁上架以下類型：",
+          "list": [
+            "侵害他人智慧財產權的內容",
+            "惡意程式、病毒或誤導性檔案",
+            "違反當地法律或本平台社群守則之內容"
+          ]
+        },
+        {
+          "h": "費用與結算",
+          "p": "Open Jam 採免月費制，作品成功售出後平台收取 3% 手續費。款項將依結算週期撥付至你綁定的收款帳戶。"
+        },
+        {
+          "h": "內容授權",
+          "p": "你保留作品的完整著作權。為了在平台上展示與銷售，你授予 Open Jam 一項非專屬、全球性的授權以託管、展示與推廣你的作品。"
+        },
+        {
+          "h": "帳號終止",
+          "p": "若你違反本條款，我們有權暫停或終止你的帳號。你也可以隨時於設定中刪除帳號。"
+        }
+      ]
+    },
+    "privacy": {
+      "title": "隱私政策",
+      "sections": [
+        {
+          "h": "我們重視你的隱私",
+          "p": "本政策說明 Open Jam 如何蒐集、使用與保護你的個人資料。使用本服務即表示你了解並同意以下作法。"
+        },
+        {
+          "h": "我們蒐集的資料",
+          "p": "為提供服務，我們會蒐集以下資訊：",
+          "list": [
+            "帳號資料：暱稱、電子信箱、密碼（加密儲存）",
+            "交易資料：購買與銷售紀錄、收款帳戶",
+            "使用資料：裝置、瀏覽器與互動行為紀錄"
+          ]
+        },
+        {
+          "h": "資料的使用方式",
+          "p": "我們使用你的資料來營運平台、處理交易、提供客戶支援，以及在你同意的前提下寄送產品更新與行銷通知。"
+        },
+        {
+          "h": "資料分享",
+          "p": "我們不會販售你的個人資料。僅在金流處理、法律要求或經你授權的情況下，與必要的第三方服務商分享。"
+        },
+        {
+          "h": "資料安全",
+          "p": "我們以業界標準加密保護你的密碼與敏感資料，並定期檢視安全機制。但沒有任何系統能保證百分之百安全。"
+        },
+        {
+          "h": "你的權利",
+          "p": "你有權查詢、更正或刪除你的個人資料，也可隨時取消行銷通知的訂閱。相關需求可透過設定頁或聯絡客服處理。"
+        }
+      ]
+    }
+  },
+  "onboarding": {
+    "modalAria": "平台說明",
+    "title": "關於這個平台",
+    "meta": "OPEN JAM · SIDE PROJECT",
+    "closeAria": "關閉",
+    "s1": {
+      "title": "這是一個 Side Project",
+      "body": "Open Jam 是個人開發的 side project，純粹作為技術測試與作品集展示之用，並非正式營運的商業平台。"
+    },
+    "s2": {
+      "title": "金流為測試模式",
+      "body": "結帳僅串接 Stripe 金流的 {testMode}，不會產生任何真實扣款。請勿輸入真實信用卡資訊，可使用 Stripe 提供的測試卡號（例如 {card}）。",
+      "testMode": "Test Mode"
+    },
+    "s3": {
+      "title": "資料僅供展示",
+      "body": "站上的作品與資料皆為示範內容，可能隨時調整或重置，請勿用於正式交易。"
+    },
+    "start": "我知道了，開始逛逛",
+    "coachEyebrow": "右上角工具列",
+    "coachGithubTitle": "GitHub 原始碼",
+    "coachGithubDesc": "本平台完整原始碼 repository",
+    "coachDocsTitle": "專案文件",
+    "coachDocsDesc": "系統設計與規格說明文件",
+    "coachDone": "知道了"
+  }
+}
