@@ -10,6 +10,7 @@ import { PRODUCTS, type Product } from '@/data/products';
 import { STORE, type Store } from '@/data/store';
 import { catalogApi, orderApi, paymentApi, storeApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
+import i18n from '@/i18n';
 import { env } from '@/environment';
 import { categoryKeyResolver, toProduct, toStore, hueColor, type StoreInfo } from '@/data/mapCatalog';
 import type { CatalogCategoryDto } from '@/api/catalog-service';
@@ -301,7 +302,7 @@ export const useShopStore = defineStore('shop', () => {
    * 金額一律以最低貨幣單位（cents）送出；訂單總額以後端回傳為準，確保與實際扣款一致。
    */
   async function checkout(buyer: Buyer): Promise<string> {
-    if (!cartProducts.value.length) throw new Error('購物車是空的');
+    if (!cartProducts.value.length) throw new Error(i18n.global.t('checkout.emptyTitle'));
     checkingOut.value = true;
     try {
       // 下單需商品版本 ID；列表載入的精簡資料未含版本，故補載缺漏項目的商品詳情。
@@ -310,7 +311,7 @@ export const useShopStore = defineStore('shop', () => {
 
       const lines = cartProducts.value;
       if (lines.some((p) => !p.versionId)) {
-        throw new Error('部分商品尚無可購買的版本，請稍後再試');
+        throw new Error(i18n.global.t('storeError.noVersion'));
       }
 
       const currency = (lines[0].currency || 'usd').toLowerCase();
@@ -331,7 +332,7 @@ export const useShopStore = defineStore('shop', () => {
 
       const productName = lines.length === 1
         ? lines[0].title
-        : `${lines[0].title} 等 ${lines.length} 件商品`;
+        : i18n.global.t('checkout.multiItemName', { title: lines[0].title, count: lines.length });
       const amount = created.totalAmount ?? Math.round(subtotal.value * 100);
 
       const sessionRes = await paymentApi.payments.createCheckoutSession({

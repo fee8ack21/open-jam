@@ -2,8 +2,10 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
+import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
 import { useAuthStore } from '@/stores/auth';
+import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
@@ -11,6 +13,12 @@ const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const message = useMessage();
+const { t, locale } = useI18n();
+
+const langOptions = computed(() =>
+  SUPPORTED_LOCALES.map((code) => ({ label: t(`language.${code}`), key: code })),
+);
+function onSelectLang(key: string) { setLocale(key as Locale); }
 
 const followEmail = ref('');
 const emailEdited = ref(false);      // 使用者是否手動改過信箱欄位
@@ -37,16 +45,16 @@ const subscribe = async () => {
   if (submitting.value) return;
   const v = followEmail.value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
-    message.warning('請輸入有效的電子信箱');
+    message.warning(t('nav.msgInvalidEmail'));
     return;
   }
   submitting.value = true;
   try {
     await store.followStore(v);
     mobileFollowOpen.value = false;
-    message.success('已開始追蹤這位創作者');
+    message.success(t('nav.msgFollowSuccess'));
   } catch {
-    message.error('追蹤失敗，請稍後再試');
+    message.error(t('nav.msgFollowError'));
   } finally {
     submitting.value = false;
   }
@@ -80,40 +88,48 @@ const onSearch = (v: string) => {
           <span class="follow-icon"><app-icon name="search" :size="17" /></span>
           <input class="search-input" type="text" :value="store.search"
                  @input="onSearch(($event.target as HTMLInputElement).value)"
-                 placeholder="搜尋作品或標籤…" aria-label="搜尋" />
+                 :placeholder="t('nav.searchPlaceholder')" :aria-label="t('common.search')" />
           <button v-if="store.search" class="search-clear" type="button"
-                  @click="onSearch('')" aria-label="清除"><app-icon name="close" :size="15" /></button>
+                  @click="onSearch('')" :aria-label="t('common.clear')"><app-icon name="close" :size="15" /></button>
         </div>
       </div>
 
       <div class="nav-spacer"></div>
 
-      <div v-if="!minimal" class="nav-actions">
-        <div class="icon-btn nav-icon-toggle" :class="{ active: mobileSearchOpen }"
-             @click="toggleSearch" title="搜尋">
-          <app-icon name="search" :size="20" />
-        </div>
+      <div class="nav-actions">
+        <n-dropdown trigger="click" :options="langOptions" :value="locale" @select="onSelectLang">
+          <div class="icon-btn" :title="t('language.label')">
+            <app-icon name="globe" :size="20" />
+          </div>
+        </n-dropdown>
 
-        <div class="icon-btn" @click="goCheckout" title="購物車">
-          <app-icon name="cart" :size="20" />
-          <span v-if="cartCount" class="cart-badge">{{ cartCount }}</span>
-        </div>
+        <template v-if="!minimal">
+          <div class="icon-btn nav-icon-toggle" :class="{ active: mobileSearchOpen }"
+               @click="toggleSearch" :title="t('nav.searchTitle')">
+            <app-icon name="search" :size="20" />
+          </div>
 
-        <div v-if="!subscribed" class="icon-btn nav-icon-toggle" :class="{ active: mobileFollowOpen }"
-             @click="toggleFollow" title="追蹤創作者">
-          <app-icon name="mail" :size="20" />
-        </div>
+          <div class="icon-btn" @click="goCheckout" :title="t('nav.cartTitle')">
+            <app-icon name="cart" :size="20" />
+            <span v-if="cartCount" class="cart-badge">{{ cartCount }}</span>
+          </div>
+
+          <div v-if="!subscribed" class="icon-btn nav-icon-toggle" :class="{ active: mobileFollowOpen }"
+               @click="toggleFollow" :title="t('nav.followTitle')">
+            <app-icon name="mail" :size="20" />
+          </div>
+        </template>
       </div>
 
       <div v-if="!minimal" class="nav-follow" :class="{ 'is-open': mobileFollowOpen }">
         <form v-if="!subscribed" class="follow-form" @submit.prevent="subscribe">
           <span class="follow-icon"><app-icon name="mail" :size="16" /></span>
           <input class="follow-input" type="email" v-model="followEmail" @input="onEmailInput"
-                 placeholder="輸入信箱，追蹤創作者" aria-label="訂閱信箱" :disabled="submitting" />
-          <button class="follow-btn" type="submit" :disabled="submitting">{{ submitting ? '追蹤中…' : '追蹤' }}</button>
+                 :placeholder="t('nav.followPlaceholder')" :aria-label="t('nav.followEmailAria')" :disabled="submitting" />
+          <button class="follow-btn" type="submit" :disabled="submitting">{{ submitting ? t('nav.following') : t('nav.follow') }}</button>
         </form>
         <div v-else class="follow-done">
-          <app-icon name="check" :size="16" /> 已追蹤
+          <app-icon name="check" :size="16" /> {{ t('nav.followed') }}
         </div>
       </div>
     </div>

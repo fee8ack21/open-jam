@@ -1,0 +1,158 @@
+{
+  "common": {
+    "free": "Free",
+    "search": "Search",
+    "clear": "Clear",
+    "explore": "Explore"
+  },
+  "language": {
+    "label": "Language",
+    "zh-TW": "繁體中文",
+    "en": "English"
+  },
+  "category": {
+    "music": "Sheet music / Audio",
+    "photo": "Photography",
+    "ebook": "E-books / Documents"
+  },
+  "nav": {
+    "searchPlaceholder": "Search works or tags…",
+    "searchTitle": "Search",
+    "cartTitle": "Cart",
+    "followTitle": "Follow creator",
+    "followPlaceholder": "Enter your email to follow",
+    "followEmailAria": "Subscription email",
+    "follow": "Follow",
+    "following": "Following…",
+    "followed": "Following",
+    "msgInvalidEmail": "Please enter a valid email",
+    "msgFollowSuccess": "You’re now following this creator",
+    "msgFollowError": "Couldn’t follow, please try again later"
+  },
+  "list": {
+    "screenLabel": "Product list",
+    "heroTitle": "Turn your {creativity} into work you can {sell}",
+    "heroCreativity": "creativity",
+    "heroSell": "sell",
+    "heroSub": "Sheet music, photo collections, e-books — buy directly from the creator and download instantly after payment.",
+    "allWorks": "All works",
+    "sortLabel": "Sort",
+    "sortAria": "Sort by",
+    "count": "{count} works",
+    "filter": "Filter",
+    "tagsLabel": "Tags",
+    "priceRangeLabel": "Price range",
+    "priceMax": "$40+",
+    "onlyFree": "Free only",
+    "clearAll": "Clear all filters",
+    "filtering": "Filtering",
+    "clearAllShort": "Clear all",
+    "emptyTitle": "No matching works found",
+    "emptyDesc": "Try loosening the filters or clearing your search keywords.",
+    "emptyClear": "Clear filters",
+    "sort": {
+      "popular": "Most popular",
+      "newest": "Newest",
+      "rating": "Top rated",
+      "priceAsc": "Price: low → high",
+      "priceDesc": "Price: high → low"
+    },
+    "badge": {
+      "hot": "Bestseller",
+      "new": "New"
+    }
+  },
+  "detail": {
+    "screenLabel": "Product detail",
+    "previewLabel": "Preview {current} / {total}",
+    "aboutTitle": "About this work",
+    "contentPreviewTitle": "Content preview",
+    "lockedText": "Full content unlocks instantly after purchase",
+    "previewBlurred": "Preview (partially blurred)",
+    "contentsTitle": "Contents ({count} files)",
+    "getFree": "Get for free",
+    "buyNow": "Buy now",
+    "addToCart": "Add to cart",
+    "inCart": "In cart · Go to checkout",
+    "trust": "Secure payment · download right after purchase",
+    "specFiles": "Files",
+    "specFilesValue": "{count}",
+    "specFormats": "File formats",
+    "specSize": "Total size",
+    "specSales": "Sold",
+    "specSalesValue": "{count}",
+    "specViews": "Views",
+    "specViewsValue": "{count}"
+  },
+  "review": {
+    "title": "Buyer reviews",
+    "empty": "No reviews yet — be the first to share your thoughts.",
+    "noComment": "(No comment)",
+    "loadMore": "Load more reviews",
+    "loginPrompt": "Sign in to review this work",
+    "login": "Sign in",
+    "reviewed": "Reviewed",
+    "edit": "Edit",
+    "ratePrompt": "Rate this work",
+    "commentPlaceholder": "Share your thoughts (optional)",
+    "update": "Update review",
+    "submit": "Submit review",
+    "error": "Couldn’t submit your review, please try again later."
+  },
+  "checkout": {
+    "screenLabel": "Checkout",
+    "emptyTitle": "Your cart is empty",
+    "emptyDesc": "Pick a few works you like and come back to check out.",
+    "emptyAction": "Browse works",
+    "breadcrumb": "Checkout",
+    "title": "Checkout",
+    "step1": "Cart ({count} items)",
+    "remove": "Remove",
+    "step2": "Buyer information",
+    "name": "Name",
+    "namePlaceholder": "e.g. Jane Doe",
+    "email": "Email",
+    "emailNote": "The download link and receipt will be sent to this email",
+    "step3": "Payment method",
+    "stripeTitle": "Payment securely processed by Stripe",
+    "stripeSub": "After you click “Proceed to payment”, you’ll be redirected to Stripe’s hosted secure page to enter your card details. We never see or store your card number.",
+    "summary": "Order summary",
+    "subtotal": "Subtotal ({count} items)",
+    "total": "Total",
+    "payProcessing": "Redirecting to payment…",
+    "pay": "Pay ${amount}",
+    "trust": "256-bit encryption · 7-day money-back guarantee",
+    "rules": {
+      "nameRequired": "Please enter your name",
+      "emailRequired": "Please enter your email",
+      "emailInvalid": "Invalid email format"
+    },
+    "msgError": "Checkout failed, please try again later",
+    "multiItemName": "{title} and {count} items"
+  },
+  "result": {
+    "screenLabel": "Checkout result",
+    "successOrder": "Order {id}",
+    "successTitle": "Purchase complete",
+    "successSub": "Your receipt and download link have been sent to {email}",
+    "download": "Download",
+    "continueExplore": "Keep exploring",
+    "downloadAll": "Download all",
+    "successTitle2": "Payment complete",
+    "successSub2": "Your receipt and download link have been sent to your email.",
+    "cancelTitle": "Payment cancelled",
+    "cancelSub": "Your cart is still saved — come back any time to finish checking out.",
+    "backToCheckout": "Back to checkout"
+  },
+  "notfound": {
+    "screenLabel": "404 Not found",
+    "title": "This page isn’t in this {market}",
+    "market": "marketplace",
+    "sub": "The work or page you’re looking for may have been removed, moved, or the URL is wrong.",
+    "backToMarket": "Back to the Open Jam marketplace"
+  },
+  "storeError": {
+    "noVersion": "Some items have no purchasable version yet, please try again later",
+    "noPaymentUrl": "Couldn’t get the payment page URL"
+  }
+}

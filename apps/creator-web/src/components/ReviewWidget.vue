@@ -4,12 +4,14 @@
    後端僅允許已購買者撰寫；同一人一商品一則，可重新送出更新。
    ============================================================ */
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { catalogApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import AppIcon from '@/components/app-icon';
 
 const props = defineProps<{ catalogId: string }>();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const rating = ref(0);
 const comment = ref('');
@@ -45,7 +47,7 @@ async function submit() {
     saved.value = true;
     editing.value = false;
   } catch {
-    error.value = '評價送出失敗，請稍後再試。';
+    error.value = t('review.error');
   } finally {
     submitting.value = false;
   }
@@ -56,21 +58,21 @@ async function submit() {
   <div class="review-widget">
     <!-- 未登入：購買驗證需登入身分 -->
     <div v-if="!auth.isAuthenticated" class="rw-login">
-      <span><app-icon name="star" :size="14" /> 登入後即可為這件作品評價</span>
-      <n-button size="tiny" tertiary @click="auth.login()">登入</n-button>
+      <span><app-icon name="star" :size="14" /> {{ t('review.loginPrompt') }}</span>
+      <n-button size="tiny" tertiary @click="auth.login()">{{ t('review.login') }}</n-button>
     </div>
 
     <!-- 已評價且非編輯狀態：顯示結果 + 修改入口 -->
     <div v-else-if="saved && !editing" class="rw-done">
-      <span class="rw-done-label"><app-icon name="check" :size="14" /> 已評價</span>
+      <span class="rw-done-label"><app-icon name="check" :size="14" /> {{ t('review.reviewed') }}</span>
       <n-rate :value="rating" readonly size="small" />
-      <button type="button" class="rw-edit" @click="editing = true">修改</button>
+      <button type="button" class="rw-edit" @click="editing = true">{{ t('review.edit') }}</button>
     </div>
 
     <!-- 撰寫 / 編輯 -->
     <div v-else class="rw-form">
       <div class="rw-row">
-        <span class="rw-label">為這件作品評分</span>
+        <span class="rw-label">{{ t('review.ratePrompt') }}</span>
         <n-rate v-model:value="rating" size="small" />
       </div>
       <n-input
@@ -79,7 +81,7 @@ async function submit() {
         :rows="2"
         maxlength="2000"
         show-count
-        placeholder="分享你的使用心得（選填）" />
+        :placeholder="t('review.commentPlaceholder')" />
       <div class="rw-foot">
         <span v-if="error" class="rw-err">{{ error }}</span>
         <n-button
@@ -88,7 +90,7 @@ async function submit() {
           :disabled="!rating"
           :loading="submitting"
           @click="submit">
-          {{ saved ? '更新評價' : '送出評價' }}
+          {{ saved ? t('review.update') : t('review.submit') }}
         </n-button>
       </div>
     </div>

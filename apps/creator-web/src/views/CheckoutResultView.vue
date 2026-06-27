@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
 import ProductThumb from '@/components/ProductThumb.vue';
 import ReviewWidget from '@/components/ReviewWidget.vue';
@@ -9,6 +10,7 @@ import AppIcon from '@/components/app-icon';
 const store = useShopStore();
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 /** 由路由名稱判定為成功或取消頁（對應 PaymentService 的 SuccessUrl / CancelUrl）。 */
 const isSuccess = computed(() => route.name === 'checkout-success');
@@ -31,16 +33,16 @@ const goCheckout = () => router.push({ name: 'checkout' });
 </script>
 
 <template>
-  <div class="page page-pad" data-screen-label="結帳結果頁">
+  <div class="page page-pad" :data-screen-label="t('result.screenLabel')">
 
     <!-- SUCCESS -->
     <div v-if="isSuccess && order" class="success-wrap">
       <div class="success-ring"><app-icon name="check" :size="44" :stroke="2.4" /></div>
-      <p class="h-eyebrow" style="text-align:center">訂單 {{ order.id }}</p>
-      <h1 class="h-title" style="text-align:center">購買完成</h1>
-      <p class="h-sub" style="text-align:center">
-        收據與下載連結已寄至 <b style="color:var(--text)">{{ order.buyer.email }}</b>
-      </p>
+      <p class="h-eyebrow" style="text-align:center">{{ t('result.successOrder', { id: order.id }) }}</p>
+      <h1 class="h-title" style="text-align:center">{{ t('result.successTitle') }}</h1>
+      <i18n-t keypath="result.successSub" tag="p" class="h-sub" style="text-align:center" scope="global">
+        <template #email><b style="color:var(--text)">{{ order.buyer.email }}</b></template>
+      </i18n-t>
 
       <div class="panel" style="margin-top:30px; text-align:left;">
         <div v-for="it in order.items" :key="it.id" class="cart-item">
@@ -52,7 +54,7 @@ const goCheckout = () => router.push({ name: 'checkout' });
               <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono)">{{ it.formats.join(' · ') }}</span>
               <n-button size="small" type="primary" secondary>
                 <template #icon><app-icon name="download" :size="15" /></template>
-                下載
+                {{ t('result.download') }}
               </n-button>
             </div>
             <review-widget :catalog-id="it.id" />
@@ -61,10 +63,10 @@ const goCheckout = () => router.push({ name: 'checkout' });
       </div>
 
       <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
-        <n-button size="large" @click="goList">繼續探索</n-button>
+        <n-button size="large" @click="goList">{{ t('result.continueExplore') }}</n-button>
         <n-button size="large" type="primary">
           <template #icon><app-icon name="download" :size="18" /></template>
-          下載全部
+          {{ t('result.downloadAll') }}
         </n-button>
       </div>
     </div>
@@ -72,21 +74,21 @@ const goCheckout = () => router.push({ name: 'checkout' });
     <!-- SUCCESS, but nothing to restore (e.g. page revisited / refreshed) -->
     <div v-else-if="isSuccess" class="success-wrap">
       <div class="success-ring"><app-icon name="check" :size="44" :stroke="2.4" /></div>
-      <h1 class="h-title" style="text-align:center">付款完成</h1>
-      <p class="h-sub" style="text-align:center">收據與下載連結已寄至您的信箱。</p>
+      <h1 class="h-title" style="text-align:center">{{ t('result.successTitle2') }}</h1>
+      <p class="h-sub" style="text-align:center">{{ t('result.successSub2') }}</p>
       <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
-        <n-button size="large" type="primary" @click="goList">繼續探索</n-button>
+        <n-button size="large" type="primary" @click="goList">{{ t('result.continueExplore') }}</n-button>
       </div>
     </div>
 
     <!-- CANCELLED -->
     <div v-else class="success-wrap">
       <div class="success-ring cancel"><app-icon name="close" :size="40" :stroke="2.4" /></div>
-      <h1 class="h-title" style="text-align:center">付款已取消</h1>
-      <p class="h-sub" style="text-align:center">您的購物車仍保留著，隨時可以回來完成結帳。</p>
+      <h1 class="h-title" style="text-align:center">{{ t('result.cancelTitle') }}</h1>
+      <p class="h-sub" style="text-align:center">{{ t('result.cancelSub') }}</p>
       <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
-        <n-button size="large" @click="goList">繼續探索</n-button>
-        <n-button size="large" type="primary" @click="goCheckout">回到結帳</n-button>
+        <n-button size="large" @click="goList">{{ t('result.continueExplore') }}</n-button>
+        <n-button size="large" type="primary" @click="goCheckout">{{ t('result.backToCheckout') }}</n-button>
       </div>
     </div>
   </div>

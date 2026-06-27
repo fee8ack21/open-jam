@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { env } from '@/environment';
 import AppIcon from '@/components/app-icon';
 
+const { t } = useI18n();
 const goMarket = () => { window.location.href = env.MARKET_PAGE_URL; };
 </script>
 
 <template>
-  <div class="page page-pad" data-screen-label="404 找不到頁面">
+  <div class="page page-pad" :data-screen-label="t('notfound.screenLabel')">
     <div class="nf">
       <div class="nf-shapes" aria-hidden="true">
         <span class="shape s1"></span>
@@ -15,13 +17,15 @@ const goMarket = () => { window.location.href = env.MARKET_PAGE_URL; };
       </div>
 
       <p class="nf-code"><span class="hl hl-lime">4</span><span class="hl hl-pink">0</span><span class="hl hl-cyan">4</span></p>
-      <h1 class="nf-title">這個頁面<br>不在這個<span class="hl hl-pink">市集</span>裡</h1>
-      <p class="nf-sub">你要找的作品或頁面可能已下架、搬家，或網址打錯了。</p>
+      <i18n-t keypath="notfound.title" tag="h1" class="nf-title" scope="global">
+        <template #market><span class="hl hl-pink">{{ t('notfound.market') }}</span></template>
+      </i18n-t>
+      <p class="nf-sub">{{ t('notfound.sub') }}</p>
 
       <div class="nf-actions">
         <n-button type="primary" size="large" strong @click="goMarket">
           <template #icon><app-icon name="arrowLeft" :size="18" /></template>
-          回到 Open Jam 市集
+          {{ t('notfound.backToMarket') }}
         </n-button>
       </div>
     </div>

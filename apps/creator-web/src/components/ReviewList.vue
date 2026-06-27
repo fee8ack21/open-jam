@@ -4,12 +4,14 @@
    讀公開端點 catalogReviews.list；評論者以「買家」匿名呈現。
    ============================================================ */
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { catalogApi } from '@/api';
 import type { CatalogReviewDto } from '@/api/catalog-service';
 import Stars from '@/components/Stars.vue';
 import AppIcon from '@/components/app-icon';
 
 const props = defineProps<{ catalogId: string }>();
+const { t, locale } = useI18n();
 const PAGE = 10;
 
 const items = ref<CatalogReviewDto[]>([]);
@@ -38,7 +40,7 @@ async function load(append = false) {
   }
 }
 
-const fmtDate = (v?: string | null) => (v ? new Date(v).toLocaleDateString('zh-TW') : '');
+const fmtDate = (v?: string | null) => (v ? new Date(v).toLocaleDateString(locale.value) : '');
 const hasMore = () => items.value.length < count.value;
 
 onMounted(() => load());
@@ -47,13 +49,13 @@ onMounted(() => load());
 <template>
   <div v-if="loaded" class="review-list">
     <div class="rl-head">
-      <h2 class="section-title" style="margin:0;">買家評價</h2>
+      <h2 class="section-title" style="margin:0;">{{ t('review.title') }}</h2>
       <stars v-if="count" :value="average" :count="count" :size="15" />
     </div>
 
     <div v-if="!count" class="rl-empty">
       <app-icon name="star" :size="28" style="opacity:.4" />
-      <p>還沒有評價，成為第一個分享心得的人。</p>
+      <p>{{ t('review.empty') }}</p>
     </div>
 
     <div v-else class="rl-items">
@@ -65,12 +67,12 @@ onMounted(() => load());
             <span class="rl-date">{{ fmtDate(r.createdAt) }}</span>
           </div>
           <p v-if="r.comment" class="rl-comment">{{ r.comment }}</p>
-          <p v-else class="rl-nocomment">（未留言）</p>
+          <p v-else class="rl-nocomment">{{ t('review.noComment') }}</p>
         </div>
       </div>
 
       <button v-if="hasMore()" type="button" class="rl-more" :disabled="loading" @click="load(true)">
-        載入更多評價
+        {{ t('review.loadMore') }}
       </button>
     </div>
   </div>

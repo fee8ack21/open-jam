@@ -1,0 +1,158 @@
+{
+  "common": {
+    "free": "免費",
+    "search": "搜尋",
+    "clear": "清除",
+    "explore": "探索"
+  },
+  "language": {
+    "label": "語言",
+    "zh-TW": "繁體中文",
+    "en": "English"
+  },
+  "category": {
+    "music": "樂譜 / 音樂",
+    "photo": "攝影 / 照片集",
+    "ebook": "電子書 / 文件"
+  },
+  "nav": {
+    "searchPlaceholder": "搜尋作品或標籤…",
+    "searchTitle": "搜尋",
+    "cartTitle": "購物車",
+    "followTitle": "追蹤創作者",
+    "followPlaceholder": "輸入信箱，追蹤創作者",
+    "followEmailAria": "訂閱信箱",
+    "follow": "追蹤",
+    "following": "追蹤中…",
+    "followed": "已追蹤",
+    "msgInvalidEmail": "請輸入有效的電子信箱",
+    "msgFollowSuccess": "已開始追蹤這位創作者",
+    "msgFollowError": "追蹤失敗，請稍後再試"
+  },
+  "list": {
+    "screenLabel": "產品列表頁",
+    "heroTitle": "把你的{creativity}變成可以{sell}的作品",
+    "heroCreativity": "創造力",
+    "heroSell": "販售",
+    "heroSub": "樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。",
+    "allWorks": "全部作品",
+    "sortLabel": "排序",
+    "sortAria": "排序方式",
+    "count": "共 {count} 件作品",
+    "filter": "篩選",
+    "tagsLabel": "標籤",
+    "priceRangeLabel": "價格區間",
+    "priceMax": "$40+",
+    "onlyFree": "只看免費作品",
+    "clearAll": "清除全部篩選",
+    "filtering": "篩選中",
+    "clearAllShort": "清除全部",
+    "emptyTitle": "找不到符合的作品",
+    "emptyDesc": "試著放寬篩選條件或清除搜尋關鍵字。",
+    "emptyClear": "清除篩選",
+    "sort": {
+      "popular": "最熱門",
+      "newest": "最新上架",
+      "rating": "評分最高",
+      "priceAsc": "價格低 → 高",
+      "priceDesc": "價格高 → 低"
+    },
+    "badge": {
+      "hot": "熱賣",
+      "new": "新上架"
+    }
+  },
+  "detail": {
+    "screenLabel": "產品詳細頁",
+    "previewLabel": "預覽 {current} / {total}",
+    "aboutTitle": "關於這份作品",
+    "contentPreviewTitle": "內容預覽",
+    "lockedText": "完整內容於購買後立即解鎖",
+    "previewBlurred": "預覽（部分模糊）",
+    "contentsTitle": "內容物（{count} 個檔案）",
+    "getFree": "免費取得",
+    "buyNow": "立即購買",
+    "addToCart": "加入購物車",
+    "inCart": "已在購物車 · 前往結帳",
+    "trust": "安全付款 · 購買後立即下載",
+    "specFiles": "檔案數量",
+    "specFilesValue": "{count} 個",
+    "specFormats": "檔案格式",
+    "specSize": "總大小",
+    "specSales": "已售出",
+    "specSalesValue": "{count} 份",
+    "specViews": "瀏覽次數",
+    "specViewsValue": "{count} 次"
+  },
+  "review": {
+    "title": "買家評價",
+    "empty": "還沒有評價，成為第一個分享心得的人。",
+    "noComment": "（未留言）",
+    "loadMore": "載入更多評價",
+    "loginPrompt": "登入後即可為這件作品評價",
+    "login": "登入",
+    "reviewed": "已評價",
+    "edit": "修改",
+    "ratePrompt": "為這件作品評分",
+    "commentPlaceholder": "分享你的使用心得（選填）",
+    "update": "更新評價",
+    "submit": "送出評價",
+    "error": "評價送出失敗，請稍後再試。"
+  },
+  "checkout": {
+    "screenLabel": "結帳頁",
+    "emptyTitle": "購物車是空的",
+    "emptyDesc": "挑幾件喜歡的作品，回來這裡結帳吧。",
+    "emptyAction": "去逛逛",
+    "breadcrumb": "結帳",
+    "title": "結帳",
+    "step1": "購物車（{count} 件）",
+    "remove": "移除",
+    "step2": "購買人資訊",
+    "name": "姓名",
+    "namePlaceholder": "王小明",
+    "email": "電子信箱",
+    "emailNote": "下載連結與收據會寄到這個信箱",
+    "step3": "付款方式",
+    "stripeTitle": "由 Stripe 安全處理付款",
+    "stripeSub": "點擊「前往付款」後，將跳轉至 Stripe 託管的安全頁面輸入信用卡資訊。我們不會接觸或儲存您的卡號。",
+    "summary": "訂單摘要",
+    "subtotal": "小計（{count} 件）",
+    "total": "總計",
+    "payProcessing": "前往付款頁…",
+    "pay": "前往付款 ${amount}",
+    "trust": "256-bit 加密 · 7 天不滿意退款",
+    "rules": {
+      "nameRequired": "請輸入姓名",
+      "emailRequired": "請輸入電子信箱",
+      "emailInvalid": "信箱格式不正確"
+    },
+    "msgError": "結帳失敗，請稍後再試",
+    "multiItemName": "{title} 等 {count} 件商品"
+  },
+  "result": {
+    "screenLabel": "結帳結果頁",
+    "successOrder": "訂單 {id}",
+    "successTitle": "購買完成",
+    "successSub": "收據與下載連結已寄至 {email}",
+    "download": "下載",
+    "continueExplore": "繼續探索",
+    "downloadAll": "下載全部",
+    "successTitle2": "付款完成",
+    "successSub2": "收據與下載連結已寄至您的信箱。",
+    "cancelTitle": "付款已取消",
+    "cancelSub": "您的購物車仍保留著，隨時可以回來完成結帳。",
+    "backToCheckout": "回到結帳"
+  },
+  "notfound": {
+    "screenLabel": "404 找不到頁面",
+    "title": "這個頁面不在這個{market}裡",
+    "market": "市集",
+    "sub": "你要找的作品或頁面可能已下架、搬家，或網址打錯了。",
+    "backToMarket": "回到 Open Jam 市集"
+  },
+  "storeError": {
+    "noVersion": "部分商品尚無可購買的版本，請稍後再試",
+    "noPaymentUrl": "無法取得付款頁面網址"
+  }
+}
