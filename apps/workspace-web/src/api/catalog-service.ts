@@ -821,6 +821,36 @@ export interface ListReviewsResponse {
   items?: CatalogReviewDto[] | null;
 }
 
+/** 買家已購商品的可下載檔案（含短效下載 URL）。 */
+export interface PurchasedVersionAssetDto {
+  /**
+   * 資產唯一識別碼。
+   * @format uuid
+   */
+  id?: string;
+  /** 原始檔名。 */
+  fileName?: string | null;
+  /** MIME 類型。 */
+  contentType?: string | null;
+  /**
+   * 檔案大小（bytes）。
+   * @format int64
+   */
+  fileSize?: number;
+  /**
+   * 同版本內顯示排序。
+   * @format int32
+   */
+  sortOrder?: number;
+  /** 短效下載 URL（簽章）。 */
+  downloadUrl?: string | null;
+  /**
+   * 下載 URL 過期時間（UTC）。
+   * @format date-time
+   */
+  expiresAt?: string;
+}
+
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
@@ -1757,6 +1787,26 @@ export class Api<SecurityDataType extends unknown> {
       this.http.request<void, any>({
         path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}`,
         method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name ListPurchasedDownloads
+     * @summary 列出買家已購商品某版本的可下載檔案（含短效下載 URL）。以購買紀錄授權，須已有該商品的完成訂單。
+     * @request GET:/v1/catalogs/{catalogId}/versions/{versionId}/downloads
+     */
+    listPurchasedDownloads: (
+      catalogId: string,
+      versionId: string,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PurchasedVersionAssetDto[], any>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/downloads`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
   };

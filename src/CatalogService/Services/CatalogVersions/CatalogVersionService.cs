@@ -16,6 +16,7 @@ public class CatalogVersionService(
     StorageServiceClient storageClient,
     StoreServiceClient storeClient,
     QuotaServiceClient quotaClient,
+    OrderServiceClient orderClient,
     IMapper mapper) : ICatalogVersionService
 {
     /// <inheritdoc/>
@@ -128,6 +129,40 @@ public class CatalogVersionService(
             throw new NotFoundException("找不到檔案。");
 
         return await storageClient.GetDownloadUrlAsync(assetId, ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<PurchasedVersionAssetDto>> ListPurchasedDownloadsAsync(
+        Guid catalogId, Guid versionId, CancellationToken ct)
+    {
+        // 買家視角：須已購買（完成訂單）此商品；非 Owner 授權。
+        if (!await orderClient.HasPurchasedAsync(catalogId, ct))
+            throw new ForbiddenException("尚未購買此商品，無法下載。");
+
+        await LoadVersionAsync(catalogId, versionId, ct);
+
+        var assets = await db.CatalogVersionAssets.AsNoTracking()
+            .Where(a => a.CatalogVersionId == versionId)
+            .OrderBy(a => a.SortOrder)
+            .ToListAsync(ct);
+
+        var result = new List<PurchasedVersionAssetDto>(assets.Count);
+        foreach (var asset in assets)
+        {
+            var signed = await storageClient.GetDownloadUrlAsync(asset.Id, ct);
+            result.Add(new PurchasedVersionAssetDto
+            {
+                Id          = asset.Id,
+                FileName    = asset.FileName,
+                ContentType = asset.ContentType,
+                FileSize    = asset.FileSize,
+                SortOrder   = asset.SortOrder,
+                DownloadUrl = signed.DownloadUrl,
+                ExpiresAt   = signed.ExpiresAt,
+            });
+        }
+
+        return result;
     }
 
     /// <inheritdoc/>

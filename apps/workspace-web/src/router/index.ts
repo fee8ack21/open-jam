@@ -23,7 +23,6 @@ const routes: RouteRecordRaw[] = [
   { path: '/orders', name: 'orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單管理' } },
   { path: '/store-settings', name: 'store-settings', component: () => import('@/views/StoreSettingsView.vue'), meta: { title: '商店設定' } },
   { path: '/purchases', name: 'purchases', component: () => import('@/views/PurchasesView.vue'), meta: { title: '購買紀錄' } },
-  { path: '/my-orders', name: 'my-orders', component: () => import('@/views/MyOrdersView.vue'), meta: { title: '我的訂單' } },
   { path: '/wishlist', name: 'wishlist', component: () => import('@/views/WishlistView.vue'), meta: { title: 'Wishlist' } },
   { path: '/:pathMatch(.*)*', redirect: '/purchases' },
 ]

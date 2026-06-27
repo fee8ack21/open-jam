@@ -120,7 +120,7 @@ export const useDashboardStore = defineStore('dashboard', {
       this.go(m === 'buy' ? 'purchases' : 'overview')
     },
     syncModeToRoute(name: string) {
-      if (['purchases', 'my-orders', 'wishlist'].includes(name)) { this.mode = 'buy'; save('mode', 'buy') }
+      if (['purchases', 'wishlist'].includes(name)) { this.mode = 'buy'; save('mode', 'buy') }
       else if (['overview', 'open-store', 'products', 'upload', 'orders'].includes(name)) { this.mode = 'sell'; save('mode', 'sell') }
     },
     setFont(f: string) { this.font = f; save('font', f) },

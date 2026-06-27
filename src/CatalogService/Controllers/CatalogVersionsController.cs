@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.Controllers;
 
-/// <summary>商品版本 API：版本管理與可下載檔案（買家實際取得的數位內容）上傳 / 下載。僅 Owner 可操作。</summary>
+/// <summary>商品版本 API：版本管理與可下載檔案（買家實際取得的數位內容）上傳 / 下載。版本管理與管理用途下載僅 Owner 可操作；買家下載（<c>GET .../downloads</c>）以購買紀錄授權。</summary>
 [ApiController]
 [ApiVersion("1.0")]
 [Route("v{version:apiVersion}/catalogs/{catalogId:guid}/versions")]
@@ -55,6 +55,16 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     public async Task<ActionResult<StorageDownloadUrlResult>> GetAssetDownloadUrlAsync(
         Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct) =>
         Ok(await versionService.GetAssetDownloadUrlAsync(catalogId, versionId, assetId, ct));
+
+    /// <summary>列出買家已購商品某版本的可下載檔案（含短效下載 URL）。以購買紀錄授權，須已有該商品的完成訂單。</summary>
+    /// <param name="catalogId">商品 ID。</param>
+    /// <param name="versionId">版本 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet("{versionId:guid}/downloads")]
+    [ProducesResponseType<List<PurchasedVersionAssetDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<PurchasedVersionAssetDto>>> ListPurchasedDownloadsAsync(
+        Guid catalogId, Guid versionId, CancellationToken ct) =>
+        Ok(await versionService.ListPurchasedDownloadsAsync(catalogId, versionId, ct));
 
     /// <summary>刪除版本可下載檔案。</summary>
     /// <param name="catalogId">商品 ID。</param>

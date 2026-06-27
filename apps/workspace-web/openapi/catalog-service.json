@@ -1699,6 +1699,68 @@
           }
         }
       }
+    },
+    "/v1/catalogs/{catalogId}/versions/{versionId}/downloads": {
+      "get": {
+        "tags": [
+          "CatalogVersions"
+        ],
+        "summary": "列出買家已購商品某版本的可下載檔案（含短效下載 URL）。以購買紀錄授權，須已有該商品的完成訂單。",
+        "operationId": "ListPurchasedDownloads",
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "description": "版本 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PurchasedVersionAssetDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PurchasedVersionAssetDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PurchasedVersionAssetDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2724,6 +2786,48 @@
         },
         "additionalProperties": false,
         "description": "商品評論列表分頁回應（含彙總）。"
+      },
+      "PurchasedVersionAssetDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "資產唯一識別碼。",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "原始檔名。",
+            "nullable": true
+          },
+          "contentType": {
+            "type": "string",
+            "description": "MIME 類型。",
+            "nullable": true
+          },
+          "fileSize": {
+            "type": "integer",
+            "description": "檔案大小（bytes）。",
+            "format": "int64"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "同版本內顯示排序。",
+            "format": "int32"
+          },
+          "downloadUrl": {
+            "type": "string",
+            "description": "短效下載 URL（簽章）。",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "下載 URL 過期時間（UTC）。",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "買家已購商品的可下載檔案（含短效下載 URL）。"
       }
     }
   }

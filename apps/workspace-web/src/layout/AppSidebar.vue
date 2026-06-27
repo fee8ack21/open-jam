@@ -19,8 +19,7 @@ const NAV = {
     { view: 'store-settings', label: '商店設定', icon: 'gear' },
   ],
   buy: [
-    { view: 'purchases', label: '購買紀錄', icon: 'bag', countKey: 'purchases' },
-    { view: 'my-orders', label: '我的訂單', icon: 'receipt' },
+    { view: 'purchases', label: '購買紀錄', icon: 'bag' },
     { view: 'wishlist', label: 'Wishlist', icon: 'heart', countKey: 'wishlist' },
   ],
 }
@@ -58,7 +57,6 @@ function count(key?: string) {
   const map: Record<string, number> = {
     products: store.products.length,
     orders: store.paidOrders.length,
-    purchases: store.purchases.length,
     wishlist: store.wishlist.length,
   }
   return map[key]

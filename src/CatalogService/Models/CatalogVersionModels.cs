@@ -53,6 +53,37 @@ public class CatalogVersionAssetDto
     public DateTimeOffset CreatedAt { get; set; }
 }
 
+/// <summary>買家已購商品的可下載檔案（含短效下載 URL）。</summary>
+public class PurchasedVersionAssetDto
+{
+    /// <summary>資產唯一識別碼。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid Id { get; set; }
+
+    /// <summary>原始檔名。</summary>
+    /// <example>pixel-sfx-pack-v1.zip</example>
+    public string FileName { get; set; } = "";
+
+    /// <summary>MIME 類型。</summary>
+    /// <example>application/zip</example>
+    public string ContentType { get; set; } = "";
+
+    /// <summary>檔案大小（bytes）。</summary>
+    /// <example>10485760</example>
+    public long FileSize { get; set; }
+
+    /// <summary>同版本內顯示排序。</summary>
+    /// <example>0</example>
+    public int SortOrder { get; set; }
+
+    /// <summary>短效下載 URL（簽章）。</summary>
+    /// <example>https://storage.openjam.co/...</example>
+    public string DownloadUrl { get; set; } = "";
+
+    /// <summary>下載 URL 過期時間（UTC）。</summary>
+    public DateTimeOffset ExpiresAt { get; set; }
+}
+
 /// <summary>建立商品版本請求。</summary>
 public class CreateCatalogVersionRequest
 {
