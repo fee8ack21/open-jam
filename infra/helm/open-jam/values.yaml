@@ -37,6 +37,10 @@ hydraClients:
       - "http://localhost:5175/"
       - "https://workspace.openjam.co/"
       - "https://openjam.co/"
+  # client_credentials 服務帳號（clientSecret 正式環境請以 --set 覆蓋）
+  service:
+    clientId: "open-jam-service"
+    clientSecret: "changeme-service-client-secret"
 
 # 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
 dbNamePrefix: open_jam
@@ -386,6 +390,12 @@ bootstrap:
     tag: latest
     pullPolicy: IfNotPresent
   ttlSecondsAfterFinished: 300
+  # seed 平台管理員（password 留空則跳過；正式環境請以 --set 覆蓋）
+  adminUser:
+    email: "admin@openjam.co"
+    password: ""
+  # 是否 seed 假帳號 / 假店家（僅供非正式環境，正式請維持 false）
+  seedMockData: false
   resources:
     requests:
       cpu: 100m

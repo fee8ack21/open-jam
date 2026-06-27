@@ -34,8 +34,36 @@ spec:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}
                   key: auth-connection-string
+            - name: ConnectionStrings__CatalogConnection
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: catalog-service-connection-string
+            - name: ConnectionStrings__StoreConnection
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: store-service-connection-string
             - name: Hydra__AdminUrl
               value: {{ include "open-jam.hydraAdminUrl" . | quote }}
+            - name: AdminUser__Email
+              value: {{ .Values.bootstrap.adminUser.email | quote }}
+            - name: AdminUser__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: admin-user-password
+            - name: MockUsers__Enabled
+              value: {{ .Values.bootstrap.seedMockData | quote }}
+            - name: MockStores__Enabled
+              value: {{ .Values.bootstrap.seedMockData | quote }}
+            - name: HydraClients__Service__ClientId
+              value: {{ .Values.hydraClients.service.clientId | quote }}
+            - name: HydraClients__Service__ClientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: hydra-service-client-secret
             {{- range $index, $uri := .Values.hydraClients.web.redirectUris }}
             - name: HydraClients__Web__RedirectUris__{{ $index }}
               value: {{ $uri | quote }}

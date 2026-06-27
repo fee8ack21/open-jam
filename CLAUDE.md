@@ -172,7 +172,9 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
 
 ## Bootstrap（`src/Bootstrap/`）
 
-一次性 seed 工具，執行 `HydraClientSeeder`（註冊 Hydra OIDC client）與 `EmailTemplateSeeder`（寫入郵件模板）後結束。
+一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）後結束。
+
+掛載 4 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
 
 ## 環境設定
 
