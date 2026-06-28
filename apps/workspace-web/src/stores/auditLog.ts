@@ -1,10 +1,11 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { logApi } from '@/api';
+import i18n from '@/i18n';
 import type { AuditLogDto } from '@/api/log-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
-function messageOf(err: unknown, fallback = '載入稽核日誌失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.loadAuditFailed')): string {
   const response = err as { error?: { detail?: string; title?: string } } | null;
   const problem = response?.error;
   return problem?.detail ?? problem?.title ?? fallback;

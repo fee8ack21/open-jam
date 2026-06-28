@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useAuditLogStore } from '@/stores/auditLog'
 import type { AuditLogDto } from '@/api/log-service'
 
+const { t, locale } = useI18n()
 const store = useAuditLogStore()
 // 僅 ref / computed / getter 可由 storeToRefs 取出；pageSize 為常數純值，直接讀 store。
 const { items, totalCount, loading } = storeToRefs(store)
@@ -14,15 +16,15 @@ const targetFilter = ref('')
 const page = ref(1)
 
 const columns = [
-  { key: 'occurredAt', label: '發生時間', hideSm: false },
-  { key: 'action', label: '動作', hideSm: false },
-  { key: 'target', label: '對象', hideSm: true },
-  { key: 'who', label: '操作者', hideSm: true },
-  { key: 'ip', label: 'IP', hideSm: true },
+  { key: 'occurredAt', labelKey: 'auditLog.colOccurredAt', hideSm: false },
+  { key: 'action', labelKey: 'auditLog.colAction', hideSm: false },
+  { key: 'target', labelKey: 'auditLog.colTarget', hideSm: true },
+  { key: 'who', labelKey: 'auditLog.colWho', hideSm: true },
+  { key: 'ip', labelKey: 'auditLog.colIp', hideSm: true },
 ] as const
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
+  return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
 /** 將 GUID 縮短顯示（前 8 碼），完整值以 title 提示。 */
 function shortId(v?: string | null) {
@@ -31,8 +33,8 @@ function shortId(v?: string | null) {
 /** 動作結果 → 標籤樣式。success 綠、failure 紅、其餘灰。 */
 function resultTag(result?: string | null) {
   const r = (result ?? '').toLowerCase()
-  if (r === 'success') return { label: '成功', type: 'success' as const }
-  if (r === 'failure') return { label: '失敗', type: 'error' as const }
+  if (r === 'success') return { label: t('auditLog.resultSuccess'), type: 'success' as const }
+  if (r === 'failure') return { label: t('auditLog.resultFailure'), type: 'error' as const }
   return { label: result || '—', type: 'default' as const }
 }
 
@@ -75,12 +77,12 @@ onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="稽核日誌">
+  <div :data-screen-label="t('route.auditLog')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">平台管理</p>
-        <h1 class="h-title">稽核日誌</h1>
-        <p class="h-sub">共 {{ totalCount }} 筆稽核事件</p>
+        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
+        <h1 class="h-title">{{ t('route.auditLog') }}</h1>
+        <p class="h-sub">{{ t('auditLog.subStats', { count: totalCount }) }}</p>
       </div>
     </div>
 
@@ -89,21 +91,21 @@ onMounted(store.load)
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:1 1 220px;">
-            <label class="fb-label">動作類型</label>
+            <label class="fb-label">{{ t('auditLog.actionLabel') }}</label>
             <n-input
               v-model:value="actionFilter"
               clearable
-              placeholder="動作類型，如 auth.login.success"
+              :placeholder="t('auditLog.actionPlaceholder')"
               @keyup.enter="applyFilter">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
           <div class="fb-field" style="flex:1 1 180px;">
-            <label class="fb-label">對象類型</label>
+            <label class="fb-label">{{ t('auditLog.targetLabel') }}</label>
             <n-input
               v-model:value="targetFilter"
               clearable
-              placeholder="對象資源類型，如 User"
+              :placeholder="t('auditLog.targetPlaceholder')"
               @keyup.enter="applyFilter">
               <template #prefix><app-icon name="tag" :size="16" /></template>
             </n-input>
@@ -119,9 +121,9 @@ onMounted(store.load)
           <table class="tbl history-table">
             <thead>
               <tr>
-                <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">{{ col.label }}</th>
-                <th style="width:90px; text-align:center;">結果</th>
-                <th style="width:64px; text-align:right;">明細</th>
+                <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">{{ t(col.labelKey) }}</th>
+                <th style="width:90px; text-align:center;">{{ t('auditLog.colResult') }}</th>
+                <th style="width:64px; text-align:right;">{{ t('auditLog.colDetail') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -129,9 +131,9 @@ onMounted(store.load)
               <tr v-if="!items.length">
                 <td :colspan="columns.length + 2" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="note" :size="22" /></span>
-                  <div style="font-weight:700; font-size:15px;">尚無稽核日誌</div>
+                  <div style="font-weight:700; font-size:15px;">{{ t('auditLog.emptyTitle') }}</div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    沒有符合條件的稽核事件，試試調整或重設篩選條件。
+                    {{ t('auditLog.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -145,7 +147,7 @@ onMounted(store.load)
                   </div>
                 </td>
                 <td class="hide-sm">
-                  <span class="history-mono" :title="a.who ?? '系統'">{{ a.who ? shortId(a.who) : '系統' }}</span>
+                  <span class="history-mono" :title="a.who ?? t('auditLog.system')">{{ a.who ? shortId(a.who) : t('auditLog.system') }}</span>
                 </td>
                 <td class="hide-sm"><span class="history-mono">{{ a.ip || '—' }}</span></td>
                 <td style="text-align:center;">
@@ -169,26 +171,26 @@ onMounted(store.load)
     </n-spin>
 
     <!-- 明細彈窗：完整欄位與 before/after JSON -->
-    <n-modal v-model:show="detailOpen" preset="card" title="稽核事件明細" style="max-width:680px;">
+    <n-modal v-model:show="detailOpen" preset="card" :title="t('auditLog.detailTitle')" style="max-width:680px;">
       <div v-if="detail" class="audit-detail">
         <dl class="audit-dl">
-          <div><dt>動作</dt><dd class="audit-action">{{ detail.action || '—' }}</dd></div>
-          <div><dt>結果</dt><dd><n-tag :type="resultTag(detail.result).type" size="small" round>{{ resultTag(detail.result).label }}</n-tag></dd></div>
-          <div><dt>對象</dt><dd>{{ detail.target || '—' }}</dd></div>
-          <div><dt>對象 ID</dt><dd class="history-mono">{{ detail.targetId || '—' }}</dd></div>
-          <div><dt>操作者</dt><dd class="history-mono">{{ detail.who || '系統' }}</dd></div>
-          <div><dt>租戶</dt><dd class="history-mono">{{ detail.tenant || '—' }}</dd></div>
-          <div><dt>IP</dt><dd class="history-mono">{{ detail.ip || '—' }}</dd></div>
-          <div><dt>發生時間</dt><dd>{{ fmtDate(detail.occurredAt) }}</dd></div>
-          <div><dt>Correlation ID</dt><dd class="history-mono">{{ detail.correlationId || '—' }}</dd></div>
+          <div><dt>{{ t('auditLog.colAction') }}</dt><dd class="audit-action">{{ detail.action || '—' }}</dd></div>
+          <div><dt>{{ t('auditLog.colResult') }}</dt><dd><n-tag :type="resultTag(detail.result).type" size="small" round>{{ resultTag(detail.result).label }}</n-tag></dd></div>
+          <div><dt>{{ t('auditLog.colTarget') }}</dt><dd>{{ detail.target || '—' }}</dd></div>
+          <div><dt>{{ t('auditLog.targetId') }}</dt><dd class="history-mono">{{ detail.targetId || '—' }}</dd></div>
+          <div><dt>{{ t('auditLog.colWho') }}</dt><dd class="history-mono">{{ detail.who || t('auditLog.system') }}</dd></div>
+          <div><dt>{{ t('auditLog.tenant') }}</dt><dd class="history-mono">{{ detail.tenant || '—' }}</dd></div>
+          <div><dt>{{ t('auditLog.colIp') }}</dt><dd class="history-mono">{{ detail.ip || '—' }}</dd></div>
+          <div><dt>{{ t('auditLog.colOccurredAt') }}</dt><dd>{{ fmtDate(detail.occurredAt) }}</dd></div>
+          <div><dt>{{ t('auditLog.correlationId') }}</dt><dd class="history-mono">{{ detail.correlationId || '—' }}</dd></div>
         </dl>
         <div class="audit-json-group">
           <div>
-            <div class="audit-json-label">變更前 (before)</div>
+            <div class="audit-json-label">{{ t('auditLog.beforeLabel') }}</div>
             <pre class="audit-json">{{ prettyJson(detail.before) }}</pre>
           </div>
           <div>
-            <div class="audit-json-label">變更後 (after)</div>
+            <div class="audit-json-label">{{ t('auditLog.afterLabel') }}</div>
             <pre class="audit-json">{{ prettyJson(detail.after) }}</pre>
           </div>
         </div>

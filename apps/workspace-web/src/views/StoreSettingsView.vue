@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { JFmt } from '@/utils/format'
+
+const { t } = useI18n()
 
 // 與後端 RequestAssetUploadUrlRequestValidator 對齊的允許圖片類型
 const ACCEPT = 'image/png,image/jpeg,image/gif,image/webp'
@@ -52,12 +55,12 @@ async function onPick(e: Event, kind: 'avatar' | 'banner') {
   const file = input.files?.[0]
   input.value = ''
   if (!file) return
-  if (!ALLOWED.includes(file.type)) { message.error('僅支援 JPG / PNG / GIF / WebP 圖片。'); return }
-  if (file.size > MAX_BYTES) { message.error('圖片大小不可超過 5 MB。'); return }
+  if (!ALLOWED.includes(file.type)) { message.error(t('storeSettings.msgInvalidType')); return }
+  if (file.size > MAX_BYTES) { message.error(t('storeSettings.msgTooLarge')); return }
 
   const ok = await storeApp.uploadStoreImage(file, kind)
-  if (ok) message.success(kind === 'avatar' ? '已更新頭像。' : '已更新橫幅。')
-  else message.error(storeApp.error ?? '上傳失敗')
+  if (ok) message.success(kind === 'avatar' ? t('storeSettings.msgAvatarUpdated') : t('storeSettings.msgBannerUpdated'))
+  else message.error(storeApp.error ?? t('storeSettings.msgUploadFailed'))
 }
 
 async function onSave() {
@@ -66,17 +69,17 @@ async function onSave() {
     storeName: form.value.storeName.trim(),
     description: form.value.description.trim(),
   })
-  if (ok) message.success('商店資料已更新。')
-  else message.error(storeApp.error ?? '更新失敗')
+  if (ok) message.success(t('storeSettings.msgSaved'))
+  else message.error(storeApp.error ?? t('storeSettings.msgSaveFailed'))
 }
 </script>
 
 <template>
-  <div data-screen-label="商店設定">
+  <div :data-screen-label="t('route.storeSettings')">
     <div class="page-head" style="margin-bottom:22px;">
       <div>
-        <p class="h-eyebrow">賣家工作室</p>
-        <h1 class="h-title">商店設定</h1>
+        <p class="h-eyebrow">{{ t('sidebar.sellerStudio') }}</p>
+        <h1 class="h-title">{{ t('route.storeSettings') }}</h1>
       </div>
     </div>
 
@@ -90,25 +93,25 @@ async function onSave() {
         <div class="card-pad set-card">
           <div class="set-grid">
             <div class="sg-k">
-              <div class="sgk-t">店面外觀</div>
-              <div class="sgk-d">橫幅與頭像會顯示在你的商店頁。點擊圖片即可更換，支援 JPG / PNG / GIF / WebP，單檔 5 MB 以內。</div>
+              <div class="sgk-t">{{ t('storeSettings.appearanceTitle') }}</div>
+              <div class="sgk-d">{{ t('storeSettings.appearanceDesc') }}</div>
             </div>
             <div>
               <div class="banner" :class="{ empty: !bannerUrl }"
                    :style="bannerUrl ? { backgroundImage: `url(${bannerUrl})` } : {}"
                    @click="pick('banner')">
-                <div class="img-hint"><app-icon name="image" :size="18" /> 更換橫幅</div>
+                <div class="img-hint"><app-icon name="image" :size="18" /> {{ t('storeSettings.changeBanner') }}</div>
               </div>
 
               <div class="identity">
                 <div class="st-avatar" :class="{ empty: !avatarUrl }"
                      :style="avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : {}"
                      @click="pick('avatar')">
-                  <span v-if="!avatarUrl" class="st-avatar-initials">{{ F.initials(form.storeName || '店') }}</span>
+                  <span v-if="!avatarUrl" class="st-avatar-initials">{{ F.initials(form.storeName || t('storeSettings.storeInitial')) }}</span>
                   <div class="st-avatar-cam"><app-icon name="upload" :size="15" :stroke="2.2" /></div>
                 </div>
                 <div class="identity-meta">
-                  <div class="store-name">{{ form.storeName || '未命名商店' }}</div>
+                  <div class="store-name">{{ form.storeName || t('storeSettings.unnamedStore') }}</div>
                   <div class="store-slug">{{ slug }}.openjam.co</div>
                 </div>
                 <n-spin v-if="saving" :size="18" />
@@ -121,32 +124,32 @@ async function onSave() {
         <div class="card-pad set-card">
           <div class="set-grid">
             <div class="sg-k">
-              <div class="sgk-t">商店資料</div>
-              <div class="sgk-d">商店名稱與描述會顯示給買家；子網域於開店時決定，無法變更。</div>
+              <div class="sgk-t">{{ t('storeSettings.infoTitle') }}</div>
+              <div class="sgk-d">{{ t('storeSettings.infoDesc') }}</div>
             </div>
             <div>
               <div class="field">
-                <label class="field-label">商店名稱</label>
+                <label class="field-label">{{ t('storeSettings.storeName') }}</label>
                 <n-input v-model:value="form.storeName" size="large" maxlength="100" show-count
-                         placeholder="例如：小明的數位商店" />
+                         :placeholder="t('storeSettings.storeNamePlaceholder')" />
               </div>
               <div class="field">
-                <label class="field-label">子網域</label>
+                <label class="field-label">{{ t('storeSettings.subdomain') }}</label>
                 <n-input :value="slug" size="large" disabled>
                   <template #suffix><span style="color:var(--text-faint)">.openjam.co</span></template>
                 </n-input>
               </div>
               <div class="field">
-                <label class="field-label">商店描述</label>
+                <label class="field-label">{{ t('storeSettings.description') }}</label>
                 <n-input v-model:value="form.description" type="textarea" size="large"
                          :autosize="{ minRows: 3, maxRows: 6 }" maxlength="500" show-count
-                         placeholder="向買家介紹你的商店、作品風格與特色…" />
+                         :placeholder="t('storeSettings.descriptionPlaceholder')" />
               </div>
 
               <div style="display:flex; justify-content:flex-end; margin-top:16px;">
                 <n-button type="primary" size="large" strong
                           :disabled="!canSave" :loading="saving" @click="onSave">
-                  儲存變更
+                  {{ t('storeSettings.save') }}
                 </n-button>
               </div>
             </div>

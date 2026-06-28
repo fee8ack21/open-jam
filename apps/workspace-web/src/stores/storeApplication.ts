@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { storeApi } from '@/api';
+import i18n from '@/i18n';
 import {
   StoreApplicationStatus,
   type StoreApplicationDto,
@@ -8,7 +9,7 @@ import {
 } from '@/api/store-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
-function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFailed')): string {
   if (typeof err === 'string') return err;
   const problem = err as { detail?: string; title?: string } | null | undefined;
   return problem?.detail ?? problem?.title ?? fallback;
@@ -51,7 +52,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
       applications.value = appsRes.data.items ?? [];
       stores.value = storesRes.data ?? [];
     } catch (err) {
-      error.value = messageOf(err, '載入開店資料失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.loadStoreDataFailed'));
     } finally {
       loading.value = false;
     }
@@ -68,7 +69,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '提交開店申請失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.submitAppFailed'));
       return false;
     } finally {
       submitting.value = false;
@@ -83,7 +84,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '撤回申請失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.withdrawAppFailed'));
       return false;
     }
   }
@@ -92,7 +93,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
   async function updateStore(input: { storeName?: string; description?: string }) {
     const id = primaryStore.value?.id;
     if (!id) {
-      error.value = '尚未建立商店。';
+      error.value = i18n.global.t('storeError.noStore');
       return false;
     }
     saving.value = true;
@@ -105,7 +106,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '更新商店資料失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.updateStoreFailed'));
       return false;
     } finally {
       saving.value = false;
@@ -119,7 +120,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
       headers: { 'Content-Type': file.type || 'application/octet-stream' },
       body: file,
     });
-    if (!res.ok) throw new Error(`圖片上傳失敗（${res.status}）`);
+    if (!res.ok) throw new Error(i18n.global.t('storeError.imageUploadFailed', { status: res.status }));
   }
 
   /**
@@ -129,7 +130,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
   async function uploadStoreImage(file: File, kind: 'avatar' | 'banner') {
     const id = primaryStore.value?.id;
     if (!id) {
-      error.value = '尚未建立商店。';
+      error.value = i18n.global.t('storeError.noStore');
       return false;
     }
     saving.value = true;
@@ -147,7 +148,7 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '上傳圖片失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.uploadImageFailed'));
       return false;
     } finally {
       saving.value = false;

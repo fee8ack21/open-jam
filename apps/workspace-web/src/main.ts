@@ -4,6 +4,7 @@ import naive from 'naive-ui'
 
 import App from './App.vue'
 import router from './router'
+import i18n from './i18n'
 
 import AppIcon from '@/components/app-icon'
 import ProductThumb from '@/components/ProductThumb.vue'
@@ -31,6 +32,7 @@ async function bootstrap() {
   app.use(pinia)
   app.use(router)
   app.use(naive)
+  app.use(i18n)
 
   // global UI components (kebab tags used throughout the templates)
   app.component('app-icon', AppIcon)

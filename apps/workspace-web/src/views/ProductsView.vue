@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useMessage } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
@@ -8,14 +9,16 @@ import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { CatalogStatus, type CatalogSummaryDto } from '@/api/catalog-service'
 import ReviewList from '@/components/ReviewList.vue'
 
+const { t, locale } = useI18n()
+
 const STATUS = {
-  [CatalogStatus.Published]: { label: '已上架', type: 'success' as const },
-  [CatalogStatus.Draft]:     { label: '草稿',   type: 'default' as const },
-  [CatalogStatus.Archived]:  { label: '已下架', type: 'warning' as const },
-  [CatalogStatus.Suspended]: { label: '已停權', type: 'error' as const },
+  [CatalogStatus.Published]: { labelKey: 'catalogStatus.published', type: 'success' as const },
+  [CatalogStatus.Draft]:     { labelKey: 'catalogStatus.draft',     type: 'default' as const },
+  [CatalogStatus.Archived]:  { labelKey: 'catalogStatus.archived',  type: 'warning' as const },
+  [CatalogStatus.Suspended]: { labelKey: 'catalogStatus.suspended', type: 'error' as const },
 }
 function statusOf(s?: CatalogStatus) {
-  return (s != null && STATUS[s]) || { label: '—', type: 'default' as const }
+  return (s != null && STATUS[s]) || { labelKey: 'catalogStatus.unknown', type: 'default' as const }
 }
 
 const dashboard = useDashboardStore()
@@ -39,11 +42,11 @@ function openReviews(p: CatalogSummaryDto) { reviewing.value = p }
 
 // 狀態下拉選項（含各狀態件數），對齊訂單管理的下拉篩選
 const statusOptions = computed(() => [
-  { label: `全部 (${products.value.length})`, value: 'all' as const },
-  { label: `上架中 (${catalog.statusCount(CatalogStatus.Published)})`, value: CatalogStatus.Published },
-  { label: `草稿 (${catalog.statusCount(CatalogStatus.Draft)})`, value: CatalogStatus.Draft },
-  { label: `已下架 (${catalog.statusCount(CatalogStatus.Archived)})`, value: CatalogStatus.Archived },
-  { label: `已停權 (${catalog.statusCount(CatalogStatus.Suspended)})`, value: CatalogStatus.Suspended },
+  { label: `${t('catalogStatus.all')} (${products.value.length})`, value: 'all' as const },
+  { label: `${t('catalogStatus.published')} (${catalog.statusCount(CatalogStatus.Published)})`, value: CatalogStatus.Published },
+  { label: `${t('catalogStatus.draft')} (${catalog.statusCount(CatalogStatus.Draft)})`, value: CatalogStatus.Draft },
+  { label: `${t('catalogStatus.archived')} (${catalog.statusCount(CatalogStatus.Archived)})`, value: CatalogStatus.Archived },
+  { label: `${t('catalogStatus.suspended')} (${catalog.statusCount(CatalogStatus.Suspended)})`, value: CatalogStatus.Suspended },
 ])
 
 /** 將毫秒時間戳轉為當地 YYYY-MM-DD，供與上架時間做同格式字串比較。 */
@@ -74,7 +77,7 @@ const rows = computed(() => {
 })
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleDateString('zh-TW') : '—'
+  return v ? new Date(v).toLocaleDateString(locale.value) : '—'
 }
 function coverStyle(hue?: number) {
   const h = hue ?? 256
@@ -91,8 +94,8 @@ async function toggle(p: CatalogSummaryDto) {
   const ok = wasPublished
     ? await catalog.archive(p.id, storeId.value)
     : await catalog.publish(p.id, storeId.value)
-  if (ok) message.success(wasPublished ? '已下架。' : '已上架。')
-  else message.error(catalog.error ?? '操作失敗')
+  if (ok) message.success(wasPublished ? t('products.msgArchived') : t('products.msgPublished'))
+  else message.error(catalog.error ?? t('products.msgActionFailed'))
 }
 
 async function load() {
@@ -104,14 +107,14 @@ onMounted(load)
 </script>
 
 <template>
-  <div data-screen-label="商品管理">
+  <div :data-screen-label="t('route.products')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">賣家工作室</p>
-        <h1 class="h-title">商品管理</h1>
-        <p class="h-sub">{{ products.length }} 件作品 · {{ catalog.publishedCount }} 件上架中</p>
+        <p class="h-eyebrow">{{ t('sidebar.sellerStudio') }}</p>
+        <h1 class="h-title">{{ t('route.products') }}</h1>
+        <p class="h-sub">{{ t('products.subStats', { total: products.length, published: catalog.publishedCount }) }}</p>
       </div>
-      <button class="cta-pop" @click="dashboard.go('upload')"><app-icon name="plus" :size="16" :stroke="2.4" />上架新商品</button>
+      <button class="cta-pop" @click="dashboard.go('upload')"><app-icon name="plus" :size="16" :stroke="2.4" />{{ t('products.newProduct') }}</button>
     </div>
 
     <!-- 篩選工具列：單行時四欄平均分布、間隔一致；空間不足時整組換行，最多兩行並填滿寬度 -->
@@ -119,30 +122,30 @@ onMounted(load)
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:1 1 140px;">
-            <label class="fb-label">狀態</label>
+            <label class="fb-label">{{ t('common.status') }}</label>
             <n-select
               v-model:value="filterKey"
               :options="statusOptions" />
           </div>
           <div class="fb-field" style="flex:2 1 200px;">
-            <label class="fb-label">關鍵字</label>
+            <label class="fb-label">{{ t('common.keyword') }}</label>
             <n-input
               v-model:value="keyword"
               clearable
-              placeholder="搜尋作品名稱、摘要或 slug">
+              :placeholder="t('products.searchPlaceholder')">
               <template #prefix><app-icon name="search" :size="15" /></template>
             </n-input>
           </div>
         </div>
         <div class="fb-group">
           <div class="fb-field" style="flex:1 1 240px;">
-            <label class="fb-label">上架時間</label>
+            <label class="fb-label">{{ t('products.colPublishedAt') }}</label>
             <n-date-picker
               v-model:value="dateRange"
               type="daterange"
               clearable
-              start-placeholder="起始日期"
-              end-placeholder="結束日期" />
+              :start-placeholder="t('common.startDate')"
+              :end-placeholder="t('common.endDate')" />
           </div>
         </div>
       </div>
@@ -155,12 +158,12 @@ onMounted(load)
           <table class="tbl history-table">
             <thead>
               <tr>
-                <th>作品</th>
-                <th class="hide-sm">狀態</th>
-                <th class="num hide-sm">售價</th>
-                <th class="num hide-sm">瀏覽</th>
-                <th class="num hide-sm">上架時間</th>
-                <th style="width:160px; text-align:right;">上架</th>
+                <th>{{ t('products.colWork') }}</th>
+                <th class="hide-sm">{{ t('common.status') }}</th>
+                <th class="num hide-sm">{{ t('products.colPrice') }}</th>
+                <th class="num hide-sm">{{ t('products.colViews') }}</th>
+                <th class="num hide-sm">{{ t('products.colPublishedAt') }}</th>
+                <th style="width:160px; text-align:right;">{{ t('products.colToggle') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -168,9 +171,9 @@ onMounted(load)
               <tr v-if="!loading && !rows.length">
                 <td colspan="6" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="box" :size="22" /></span>
-                  <div style="font-weight:700; font-size:15px;">沒有符合的作品</div>
+                  <div style="font-weight:700; font-size:15px;">{{ t('products.emptyTitle') }}</div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    沒有符合所選條件的作品，試試調整或重設篩選條件。
+                    {{ t('products.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -186,18 +189,18 @@ onMounted(load)
                     </div>
                   </div>
                 </td>
-                <td class="hide-sm"><n-tag :type="statusOf(p.status).type" size="small" round>{{ statusOf(p.status).label }}</n-tag></td>
-                <td class="num hide-sm">{{ p.price === 0 ? '免費' : '$' + p.price }}</td>
+                <td class="hide-sm"><n-tag :type="statusOf(p.status).type" size="small" round>{{ t(statusOf(p.status).labelKey) }}</n-tag></td>
+                <td class="num hide-sm">{{ p.price === 0 ? t('common.free') : '$' + p.price }}</td>
                 <td class="num hide-sm">{{ (p.viewCount ?? 0).toLocaleString('en-US') }}</td>
                 <td class="num hide-sm"><span class="history-mono" style="font-size:12px;">{{ fmtDate(p.publishedAt) }}</span></td>
                 <td>
                   <div class="row-actions">
                     <n-switch v-if="canToggle(p)" :value="p.status === CatalogStatus.Published" :loading="busyId === p.id" :disabled="busyId === p.id" @update:value="toggle(p)" size="medium" />
                     <span v-else style="font-size:12px; color:var(--text-faint); font-family:var(--oj-mono); margin-right:6px;">
-                      {{ p.status === CatalogStatus.Suspended ? '已停權' : '草稿' }}
+                      {{ p.status === CatalogStatus.Suspended ? t('catalogStatus.suspended') : t('catalogStatus.draft') }}
                     </span>
-                    <button class="ic-act" title="查看評論" @click="openReviews(p)"><app-icon name="star" :size="17" /></button>
-                    <button class="ic-act" title="編輯" @click="dashboard.go('upload')"><app-icon name="edit" :size="17" /></button>
+                    <button class="ic-act" :title="t('products.viewReviews')" @click="openReviews(p)"><app-icon name="star" :size="17" /></button>
+                    <button class="ic-act" :title="t('common.edit')" @click="dashboard.go('upload')"><app-icon name="edit" :size="17" /></button>
                   </div>
                 </td>
               </tr>
@@ -209,7 +212,7 @@ onMounted(load)
 
     <!-- 評論檢視 -->
     <n-drawer :show="!!reviewing" :width="440" placement="right" @update:show="(v: boolean) => { if (!v) reviewing = null }">
-      <n-drawer-content :title="reviewing?.name || '買家評價'" closable>
+      <n-drawer-content :title="reviewing?.name || t('products.reviewsTitle')" closable>
         <review-list v-if="reviewing?.id" :catalog-id="reviewing.id" />
       </n-drawer-content>
     </n-drawer>

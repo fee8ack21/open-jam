@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useMessage } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStoreReviewStore } from '@/stores/storeReview'
 
+const { t, locale } = useI18n()
 const message = useMessage()
 const store = useStoreReviewStore()
 const { items, loading, pendingCount } = storeToRefs(store)
@@ -16,14 +18,14 @@ const sortKey = ref<'storeName' | 'storeSlug' | 'email' | 'createdAt'>('createdA
 const sortDesc = ref(true)
 
 const columns = [
-  { key: 'storeName', label: '商店名稱', hideSm: false },
-  { key: 'storeSlug', label: '子網域', hideSm: false },
-  { key: 'email', label: '申請人 Email', hideSm: true },
-  { key: 'createdAt', label: '送出時間', hideSm: true },
+  { key: 'storeName', labelKey: 'review.colStoreName', hideSm: false },
+  { key: 'storeSlug', labelKey: 'review.colSubdomain', hideSm: false },
+  { key: 'email', labelKey: 'review.colEmail', hideSm: true },
+  { key: 'createdAt', labelKey: 'review.colCreatedAt', hideSm: true },
 ] as const
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
+  return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
 
 function toggleSort(key: typeof sortKey.value) {
@@ -59,25 +61,25 @@ async function onApprove(id?: string) {
   busyId.value = id
   const ok = await store.approve(id)
   busyId.value = null
-  if (ok) message.success('已核准開店申請，商店已建立。')
-  else message.error(store.error ?? '核准失敗')
+  if (ok) message.success(t('review.msgApproved'))
+  else message.error(store.error ?? t('review.msgApproveFailed'))
 }
 
 async function onReject(id?: string) {
   if (!id) return
   const comment = (rejectComment.value[id] ?? '').trim()
   if (!comment) {
-    message.warning('請填寫駁回原因。')
+    message.warning(t('review.msgNeedReason'))
     return
   }
   busyId.value = id
   const ok = await store.reject(id, comment)
   busyId.value = null
   if (ok) {
-    message.success('已駁回開店申請。')
+    message.success(t('review.msgRejected'))
     delete rejectComment.value[id]
   } else {
-    message.error(store.error ?? '駁回失敗')
+    message.error(store.error ?? t('review.msgRejectFailed'))
   }
 }
 
@@ -85,12 +87,12 @@ onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="店家審核">
+  <div :data-screen-label="t('route.review')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">平台管理</p>
-        <h1 class="h-title">待審核商店</h1>
-        <p class="h-sub">共 {{ pendingCount }} 筆待審核開店申請</p>
+        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
+        <h1 class="h-title">{{ t('route.review') }}</h1>
+        <p class="h-sub">{{ t('review.subStats', { count: pendingCount }) }}</p>
       </div>
     </div>
 
@@ -98,11 +100,11 @@ onMounted(store.load)
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:1 1 auto;">
-            <label class="fb-label">關鍵字</label>
+            <label class="fb-label">{{ t('common.keyword') }}</label>
             <n-input
               v-model:value="keyword"
               clearable
-              placeholder="搜尋商店名稱、子網域或申請人 Email">
+              :placeholder="t('review.searchPlaceholder')">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
@@ -119,15 +121,15 @@ onMounted(store.load)
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
                   <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ col.label }}</span>
+                    <span>{{ t(col.labelKey) }}</span>
                     <app-icon
                       v-if="sortKey === col.key"
                       :name="sortDesc ? 'chevronD' : 'chevronU'"
                       :size="15" />
                   </button>
                 </th>
-                <th class="hide-sm">狀態</th>
-                <th style="width:170px; text-align:right;">操作</th>
+                <th class="hide-sm">{{ t('common.status') }}</th>
+                <th style="width:170px; text-align:right;">{{ t('review.colActions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -136,20 +138,20 @@ onMounted(store.load)
                 <td :colspan="columns.length + 2" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="shield" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ items.length ? '沒有符合條件的申請' : '目前沒有待審核的申請' }}
+                    {{ items.length ? t('review.emptyFilteredTitle') : t('review.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ items.length ? '試試調整關鍵字。' : '新的開店申請送出後會顯示於此。' }}
+                    {{ items.length ? t('review.emptyFilteredDesc') : t('review.emptyDesc') }}
                   </div>
                 </td>
               </tr>
               <tr v-for="a in visible" v-else :key="a.id">
                 <td>
                   <div class="prod-cell">
-                    <span class="review-rank">審</span>
+                    <span class="review-rank">{{ t('review.rankGlyph') }}</span>
                     <div style="min-width:0;">
                       <div class="pc-title">{{ a.storeName }}</div>
-                      <div class="pc-meta">待審核開店申請</div>
+                      <div class="pc-meta">{{ t('review.pendingLabel') }}</div>
                     </div>
                   </div>
                 </td>
@@ -163,7 +165,7 @@ onMounted(store.load)
                   <span class="review-mono">{{ fmtDate(a.createdAt) }}</span>
                 </td>
                 <td class="hide-sm">
-                  <n-tag type="warning" size="small" round>審核中</n-tag>
+                  <n-tag type="warning" size="small" round>{{ t('appStatus.pending') }}</n-tag>
                 </td>
                 <td>
                   <div class="row-actions review-actions">
@@ -172,21 +174,21 @@ onMounted(store.load)
                       <template #trigger>
                         <n-button size="small" tertiary :disabled="busyId === a.id">
                           <template #icon><app-icon name="close" :size="15" /></template>
-                          駁回
+                          {{ t('review.reject') }}
                         </n-button>
                       </template>
                       <div style="display:grid; gap:10px; width:280px; padding:4px;">
-                        <div style="font-weight:600; font-size:13px;">駁回原因</div>
+                        <div style="font-weight:600; font-size:13px;">{{ t('review.rejectReason') }}</div>
                         <n-input
                           v-model:value="rejectComment[a.id!]"
                           type="textarea"
                           :rows="3"
                           maxlength="500"
                           show-count
-                          placeholder="說明駁回原因，將附於通知信中。" />
+                          :placeholder="t('review.rejectReasonPlaceholder')" />
                         <div style="display:flex; justify-content:flex-end;">
                           <n-button size="small" type="error" :loading="busyId === a.id" @click="onReject(a.id)">
-                            確認駁回
+                            {{ t('review.confirmReject') }}
                           </n-button>
                         </div>
                       </div>
@@ -197,10 +199,10 @@ onMounted(store.load)
                       <template #trigger>
                         <n-button size="small" type="primary" :disabled="busyId === a.id" :loading="busyId === a.id">
                           <template #icon><app-icon name="check" :size="15" /></template>
-                          核准
+                          {{ t('review.approve') }}
                         </n-button>
                       </template>
-                      核准後將建立商店並指派申請人為 Owner，確定核准？
+                      {{ t('review.approveConfirm') }}
                     </n-popconfirm>
                   </div>
                 </td>

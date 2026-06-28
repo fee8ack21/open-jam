@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useResourceUsageStore } from '@/stores/resourceUsage'
 
+const { t } = useI18n()
 const store = useResourceUsageStore()
 const { byCreator } = storeToRefs(store)
 
@@ -18,35 +20,35 @@ function fmtBytes(bytes: number) {
 const kpis = computed(() => [
   {
     key: 'storage',
-    label: '已用儲存空間',
+    label: t('adminUsage.kpiStorage'),
     val: fmtBytes(store.usedBytes),
     ic: 'layers',
     bg: 'var(--c-violet)',
-    sub: `上限 ${fmtBytes(store.quotaBytes)} · 已用 ${store.usedPercent}%`,
+    sub: t('adminUsage.kpiStorageSub', { quota: fmtBytes(store.quotaBytes), percent: store.usedPercent }),
   },
   {
     key: 'files',
-    label: '檔案總數',
+    label: t('adminUsage.kpiFiles'),
     val: store.fileCount.toLocaleString('en-US'),
     ic: 'file',
     bg: 'var(--c-pink)',
-    sub: `待清理孤兒檔 ${store.orphanFileCount} 個`,
+    sub: t('adminUsage.kpiFilesSub', { count: store.orphanFileCount }),
   },
   {
     key: 'orphan',
-    label: '孤兒檔占用',
+    label: t('adminUsage.kpiOrphan'),
     val: fmtBytes(store.orphanBytes),
     ic: 'download',
     bg: 'var(--c-orange)',
-    sub: `待清理 ${store.orphanFileCount} 個`,
+    sub: t('adminUsage.kpiOrphanSub', { count: store.orphanFileCount }),
   },
   {
     key: 'private',
-    label: '私有檔案用量',
+    label: t('adminUsage.kpiPrivate'),
     val: fmtBytes(store.privateBytes),
     ic: 'lock',
     bg: 'var(--c-cyan)',
-    sub: `公開資產 ${fmtBytes(store.publicBytes)}`,
+    sub: t('adminUsage.kpiPrivateSub', { size: fmtBytes(store.publicBytes) }),
   },
 ])
 
@@ -65,13 +67,12 @@ onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="資源用量">
+  <div :data-screen-label="t('route.resourceUsage')">
     <div class="page-intro">
-      <p class="h-eyebrow">平台管理 · 資源</p>
-      <h1 class="h-title">資源用量</h1>
+      <p class="h-eyebrow">{{ t('adminUsage.eyebrow') }}</p>
+      <h1 class="h-title">{{ t('route.resourceUsage') }}</h1>
       <p class="h-sub">
-        平台儲存空間已使用 {{ store.usedPercent }}%（{{ fmtBytes(store.usedBytes) }} /
-        {{ fmtBytes(store.quotaBytes) }})。
+        {{ t('adminUsage.sub', { percent: store.usedPercent, used: fmtBytes(store.usedBytes), quota: fmtBytes(store.quotaBytes) }) }}
       </p>
     </div>
 
@@ -93,8 +94,8 @@ onMounted(store.load)
     <div class="card-pad" style="margin-bottom:22px;">
       <div class="card-head">
         <div>
-          <h3>儲存容量使用率</h3>
-          <div class="ch-sub">已用 {{ fmtBytes(store.usedBytes) }} / 上限 {{ fmtBytes(store.quotaBytes) }}</div>
+          <h3>{{ t('adminUsage.capacityTitle') }}</h3>
+          <div class="ch-sub">{{ t('adminUsage.capacitySub', { used: fmtBytes(store.usedBytes), quota: fmtBytes(store.quotaBytes) }) }}</div>
         </div>
         <span class="usage-pct" :class="{ warn: store.usedPercent >= 80 }">{{ store.usedPercent }}%</span>
       </div>
@@ -105,8 +106,8 @@ onMounted(store.load)
           :style="{ width: Math.min(store.usedPercent, 100) + '%' }"></span>
       </div>
       <div class="usage-legend">
-        <span class="lg"><i style="background:var(--c-cyan)"></i>公開展示資產 {{ fmtBytes(store.publicBytes) }}（{{ split.publicPct }}%)</span>
-        <span class="lg"><i style="background:var(--c-violet)"></i>私有可下載檔 {{ fmtBytes(store.privateBytes) }}（{{ split.privatePct }}%)</span>
+        <span class="lg"><i style="background:var(--c-cyan)"></i>{{ t('adminUsage.legendPublic', { size: fmtBytes(store.publicBytes), pct: split.publicPct }) }}</span>
+        <span class="lg"><i style="background:var(--c-violet)"></i>{{ t('adminUsage.legendPrivate', { size: fmtBytes(store.privateBytes), pct: split.privatePct }) }}</span>
       </div>
     </div>
 
@@ -115,18 +116,18 @@ onMounted(store.load)
       <div class="card-pad">
         <div class="card-head">
           <div>
-            <h3>下載流量與歷史趨勢</h3>
-            <div class="ch-sub">需另建指標管線</div>
+            <h3>{{ t('adminUsage.trafficTitle') }}</h3>
+            <div class="ch-sub">{{ t('adminUsage.trafficSub') }}</div>
           </div>
         </div>
         <div class="usage-na">
           <app-icon name="chart" :size="30" />
-          <p>StorageService 目前未追蹤下載流量與歷史用量快照，<br>此區待指標管線建立後提供。</p>
+          <p v-html="t('adminUsage.trafficNa')"></p>
         </div>
       </div>
 
       <div class="card-pad">
-        <div class="card-head"><h3>各創作者用量 Top {{ byCreator.length }}</h3></div>
+        <div class="card-head"><h3>{{ t('adminUsage.byCreatorTitle', { count: byCreator.length }) }}</h3></div>
         <div v-if="byCreator.length" class="bars">
           <div v-for="s in byCreator" :key="s.creatorId" class="bar-row">
             <span class="bl">{{ s.label }}</span>
@@ -134,9 +135,9 @@ onMounted(store.load)
             <span class="bv">{{ fmtBytes(s.bytes) }}</span>
           </div>
         </div>
-        <div v-else class="usage-na" style="min-height:120px;"><p>尚無創作者用量資料。</p></div>
+        <div v-else class="usage-na" style="min-height:120px;"><p>{{ t('adminUsage.byCreatorEmpty') }}</p></div>
         <div v-if="byCreator.length" class="store-files-note">
-          檔案數合計 {{ byCreator.reduce((n, s) => n + s.fileCount, 0).toLocaleString('en-US') }} 個
+          {{ t('adminUsage.totalFiles', { count: byCreator.reduce((n, s) => n + s.fileCount, 0).toLocaleString('en-US') }) }}
         </div>
       </div>
     </div>

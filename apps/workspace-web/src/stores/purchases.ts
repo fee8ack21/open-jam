@@ -1,11 +1,12 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { catalogApi, orderApi } from '@/api';
+import i18n from '@/i18n';
 import { OrderStatus, type OrderResponse, type OrderSummaryDto } from '@/api/order-service';
 import type { PurchasedVersionAssetDto } from '@/api/catalog-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
-function messageOf(err: unknown, fallback = '載入購買紀錄失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.loadPurchasesFailed')): string {
   const response = err as { error?: { detail?: string; title?: string } } | null;
   const problem = response?.error;
   return problem?.detail ?? problem?.title ?? fallback;
@@ -88,7 +89,7 @@ export const usePurchasesStore = defineStore('purchases', () => {
         await loadDownloads(res.data);
       }
     } catch (err) {
-      detailError.value = messageOf(err, '載入訂單明細失敗，請稍後再試。');
+      detailError.value = messageOf(err, i18n.global.t('storeError.loadOrderDetailFailed'));
     } finally {
       detailLoading.value = false;
     }
@@ -110,7 +111,7 @@ export const usePurchasesStore = defineStore('purchases', () => {
         } catch (err) {
           downloads.value[it.id] = {
             loading: false,
-            error: messageOf(err, '載入下載連結失敗，請稍後再試。'),
+            error: messageOf(err, i18n.global.t('storeError.loadDownloadsFailed')),
             files: [],
           };
         }

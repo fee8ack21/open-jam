@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { usePurchasesStore } from '@/stores/purchases'
 import PurchaseDetailModal from '@/components/PurchaseDetailModal.vue'
-import { ORDER_STATUS_OPTIONS, formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
+import { orderStatusOptions, formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
 import type { OrderStatus, OrderSummaryDto } from '@/api/order-service'
 
+const { t } = useI18n()
+const statusOptions = computed(() => orderStatusOptions())
 const store = usePurchasesStore()
 const { items, totalCount, loading, error, status, detail, detailLoading, detailError, downloads } = storeToRefs(store)
 
@@ -32,12 +35,12 @@ onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="購買紀錄">
+  <div :data-screen-label="t('route.purchases')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">我的收藏庫</p>
-        <h1 class="h-title">購買紀錄</h1>
-        <p class="h-sub">共 {{ totalCount }} 筆訂單 · 點擊明細可查看商品與下載連結</p>
+        <p class="h-eyebrow">{{ t('sidebar.myLibrary') }}</p>
+        <h1 class="h-title">{{ t('route.purchases') }}</h1>
+        <p class="h-sub">{{ t('purchases.subStats', { count: totalCount }) }}</p>
       </div>
     </div>
 
@@ -46,10 +49,10 @@ onMounted(store.load)
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:1 1 200px;">
-            <label class="fb-label">訂單狀態</label>
+            <label class="fb-label">{{ t('orders.orderStatus') }}</label>
             <n-select
               :value="status"
-              :options="ORDER_STATUS_OPTIONS"
+              :options="statusOptions"
               @update:value="applyStatus" />
           </div>
         </div>
@@ -65,27 +68,27 @@ onMounted(store.load)
           <table class="tbl history-table">
             <thead>
               <tr>
-                <th>訂單編號</th>
-                <th>狀態</th>
-                <th class="num">金額</th>
-                <th class="hide-sm">建立時間</th>
-                <th class="hide-sm">完成時間</th>
-                <th style="width:64px; text-align:right;">明細</th>
+                <th>{{ t('orders.colOrderNumber') }}</th>
+                <th>{{ t('common.status') }}</th>
+                <th class="num">{{ t('orders.colAmount') }}</th>
+                <th class="hide-sm">{{ t('orders.colCreatedAt') }}</th>
+                <th class="hide-sm">{{ t('purchases.colCompletedAt') }}</th>
+                <th style="width:64px; text-align:right;">{{ t('orders.colDetail') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="!items.length">
                 <td colspan="6" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="bag" :size="22" /></span>
-                  <div style="font-weight:700; font-size:15px;">尚無購買紀錄</div>
+                  <div style="font-weight:700; font-size:15px;">{{ t('purchases.emptyTitle') }}</div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    沒有符合所選狀態的訂單，試試調整或重設篩選條件。
+                    {{ t('purchases.emptyDesc') }}
                   </div>
                 </td>
               </tr>
               <tr v-for="o in items" :key="o.id">
                 <td><span class="history-mono" style="font-size:12.5px;">{{ o.orderNumber || '—' }}</span></td>
-                <td><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ orderStatusMeta(o.status).label }}</n-tag></td>
+                <td><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ t(orderStatusMeta(o.status).labelKey) }}</n-tag></td>
                 <td class="num" style="font-weight:700;">{{ formatOrderAmount(o.totalAmount, o.currency) }}</td>
                 <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ formatOrderTime(o.createdAt) }}</span></td>
                 <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ formatOrderTime(o.completedAt) }}</span></td>

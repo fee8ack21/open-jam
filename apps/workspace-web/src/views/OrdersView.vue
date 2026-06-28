@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useSellerOrdersStore } from '@/stores/sellerOrders'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import OrderDetailModal from '@/components/OrderDetailModal.vue'
-import { ORDER_STATUS_OPTIONS, formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
+import { orderStatusOptions, formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
 import type { OrderStatus, OrderSummaryDto } from '@/api/order-service'
 
+const { t } = useI18n()
+const statusOptions = computed(() => orderStatusOptions())
 const store = useSellerOrdersStore()
 const storeApp = useStoreApplicationStore()
 const { items, totalCount, loading, error, detail, detailLoading, detailError } = storeToRefs(store)
@@ -61,12 +64,12 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
 </script>
 
 <template>
-  <div data-screen-label="訂單管理">
+  <div :data-screen-label="t('route.orders')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">賣家工作室</p>
-        <h1 class="h-title">訂單管理</h1>
-        <p class="h-sub">共 {{ totalCount }} 筆訂單</p>
+        <p class="h-eyebrow">{{ t('sidebar.sellerStudio') }}</p>
+        <h1 class="h-title">{{ t('route.orders') }}</h1>
+        <p class="h-sub">{{ t('orders.total', { count: totalCount }) }}</p>
       </div>
     </div>
 
@@ -75,20 +78,20 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:2 1 240px;">
-            <label class="fb-label">買家信箱</label>
+            <label class="fb-label">{{ t('orders.buyerEmail') }}</label>
             <n-input
               v-model:value="emailFilter"
               clearable
-              placeholder="搜尋買家 Email"
+              :placeholder="t('orders.buyerEmailPlaceholder')"
               @keyup.enter="applyFilter">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
           <div class="fb-field" style="flex:1 1 180px;">
-            <label class="fb-label">訂單狀態</label>
+            <label class="fb-label">{{ t('orders.orderStatus') }}</label>
             <n-select
               v-model:value="statusFilter"
-              :options="ORDER_STATUS_OPTIONS" />
+              :options="statusOptions" />
           </div>
         </div>
       </div>
@@ -103,21 +106,21 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
           <table class="tbl history-table">
             <thead>
               <tr>
-                <th>訂單編號</th>
-                <th>買家</th>
-                <th class="hide-sm">狀態</th>
-                <th class="num">金額</th>
-                <th class="hide-sm">建立時間</th>
-                <th style="width:64px; text-align:right;">明細</th>
+                <th>{{ t('orders.colOrderNumber') }}</th>
+                <th>{{ t('orders.colBuyer') }}</th>
+                <th class="hide-sm">{{ t('common.status') }}</th>
+                <th class="num">{{ t('orders.colAmount') }}</th>
+                <th class="hide-sm">{{ t('orders.colCreatedAt') }}</th>
+                <th style="width:64px; text-align:right;">{{ t('orders.colDetail') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="!items.length">
                 <td colspan="6" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="receipt" :size="22" /></span>
-                  <div style="font-weight:700; font-size:15px;">尚無訂單</div>
+                  <div style="font-weight:700; font-size:15px;">{{ t('orders.emptyTitle') }}</div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    沒有符合條件的訂單，試試調整或重設篩選條件。
+                    {{ t('orders.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -126,7 +129,7 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
                 <td>
                   <span class="history-mono" :title="o.id" style="font-size:12px;">{{ o.id ? o.id.slice(0, 8) : '—' }}</span>
                 </td>
-                <td class="hide-sm"><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ orderStatusMeta(o.status).label }}</n-tag></td>
+                <td class="hide-sm"><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ t(orderStatusMeta(o.status).labelKey) }}</n-tag></td>
                 <td class="num" style="font-weight:700;">{{ formatOrderAmount(o.totalAmount, o.currency) }}</td>
                 <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ formatOrderTime(o.createdAt) }}</span></td>
                 <td style="text-align:right;">

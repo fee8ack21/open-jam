@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useMemberListStore } from '@/stores/memberList'
 import { UserRole, UserStatus, type UserSummaryDto } from '@/api/auth-service'
 
+const { t, locale } = useI18n()
 const store = useMemberListStore()
 const { items, loading } = storeToRefs(store)
 
@@ -11,20 +13,20 @@ onMounted(store.load)
 
 // 帳號狀態 → 顯示用標籤
 const STATUS = {
-  [UserStatus.Active]:      { label: '啟用中', type: 'success' as const },
-  [UserStatus.Pending]:     { label: '待驗證', type: 'info' as const },
-  [UserStatus.Locked]:      { label: '已鎖定', type: 'warning' as const },
-  [UserStatus.Suspended]:   { label: '已停權', type: 'warning' as const },
-  [UserStatus.Deactivated]: { label: '已停用', type: 'default' as const },
-  [UserStatus.Deleted]:     { label: '已刪除', type: 'error' as const },
+  [UserStatus.Active]:      { labelKey: 'memberStatus.active', type: 'success' as const },
+  [UserStatus.Pending]:     { labelKey: 'memberStatus.pending', type: 'info' as const },
+  [UserStatus.Locked]:      { labelKey: 'memberStatus.locked', type: 'warning' as const },
+  [UserStatus.Suspended]:   { labelKey: 'memberStatus.suspended', type: 'warning' as const },
+  [UserStatus.Deactivated]: { labelKey: 'memberStatus.deactivated', type: 'default' as const },
+  [UserStatus.Deleted]:     { labelKey: 'memberStatus.deleted', type: 'error' as const },
 }
 function statusOf(s?: UserStatus) {
-  return (s != null && STATUS[s]) || { label: '—', type: 'default' as const }
+  return (s != null && STATUS[s]) || { labelKey: 'appStatus.unknown', type: 'default' as const }
 }
 function roleOf(r?: UserRole) {
   return r === UserRole.Admin
-    ? { label: '管理員', type: 'info' as const }
-    : { label: '一般會員', type: 'default' as const }
+    ? { labelKey: 'memberRole.admin', type: 'info' as const }
+    : { labelKey: 'memberRole.user', type: 'default' as const }
 }
 
 // ── 篩選 / 排序狀態 ──────────────────────────────────────────
@@ -36,28 +38,28 @@ const statusFilter = ref<'all' | UserStatus>('all')
 const sortKey = ref<'email' | 'createdAt' | 'updatedAt'>('createdAt')
 const sortDesc = ref(true)
 
-const roleOptions = [
-  { label: '全部角色', value: 'all' },
-  { label: '一般會員', value: UserRole.User },
-  { label: '管理員', value: UserRole.Admin },
-]
-const statusOptions = [
-  { label: '全部狀態', value: 'all' },
-  { label: '啟用中', value: UserStatus.Active },
-  { label: '待驗證', value: UserStatus.Pending },
-  { label: '已鎖定', value: UserStatus.Locked },
-  { label: '已停權', value: UserStatus.Suspended },
-  { label: '已停用', value: UserStatus.Deactivated },
-  { label: '已刪除', value: UserStatus.Deleted },
-]
+const roleOptions = computed(() => [
+  { label: t('members.filterAllRoles'), value: 'all' },
+  { label: t('memberRole.user'), value: UserRole.User },
+  { label: t('memberRole.admin'), value: UserRole.Admin },
+])
+const statusOptions = computed(() => [
+  { label: t('members.filterAllStatuses'), value: 'all' },
+  { label: t('memberStatus.active'), value: UserStatus.Active },
+  { label: t('memberStatus.pending'), value: UserStatus.Pending },
+  { label: t('memberStatus.locked'), value: UserStatus.Locked },
+  { label: t('memberStatus.suspended'), value: UserStatus.Suspended },
+  { label: t('memberStatus.deactivated'), value: UserStatus.Deactivated },
+  { label: t('memberStatus.deleted'), value: UserStatus.Deleted },
+])
 const columns = [
-  { key: 'email', label: '會員', hideSm: false },
-  { key: 'createdAt', label: '註冊時間', hideSm: true },
-  { key: 'updatedAt', label: '最後更新', hideSm: true },
+  { key: 'email', labelKey: 'members.colMember', hideSm: false },
+  { key: 'createdAt', labelKey: 'members.colRegisteredAt', hideSm: true },
+  { key: 'updatedAt', labelKey: 'stores.colUpdatedAt', hideSm: true },
 ] as const
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
+  return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
 function initial(email?: string | null) {
   return (email?.charAt(0) || '?').toUpperCase()
@@ -94,13 +96,13 @@ const visible = computed<UserSummaryDto[]>(() => {
 </script>
 
 <template>
-  <div data-screen-label="會員列表">
+  <div :data-screen-label="t('route.members')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">平台管理</p>
-        <h1 class="h-title">會員列表</h1>
+        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
+        <h1 class="h-title">{{ t('route.members') }}</h1>
         <p class="h-sub">
-          共 {{ items.length }} 位會員 · {{ store.activeCount }} 位啟用中 · {{ store.adminCount }} 位管理員
+          {{ t('members.subStats', { total: items.length, active: store.activeCount, admin: store.adminCount }) }}
         </p>
       </div>
     </div>
@@ -110,20 +112,20 @@ const visible = computed<UserSummaryDto[]>(() => {
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:2 1 220px;">
-            <label class="fb-label">關鍵字</label>
+            <label class="fb-label">{{ t('common.keyword') }}</label>
             <n-input
               v-model:value="keyword"
               clearable
-              placeholder="搜尋 Email">
+              :placeholder="t('members.searchPlaceholder')">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
           <div class="fb-field" style="flex:1 1 130px;">
-            <label class="fb-label">角色</label>
+            <label class="fb-label">{{ t('members.role') }}</label>
             <n-select v-model:value="roleFilter" :options="roleOptions" />
           </div>
           <div class="fb-field" style="flex:1 1 130px;">
-            <label class="fb-label">狀態</label>
+            <label class="fb-label">{{ t('common.status') }}</label>
             <n-select v-model:value="statusFilter" :options="statusOptions" />
           </div>
         </div>
@@ -138,15 +140,15 @@ const visible = computed<UserSummaryDto[]>(() => {
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
                   <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ col.label }}</span>
+                    <span>{{ t(col.labelKey) }}</span>
                     <app-icon
                       v-if="sortKey === col.key"
                       :name="sortDesc ? 'chevronD' : 'chevronU'"
                       :size="15" />
                   </button>
                 </th>
-                <th class="hide-sm">角色</th>
-                <th class="hide-sm">狀態</th>
+                <th class="hide-sm">{{ t('members.role') }}</th>
+                <th class="hide-sm">{{ t('common.status') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -154,10 +156,10 @@ const visible = computed<UserSummaryDto[]>(() => {
                 <td :colspan="columns.length + 2" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-cyan); margin:0 auto 14px;"><app-icon name="users" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ items.length ? '沒有符合條件的會員' : '尚無會員' }}
+                    {{ items.length ? t('members.emptyFilteredTitle') : t('members.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ items.length ? '試試調整關鍵字或篩選條件。' : '會員註冊後會顯示於此。' }}
+                    {{ items.length ? t('members.emptyFilteredDesc') : t('members.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -172,7 +174,7 @@ const visible = computed<UserSummaryDto[]>(() => {
                           v-if="!m.emailVerified"
                           name="mail"
                           :size="13"
-                          title="Email 尚未驗證"
+                          :title="t('members.emailUnverified')"
                           style="color:var(--c-orange); vertical-align:-2px; margin-left:4px;" />
                       </div>
                       <div class="pc-meta store-mono">{{ m.id }}</div>
@@ -186,10 +188,10 @@ const visible = computed<UserSummaryDto[]>(() => {
                   <span class="store-mono">{{ fmtDate(m.updatedAt) }}</span>
                 </td>
                 <td class="hide-sm">
-                  <n-tag :type="roleOf(m.role).type" size="small" round>{{ roleOf(m.role).label }}</n-tag>
+                  <n-tag :type="roleOf(m.role).type" size="small" round>{{ t(roleOf(m.role).labelKey) }}</n-tag>
                 </td>
                 <td class="hide-sm">
-                  <n-tag :type="statusOf(m.status).type" size="small" round>{{ statusOf(m.status).label }}</n-tag>
+                  <n-tag :type="statusOf(m.status).type" size="small" round>{{ t(statusOf(m.status).labelKey) }}</n-tag>
                 </td>
               </tr>
             </tbody>

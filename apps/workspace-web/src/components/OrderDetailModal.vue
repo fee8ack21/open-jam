@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { OrderResponse } from '@/api/order-service'
 import { formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   show: boolean
@@ -24,56 +27,56 @@ function shortId(v?: string | null) {
 </script>
 
 <template>
-  <n-modal v-model:show="open" preset="card" title="訂單明細" style="max-width:680px;">
+  <n-modal v-model:show="open" preset="card" :title="t('orderModal.title')" style="max-width:680px;">
     <n-spin :show="loading">
       <div v-if="error" class="od-error">{{ error }}</div>
       <div v-else-if="order" class="od-body">
         <dl class="od-dl">
           <div>
-            <dt>訂單編號</dt>
+            <dt>{{ t('orderModal.orderNumber') }}</dt>
             <dd class="od-mono">{{ order.orderNumber || '—' }}</dd>
           </div>
           <div>
-            <dt>狀態</dt>
-            <dd><n-tag :type="orderStatusMeta(order.status).type" size="small" round>{{ orderStatusMeta(order.status).label }}</n-tag></dd>
+            <dt>{{ t('orderModal.status') }}</dt>
+            <dd><n-tag :type="orderStatusMeta(order.status).type" size="small" round>{{ t(orderStatusMeta(order.status).labelKey) }}</n-tag></dd>
           </div>
           <div>
-            <dt>買家信箱</dt>
+            <dt>{{ t('orderModal.buyerEmail') }}</dt>
             <dd>{{ order.buyerEmail || '—' }}</dd>
           </div>
           <div>
-            <dt>買家</dt>
-            <dd class="od-mono" :title="order.buyerUserId ?? '匿名購買'">{{ order.buyerUserId ? shortId(order.buyerUserId) : '匿名' }}</dd>
+            <dt>{{ t('orderModal.buyer') }}</dt>
+            <dd class="od-mono" :title="order.buyerUserId ?? t('orderModal.anonymousTitle')">{{ order.buyerUserId ? shortId(order.buyerUserId) : t('orderModal.anonymous') }}</dd>
           </div>
           <div>
-            <dt>金額</dt>
+            <dt>{{ t('orderModal.amount') }}</dt>
             <dd class="od-amount">{{ formatOrderAmount(order.totalAmount, order.currency) }}</dd>
           </div>
           <div>
-            <dt>貨幣</dt>
+            <dt>{{ t('orderModal.currency') }}</dt>
             <dd class="od-mono">{{ (order.currency || '—').toUpperCase() }}</dd>
           </div>
           <div>
-            <dt>建立時間</dt>
+            <dt>{{ t('orderModal.createdAt') }}</dt>
             <dd>{{ formatOrderTime(order.createdAt) }}</dd>
           </div>
           <div>
-            <dt>完成時間</dt>
+            <dt>{{ t('orderModal.completedAt') }}</dt>
             <dd>{{ formatOrderTime(order.completedAt) }}</dd>
           </div>
         </dl>
 
-        <div class="od-section-label">訂單項目（{{ order.items?.length ?? 0 }}）</div>
+        <div class="od-section-label">{{ t('orderModal.itemsLabel', { count: order.items?.length ?? 0 }) }}</div>
         <table class="tbl od-items">
           <thead>
             <tr>
-              <th>商品</th>
-              <th class="num">單價</th>
+              <th>{{ t('orderModal.colProduct') }}</th>
+              <th class="num">{{ t('orderModal.colUnitPrice') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="!order.items?.length">
-              <td colspan="2" style="text-align:center; color:var(--text-faint); padding:16px;">無項目</td>
+              <td colspan="2" style="text-align:center; color:var(--text-faint); padding:16px;">{{ t('orderModal.noItems') }}</td>
             </tr>
             <tr v-for="it in order.items" :key="it.id">
               <td>{{ it.catalogName || '—' }}</td>
@@ -82,16 +85,16 @@ function shortId(v?: string | null) {
           </tbody>
         </table>
 
-        <div class="od-section-label">狀態歷程</div>
+        <div class="od-section-label">{{ t('orderModal.statusHistory') }}</div>
         <ul class="od-timeline">
-          <li v-if="!order.statusHistory?.length" class="od-empty">無狀態歷程</li>
+          <li v-if="!order.statusHistory?.length" class="od-empty">{{ t('orderModal.noHistory') }}</li>
           <li v-for="(h, i) in order.statusHistory" :key="i" class="od-tl-item">
             <span class="od-tl-dot" :class="`tl-${orderStatusMeta(h.newStatus).type}`"></span>
             <div class="od-tl-body">
               <div class="od-tl-head">
-                <n-tag :type="orderStatusMeta(h.newStatus).type" size="small" round>{{ orderStatusMeta(h.newStatus).label }}</n-tag>
-                <span v-if="h.oldStatus" class="od-tl-from">由「{{ orderStatusMeta(h.oldStatus).label }}」變更</span>
-                <span v-else class="od-tl-from">訂單建立</span>
+                <n-tag :type="orderStatusMeta(h.newStatus).type" size="small" round>{{ t(orderStatusMeta(h.newStatus).labelKey) }}</n-tag>
+                <span v-if="h.oldStatus" class="od-tl-from">{{ t('orderModal.changedFrom', { status: t(orderStatusMeta(h.oldStatus).labelKey) }) }}</span>
+                <span v-else class="od-tl-from">{{ t('orderModal.created') }}</span>
               </div>
               <div v-if="h.reason" class="od-tl-reason">{{ h.reason }}</div>
               <div class="od-tl-time">{{ formatOrderTime(h.createdAt) }}</div>

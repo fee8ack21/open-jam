@@ -1,10 +1,11 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { authApi } from '@/api';
+import i18n from '@/i18n';
 import { UserRole, UserStatus, type UserSummaryDto } from '@/api/auth-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
-function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFailed')): string {
   if (typeof err === 'string') return err;
   const problem = (err as { error?: { detail?: string; title?: string } })?.error
     ?? (err as { detail?: string; title?: string } | null | undefined);
@@ -37,7 +38,7 @@ export const useMemberListStore = defineStore('memberList', () => {
       items.value = res.data.items ?? [];
       totalCount.value = res.data.totalCount ?? items.value.length;
     } catch (err) {
-      error.value = messageOf(err, '載入會員列表失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.loadMembersFailed'));
     } finally {
       loading.value = false;
     }

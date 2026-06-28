@@ -1,13 +1,14 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { storeApi } from '@/api';
+import i18n from '@/i18n';
 import {
   StoreApplicationStatus,
   type StoreApplicationDto,
 } from '@/api/store-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
-function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFailed')): string {
   if (typeof err === 'string') return err;
   const problem = err as { detail?: string; title?: string } | null | undefined;
   return problem?.detail ?? problem?.title ?? fallback;
@@ -42,7 +43,7 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
         (a) => a.status === StoreApplicationStatus.Approved || a.status === StoreApplicationStatus.Rejected,
       );
     } catch (err) {
-      error.value = messageOf(err, '載入待審核申請失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.loadReviewFailed'));
     } finally {
       loading.value = false;
     }
@@ -56,7 +57,7 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '核准申請失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.approveFailed'));
       return false;
     }
   }
@@ -69,7 +70,7 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '駁回申請失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.rejectFailed'));
       return false;
     }
   }

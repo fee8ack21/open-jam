@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStoreListStore } from '@/stores/storeList'
 import { StoreStatus } from '@/api/store-service'
 
+const { t, locale } = useI18n()
 const router = useRouter()
 const message = useMessage()
 const store = useStoreListStore()
@@ -16,12 +18,12 @@ const busyId = ref<string | null>(null)
 
 // 商店狀態 → 顯示用標籤
 const STATUS = {
-  [StoreStatus.Active]: { label: '營運中', type: 'success' as const },
-  [StoreStatus.Suspended]: { label: '已停權', type: 'warning' as const },
-  [StoreStatus.Closed]: { label: '已關閉', type: 'default' as const },
+  [StoreStatus.Active]: { labelKey: 'storeStatus.active', type: 'success' as const },
+  [StoreStatus.Suspended]: { labelKey: 'storeStatus.suspended', type: 'warning' as const },
+  [StoreStatus.Closed]: { labelKey: 'storeStatus.closed', type: 'default' as const },
 }
 function statusOf(s?: StoreStatus) {
-  return (s != null && STATUS[s as keyof typeof STATUS]) || { label: '—', type: 'default' as const }
+  return (s != null && STATUS[s as keyof typeof STATUS]) || { labelKey: 'appStatus.unknown', type: 'default' as const }
 }
 
 // ── 篩選 / 排序狀態 ──────────────────────────────────────────
@@ -32,21 +34,21 @@ const statusFilter = ref<'all' | StoreStatus>('all')
 const sortKey = ref<'storeName' | 'storeSlug' | 'createdAt' | 'updatedAt'>('createdAt')
 const sortDesc = ref(true)
 
-const statusOptions = [
-  { label: '全部狀態', value: 'all' },
-  { label: '營運中', value: StoreStatus.Active },
-  { label: '已停權', value: StoreStatus.Suspended },
-  { label: '已關閉', value: StoreStatus.Closed },
-]
+const statusOptions = computed(() => [
+  { label: t('stores.filterAll'), value: 'all' },
+  { label: t('storeStatus.active'), value: StoreStatus.Active },
+  { label: t('storeStatus.suspended'), value: StoreStatus.Suspended },
+  { label: t('storeStatus.closed'), value: StoreStatus.Closed },
+])
 const columns = [
-  { key: 'storeName', label: '商店名稱', hideSm: false },
-  { key: 'storeSlug', label: '子網域', hideSm: false },
-  { key: 'createdAt', label: '建立時間', hideSm: true },
-  { key: 'updatedAt', label: '最後更新', hideSm: true },
+  { key: 'storeName', labelKey: 'review.colStoreName', hideSm: false },
+  { key: 'storeSlug', labelKey: 'review.colSubdomain', hideSm: false },
+  { key: 'createdAt', labelKey: 'orders.colCreatedAt', hideSm: true },
+  { key: 'updatedAt', labelKey: 'stores.colUpdatedAt', hideSm: true },
 ] as const
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
+  return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
 function initial(name?: string | null) {
   return (name?.charAt(0) || '?').toUpperCase()
@@ -99,8 +101,8 @@ async function onSuspend(id?: string) {
   busyId.value = id
   const ok = await store.suspend(id)
   busyId.value = null
-  if (ok) message.success('已停權商店。')
-  else message.error(store.error ?? '停權失敗')
+  if (ok) message.success(t('stores.msgSuspended'))
+  else message.error(store.error ?? t('stores.msgSuspendFailed'))
 }
 
 async function onUnsuspend(id?: string) {
@@ -108,8 +110,8 @@ async function onUnsuspend(id?: string) {
   busyId.value = id
   const ok = await store.unsuspend(id)
   busyId.value = null
-  if (ok) message.success('已解除停權，商店恢復營運。')
-  else message.error(store.error ?? '解除停權失敗')
+  if (ok) message.success(t('stores.msgUnsuspended'))
+  else message.error(store.error ?? t('stores.msgUnsuspendFailed'))
 }
 
 async function onClose(id?: string) {
@@ -117,20 +119,20 @@ async function onClose(id?: string) {
   busyId.value = id
   const ok = await store.close(id)
   busyId.value = null
-  if (ok) message.success('已關閉商店。')
-  else message.error(store.error ?? '關閉失敗')
+  if (ok) message.success(t('stores.msgClosed'))
+  else message.error(store.error ?? t('stores.msgCloseFailed'))
 }
 
 onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="商店列表">
+  <div :data-screen-label="t('route.stores')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">平台管理</p>
-        <h1 class="h-title">商店列表</h1>
-        <p class="h-sub">共 {{ items.length }} 間商店，其中 {{ store.activeCount }} 間營運中</p>
+        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
+        <h1 class="h-title">{{ t('route.stores') }}</h1>
+        <p class="h-sub">{{ t('stores.subStats', { total: items.length, active: store.activeCount }) }}</p>
       </div>
     </div>
 
@@ -139,16 +141,16 @@ onMounted(store.load)
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:2 1 220px;">
-            <label class="fb-label">關鍵字</label>
+            <label class="fb-label">{{ t('common.keyword') }}</label>
             <n-input
               v-model:value="keyword"
               clearable
-              placeholder="搜尋商店名稱、子網域或描述">
+              :placeholder="t('stores.searchPlaceholder')">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
           <div class="fb-field" style="flex:1 1 140px;">
-            <label class="fb-label">狀態</label>
+            <label class="fb-label">{{ t('common.status') }}</label>
             <n-select
               v-model:value="statusFilter"
               :options="statusOptions" />
@@ -166,15 +168,15 @@ onMounted(store.load)
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
                   <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ col.label }}</span>
+                    <span>{{ t(col.labelKey) }}</span>
                     <app-icon
                       v-if="sortKey === col.key"
                       :name="sortDesc ? 'chevronD' : 'chevronU'"
                       :size="15" />
                   </button>
                 </th>
-                <th class="hide-sm">狀態</th>
-                <th style="width:190px; text-align:right;">操作</th>
+                <th class="hide-sm">{{ t('common.status') }}</th>
+                <th style="width:190px; text-align:right;">{{ t('stores.colActions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -183,10 +185,10 @@ onMounted(store.load)
                 <td :colspan="columns.length + 2" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="home" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ items.length ? '沒有符合條件的商店' : '尚無商店' }}
+                    {{ items.length ? t('stores.emptyFilteredTitle') : t('stores.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ items.length ? '試試調整關鍵字或篩選條件。' : '核准開店申請後，商店會顯示於此。' }}
+                    {{ items.length ? t('stores.emptyFilteredDesc') : t('stores.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -197,7 +199,7 @@ onMounted(store.load)
                     <span v-else class="store-rank">{{ initial(s.storeName) }}</span>
                     <div style="min-width:0;">
                       <button class="store-name-button" @click="openProducts(s.id)">{{ s.storeName }}</button>
-                      <div class="pc-meta">{{ s.description || '尚未填寫商店描述' }}</div>
+                      <div class="pc-meta">{{ s.description || t('stores.noDescription') }}</div>
                     </div>
                   </div>
                 </td>
@@ -211,13 +213,13 @@ onMounted(store.load)
                   <span class="store-mono">{{ fmtDate(s.updatedAt) }}</span>
                 </td>
                 <td class="hide-sm">
-                  <n-tag :type="statusOf(s.status).type" size="small" round>{{ statusOf(s.status).label }}</n-tag>
+                  <n-tag :type="statusOf(s.status).type" size="small" round>{{ t(statusOf(s.status).labelKey) }}</n-tag>
                 </td>
                 <td>
                   <div class="row-actions store-actions">
                     <!-- 已關閉為終態，不提供操作 -->
                     <template v-if="s.status === StoreStatus.Closed">
-                      <span class="store-closed-hint">已關閉</span>
+                      <span class="store-closed-hint">{{ t('storeStatus.closed') }}</span>
                     </template>
                     <template v-else>
                       <!-- 停權 / 解除停權 -->
@@ -227,10 +229,10 @@ onMounted(store.load)
                         <template #trigger>
                           <n-button size="small" tertiary :disabled="busyId === s.id">
                             <template #icon><app-icon name="lock" :size="15" /></template>
-                            停權
+                            {{ t('stores.suspend') }}
                           </n-button>
                         </template>
-                        停權後該商店將暫停對外營業，可隨時解除。確定停權？
+                        {{ t('stores.suspendConfirm') }}
                       </n-popconfirm>
                       <n-button
                         v-else
@@ -240,7 +242,7 @@ onMounted(store.load)
                         :loading="busyId === s.id"
                         @click="onUnsuspend(s.id)">
                         <template #icon><app-icon name="refresh" :size="15" /></template>
-                        解除停權
+                        {{ t('stores.unsuspend') }}
                       </n-button>
 
                       <!-- 關閉（終態不可逆） -->
@@ -248,10 +250,10 @@ onMounted(store.load)
                         <template #trigger>
                           <n-button size="small" type="error" :disabled="busyId === s.id">
                             <template #icon><app-icon name="close" :size="15" /></template>
-                            關閉
+                            {{ t('stores.close') }}
                           </n-button>
                         </template>
-                        關閉後將永久終止此商店且無法復原，確定關閉？
+                        {{ t('stores.closeConfirm') }}
                       </n-popconfirm>
                     </template>
                   </div>

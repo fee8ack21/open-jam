@@ -6,6 +6,7 @@
    Pinia plugin (store.router).
    ============================================================ */
 import { defineStore } from 'pinia'
+import i18n from '@/i18n'
 import { MY_PRODUCTS, ORDERS, PURCHASES, WISHLIST, REVENUE, ME } from '@/data/products'
 import type { Product, ProductStatus, Order, Purchase, WishlistItem } from '@/data/products'
 
@@ -164,7 +165,7 @@ export const useDashboardStore = defineStore('dashboard', {
       const totalBytes = d.files.reduce((s, f) => s + (f.bytes || 0), 0)
       this.products.unshift({
         id, cat: d.cat, hue: d.coverHue, status: 'review',
-        title: d.title || '未命名作品', creator: ME.name, handle: ME.handle, avatar: ME.avatar,
+        title: d.title || i18n.global.t('upload.untitled'), creator: ME.name, handle: ME.handle, avatar: ME.avatar,
         price: d.free ? 0 : d.price, rating: 0, ratingCount: 0, sales: 0, revenue: 0, views: 0,
         tags: d.tags.slice(), formats: [...new Set(d.files.map(f => f.type))].slice(0, 3),
         totalSize: this.fmtBytes(totalBytes),

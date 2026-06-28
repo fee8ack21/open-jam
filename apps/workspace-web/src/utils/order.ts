@@ -3,6 +3,7 @@
    （對應 OrderService 的 OrderStatus 與最低貨幣單位金額）
    ============================================================ */
 import { OrderStatus } from '@/api/order-service'
+import i18n from '@/i18n'
 
 /** Stripe 零位小數貨幣：金額即為實際面額，不需除以 100。 */
 const ZERO_DECIMAL_CURRENCIES = new Set([
@@ -28,35 +29,39 @@ export function formatOrderAmount(minor?: number, currency?: string | null): str
 export type OrderStatusTagType = 'default' | 'info' | 'success' | 'warning' | 'error'
 
 export interface OrderStatusMeta {
-  label: string
+  /** i18n key under `orderStatus.*`；以 `t(labelKey)` 取得當前語系標籤。 */
+  labelKey: string
   type: OrderStatusTagType
 }
 
-/** 訂單狀態 → 中文標籤與標籤樣式。 */
+/** 訂單狀態 → i18n 標籤鍵與標籤樣式。 */
 export const ORDER_STATUS_META: Record<OrderStatus, OrderStatusMeta> = {
-  [OrderStatus.Pending]: { label: '待付款', type: 'warning' },
-  [OrderStatus.Paid]: { label: '已付款', type: 'info' },
-  [OrderStatus.Completed]: { label: '已完成', type: 'success' },
-  [OrderStatus.Cancelled]: { label: '已取消', type: 'default' },
-  [OrderStatus.Refunded]: { label: '已退款', type: 'error' },
+  [OrderStatus.Pending]: { labelKey: 'orderStatus.pending', type: 'warning' },
+  [OrderStatus.Paid]: { labelKey: 'orderStatus.paid', type: 'info' },
+  [OrderStatus.Completed]: { labelKey: 'orderStatus.completed', type: 'success' },
+  [OrderStatus.Cancelled]: { labelKey: 'orderStatus.cancelled', type: 'default' },
+  [OrderStatus.Refunded]: { labelKey: 'orderStatus.refunded', type: 'error' },
 }
 
 /** 取得訂單狀態的顯示資訊；未知狀態退回灰色標籤。 */
 export function orderStatusMeta(status?: OrderStatus): OrderStatusMeta {
-  return (status && ORDER_STATUS_META[status]) || { label: status ?? '—', type: 'default' }
+  return (status && ORDER_STATUS_META[status]) || { labelKey: 'orderStatus.unknown', type: 'default' }
 }
 
-/** 狀態篩選下拉選項（含「全部」＝ null）。 */
-export const ORDER_STATUS_OPTIONS: { label: string; value: OrderStatus | null }[] = [
-  { label: '全部', value: null },
-  { label: ORDER_STATUS_META[OrderStatus.Pending].label, value: OrderStatus.Pending },
-  { label: ORDER_STATUS_META[OrderStatus.Paid].label, value: OrderStatus.Paid },
-  { label: ORDER_STATUS_META[OrderStatus.Completed].label, value: OrderStatus.Completed },
-  { label: ORDER_STATUS_META[OrderStatus.Cancelled].label, value: OrderStatus.Cancelled },
-  { label: ORDER_STATUS_META[OrderStatus.Refunded].label, value: OrderStatus.Refunded },
-]
+/** 狀態篩選下拉選項（含「全部」＝ null）；標籤依當前語系產生。 */
+export function orderStatusOptions(): { label: string; value: OrderStatus | null }[] {
+  const t = i18n.global.t
+  return [
+    { label: t('orderStatus.all'), value: null },
+    { label: t('orderStatus.pending'), value: OrderStatus.Pending },
+    { label: t('orderStatus.paid'), value: OrderStatus.Paid },
+    { label: t('orderStatus.completed'), value: OrderStatus.Completed },
+    { label: t('orderStatus.cancelled'), value: OrderStatus.Cancelled },
+    { label: t('orderStatus.refunded'), value: OrderStatus.Refunded },
+  ]
+}
 
 /** ISO 時間字串 → 當地可讀日期時間；空值回傳「—」。 */
 export function formatOrderTime(iso?: string | null): string {
-  return iso ? new Date(iso).toLocaleString('zh-TW', { hour12: false }) : '—'
+  return iso ? new Date(iso).toLocaleString(i18n.global.locale.value, { hour12: false }) : '—'
 }

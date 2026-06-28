@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
@@ -8,19 +9,19 @@ import { useStoreReviewStore } from '@/stores/storeReview'
 import { useStoreListStore } from '@/stores/storeList'
 import { useMemberListStore } from '@/stores/memberList'
 
-/** 賣家 / 買家兩組導覽項目；countKey 對應 store 中的數量。 */
+/** 賣家 / 買家兩組導覽項目；labelKey 對應 i18n route.*，countKey 對應 store 中的數量。 */
 const NAV = {
   sell: [
-    { view: 'overview', label: '儀表板', icon: 'grid' },
-    { view: 'open-store', label: '開店', icon: 'rocket' },
-    { view: 'products', label: '商品管理', icon: 'box', countKey: 'products' },
-    { view: 'upload', label: '上架新作品', icon: 'upload' },
-    { view: 'orders', label: '訂單管理', icon: 'receipt' },
-    { view: 'store-settings', label: '商店設定', icon: 'gear' },
+    { view: 'overview', labelKey: 'route.overview', icon: 'grid' },
+    { view: 'open-store', labelKey: 'route.openStore', icon: 'rocket' },
+    { view: 'products', labelKey: 'route.products', icon: 'box', countKey: 'products' },
+    { view: 'upload', labelKey: 'route.upload', icon: 'upload' },
+    { view: 'orders', labelKey: 'route.orders', icon: 'receipt' },
+    { view: 'store-settings', labelKey: 'route.storeSettings', icon: 'gear' },
   ],
   buy: [
-    { view: 'purchases', label: '購買紀錄', icon: 'bag' },
-    { view: 'wishlist', label: 'Wishlist', icon: 'heart', countKey: 'wishlist' },
+    { view: 'purchases', labelKey: 'route.purchases', icon: 'bag' },
+    { view: 'wishlist', labelKey: 'route.wishlist', icon: 'heart', countKey: 'wishlist' },
   ],
 }
 
@@ -30,6 +31,7 @@ defineProps<{ open: boolean }>()
 const emit = defineEmits<{ navigate: [] }>()
 
 const route = useRoute()
+const { t } = useI18n()
 const store = useDashboardStore()
 const authStore = useAuthStore()
 const storeAppStore = useStoreApplicationStore()
@@ -79,8 +81,8 @@ function isActive(view: string) { return route.name === view }
     </div>
 
     <div v-if="isReady && !isAdmin" class="mode-switch">
-      <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><app-icon name="rocket" :size="15" /> 賣家</button>
-      <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><app-icon name="bag" :size="15" /> 買家</button>
+      <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><app-icon name="rocket" :size="15" /> {{ t('sidebar.modeSeller') }}</button>
+      <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><app-icon name="bag" :size="15" /> {{ t('sidebar.modeBuyer') }}</button>
     </div>
 
     <nav style="flex:1; overflow-y:auto;">
@@ -88,68 +90,68 @@ function isActive(view: string) { return route.name === view }
       <template v-if="!isReady" />
       <template v-else-if="isAdmin">
         <div class="nav-group">
-          <div class="nav-label">平台管理</div>
+          <div class="nav-label">{{ t('sidebar.platformAdmin') }}</div>
           <div class="nav-item" :class="{ on: isActive('admin-overview') }" @click="nav('admin-overview')">
             <span class="nav-ic"><app-icon name="grid" :size="19" /></span>
-            <span>儀表板</span>
+            <span>{{ t('route.adminOverview') }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('review') }" @click="nav('review')">
             <span class="nav-ic"><app-icon name="shield" :size="19" /></span>
-            <span>待審核商店</span>
+            <span>{{ t('route.review') }}</span>
             <span v-if="reviewStore.pendingCount" class="nav-count">{{ reviewStore.pendingCount }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('review-history') }" @click="nav('review-history')">
             <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
-            <span>審核紀錄</span>
+            <span>{{ t('route.reviewHistory') }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('stores') }" @click="nav('stores')">
             <span class="nav-ic"><app-icon name="home" :size="19" /></span>
-            <span>商店列表</span>
+            <span>{{ t('route.stores') }}</span>
             <span v-if="storeListStore.activeCount" class="nav-count">{{ storeListStore.activeCount }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('members') }" @click="nav('members')">
             <span class="nav-ic"><app-icon name="users" :size="19" /></span>
-            <span>會員列表</span>
+            <span>{{ t('route.members') }}</span>
             <span v-if="memberListStore.activeCount" class="nav-count">{{ memberListStore.activeCount }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('admin-products') }" @click="nav('admin-products')">
             <span class="nav-ic"><app-icon name="box" :size="19" /></span>
-            <span>商品列表</span>
+            <span>{{ t('route.adminProducts') }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('catalog-categories') }" @click="nav('catalog-categories')">
             <span class="nav-ic"><app-icon name="tag" :size="19" /></span>
-            <span>商品分類</span>
+            <span>{{ t('route.catalogCategories') }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('admin-orders') }" @click="nav('admin-orders')">
             <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
-            <span>訂單列表</span>
+            <span>{{ t('route.adminOrders') }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('resource-usage') }" @click="nav('resource-usage')">
             <span class="nav-ic"><app-icon name="layers" :size="19" /></span>
-            <span>資源用量</span>
+            <span>{{ t('route.resourceUsage') }}</span>
           </div>
           <div class="nav-item" :class="{ on: isActive('audit-log') }" @click="nav('audit-log')">
             <span class="nav-ic"><app-icon name="note" :size="19" /></span>
-            <span>稽核日誌</span>
+            <span>{{ t('route.auditLog') }}</span>
           </div>
         </div>
       </template>
       <template v-else-if="store.mode === 'sell'">
         <div class="nav-group">
-          <div class="nav-label">賣家工作室</div>
+          <div class="nav-label">{{ t('sidebar.sellerStudio') }}</div>
           <div v-for="it in navSell" :key="it.view" class="nav-item" :class="{ on: isActive(it.view) }" @click="nav(it.view)">
             <span class="nav-ic"><app-icon :name="it.icon" :size="19" /></span>
-            <span>{{ it.label }}</span>
+            <span>{{ t(it.labelKey) }}</span>
             <span v-if="count(it.countKey) != null" class="nav-count">{{ count(it.countKey) }}</span>
           </div>
         </div>
       </template>
       <template v-else>
         <div class="nav-group">
-          <div class="nav-label">我的收藏庫</div>
+          <div class="nav-label">{{ t('sidebar.myLibrary') }}</div>
           <div v-for="it in navBuy" :key="it.view" class="nav-item" :class="{ on: isActive(it.view) }" @click="nav(it.view)">
             <span class="nav-ic"><app-icon :name="it.icon" :size="19" /></span>
-            <span>{{ it.label }}</span>
+            <span>{{ t(it.labelKey) }}</span>
             <span v-if="count(it.countKey) != null" class="nav-count">{{ count(it.countKey) }}</span>
           </div>
         </div>

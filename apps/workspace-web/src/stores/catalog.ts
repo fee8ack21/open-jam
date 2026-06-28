@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { catalogApi } from '@/api';
+import i18n from '@/i18n';
 import {
   CatalogStatus,
   type CatalogSummaryDto,
@@ -9,7 +10,7 @@ import {
 } from '@/api/catalog-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
-function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFailed')): string {
   if (typeof err === 'string') return err;
   const problem = (err as { error?: { detail?: string; title?: string; errors?: Record<string, string[]> } })?.error
     ?? (err as { detail?: string; title?: string } | null | undefined);
@@ -84,7 +85,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       const res = await catalogApi.catalogs.listMine({ StoreId: storeId, Offset: 0, Limit: 100 });
       products.value = res.data.items ?? [];
     } catch (err) {
-      error.value = messageOf(err, '載入商品失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.loadCatalogFailed'));
     } finally {
       loading.value = false;
     }
@@ -102,7 +103,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       const res = await catalogApi.catalogs.listByStore(storeId, { Offset: 0, Limit: 100 });
       products.value = res.data.items ?? [];
     } catch (err) {
-      error.value = messageOf(err, '載入商店商品失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.loadStoreCatalogsFailed'));
     } finally {
       loading.value = false;
     }
@@ -117,7 +118,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       await loadByStore(storeId);
       return true;
     } catch (err) {
-      error.value = messageOf(err, '停權商品失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.suspendProductFailed'));
       return false;
     } finally {
       busyId.value = null;
@@ -133,7 +134,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       await loadByStore(storeId);
       return true;
     } catch (err) {
-      error.value = messageOf(err, '解除停權失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.unsuspendFailed'));
       return false;
     } finally {
       busyId.value = null;
@@ -149,7 +150,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       await load(storeId);
       return true;
     } catch (err) {
-      error.value = messageOf(err, '上架失敗；商品需先有可下載版本。');
+      error.value = messageOf(err, i18n.global.t('storeError.publishNeedVersion'));
       return false;
     } finally {
       busyId.value = null;
@@ -165,7 +166,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       await load(storeId);
       return true;
     } catch (err) {
-      error.value = messageOf(err, '下架失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.archiveFailed'));
       return false;
     } finally {
       busyId.value = null;
@@ -179,7 +180,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       headers: { 'Content-Type': file.type || 'application/octet-stream' },
       body: file,
     });
-    if (!res.ok) throw new Error(`檔案上傳失敗（${res.status}）：${file.name}`);
+    if (!res.ok) throw new Error(i18n.global.t('storeError.fileUploadFailed', { status: res.status, name: file.name }));
   }
 
   /**
@@ -212,7 +213,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       });
       const catalogId = created.data.id!;
 
-      const version = await catalogApi.catalogVersions.create(catalogId, { version: '1.0.0', releaseNote: '首次發行。' });
+      const version = await catalogApi.catalogVersions.create(catalogId, { version: '1.0.0', releaseNote: i18n.global.t('storeError.firstRelease') });
       const versionId = version.data.id!;
 
       for (const file of input.files) {
@@ -228,7 +229,7 @@ export const useCatalogStore = defineStore('catalog', () => {
 
       return created.data;
     } catch (err) {
-      error.value = messageOf(err, '建立商品失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.createProductFailed'));
       return null;
     } finally {
       creating.value = false;

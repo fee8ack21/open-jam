@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useMessage } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { catalogApi } from '@/api'
 import type { CatalogCategoryDto } from '@/api/catalog-service'
+
+const { t } = useI18n()
 
 const ROOT_PARENT = '__root__'
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -26,7 +29,7 @@ const form = reactive({
   sortOrder: 0,
 })
 
-function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。') {
+function messageOf(err: unknown, fallback = t('catalogCategories.msgActionFailed')) {
   const response = err as { error?: { detail?: string; title?: string; errors?: Record<string, string[]> } } | null
   const problem = response?.error
   const firstValidation = problem?.errors ? Object.values(problem.errors).flat()[0] : null
@@ -58,7 +61,7 @@ async function load() {
     const res = await catalogApi.catalogCategories.list()
     categories.value = res.data ?? []
   } catch (err) {
-    message.error(messageOf(err, '載入商品分類失敗。'))
+    message.error(messageOf(err, t('catalogCategories.msgLoadFailed')))
     categories.value = []
   } finally {
     loading.value = false
@@ -91,18 +94,18 @@ const rows = computed<CategoryRow[]>(() => {
 
 const currentParent = computed(() => categories.value.find((category) => category.id === activeParentId.value) ?? null)
 const isChildList = computed(() => currentParent.value != null)
-const emptyText = computed(() => isChildList.value ? '尚未建立子分類' : '尚未建立商品分類')
-const emptyHint = computed(() => isChildList.value ? '在此頂層分類底下新增第一個子分類。' : '新增頂層分類後，可再建立子分類。')
+const emptyText = computed(() => isChildList.value ? t('catalogCategories.emptyChild') : t('catalogCategories.emptyRoot'))
+const emptyHint = computed(() => isChildList.value ? t('catalogCategories.emptyChildHint') : t('catalogCategories.emptyRootHint'))
 
 const parentOptions = computed(() => {
   const blocked = descendantsOf(editing.value?.id)
   return [
-    { label: '頂層分類', value: ROOT_PARENT },
+    { label: t('catalogCategories.rootCategory'), value: ROOT_PARENT },
     ...categories.value
       .filter((category) => category.id && !blocked.has(category.id))
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || (a.name ?? '').localeCompare(b.name ?? '', 'zh-Hant'))
       .map((category) => ({
-        label: `${category.parentId ? '　' : ''}${category.name ?? '未命名分類'}`,
+        label: `${category.parentId ? '　' : ''}${category.name ?? t('catalogCategories.unnamed')}`,
         value: category.id!,
       })),
   ]
@@ -120,10 +123,10 @@ function showChildCategories(category: CatalogCategoryDto) {
 function validateForm() {
   const name = form.name.trim()
   const slug = form.slug.trim().toLowerCase()
-  if (!name) return '請輸入分類名稱。'
-  if (name.length > 100) return '分類名稱不可超過 100 字。'
-  if (!slug) return '請輸入分類代稱。'
-  if (slug.length < 3 || slug.length > 100 || !SLUG_RE.test(slug)) return '分類代稱需為 3–100 字小寫英數字與連字號。'
+  if (!name) return t('catalogCategories.valNameRequired')
+  if (name.length > 100) return t('catalogCategories.valNameTooLong')
+  if (!slug) return t('catalogCategories.valSlugRequired')
+  if (slug.length < 3 || slug.length > 100 || !SLUG_RE.test(slug)) return t('catalogCategories.valSlugInvalid')
   return null
 }
 
@@ -145,15 +148,15 @@ async function save() {
   try {
     if (editing.value?.id) {
       await catalogApi.catalogCategories.update(editing.value.id, payload)
-      message.success('已更新商品分類。')
+      message.success(t('catalogCategories.msgUpdated'))
     } else {
       await catalogApi.catalogCategories.create(payload)
-      message.success('已建立商品分類。')
+      message.success(t('catalogCategories.msgCreated'))
     }
     modalOpen.value = false
     await load()
   } catch (err) {
-    message.error(messageOf(err, editing.value ? '更新商品分類失敗。' : '建立商品分類失敗。'))
+    message.error(messageOf(err, editing.value ? t('catalogCategories.msgUpdateFailed') : t('catalogCategories.msgCreateFailed')))
   } finally {
     saving.value = false
   }
@@ -164,10 +167,10 @@ async function remove(category: CatalogCategoryDto) {
   deletingId.value = category.id
   try {
     await catalogApi.catalogCategories.delete(category.id)
-    message.success('已刪除商品分類。')
+    message.success(t('catalogCategories.msgDeleted'))
     await load()
   } catch (err) {
-    message.error(messageOf(err, '此分類仍有子分類或商品引用，無法刪除。'))
+    message.error(messageOf(err, t('catalogCategories.msgDeleteBlocked')))
   } finally {
     deletingId.value = null
   }
@@ -177,21 +180,21 @@ onMounted(load)
 </script>
 
 <template>
-  <div data-screen-label="商品分類">
+  <div :data-screen-label="t('route.catalogCategories')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">平台管理</p>
-        <h1 class="h-title">{{ isChildList ? currentParent?.name : '商品分類' }}</h1>
-        <p class="h-sub">{{ isChildList ? '管理此頂層分類底下的子分類' : `共 ${categories.length} 個平台分類，用於市集瀏覽與商品歸類` }}</p>
+        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
+        <h1 class="h-title">{{ isChildList ? currentParent?.name : t('route.catalogCategories') }}</h1>
+        <p class="h-sub">{{ isChildList ? t('catalogCategories.childSub') : t('catalogCategories.rootSub', { count: categories.length }) }}</p>
       </div>
       <n-button type="primary" size="large" @click="openCreate(activeParentId)">
         <template #icon><app-icon name="plus" :size="16" /></template>
-        {{ isChildList ? '新增子分類' : '新增分類' }}
+        {{ isChildList ? t('catalogCategories.newChild') : t('catalogCategories.newCategory') }}
       </n-button>
     </div>
 
     <div class="category-breadcrumb">
-      <button :class="{ on: !isChildList }" @click="showRootCategories">商品分類</button>
+      <button :class="{ on: !isChildList }" @click="showRootCategories">{{ t('route.catalogCategories') }}</button>
       <template v-if="isChildList">
         <span>/</span>
         <strong>{{ currentParent?.name }}</strong>
@@ -203,10 +206,10 @@ onMounted(load)
         <table class="tbl category-table">
           <thead>
             <tr>
-              <th>分類</th>
+              <th>{{ t('catalogCategories.colCategory') }}</th>
               <th class="hide-sm">Slug</th>
-              <th class="num hide-sm">排序</th>
-              <th style="width:170px; text-align:right;">操作</th>
+              <th class="num hide-sm">{{ t('catalogCategories.colSort') }}</th>
+              <th style="width:170px; text-align:right;">{{ t('catalogCategories.colActions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -231,7 +234,7 @@ onMounted(load)
                       {{ category.name }}
                     </button>
                     <div v-else class="pc-title">{{ category.name }}</div>
-                    <div class="pc-meta">{{ category.parentId ? '子分類' : '頂層分類' }}</div>
+                    <div class="pc-meta">{{ category.parentId ? t('catalogCategories.childCategory') : t('catalogCategories.rootCategory') }}</div>
                   </div>
                 </div>
               </td>
@@ -239,12 +242,12 @@ onMounted(load)
               <td class="num hide-sm">{{ category.sortOrder ?? 0 }}</td>
               <td>
                 <div class="row-actions">
-                  <button class="ic-act" title="編輯" @click="openEdit(category)"><app-icon name="edit" :size="17" /></button>
+                  <button class="ic-act" :title="t('common.edit')" @click="openEdit(category)"><app-icon name="edit" :size="17" /></button>
                   <n-popconfirm @positive-click="remove(category)">
                     <template #trigger>
-                      <button class="ic-act danger" title="刪除" :disabled="deletingId === category.id"><app-icon name="trash" :size="17" /></button>
+                      <button class="ic-act danger" :title="t('common.delete')" :disabled="deletingId === category.id"><app-icon name="trash" :size="17" /></button>
                     </template>
-                    刪除後無法復原；若仍有子分類或商品引用，後端會拒絕刪除。
+                    {{ t('catalogCategories.deleteConfirm') }}
                   </n-popconfirm>
                 </div>
               </td>
@@ -254,30 +257,30 @@ onMounted(load)
       </div>
     </n-spin>
 
-    <n-modal v-model:show="modalOpen" preset="card" :title="editing ? '編輯分類' : '新增分類'" style="max-width:520px" to=".oj-root">
+    <n-modal v-model:show="modalOpen" preset="card" :title="editing ? t('catalogCategories.editTitle') : t('catalogCategories.createTitle')" style="max-width:520px" to=".oj-root">
       <div style="display:grid; gap:16px;">
         <div>
-          <label class="field-label">分類名稱</label>
-          <n-input v-model:value="form.name" maxlength="100" show-count placeholder="例：音樂與音效" />
+          <label class="field-label">{{ t('catalogCategories.nameLabel') }}</label>
+          <n-input v-model:value="form.name" maxlength="100" show-count :placeholder="t('catalogCategories.namePlaceholder')" />
         </div>
         <div>
-          <label class="field-label">分類代稱</label>
-          <n-input v-model:value="form.slug" placeholder="例：audio" />
-          <div style="font-size:12px; color:var(--text-faint); margin-top:6px;">僅允許小寫英數字與連字號，且全平台唯一。</div>
+          <label class="field-label">{{ t('catalogCategories.slugLabel') }}</label>
+          <n-input v-model:value="form.slug" :placeholder="t('catalogCategories.slugPlaceholder')" />
+          <div style="font-size:12px; color:var(--text-faint); margin-top:6px;">{{ t('catalogCategories.slugHint') }}</div>
         </div>
         <div>
-          <label class="field-label">上層分類</label>
+          <label class="field-label">{{ t('catalogCategories.parentLabel') }}</label>
           <n-select v-model:value="form.parentKey" :options="parentOptions" />
         </div>
         <div>
-          <label class="field-label">同層排序</label>
+          <label class="field-label">{{ t('catalogCategories.sortLabel') }}</label>
           <n-input-number v-model:value="form.sortOrder" style="width:100%;" :min="0" :step="1" />
         </div>
       </div>
       <template #footer>
         <div style="display:flex; justify-content:flex-end; gap:10px;">
-          <n-button :disabled="saving" @click="modalOpen = false">取消</n-button>
-          <n-button type="primary" :loading="saving" @click="save">{{ editing ? '儲存變更' : '建立分類' }}</n-button>
+          <n-button :disabled="saving" @click="modalOpen = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" :loading="saving" @click="save">{{ editing ? t('catalogCategories.save') : t('catalogCategories.create') }}</n-button>
         </div>
       </template>
     </n-modal>

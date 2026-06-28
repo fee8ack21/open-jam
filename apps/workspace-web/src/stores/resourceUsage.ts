@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { storageApi } from '@/api';
+import i18n from '@/i18n';
 
 /** 各創作者的儲存用量列。 */
 export interface CreatorUsageRow {
@@ -13,7 +14,7 @@ export interface CreatorUsageRow {
   bytes: number;
 }
 
-function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFailed')): string {
   if (typeof err === 'string') return err;
   const problem = (err as { error?: { detail?: string; title?: string } })?.error
     ?? (err as { detail?: string; title?: string } | null | undefined);
@@ -75,12 +76,12 @@ export const useResourceUsageStore = defineStore('resourceUsage', () => {
       orphanBytes.value = d.orphanBytes ?? 0;
       byCreator.value = (d.byCreator ?? []).map((c) => ({
         creatorId: c.creatorId ?? '',
-        label: '創作者 ' + (c.creatorId ?? '').slice(0, 8),
+        label: i18n.global.t('storeError.creatorLabel', { id: (c.creatorId ?? '').slice(0, 8) }),
         fileCount: c.fileCount ?? 0,
         bytes: c.bytes ?? 0,
       }));
     } catch (err) {
-      error.value = messageOf(err, '載入資源用量失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.loadUsageFailed'));
     } finally {
       loading.value = false;
     }

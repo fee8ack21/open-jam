@@ -1,10 +1,11 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { storeApi } from '@/api';
+import i18n from '@/i18n';
 import { StoreStatus, type StoreDto } from '@/api/store-service';
 
 /** 由後端 RFC 9457 Problem Details 取出可顯示的錯誤訊息。 */
-function messageOf(err: unknown, fallback = '操作失敗，請稍後再試。'): string {
+function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFailed')): string {
   if (typeof err === 'string') return err;
   const problem = (err as { error?: { detail?: string; title?: string } })?.error
     ?? (err as { detail?: string; title?: string } | null | undefined);
@@ -36,7 +37,7 @@ export const useStoreListStore = defineStore('storeList', () => {
       items.value = res.data.items ?? [];
       totalCount.value = res.data.totalCount ?? items.value.length;
     } catch (err) {
-      error.value = messageOf(err, '載入商店列表失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.loadStoresFailed'));
     } finally {
       loading.value = false;
     }
@@ -50,7 +51,7 @@ export const useStoreListStore = defineStore('storeList', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '停權商店失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.suspendStoreFailed'));
       return false;
     }
   }
@@ -63,7 +64,7 @@ export const useStoreListStore = defineStore('storeList', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '解除停權失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.unsuspendFailed'));
       return false;
     }
   }
@@ -76,7 +77,7 @@ export const useStoreListStore = defineStore('storeList', () => {
       await load();
       return true;
     } catch (err) {
-      error.value = messageOf(err, '關閉商店失敗。');
+      error.value = messageOf(err, i18n.global.t('storeError.closeStoreFailed'));
       return false;
     }
   }

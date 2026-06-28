@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
-import { JFmt as F, STATUS_LABEL } from '@/utils/format'
+import { JFmt as F, statusLabel } from '@/utils/format'
 import { ME as me, REVENUE as revenue } from '@/data/products'
 
+const { t } = useI18n()
 const store = useDashboardStore()
 const g = store
 
@@ -18,20 +20,18 @@ const storeName = computed(() => apiStoreName.value ?? me.storeName)
 
 const catMax = computed(() => Math.max(...revenue.byCategory.map(c => c.value)) || 1)
 const kpis = computed(() => [
-  { key: 'rev', label: '本月淨收入', val: F.money(g.monthRevenue), ic: 'wallet', bg: 'var(--c-violet)', delta: g.monthDelta, up: g.monthDelta >= 0 },
-  { key: 'sales', label: '總銷售件數', val: g.totalSales.toLocaleString('en-US'), ic: 'bag', bg: 'var(--c-pink)', delta: 12, up: true },
-  { key: 'payout', label: '待結算金額', val: F.money(g.pendingPayout), ic: 'dollar', bg: 'var(--c-orange)', delta: null, sub: '6/05 撥款' },
-  { key: 'views', label: '作品總瀏覽', val: F.compact(g.totalViews), ic: 'eye', bg: 'var(--c-cyan)', delta: 8, up: true },
+  { key: 'rev', label: t('overview.kpiRevenue'), val: F.money(g.monthRevenue), ic: 'wallet', bg: 'var(--c-violet)', delta: g.monthDelta, up: g.monthDelta >= 0 },
+  { key: 'sales', label: t('overview.kpiSales'), val: g.totalSales.toLocaleString('en-US'), ic: 'bag', bg: 'var(--c-pink)', delta: 12, up: true },
+  { key: 'payout', label: t('overview.kpiPayout'), val: F.money(g.pendingPayout), ic: 'dollar', bg: 'var(--c-orange)', delta: null, sub: t('overview.payoutDate') },
+  { key: 'views', label: t('overview.kpiViews'), val: F.compact(g.totalViews), ic: 'eye', bg: 'var(--c-cyan)', delta: 8, up: true },
 ])
-
-function statusLabel(s: string) { return STATUS_LABEL[s] || s }
 </script>
 
 <template>
-  <div data-screen-label="儀表板">
+  <div :data-screen-label="t('route.overview')">
     <div class="page-intro">
-      <p class="h-eyebrow">總覽 · {{ storeName }}</p>
-      <p class="h-sub">本月收入較上月成長 {{ g.monthDelta }}%，有 {{ g.statusCount('review') }} 件作品正在審核中。</p>
+      <p class="h-eyebrow">{{ t('overview.eyebrow', { store: storeName }) }}</p>
+      <p class="h-sub">{{ t('overview.sub', { delta: g.monthDelta, count: g.statusCount('review') }) }}</p>
     </div>
 
     <!-- KPI -->
@@ -56,18 +56,18 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
       <div class="card-pad">
         <div class="card-head">
           <div>
-            <h3>收入趨勢</h3>
-            <div class="ch-sub">過去 8 個月・淨收入</div>
+            <h3>{{ t('overview.revenueTrend') }}</h3>
+            <div class="ch-sub">{{ t('overview.revenueTrendSub') }}</div>
           </div>
           <div class="chart-legend">
-            <span class="lg"><i style="background:var(--c-violet)"></i>淨收入</span>
+            <span class="lg"><i style="background:var(--c-violet)"></i>{{ t('overview.netRevenue') }}</span>
           </div>
         </div>
         <trend-chart :data="revenue.monthly" :height="232" />
       </div>
 
       <div class="card-pad">
-        <div class="card-head"><h3>分類佔比</h3></div>
+        <div class="card-head"><h3>{{ t('overview.categorySplit') }}</h3></div>
         <div class="bars">
           <div v-for="c in revenue.byCategory" :key="c.label" class="bar-row">
             <span class="bl">{{ c.label }}</span>
@@ -77,11 +77,11 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
         </div>
         <div style="margin-top:22px; padding-top:18px; border-top:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
           <div>
-            <div class="kpi-label" style="margin:0">轉換率</div>
+            <div class="kpi-label" style="margin:0">{{ t('overview.convRate') }}</div>
             <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ g.convRate }}%</div>
           </div>
           <div style="text-align:right;">
-            <div class="kpi-label" style="margin:0">粉絲</div>
+            <div class="kpi-label" style="margin:0">{{ t('overview.followers') }}</div>
             <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ F.compact(me.followers) }}</div>
           </div>
         </div>
@@ -92,8 +92,8 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
     <div class="dash-grid cols-2">
       <div class="card-pad">
         <div class="card-head">
-          <h3>熱銷作品</h3>
-          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('products')">查看全部 <app-icon name="chevron" :size="13" /></button>
+          <h3>{{ t('overview.topProducts') }}</h3>
+          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('products')">{{ t('overview.viewAll') }} <app-icon name="chevron" :size="13" /></button>
         </div>
         <div class="list-rows">
           <div v-for="(p,i) in g.topProducts" :key="p.id" class="lrow">
@@ -101,7 +101,7 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
             <product-thumb :product="p" :glyph-size="20" :show-cat="false" hide-label />
             <div class="lr-body">
               <div class="lr-title">{{ p.title }}</div>
-              <div class="lr-meta">{{ p.sales.toLocaleString('en-US') }} 次售出 · {{ F.compact(p.views) }} 瀏覽</div>
+              <div class="lr-meta">{{ t('overview.salesViews', { sales: p.sales.toLocaleString('en-US'), views: F.compact(p.views) }) }}</div>
             </div>
             <div class="lr-right">
               <div class="lr-amount">{{ F.money(p.revenue) }}</div>
@@ -113,8 +113,8 @@ function statusLabel(s: string) { return STATUS_LABEL[s] || s }
 
       <div class="card-pad">
         <div class="card-head">
-          <h3>最新訂單</h3>
-          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('orders')">查看全部 <app-icon name="chevron" :size="13" /></button>
+          <h3>{{ t('overview.recentOrders') }}</h3>
+          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('orders')">{{ t('overview.viewAll') }} <app-icon name="chevron" :size="13" /></button>
         </div>
         <div class="list-rows">
           <div v-for="o in g.recentOrders" :key="o.id" class="lrow">

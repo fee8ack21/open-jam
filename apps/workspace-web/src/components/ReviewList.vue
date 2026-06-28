@@ -4,9 +4,11 @@
    讀公開端點 catalogReviews.list；評論者匿名呈現。
    ============================================================ */
 import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { catalogApi } from '@/api'
 import type { CatalogReviewDto } from '@/api/catalog-service'
 
+const { t, locale } = useI18n()
 const props = defineProps<{ catalogId: string }>()
 const PAGE = 10
 
@@ -36,7 +38,7 @@ async function load(append = false) {
   }
 }
 
-const fmtDate = (v?: string | null) => (v ? new Date(v).toLocaleDateString('zh-TW') : '')
+const fmtDate = (v?: string | null) => (v ? new Date(v).toLocaleDateString(locale.value) : '')
 const hasMore = () => items.value.length < count.value
 
 // 切換商品時重新載入
@@ -50,13 +52,13 @@ onMounted(() => load())
       <div class="rl-avg">{{ count ? average.toFixed(1) : '—' }}</div>
       <div>
         <stars :value="average" :count="count" :size="16" />
-        <div class="rl-count">{{ count }} 則評價</div>
+        <div class="rl-count">{{ t('reviewList.count', { count }) }}</div>
       </div>
     </div>
 
     <div v-if="loaded && !count" class="rl-empty">
       <app-icon name="star" :size="26" style="opacity:.4" />
-      <p>這件作品還沒有買家評價。</p>
+      <p>{{ t('reviewList.empty') }}</p>
     </div>
 
     <div v-else class="rl-items">
@@ -66,11 +68,11 @@ onMounted(() => load())
           <span class="rl-date">{{ fmtDate(r.createdAt) }}</span>
         </div>
         <p v-if="r.comment" class="rl-comment">{{ r.comment }}</p>
-        <p v-else class="rl-nocomment">（未留言）</p>
+        <p v-else class="rl-nocomment">{{ t('reviewList.noComment') }}</p>
       </div>
 
       <button v-if="hasMore()" type="button" class="rl-more" :disabled="loading" @click="load(true)">
-        載入更多評價
+        {{ t('reviewList.loadMore') }}
       </button>
     </div>
   </div>

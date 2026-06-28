@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStoreReviewStore } from '@/stores/storeReview'
 import { StoreApplicationStatus } from '@/api/store-service'
 
+const { t, locale } = useI18n()
 const store = useStoreReviewStore()
 const { history, loading } = storeToRefs(store)
 
 // 審核結果 → 顯示用標籤
 const RESULT = {
-  [StoreApplicationStatus.Approved]: { label: '已核准', type: 'success' as const },
-  [StoreApplicationStatus.Rejected]: { label: '已駁回', type: 'error' as const },
+  [StoreApplicationStatus.Approved]: { labelKey: 'appStatus.approved', type: 'success' as const },
+  [StoreApplicationStatus.Rejected]: { labelKey: 'appStatus.rejected', type: 'error' as const },
 }
 function resultOf(s?: StoreApplicationStatus) {
-  return (s != null && RESULT[s as keyof typeof RESULT]) || { label: '—', type: 'default' as const }
+  return (s != null && RESULT[s as keyof typeof RESULT]) || { labelKey: 'appStatus.unknown', type: 'default' as const }
 }
 
 // ── 篩選 / 排序狀態 ──────────────────────────────────────────
@@ -24,21 +26,21 @@ const statusFilter = ref<'all' | StoreApplicationStatus>('all')
 const sortKey = ref<'reviewedAt' | 'createdAt' | 'storeName' | 'storeSlug' | 'email'>('reviewedAt')
 const sortDesc = ref(true)
 
-const statusOptions = [
-  { label: '全部結果', value: 'all' },
-  { label: '已核准', value: StoreApplicationStatus.Approved },
-  { label: '已駁回', value: StoreApplicationStatus.Rejected },
-]
+const statusOptions = computed(() => [
+  { label: t('reviewHistory.filterAll'), value: 'all' },
+  { label: t('appStatus.approved'), value: StoreApplicationStatus.Approved },
+  { label: t('appStatus.rejected'), value: StoreApplicationStatus.Rejected },
+])
 const columns = [
-  { key: 'storeName', label: '商店名稱', hideSm: false },
-  { key: 'storeSlug', label: '子網域', hideSm: false },
-  { key: 'email', label: '申請人 Email', hideSm: true },
-  { key: 'createdAt', label: '申請時間', hideSm: true },
-  { key: 'reviewedAt', label: '審核時間', hideSm: true },
+  { key: 'storeName', labelKey: 'review.colStoreName', hideSm: false },
+  { key: 'storeSlug', labelKey: 'review.colSubdomain', hideSm: false },
+  { key: 'email', labelKey: 'review.colEmail', hideSm: true },
+  { key: 'createdAt', labelKey: 'reviewHistory.colAppliedAt', hideSm: true },
+  { key: 'reviewedAt', labelKey: 'reviewHistory.colReviewedAt', hideSm: true },
 ] as const
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
+  return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
 function initial(email?: string | null) {
   return (email?.charAt(0) || '?').toUpperCase()
@@ -84,12 +86,12 @@ onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="審核紀錄">
+  <div :data-screen-label="t('route.reviewHistory')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">平台管理</p>
-        <h1 class="h-title">審核紀錄</h1>
-        <p class="h-sub">共 {{ history.length }} 筆已審核申請</p>
+        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
+        <h1 class="h-title">{{ t('route.reviewHistory') }}</h1>
+        <p class="h-sub">{{ t('reviewHistory.subStats', { count: history.length }) }}</p>
       </div>
     </div>
 
@@ -98,16 +100,16 @@ onMounted(store.load)
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:2 1 220px;">
-            <label class="fb-label">關鍵字</label>
+            <label class="fb-label">{{ t('common.keyword') }}</label>
             <n-input
               v-model:value="keyword"
               clearable
-              placeholder="搜尋商店名稱、子網域或信箱">
+              :placeholder="t('reviewHistory.searchPlaceholder')">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
           <div class="fb-field" style="flex:1 1 140px;">
-            <label class="fb-label">審核結果</label>
+            <label class="fb-label">{{ t('reviewHistory.resultLabel') }}</label>
             <n-select
               v-model:value="statusFilter"
               :options="statusOptions" />
@@ -125,14 +127,14 @@ onMounted(store.load)
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
                   <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ col.label }}</span>
+                    <span>{{ t(col.labelKey) }}</span>
                     <app-icon
                       v-if="sortKey === col.key"
                       :name="sortDesc ? 'chevronD' : 'chevronU'"
                       :size="15" />
                   </button>
                 </th>
-                <th style="width:120px; text-align:right;">結果</th>
+                <th style="width:120px; text-align:right;">{{ t('reviewHistory.colResult') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -141,10 +143,10 @@ onMounted(store.load)
                 <td :colspan="columns.length + 1" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="receipt" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ history.length ? '沒有符合條件的紀錄' : '尚無審核紀錄' }}
+                    {{ history.length ? t('reviewHistory.emptyFilteredTitle') : t('reviewHistory.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ history.length ? '試試調整關鍵字或篩選條件。' : '完成核准／駁回後，紀錄會顯示於此。' }}
+                    {{ history.length ? t('reviewHistory.emptyFilteredDesc') : t('reviewHistory.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -154,7 +156,7 @@ onMounted(store.load)
                     <span class="history-rank">{{ initial(a.email) }}</span>
                     <div style="min-width:0;">
                       <div class="pc-title">{{ a.storeName }}</div>
-                      <div class="pc-meta">{{ a.reviewComment ? `駁回原因：${a.reviewComment}` : '審核完成' }}</div>
+                      <div class="pc-meta">{{ a.reviewComment ? t('reviewHistory.rejectReasonPrefix', { reason: a.reviewComment }) : t('reviewHistory.reviewed') }}</div>
                     </div>
                   </div>
                 </td>
@@ -171,7 +173,7 @@ onMounted(store.load)
                   <span class="history-mono">{{ fmtDate(a.reviewedAt) }}</span>
                 </td>
                 <td style="text-align:right;">
-                  <n-tag :type="resultOf(a.status).type" size="small" round>{{ resultOf(a.status).label }}</n-tag>
+                  <n-tag :type="resultOf(a.status).type" size="small" round>{{ t(resultOf(a.status).labelKey) }}</n-tag>
                 </td>
               </tr>
             </tbody>

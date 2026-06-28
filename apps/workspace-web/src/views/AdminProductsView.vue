@@ -1,21 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useAdminCatalogStore } from '@/stores/adminCatalogs'
 import { CatalogStatus, type CatalogSummaryDto } from '@/api/catalog-service'
 
+const { t, locale } = useI18n()
 const store = useAdminCatalogStore()
 const { items, loading } = storeToRefs(store)
 
 // 商品狀態 → 顯示用標籤
 const STATUS = {
-  [CatalogStatus.Published]: { label: '已發佈', type: 'success' as const },
-  [CatalogStatus.Draft]:     { label: '草稿',   type: 'default' as const },
-  [CatalogStatus.Archived]:  { label: '已封存', type: 'warning' as const },
-  [CatalogStatus.Suspended]: { label: '已停權', type: 'error' as const },
+  [CatalogStatus.Published]: { labelKey: 'storeProducts.statusPublished', type: 'success' as const },
+  [CatalogStatus.Draft]:     { labelKey: 'storeProducts.statusDraft',     type: 'default' as const },
+  [CatalogStatus.Archived]:  { labelKey: 'storeProducts.statusArchived',  type: 'warning' as const },
+  [CatalogStatus.Suspended]: { labelKey: 'storeProducts.statusSuspended', type: 'error' as const },
 }
 function statusOf(s?: CatalogStatus) {
-  return (s != null && STATUS[s]) || { label: '—', type: 'default' as const }
+  return (s != null && STATUS[s]) || { labelKey: 'catalogStatus.unknown', type: 'default' as const }
 }
 
 // ── 篩選 / 排序狀態 ──────────────────────────────────────────
@@ -25,24 +27,24 @@ const statusFilter = ref<'all' | CatalogStatus>('all')
 const sortKey = ref<'name' | 'price' | 'publishedAt'>('publishedAt')
 const sortDesc = ref(true)
 
-const statusOptions = [
-  { label: '全部狀態', value: 'all' },
-  { label: '已發佈', value: CatalogStatus.Published },
-  { label: '草稿', value: CatalogStatus.Draft },
-  { label: '已封存', value: CatalogStatus.Archived },
-  { label: '已停權', value: CatalogStatus.Suspended },
-]
+const statusOptions = computed(() => [
+  { label: t('stores.filterAll'), value: 'all' },
+  { label: t('storeProducts.statusPublished'), value: CatalogStatus.Published },
+  { label: t('storeProducts.statusDraft'), value: CatalogStatus.Draft },
+  { label: t('storeProducts.statusArchived'), value: CatalogStatus.Archived },
+  { label: t('storeProducts.statusSuspended'), value: CatalogStatus.Suspended },
+])
 const columns = [
-  { key: 'name', label: '商品', hideSm: false, num: false },
-  { key: 'price', label: '售價', hideSm: true, num: true },
-  { key: 'publishedAt', label: '上架時間', hideSm: true, num: true },
+  { key: 'name', labelKey: 'products.colWork', hideSm: false, num: false },
+  { key: 'price', labelKey: 'products.colPrice', hideSm: true, num: true },
+  { key: 'publishedAt', labelKey: 'products.colPublishedAt', hideSm: true, num: true },
 ] as const
 
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleDateString('zh-TW') : '—'
+  return v ? new Date(v).toLocaleDateString(locale.value) : '—'
 }
 function fmtPrice(p?: number) {
-  return p === 0 ? '免費' : '$' + (p ?? 0).toLocaleString('en-US')
+  return p === 0 ? t('common.free') : '$' + (p ?? 0).toLocaleString('en-US')
 }
 function shortId(id?: string | null) {
   return id ? id.slice(0, 8) : '—'
@@ -99,12 +101,12 @@ onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="商品列表">
+  <div :data-screen-label="t('route.adminProducts')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">平台管理</p>
-        <h1 class="h-title">商品列表</h1>
-        <p class="h-sub">共 {{ items.length }} 件商品，其中 {{ store.publishedCount }} 件已發佈</p>
+        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
+        <h1 class="h-title">{{ t('route.adminProducts') }}</h1>
+        <p class="h-sub">{{ t('storeProducts.subStats', { total: items.length, published: store.publishedCount }) }}</p>
       </div>
     </div>
 
@@ -113,16 +115,16 @@ onMounted(store.load)
       <div class="filter-bar">
         <div class="fb-group">
           <div class="fb-field" style="flex:2 1 220px;">
-            <label class="fb-label">關鍵字</label>
+            <label class="fb-label">{{ t('common.keyword') }}</label>
             <n-input
               v-model:value="keyword"
               clearable
-              placeholder="搜尋商品名稱、代稱或簡介">
+              :placeholder="t('adminProducts.searchPlaceholder')">
               <template #prefix><app-icon name="search" :size="16" /></template>
             </n-input>
           </div>
           <div class="fb-field" style="flex:1 1 140px;">
-            <label class="fb-label">狀態</label>
+            <label class="fb-label">{{ t('common.status') }}</label>
             <n-select
               v-model:value="statusFilter"
               :options="statusOptions" />
@@ -139,16 +141,16 @@ onMounted(store.load)
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm, num: col.num }">
                   <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ col.label }}</span>
+                    <span>{{ t(col.labelKey) }}</span>
                     <app-icon
                       v-if="sortKey === col.key"
                       :name="sortDesc ? 'chevronD' : 'chevronU'"
                       :size="15" />
                   </button>
                 </th>
-                <th class="hide-sm">商店</th>
-                <th class="hide-sm">狀態</th>
-                <th>精選</th>
+                <th class="hide-sm">{{ t('adminProducts.colStore') }}</th>
+                <th class="hide-sm">{{ t('common.status') }}</th>
+                <th>{{ t('adminProducts.colFeatured') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -156,10 +158,10 @@ onMounted(store.load)
                 <td :colspan="columns.length + 3" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-pink); margin:0 auto 14px;"><app-icon name="box" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ items.length ? '沒有符合條件的商品' : '尚無商品' }}
+                    {{ items.length ? t('adminProducts.emptyFilteredTitle') : t('adminProducts.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ items.length ? '試試調整關鍵字或篩選條件。' : '商家上架作品後會顯示於此。' }}
+                    {{ items.length ? t('adminProducts.emptyFilteredDesc') : t('adminProducts.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -180,7 +182,7 @@ onMounted(store.load)
                   <span class="store-mono">{{ shortId(p.storeId) }}</span>
                 </td>
                 <td class="hide-sm">
-                  <n-tag :type="statusOf(p.status).type" size="small" round>{{ statusOf(p.status).label }}</n-tag>
+                  <n-tag :type="statusOf(p.status).type" size="small" round>{{ t(statusOf(p.status).labelKey) }}</n-tag>
                 </td>
                 <td>
                   <button
@@ -188,7 +190,7 @@ onMounted(store.load)
                     class="feat-toggle"
                     :class="{ on: p.isFeatured }"
                     :disabled="featuring === p.id"
-                    :title="p.isFeatured ? '取消精選' : '設為精選'"
+                    :title="p.isFeatured ? t('adminProducts.unfeature') : t('adminProducts.feature')"
                     :aria-pressed="p.isFeatured ?? false"
                     @click="onToggleFeatured(p)">
                     <app-icon :name="p.isFeatured ? 'star' : 'sparkle'" :size="16" />

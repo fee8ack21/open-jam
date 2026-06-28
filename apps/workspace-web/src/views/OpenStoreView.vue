@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useMessage } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { StoreApplicationStatus, StoreStatus } from '@/api/store-service'
 
+const { t, locale } = useI18n()
+
 // 申請審核狀態 → 顯示用標籤
 const APP_STATUS = {
-  [StoreApplicationStatus.Pending]:   { label: '審核中', type: 'warning' },
-  [StoreApplicationStatus.Approved]:  { label: '已核准', type: 'success' },
-  [StoreApplicationStatus.Rejected]:  { label: '已駁回', type: 'error' },
-  [StoreApplicationStatus.Withdrawn]: { label: '已撤回', type: 'default' },
+  [StoreApplicationStatus.Pending]:   { labelKey: 'appStatus.pending', type: 'warning' },
+  [StoreApplicationStatus.Approved]:  { labelKey: 'appStatus.approved', type: 'success' },
+  [StoreApplicationStatus.Rejected]:  { labelKey: 'appStatus.rejected', type: 'error' },
+  [StoreApplicationStatus.Withdrawn]: { labelKey: 'appStatus.withdrawn', type: 'default' },
 }
 const STORE_STATUS = {
-  [StoreStatus.Active]:    { label: '營運中', type: 'success' },
-  [StoreStatus.Suspended]: { label: '已停權', type: 'warning' },
-  [StoreStatus.Closed]:    { label: '已關閉', type: 'error' },
+  [StoreStatus.Active]:    { labelKey: 'storeStatus.active', type: 'success' },
+  [StoreStatus.Suspended]: { labelKey: 'storeStatus.suspended', type: 'warning' },
+  [StoreStatus.Closed]:    { labelKey: 'storeStatus.closed', type: 'error' },
 }
 
 // 與後端 StoreSlugValidator 對齊：3–30 字小寫英數 + 連字號，不可開頭/結尾為連字號
@@ -35,13 +38,13 @@ const canSubmit = computed(
 )
 
 function statusOf(s?: StoreApplicationStatus) {
-  return (s != null && APP_STATUS[s]) || { label: '—', type: 'default' }
+  return (s != null && APP_STATUS[s]) || { labelKey: 'appStatus.unknown', type: 'default' }
 }
 function storeStatusOf(s?: StoreStatus) {
-  return (s != null && STORE_STATUS[s]) || { label: '—', type: 'default' }
+  return (s != null && STORE_STATUS[s]) || { labelKey: 'appStatus.unknown', type: 'default' }
 }
 function fmtDate(v?: string | null) {
-  return v ? new Date(v).toLocaleString('zh-TW', { hour12: false }) : '—'
+  return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
 
 async function onSubmit() {
@@ -51,31 +54,31 @@ async function onSubmit() {
     storeSlug: form.storeSlug.trim().toLowerCase(),
   })
   if (ok) {
-    message.success('開店申請已送出，請等待審核。')
+    message.success(t('openStore.msgSubmitted'))
     form.storeName = ''
     form.storeSlug = ''
     showForm.value = false
   } else {
-    message.error(store.error ?? '提交失敗')
+    message.error(store.error ?? t('openStore.msgSubmitFailed'))
   }
 }
 
 async function onWithdraw(id?: string) {
   if (!id) return
   const ok = await store.withdraw(id)
-  if (ok) message.success('已撤回申請。')
-  else message.error(store.error ?? '撤回失敗')
+  if (ok) message.success(t('openStore.msgWithdrawn'))
+  else message.error(store.error ?? t('openStore.msgWithdrawFailed'))
 }
 
 onMounted(store.load)
 </script>
 
 <template>
-  <div data-screen-label="開店">
+  <div :data-screen-label="t('route.openStore')">
     <div class="page-head">
       <div>
-        <p class="h-eyebrow">創作者</p>
-        <h1 class="h-title">開店</h1>
+        <p class="h-eyebrow">{{ t('openStore.eyebrow') }}</p>
+        <h1 class="h-title">{{ t('route.openStore') }}</h1>
       </div>
     </div>
 
@@ -91,7 +94,7 @@ onMounted(store.load)
               <div style="display:flex; align-items:center; gap:10px;">
                 <div style="font-weight:700; font-size:15px;">{{ m.store?.storeName }}</div>
                 <n-tag :type="storeStatusOf(m.store?.status).type" size="small" round>
-                  {{ storeStatusOf(m.store?.status).label }}
+                  {{ t(storeStatusOf(m.store?.status).labelKey) }}
                 </n-tag>
               </div>
               <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:3px;">
@@ -110,16 +113,16 @@ onMounted(store.load)
               <div style="display:flex; align-items:center; gap:10px;">
                 <div style="font-weight:700; font-size:15px;">{{ latestApplication.storeName }}</div>
                 <n-tag :type="statusOf(latestApplication.status).type" size="small" round>
-                  {{ statusOf(latestApplication.status).label }}
+                  {{ t(statusOf(latestApplication.status).labelKey) }}
                 </n-tag>
               </div>
               <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:3px;">
-                {{ latestApplication.storeSlug }}.openjam.co · 送出於 {{ fmtDate(latestApplication.createdAt) }}
+                {{ latestApplication.storeSlug }}.openjam.co · {{ t('openStore.submittedAt', { time: fmtDate(latestApplication.createdAt) }) }}
               </div>
             </div>
             <n-popconfirm @positive-click="onWithdraw(latestApplication.id)">
-              <template #trigger><n-button size="small" tertiary>撤回</n-button></template>
-              撤回後即可重新申請，確定撤回？
+              <template #trigger><n-button size="small" tertiary>{{ t('openStore.withdraw') }}</n-button></template>
+              {{ t('openStore.withdrawConfirm') }}
             </n-popconfirm>
           </div>
         </div>
@@ -128,36 +131,36 @@ onMounted(store.load)
         <div v-else class="card-pad applications-card">
           <div class="set-grid">
             <div class="sg-k">
-              <div class="sgk-t">申請開店</div>
-              <div class="sgk-d">填寫商店名稱與子網域，送出後由平台審核。核准後即可在你的子網域開店。</div>
+              <div class="sgk-t">{{ t('openStore.applyTitle') }}</div>
+              <div class="sgk-d">{{ t('openStore.applyDesc') }}</div>
             </div>
             <div>
               <n-alert
                 v-if="latestApplication && latestApplication.status === StoreApplicationStatus.Rejected && latestApplication.reviewComment"
-                type="error" :show-icon="true" style="margin-bottom:16px;" title="上次申請被駁回">
+                type="error" :show-icon="true" style="margin-bottom:16px;" :title="t('openStore.rejectedTitle')">
                 {{ latestApplication.reviewComment }}
               </n-alert>
 
               <div class="field">
-                <label class="field-label">商店名稱</label>
+                <label class="field-label">{{ t('openStore.storeName') }}</label>
                 <n-input v-model:value="form.storeName" size="large" maxlength="100" show-count
-                         placeholder="例如：小明的數位商店" />
+                         :placeholder="t('openStore.storeNamePlaceholder')" />
               </div>
               <div class="field">
-                <label class="field-label">子網域</label>
+                <label class="field-label">{{ t('openStore.subdomain') }}</label>
                 <n-input v-model:value="form.storeSlug" size="large" placeholder="xiaoming-shop">
                   <template #suffix><span style="color:var(--text-faint)">.openjam.co</span></template>
                 </n-input>
                 <div style="font-size:11.5px; margin-top:6px; font-family:var(--oj-mono);"
                      :style="{ color: form.storeSlug && !slugValid ? 'var(--c-rose, #d03050)' : 'var(--text-faint)' }">
-                  3–30 字小寫英數與連字號，不可開頭/結尾為連字號
+                  {{ t('openStore.slugHint') }}
                 </div>
               </div>
 
               <div style="display:flex; justify-content:flex-end; margin-top:8px;">
                 <n-button type="primary" size="large" strong
                           :disabled="!canSubmit" :loading="submitting" @click="onSubmit">
-                  送出申請
+                  {{ t('openStore.submit') }}
                 </n-button>
               </div>
             </div>
@@ -166,7 +169,7 @@ onMounted(store.load)
 
         <!-- 申請紀錄 -->
         <div v-if="applications.length" class="card-pad applications-card">
-          <div style="font-weight:700; font-size:14px; margin-bottom:12px;">申請紀錄</div>
+          <div style="font-weight:700; font-size:14px; margin-bottom:12px;">{{ t('openStore.historyTitle') }}</div>
           <div v-for="(a, i) in applications" :key="a.id"
                :style="`display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:${i === applications.length - 1 ? 'none' : '1.5px solid var(--border)'};`">
             <div style="flex:1;">
@@ -175,7 +178,7 @@ onMounted(store.load)
                 {{ a.storeSlug }}.openjam.co · {{ fmtDate(a.createdAt) }}
               </div>
             </div>
-            <n-tag :type="statusOf(a.status).type" size="small" round>{{ statusOf(a.status).label }}</n-tag>
+            <n-tag :type="statusOf(a.status).type" size="small" round>{{ t(statusOf(a.status).labelKey) }}</n-tag>
           </div>
         </div>
 

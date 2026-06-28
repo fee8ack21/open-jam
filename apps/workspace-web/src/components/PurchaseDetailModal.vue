@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { OrderResponse } from '@/api/order-service'
 import { OrderStatus } from '@/api/order-service'
 import type { ItemDownloads } from '@/stores/purchases'
 import { formatOrderAmount, formatOrderTime, orderStatusMeta } from '@/utils/order'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   show: boolean
@@ -35,35 +38,35 @@ function formatBytes(bytes?: number): string {
 </script>
 
 <template>
-  <n-modal v-model:show="open" preset="card" title="購買明細" style="max-width:680px;">
+  <n-modal v-model:show="open" preset="card" :title="t('purchaseModal.title')" style="max-width:680px;">
     <n-spin :show="loading">
       <div v-if="error" class="pd-error">{{ error }}</div>
       <div v-else-if="order" class="pd-body">
         <dl class="pd-dl">
           <div>
-            <dt>訂單編號</dt>
+            <dt>{{ t('purchaseModal.orderNumber') }}</dt>
             <dd class="pd-mono">{{ order.orderNumber || '—' }}</dd>
           </div>
           <div>
-            <dt>狀態</dt>
-            <dd><n-tag :type="orderStatusMeta(order.status).type" size="small" round>{{ orderStatusMeta(order.status).label }}</n-tag></dd>
+            <dt>{{ t('purchaseModal.status') }}</dt>
+            <dd><n-tag :type="orderStatusMeta(order.status).type" size="small" round>{{ t(orderStatusMeta(order.status).labelKey) }}</n-tag></dd>
           </div>
           <div>
-            <dt>金額</dt>
+            <dt>{{ t('purchaseModal.amount') }}</dt>
             <dd class="pd-amount">{{ formatOrderAmount(order.totalAmount, order.currency) }}</dd>
           </div>
           <div>
-            <dt>購買時間</dt>
+            <dt>{{ t('purchaseModal.purchasedAt') }}</dt>
             <dd>{{ formatOrderTime(order.completedAt || order.createdAt) }}</dd>
           </div>
         </dl>
 
         <div v-if="!isCompleted" class="pd-notice">
-          此訂單尚未完成，完成付款後即可下載商品內容。
+          {{ t('purchaseModal.notCompleted') }}
         </div>
 
-        <div class="pd-section-label">商品（{{ order.items?.length ?? 0 }}）</div>
-        <div v-if="!order.items?.length" class="pd-empty">無項目</div>
+        <div class="pd-section-label">{{ t('purchaseModal.itemsLabel', { count: order.items?.length ?? 0 }) }}</div>
+        <div v-if="!order.items?.length" class="pd-empty">{{ t('purchaseModal.noItems') }}</div>
 
         <div v-for="it in order.items" :key="it.id" class="pd-item">
           <div class="pd-item-head">
@@ -74,7 +77,7 @@ function formatBytes(bytes?: number): string {
           <!-- 可下載檔案：僅已完成訂單載入 -->
           <template v-if="isCompleted && it.id">
             <div v-if="downloads[it.id]?.loading" class="pd-files-state">
-              <n-spin size="small" /> 載入下載連結…
+              <n-spin size="small" /> {{ t('purchaseModal.loadingLinks') }}
             </div>
             <div v-else-if="downloads[it.id]?.error" class="pd-files-state pd-files-error">
               {{ downloads[it.id].error }}
@@ -96,7 +99,7 @@ function formatBytes(bytes?: number): string {
                 <app-icon name="download" :size="16" class="pd-file-dl" />
               </a>
             </div>
-            <div v-else class="pd-files-state">此商品版本無可下載檔案。</div>
+            <div v-else class="pd-files-state">{{ t('purchaseModal.noFiles') }}</div>
           </template>
         </div>
       </div>
