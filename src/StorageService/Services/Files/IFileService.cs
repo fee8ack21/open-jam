@@ -11,6 +11,13 @@ public interface IFileService
     /// <summary>查詢檔案元資訊與處理狀態。</summary>
     Task<FileDto> GetAsync(Guid id, CancellationToken ct);
 
+    /// <summary>
+    /// 確認檔案已上傳至儲存後端並觸發處理 pipeline（標記 Ready + 發 FileReadyEvent）。
+    /// 本地儲存由 blob 端點自動觸發，無需呼叫；雲端（GCS）由功能 API 在前端直傳成功後呼叫。
+    /// 冪等：已處理（Processing/Ready/Failed）的檔案直接回傳現狀。
+    /// </summary>
+    Task<FileDto> ConfirmUploadAsync(Guid id, CancellationToken ct);
+
     /// <summary>取得 Ready 檔案的下載簽章 URL（presigned GET）。</summary>
     Task<GetDownloadUrlResponse> GetDownloadUrlAsync(Guid id, CancellationToken ct);
 

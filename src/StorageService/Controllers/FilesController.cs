@@ -51,6 +51,21 @@ public class FilesController(IFileService fileService) : ControllerBase
     public async Task<ActionResult<PlatformUsageResponse>> GetPlatformUsageAsync(CancellationToken ct) =>
         Ok(await fileService.GetPlatformUsageAsync(ct));
 
+    /// <summary>確認檔案已直傳完成，觸發處理 pipeline 並標記 Ready。</summary>
+    /// <remarks>
+    /// 雲端（GCS）模式下，前端透過簽章 URL 直傳後由功能 API 呼叫此端點確認；
+    /// StorageService 驗證物件確實存在後執行處理並發布 FileReadyEvent。
+    /// 本地儲存由 blob 端點接收上傳時自動觸發，無需呼叫。冪等。
+    /// </remarks>
+    /// <param name="id">檔案 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/confirm")]
+    [ProducesResponseType<FileDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<FileDto>> ConfirmUploadAsync(Guid id, CancellationToken ct) =>
+        Ok(await fileService.ConfirmUploadAsync(id, ct));
+
     /// <summary>查詢檔案元資訊與處理狀態。</summary>
     /// <param name="id">檔案 ID。</param>
     /// <param name="ct">Cancellation token。</param>

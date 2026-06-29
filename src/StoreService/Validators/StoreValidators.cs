@@ -53,3 +53,14 @@ public class RequestAssetUploadUrlRequestValidator : AbstractValidator<RequestAs
             .GreaterThan(0).WithMessage("檔案大小須大於 0。");
     }
 }
+
+/// <summary>Avatar / Banner 上傳完成確認請求驗證：Asset ID 必填。</summary>
+public class ConfirmAssetUploadRequestValidator : AbstractValidator<ConfirmAssetUploadRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public ConfirmAssetUploadRequestValidator()
+    {
+        RuleFor(x => x.AssetId)
+            .NotEmpty().WithMessage("Asset ID 為必填。");
+    }
+}

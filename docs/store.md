@@ -147,7 +147,7 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 2. `RequestUploadUrlRequest` 新增 `bool IsPublic`（預設 false）。
 3. `IsPublic=true` 時 `StoredFile.StorageKey` 改用 `public/{creatorId}/{fileId}/{originalName}`（取代 `creators/...`），其餘規則不變。
 4. `RequestUploadUrlResponse` 新增 `string StorageKey` 與 `string? PublicUrl`（`IsPublic=true` 時填值：`{PublicBaseUrl}/{StorageKey}`）。
-5. `public/*` 前綴的物件供匿名讀取（地端由 `BlobController` 對 `public/` 前綴免簽章放行；雲端 GCS 對 `{bucket}/public/*` 設定 public read）。
+5. `public/*` 前綴的物件供匿名讀取（地端由 `BlobController` 對 `public/` 前綴免簽章放行；雲端 GCS 將公開 bucket `open-jam-public` 的 `public/*` 設為匿名可讀，由 `EnsurePublicReadPolicyAsync` 套用 IAM 繫結）。
 
 ### 上傳流程（以 Avatar 為例）
 
@@ -157,8 +157,9 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 4. StorageService 回傳 `FileId, UploadUrl, StorageKey, PublicUrl, ExpiresAt`。
 5. StoreService 寫入 `Assets`：`Id=FileId, CreatedBy=ownerId, StorageKey, FileName, ContentType, FileSize=SizeBytes, CreatedAt=now`，並設 `Stores.AvatarAssetId = Asset.Id`。
 6. 回傳 `{AssetId, UploadUrl, PublicUrl, ExpiresAt}` 給前端，前端以 `UploadUrl` 直接 PUT 至儲存後端（地端為 StorageService blob 端點，雲端為 GCS）。
+7. 上傳成功後，前端呼叫 `POST /v1/stores/{id}/avatar/confirm`，body `{AssetId}`；StoreService 驗證 Owner 且該 Asset 為商店目前掛載的 Avatar 後，呼叫 StorageService `POST /v1/files/{AssetId}/confirm` 觸發標記 ready，並回傳更新後的 `StoreDto`。地端因 blob 端點已於上傳時自動標記 ready，此步驟為冪等（直接回現狀）。
 
-`GET /v1/stores/{idOrSlug}` 回傳的 `AvatarUrl` / `BannerUrl` = `{PublicBaseUrl}/{Asset.StorageKey}`（StoreService 自行組字串，需設定 `Storage:PublicBaseUrl`，與 StorageService 同值）。
+`GET /v1/stores/{idOrSlug}` 回傳的 `AvatarUrl` / `BannerUrl` = `{PublicBaseUrl}/{Asset.StorageKey}`（StoreService 自行組字串，需設定 `Storage:PublicBaseUrl`，與 StorageService 同值）。Avatar 顯示走公開讀取網址，與檔案 ready 狀態無關。
 
 舊 Avatar/Banner 的 Asset 記錄與儲存後端物件**不主動清除**（MVP 不做孤兒清理，留待未來）。
 

@@ -110,6 +110,14 @@ public class RequestAssetUploadUrlRequest
     public long SizeBytes { get; set; }
 }
 
+/// <summary>確認 Avatar/Banner 已上傳完成的請求。</summary>
+public class ConfirmAssetUploadRequest
+{
+    /// <summary>欲確認的 Asset ID（由上傳簽章 URL 回應取得）。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid AssetId { get; set; }
+}
+
 /// <summary>Avatar/Banner 上傳簽章 URL 回應。</summary>
 public class AssetUploadUrlResponse
 {

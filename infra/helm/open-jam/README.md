@@ -206,9 +206,13 @@ infra/helm/open-jam/
 | 參數 | 預設值 | 說明 |
 |------|--------|------|
 | `storage.provider` | `Gcs` | 儲存後端，`Gcs`（雲端，預設）或 `Local`（本地檔案系統） |
-| `storage.bucket` | `open-jam` | 儲存桶名稱 |
+| `storage.publicBucket` | `open-jam-public` | 公開讀取資產（Avatar/Banner、縮圖，`public/*`）所屬 GCS bucket |
+| `storage.privateBucket` | `open-jam-private` | 私有付費檔所屬 GCS bucket |
 | `storage.softDeleteRetentionDays` | `30` | 軟刪除檔案保留天數，超過後由 `OrphanCleanupService` 硬刪除 |
-| `storage.gcs.credentialsPath` | `""` | GCS 服務帳戶金鑰路徑；留空走 ADC / GKE Workload Identity（`Provider: Gcs` 時生效） |
+| `storage.gcs.credentialsSecretName` | `gcs-sa-key` | GCS 服務帳戶金鑰的 k8s Secret 名稱；留空則改走 ADC / GKE Workload Identity |
+| `storage.gcs.credentialsSecretKey` | `gcs-sa-key.json` | Secret 內金鑰檔的 data key |
+| `storage.gcs.mountPath` | `/var/secrets/gcs` | 金鑰檔掛載目錄；`CredentialsPath = mountPath/credentialsSecretKey` |
+| `storage.gcs.credentialsPath` | `""` | 直接覆寫 `CredentialsPath`（一般留空，由 `mountPath` + key 組合） |
 | `storage.local.rootPath` | `Files` | 本地檔案存放根目錄（`Provider: Local` 時生效，建議掛載 PV） |
 | `storage.local.baseUrl` | `""` | 本服務對外 base URL，用於組合 blob URL（`Provider: Local` 時必填） |
 | `secrets.storage.localSigningKey` | `changeme-…` | 本地 blob HMAC 簽章密鑰（`Provider: Local` 時使用） |

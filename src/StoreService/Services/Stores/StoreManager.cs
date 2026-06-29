@@ -196,6 +196,27 @@ public class StoreManager(
         };
     }
 
+    /// <inheritdoc/>
+    public async Task<StoreDto> ConfirmAssetUploadAsync(
+        Guid id, ConfirmAssetUploadRequest request, bool isAvatar, CancellationToken ct)
+    {
+        var userId = currentUser.UserId ?? throw new UnauthorizedException();
+
+        var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == id, ct)
+            ?? throw new NotFoundException("找不到商店。");
+
+        await StoreAuthorization.EnsureOwnerAsync(db, id, userId, ct);
+
+        // 確認欲確認的 Asset 確實為該商店目前掛載的 Avatar/Banner。
+        var expectedAssetId = isAvatar ? store.AvatarAssetId : store.BannerAssetId;
+        if (expectedAssetId != request.AssetId)
+            throw new ValidationException("Asset 與商店目前的資產不符。");
+
+        await storageClient.ConfirmUploadAsync(request.AssetId, ct);
+
+        return await ToDtoAsync(store, ct);
+    }
+
     private async Task<Store?> FindStoreAsync(string idOrSlug, CancellationToken ct) =>
         Guid.TryParse(idOrSlug, out var id)
             ? await db.Stores.FirstOrDefaultAsync(s => s.Id == id, ct)

@@ -26,8 +26,10 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 
 ## 上傳完成與異步處理 Pipeline
 
-- **上傳完成確認**：採 **Storage 事件通知**（雲端 GCS Pub/Sub notification；地端由 `BlobController` 接收上傳後直接觸發 `StorageEventService`），透過 **RabbitMQ + MassTransit** 通知功能 API，不依賴客戶端回報。
-- 收到事件後依序進行異步處理，全部完成才將檔案標記為 **ready（可售）**：
+- **上傳完成確認**：
+  - **地端 Local**：客戶端 PUT 直傳 `BlobController` → 寫入後直接觸發 `StorageEventService`，不依賴客戶端回報。
+  - **雲端 GCS**：採 **confirm 端點**。前端透過 signed URL 直傳成功後，功能 API 呼叫 `POST /v1/files/{id}/confirm`；StorageService 以 `ObjectExistsAsync` 驗證物件確實存在後才觸發處理 pipeline。（原規劃的 GCS Pub/Sub bucket notification 列為未來選項，MVP 先以 confirm 端點實作，免額外 Pub/Sub 基建、且 Local/GCS 共用同一條觸發路徑。）
+- 觸發後依序進行異步處理，全部完成才將檔案標記為 **ready（可售）**，並透過 **RabbitMQ + MassTransit** publish `FileReadyEvent` 通知功能 API：
 
 ### 掃毒（Malware Scan）
 
@@ -67,7 +69,7 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 
 ## 檔案組織與生命週期
 
-- **路徑 / bucket 結構**：以租戶（creator）維度劃分前綴；**原始檔**與**衍生檔**（HLS、預覽、縮圖）分開存放。
+- **路徑 / bucket 結構**：以租戶（creator）維度劃分前綴；**原始檔**與**衍生檔**（HLS、預覽、縮圖）分開存放。雲端 GCS 採**雙 bucket**：公開讀取資產（`public/*`，如商店 Avatar/Banner、商品縮圖）存於 `open-jam-public`，私有付費檔存於 `open-jam-private`；`StorageOptions.BucketFor(key)` 依 key 前綴 `public/` 自動選 bucket。地端 Local 無 bucket 概念，僅以 `public/` 前綴區分匿名讀取。
 - **軟刪除**：商品下架 / 刪除採軟刪除。
 - **已售出保留下載權**：已購買的商品仍保留買家下載權（對應 [[Auth]] 的 GDPR 與帳號刪除策略）。
 - **orphan 清理**：以排程清除無人購買且已軟刪的孤兒檔案。

@@ -23,7 +23,7 @@ public class GcsStorageProvider(
         // maxBytes 無法以 signed PUT URL 強制（需改用 POST policy 的 content-length-range），
         // 配額把關交由上游功能 API。
         var template = UrlSigner.RequestTemplate
-            .FromBucket(_opts.Bucket)
+            .FromBucket(_opts.BucketFor(key))
             .WithObjectName(key)
             .WithHttpMethod(HttpMethod.Put)
             .WithContentHeaders(new Dictionary<string, IEnumerable<string>>
@@ -38,7 +38,7 @@ public class GcsStorageProvider(
     public async Task<string> GenerateDownloadUrlAsync(string key, TimeSpan expiry, CancellationToken ct = default)
     {
         var template = UrlSigner.RequestTemplate
-            .FromBucket(_opts.Bucket)
+            .FromBucket(_opts.BucketFor(key))
             .WithObjectName(key)
             .WithHttpMethod(HttpMethod.Get);
 
@@ -50,7 +50,7 @@ public class GcsStorageProvider(
     {
         try
         {
-            await storage.DeleteObjectAsync(_opts.Bucket, key, cancellationToken: ct);
+            await storage.DeleteObjectAsync(_opts.BucketFor(key), key, cancellationToken: ct);
         }
         catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
         {
@@ -64,7 +64,7 @@ public class GcsStorageProvider(
     {
         try
         {
-            await storage.GetObjectAsync(_opts.Bucket, key, cancellationToken: ct);
+            await storage.GetObjectAsync(_opts.BucketFor(key), key, cancellationToken: ct);
             return true;
         }
         catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
@@ -77,10 +77,12 @@ public class GcsStorageProvider(
     public async Task EnsurePublicReadPolicyAsync(CancellationToken ct = default)
     {
         // 以 IAM 條件式繫結讓 public/ 前綴物件匿名可讀（需 bucket 啟用 uniform bucket-level access）。
+        // 僅作用於公開 bucket；私有 bucket 不開放匿名讀取。
+        var bucket = _opts.PublicBucket;
         const string role = "roles/storage.objectViewer";
-        var expression = $"resource.name.startsWith(\"projects/_/buckets/{_opts.Bucket}/objects/public/\")";
+        var expression = $"resource.name.startsWith(\"projects/_/buckets/{bucket}/objects/public/\")";
 
-        var policy = await storage.GetBucketIamPolicyAsync(_opts.Bucket,
+        var policy = await storage.GetBucketIamPolicyAsync(bucket,
             new GetBucketIamPolicyOptions { RequestedPolicyVersion = 3 }, ct);
 
         // IAM 條件式繫結需 policy version 3。
@@ -107,6 +109,6 @@ public class GcsStorageProvider(
             },
         });
 
-        await storage.SetBucketIamPolicyAsync(_opts.Bucket, policy, cancellationToken: ct);
+        await storage.SetBucketIamPolicyAsync(bucket, policy, cancellationToken: ct);
     }
 }

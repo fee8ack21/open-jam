@@ -65,7 +65,7 @@
 
 ### 儲存進階
 
-- [ ] **雲端後端正式化**：GCS Provider（signed URL via Workload Identity）端到端驗證。
+- [ ] **雲端後端正式化**：GCS Provider 端到端驗證（雙 bucket `open-jam-public` / `open-jam-private`；憑證先走 k8s secret 掛載的服務帳戶金鑰檔在本地簽 V4 signed URL，未來可改 Workload Identity 免金鑰）。
 - [ ] **Malware Scan**：上傳檔案掃毒。
 - [ ] **影音轉碼**：HLS 轉碼 pipeline 與雙層預覽衍生檔。
 - [ ] **CDN 加速**：公開資產走 CDN。

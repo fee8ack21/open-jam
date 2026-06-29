@@ -33,6 +33,18 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
         return (await response.Content.ReadFromJsonAsync<StorageUploadUrlResult>(ct))!;
     }
 
+    /// <summary>確認資產已直傳完成，觸發 StorageService 標記檔案 Ready。</summary>
+    /// <param name="fileId">StorageService 簽發的檔案 ID（= Asset ID）。</param>
+    /// <param name="ct">Cancellation token。</param>
+    public async Task ConfirmUploadAsync(Guid fileId, CancellationToken ct)
+    {
+        var client = httpClientFactory.CreateClient("storage");
+
+        var response = await client.PostAsync($"v1/files/{fileId}/confirm", content: null, ct);
+
+        response.EnsureSuccessStatusCode();
+    }
+
     /// <summary>對應 StorageService <c>FileType</c> enum（Video=0, Image=1, Pdf=2）。</summary>
     private enum StorageFileType
     {

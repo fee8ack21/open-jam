@@ -92,6 +92,16 @@ public class StoresController(IStoreManager storeManager) : ControllerBase
         Guid id, [FromBody] RequestAssetUploadUrlRequest request, CancellationToken ct) =>
         Ok(await storeManager.RequestAssetUploadUrlAsync(id, request, isAvatar: true, ct));
 
+    /// <summary>確認商店頭像（Avatar）已上傳完成。僅 Owner 可操作。</summary>
+    /// <param name="id">商店 ID。</param>
+    /// <param name="request">欲確認的 Asset。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/avatar/confirm")]
+    [ProducesResponseType<StoreDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<StoreDto>> ConfirmAvatarUploadAsync(
+        Guid id, [FromBody] ConfirmAssetUploadRequest request, CancellationToken ct) =>
+        Ok(await storeManager.ConfirmAssetUploadAsync(id, request, isAvatar: true, ct));
+
     /// <summary>申請商店橫幅（Banner）上傳簽章 URL。僅 Owner 可操作。</summary>
     /// <param name="id">商店 ID。</param>
     /// <param name="request">檔案資訊。</param>
@@ -101,4 +111,14 @@ public class StoresController(IStoreManager storeManager) : ControllerBase
     public async Task<ActionResult<AssetUploadUrlResponse>> RequestBannerUploadUrlAsync(
         Guid id, [FromBody] RequestAssetUploadUrlRequest request, CancellationToken ct) =>
         Ok(await storeManager.RequestAssetUploadUrlAsync(id, request, isAvatar: false, ct));
+
+    /// <summary>確認商店橫幅（Banner）已上傳完成。僅 Owner 可操作。</summary>
+    /// <param name="id">商店 ID。</param>
+    /// <param name="request">欲確認的 Asset。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/banner/confirm")]
+    [ProducesResponseType<StoreDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<StoreDto>> ConfirmBannerUploadAsync(
+        Guid id, [FromBody] ConfirmAssetUploadRequest request, CancellationToken ct) =>
+        Ok(await storeManager.ConfirmAssetUploadAsync(id, request, isAvatar: false, ct));
 }

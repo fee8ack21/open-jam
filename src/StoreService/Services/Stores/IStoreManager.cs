@@ -29,4 +29,8 @@ public interface IStoreManager
     /// <summary>申請商店資產（Avatar/Banner）上傳簽章 URL。僅 Owner 可操作。</summary>
     Task<AssetUploadUrlResponse> RequestAssetUploadUrlAsync(
         Guid id, RequestAssetUploadUrlRequest request, bool isAvatar, CancellationToken ct);
+
+    /// <summary>確認商店資產（Avatar/Banner）已直傳完成並觸發 StorageService 標記 Ready。僅 Owner 可操作。</summary>
+    Task<StoreDto> ConfirmAssetUploadAsync(
+        Guid id, ConfirmAssetUploadRequest request, bool isAvatar, CancellationToken ct);
 }

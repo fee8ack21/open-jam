@@ -15,6 +15,7 @@ public class FileService(
     StorageDbContext db,
     IStorageProvider storage,
     IOptions<StorageOptions> storageOptions,
+    FileProcessingService processor,
     IMapper mapper) : IFileService
 {
     /// <inheritdoc/>
@@ -68,6 +69,28 @@ public class FileService(
             .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
             ?? throw new NotFoundException($"檔案 {id} 不存在");
 
+        return mapper.Map<FileDto>(file);
+    }
+
+    /// <inheritdoc/>
+    public async Task<FileDto> ConfirmUploadAsync(Guid id, CancellationToken ct)
+    {
+        var file = await db.StoredFiles
+            .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
+            ?? throw new NotFoundException($"檔案 {id} 不存在");
+
+        // 冪等：僅 Uploading 狀態需確認並觸發處理；其餘狀態回傳現狀。
+        if (file.Status != FileStatus.Uploading)
+            return mapper.Map<FileDto>(file);
+
+        if (!await storage.ObjectExistsAsync(file.StorageKey, ct))
+            throw new ValidationException($"檔案 {id} 尚未上傳至儲存後端");
+
+        // 同步執行處理 pipeline（掃毒 / 轉碼 / 預覽，MVP 為 stub）後標記 Ready 並發 FileReadyEvent。
+        await processor.ProcessAsync(id, ct);
+
+        // 重新讀取以反映處理後的最新狀態。
+        await db.Entry(file).ReloadAsync(ct);
         return mapper.Map<FileDto>(file);
     }
 

@@ -204,8 +204,10 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
 {
   "Storage": {
     "Provider": "Local",
-    "Bucket": "open-jam", "SoftDeleteRetentionDays": 30,
+    "SoftDeleteRetentionDays": 30,
     "PublicBaseUrl": "http://localhost:5171/v1/files/blob",  // public/* 匿名讀取網址前綴
+    // GCS 雙 bucket（Provider: "Gcs" 時必填）：公開資產與私有付費檔分開
+    "PublicBucket": "open-jam-public", "PrivateBucket": "open-jam-private",
     "Local": {
       "RootPath": "Files",                  // 檔案存放根目錄（相對工作目錄）
       "BaseUrl": "http://localhost:5171",   // 本服務對外網址，用於組合 blob URL

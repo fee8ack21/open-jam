@@ -167,10 +167,21 @@ email:
 # 檔案儲存後端：雲端 GCS（預設）或本地檔案系統，依 Provider 切換
 storage:
   provider: Gcs
-  bucket: open-jam
+  # 公開讀取資產（Avatar/Banner、商品縮圖，public/* 前綴）所屬 bucket
+  publicBucket: open-jam-public
+  # 私有資產（買家授權下載的版本檔）所屬 bucket
+  privateBucket: open-jam-private
   softDeleteRetentionDays: 30
   gcs:
-    # 留空走 ADC / GKE Workload Identity
+    # GCS 服務帳戶金鑰：由使用者自行建立的 k8s Secret 提供，掛載為檔案後簽發 signed URL。
+    # 以專案根目錄的 gcs-sa-key.json 建立（secret 內的 data key 即檔名 gcs-sa-key.json）：
+    #   kubectl create secret generic gcs-sa-key --from-file=gcs-sa-key.json
+    # credentialsSecretName 留空則不掛載金鑰，改用 ADC / GKE Workload Identity。
+    credentialsSecretName: "gcs-sa-key"
+    credentialsSecretKey: "gcs-sa-key.json"
+    # 金鑰檔在容器內的掛載目錄；CredentialsPath = mountPath/credentialsSecretKey
+    mountPath: "/var/secrets/gcs"
+    # 直接覆寫 CredentialsPath（一般留空，由 mountPath + key 組合）；ADC 模式請連同 secretName 一併留空
     credentialsPath: ""
   local:
     # 檔案存放根目錄（相對工作目錄）；正式建議掛載 PersistentVolume

@@ -513,3 +513,4 @@ infra/helm/infra/values.prod.yaml
 TEMP.md
 .playwright-mcp/
 .superpowers/
+gcs-sa-key.json

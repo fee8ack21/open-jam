@@ -12,8 +12,11 @@ public class StorageOptions
     /// <summary>Google Cloud Storage 專屬設定；僅 <see cref="Provider"/> 為 <c>Gcs</c> 時使用。</summary>
     public GcsOptions Gcs { get; set; } = new();
 
-    /// <summary>目標 bucket 名稱（僅 GCS 使用）。</summary>
-    public string Bucket { get; set; } = "open-jam";
+    /// <summary>公開讀取資產（`public/*`，如商店 Avatar/Banner、商品縮圖）的 GCS bucket。</summary>
+    public string PublicBucket { get; set; } = "";
+
+    /// <summary>私有資產（買家授權下載的版本檔）的 GCS bucket。</summary>
+    public string PrivateBucket { get; set; } = "";
 
     /// <summary>公開讀取物件（`public/*`）的對外存取網址前綴，例如 "http://localhost:5171/v1/files/blob"。</summary>
     public string PublicBaseUrl { get; set; } = "";
@@ -29,6 +32,11 @@ public class StorageOptions
 
     /// <summary>軟刪除後保留天數，到期才從儲存後端永久刪除；預設 30 天。</summary>
     public int SoftDeleteRetentionDays { get; set; } = 30;
+
+    /// <summary>依物件鍵值前綴（`public/`）判定其所屬 bucket。</summary>
+    /// <param name="key">物件鍵值，例如 "public/{creatorId}/{fileId}/avatar.png"。</param>
+    public string BucketFor(string key) =>
+        key.StartsWith("public/", StringComparison.Ordinal) ? PublicBucket : PrivateBucket;
 }
 
 /// <summary>儲存後端供應商種類。</summary>

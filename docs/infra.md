@@ -46,7 +46,11 @@
 ## 物件儲存與 CDN
 
 - **GCS**（雲端）+ 地端**本地檔案系統**（見 [[Storage]]）。
-- **GCP Cloud CDN**：與 GCS 原生整合，原生支援 **signed URL / signed cookie**（對應 [[Storage]] 付費內容與 HLS 串流授權）。
+- **雙 bucket**：
+  - `open-jam-public`：公開讀取資產（商店 Avatar/Banner、商品縮圖等 `public/*` 物件），對 `public/*` 前綴開匿名讀取（StorageService 啟動時由 `EnsurePublicReadPolicyAsync` 套用 IAM 條件式繫結）。
+  - `open-jam-private`：私有付費檔，僅透過短效 signed URL 授權存取。
+  - 兩個 bucket 皆須啟用 **uniform bucket-level access**（IAM 條件式繫結的前提）。StorageService 由 `StorageOptions.BucketFor(key)` 依 key 前綴 `public/` 自動選 bucket。
+- **GCP Cloud CDN**：與 GCS 原生整合，原生支援 **signed URL / signed cookie**（對應 [[Storage]] 付費內容與 HLS 串流授權）。`Storage:PublicBaseUrl` 指向公開資產對外網址（MVP 直接用 `https://storage.googleapis.com/open-jam-public`，未來換 CDN 網域如 `assets.openjam.co`）。
 
 ## 平台服務元件
 
@@ -73,6 +77,7 @@
 
 - 機密集中存於 **GCP Secret Manager**。
 - **External Secrets Operator** 同步至 GKE，集中、可稽核、避免明文進 git。
+- **GCS 服務帳戶金鑰**：StorageService 簽 V4 signed URL 需可簽章憑證。MVP 先以 **k8s Secret** 提供金鑰檔（`kubectl create secret generic gcs-sa-key --from-file=gcs-sa-key.json`），由 Helm（`storage.gcs.credentialsSecretName`）掛載至 `/var/secrets/gcs/gcs-sa-key.json`，並注入 `Storage:Gcs:CredentialsPath`。該服務帳戶需 `open-jam-public` 的 `roles/storage.admin`（含 bucket IAM 管理）與 `open-jam-private` 的 `roles/storage.objectAdmin`。金鑰檔不進 git（`.gitignore` 已排除）。未來可改 **GKE Workload Identity** 免金鑰（`credentialsSecretName` 留空走 ADC，簽章改用 IAM SignBlob，服務帳戶另需 `iam.serviceAccounts.signBlob`）。
 
 ## 環境
 

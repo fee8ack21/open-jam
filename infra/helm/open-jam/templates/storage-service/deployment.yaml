@@ -59,15 +59,22 @@ spec:
               value: {{ include "open-jam.hydraMetadataAddress" . | quote }}
             - name: Storage__Provider
               value: {{ .Values.storage.provider | quote }}
-            - name: Storage__Bucket
-              value: {{ .Values.storage.bucket | quote }}
             - name: Storage__PublicBaseUrl
               value: {{ .Values.config.storagePublicBaseUrl | quote }}
             - name: Storage__SoftDeleteRetentionDays
               value: {{ .Values.storage.softDeleteRetentionDays | quote }}
             {{- if eq .Values.storage.provider "Gcs" }}
+            - name: Storage__PublicBucket
+              value: {{ .Values.storage.publicBucket | quote }}
+            - name: Storage__PrivateBucket
+              value: {{ .Values.storage.privateBucket | quote }}
+            {{- if .Values.storage.gcs.credentialsSecretName }}
+            - name: Storage__Gcs__CredentialsPath
+              value: {{ printf "%s/%s" (.Values.storage.gcs.mountPath | trimSuffix "/") .Values.storage.gcs.credentialsSecretKey | quote }}
+            {{- else }}
             - name: Storage__Gcs__CredentialsPath
               value: {{ .Values.storage.gcs.credentialsPath | quote }}
+            {{- end }}
             {{- else }}
             - name: Storage__Local__RootPath
               value: {{ .Values.storage.local.rootPath | quote }}
@@ -94,6 +101,11 @@ spec:
             - name: wait-for-it
               mountPath: /wait-for-it.sh
               subPath: wait-for-it.sh
+            {{- if and (eq .Values.storage.provider "Gcs") .Values.storage.gcs.credentialsSecretName }}
+            - name: gcs-sa-key
+              mountPath: {{ .Values.storage.gcs.mountPath | quote }}
+              readOnly: true
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /healthz
@@ -115,4 +127,10 @@ spec:
           configMap:
             name: {{ include "open-jam.fullname" . }}-wait-for-it
             defaultMode: 0755
+        {{- if and (eq .Values.storage.provider "Gcs") .Values.storage.gcs.credentialsSecretName }}
+        - name: gcs-sa-key
+          secret:
+            secretName: {{ .Values.storage.gcs.credentialsSecretName | quote }}
+            defaultMode: 0400
+        {{- end }}
 {{- end }}
