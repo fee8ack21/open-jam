@@ -16,6 +16,8 @@ interface CategoryRow extends CatalogCategoryDto {
 
 const message = useMessage()
 const categories = ref<CatalogCategoryDto[]>([])
+const keyword = ref('')
+const appliedKeyword = ref('') // 已套用的關鍵字（按下搜尋才更新）
 const loading = ref(false)
 const saving = ref(false)
 const deletingId = ref<string | null>(null)
@@ -85,12 +87,19 @@ function descendantsOf(id?: string) {
 }
 
 const rows = computed<CategoryRow[]>(() => {
+  const q = appliedKeyword.value.toLowerCase()
   return categories.value
     .filter((category) => (activeParentId.value ? category.parentId === activeParentId.value : !category.parentId))
+    .filter((category) => !q || [category.name, category.slug].some((f) => (f ?? '').toLowerCase().includes(q)))
     .slice()
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || (a.name ?? '').localeCompare(b.name ?? '', 'zh-Hant'))
     .map((category) => ({ ...category, depth: activeParentId.value ? 1 : 0 }))
 })
+
+// 按下搜尋：套用目前關鍵字（分類為前端一次載入，僅過濾目前層級）
+function onSearch() {
+  appliedKeyword.value = keyword.value.trim()
+}
 
 const currentParent = computed(() => categories.value.find((category) => category.id === activeParentId.value) ?? null)
 const isChildList = computed(() => currentParent.value != null)
@@ -197,7 +206,30 @@ onMounted(load)
     </div>
 
     <n-spin :show="loading">
-      <div class="card-pad category-table-card" style="padding:8px 8px 4px;">
+      <!-- 篩選列與分類表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
+      <div class="card-pad category-table-card">
+        <div class="list-filter">
+          <div class="filter-bar">
+            <div class="fb-group">
+              <div class="fb-field fb-keyword">
+                <label class="fb-label">{{ t('common.keyword') }}</label>
+                <n-input
+                  v-model:value="keyword"
+                  clearable
+                  :placeholder="t('catalogCategories.searchPlaceholder')"
+                  @keyup.enter="onSearch">
+                  <template #prefix><app-icon name="search" :size="16" /></template>
+                </n-input>
+              </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="onSearch">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-table-wrap">
         <table class="tbl category-table">
           <thead>
             <tr>
@@ -249,6 +281,7 @@ onMounted(load)
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </n-spin>
 
@@ -290,7 +323,71 @@ onMounted(load)
 }
 
 .category-table-card {
+  padding: 0;
   border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.list-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.list-filter :deep(.n-input),
+.list-filter :deep(.n-input-wrapper) {
+  border-radius: 10px;
+}
+
+.list-filter :deep(.n-input__border),
+.list-filter :deep(.n-input__state-border) {
+  border-radius: 10px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.fb-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* 欄位：標籤在上、控制項在下 */
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* 關鍵字欄位滿版，撐滿按鈕以外的剩餘寬度 */
+.fb-keyword {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
+}
+
+.category-table-wrap {
+  overflow-x: auto;
+  padding: 8px 8px 4px;
 }
 
 .category-breadcrumb {

@@ -69,9 +69,7 @@ const hasFilter = computed(() =>
   keyword.value.trim() !== '' || roleFilter.value !== 'all' || statusFilter.value !== 'all',
 )
 
-let filterTimer: ReturnType<typeof setTimeout> | undefined
 async function applyFilter() {
-  clearTimeout(filterTimer)
   page.value = 1
   await store.applyFilter({
     search: keyword.value,
@@ -79,8 +77,8 @@ async function applyFilter() {
     status: statusFilter.value === 'all' ? null : statusFilter.value,
   })
 }
-watch(keyword, () => { clearTimeout(filterTimer); filterTimer = setTimeout(applyFilter, 300) })
-watch([roleFilter, statusFilter], () => { clearTimeout(filterTimer); applyFilter() })
+// 關鍵字改由「搜尋」按鈕 / Enter 觸發；下拉條件維持即時套用
+watch([roleFilter, statusFilter], () => { applyFilter() })
 async function changePage(p: number) { page.value = p; await store.goPage(p) }
 </script>
 
@@ -98,7 +96,8 @@ async function changePage(p: number) { page.value = p; await store.goPage(p) }
                 <n-input
                   v-model:value="keyword"
                   clearable
-                  :placeholder="t('members.searchPlaceholder')">
+                  :placeholder="t('members.searchPlaceholder')"
+                  @keyup.enter="applyFilter">
                   <template #prefix><app-icon name="search" :size="16" /></template>
                 </n-input>
               </div>
@@ -110,6 +109,10 @@ async function changePage(p: number) { page.value = p; await store.goPage(p) }
                 <label class="fb-label">{{ t('common.status') }}</label>
                 <n-select v-model:value="statusFilter" :options="statusOptions" />
               </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyFilter">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
             </div>
           </div>
         </div>
@@ -218,6 +221,12 @@ async function changePage(p: number) { page.value = p; await store.goPage(p) }
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 .store-table-wrap {

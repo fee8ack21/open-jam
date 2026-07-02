@@ -247,6 +247,7 @@
     "msgSaveFailed": "Update failed"
   },
   "catalogCategories": {
+    "searchPlaceholder": "Search category name or slug",
     "childSub": "Manage the subcategories under this top-level category",
     "rootSub": "{count} platform categories, used for marketplace browsing and product classification",
     "newChild": "Add subcategory",

@@ -20,6 +20,7 @@ function resultOf(s?: StoreApplicationStatus) {
 
 // ── 篩選狀態（結果為伺服器端分頁；關鍵字為目前頁次的客戶端過濾）──
 const keyword = ref('')
+const appliedKeyword = ref('') // 已套用的關鍵字（按下搜尋才更新）
 /** 審核結果篩選：all | Approved | Rejected（伺服器端）。 */
 const statusFilter = ref<'all' | StoreApplicationStatus>('all')
 const page = ref(1)
@@ -45,20 +46,29 @@ function initial(email?: string | null) {
 }
 
 const totalPages = computed(() => Math.max(1, Math.ceil(historyTotal.value / store.pageSize)))
-const hasFilter = computed(() => keyword.value.trim() !== '' || statusFilter.value !== 'all')
+const hasFilter = computed(() => appliedKeyword.value !== '' || statusFilter.value !== 'all')
 
-/** 依關鍵字過濾目前頁次的已審核紀錄（結果篩選已於伺服器端套用）。 */
+/** 依已套用關鍵字過濾目前頁次的已審核紀錄（結果篩選已於伺服器端套用）。 */
 const visible = computed(() => {
-  const q = keyword.value.trim().toLowerCase()
+  const q = appliedKeyword.value.toLowerCase()
   if (!q) return history.value
   return history.value.filter((a) =>
     [a.storeName, a.storeSlug, a.email].some((f) => (f ?? '').toLowerCase().includes(q)),
   )
 })
 
-async function onStatusChange() {
+async function refetch() {
   page.value = 1
   await store.applyHistoryFilter(statusFilter.value === 'all' ? null : statusFilter.value)
+}
+// 按下搜尋：套用目前關鍵字並重新載入
+async function onSearch() {
+  appliedKeyword.value = keyword.value.trim()
+  await refetch()
+}
+// 下拉結果變更：即時重新載入
+async function onStatusChange() {
+  await refetch()
 }
 async function changePage(p: number) { page.value = p; await store.goHistoryPage(p) }
 
@@ -79,7 +89,8 @@ onMounted(store.loadHistory)
                 <n-input
                   v-model:value="keyword"
                   clearable
-                  :placeholder="t('reviewHistory.searchPlaceholder')">
+                  :placeholder="t('reviewHistory.searchPlaceholder')"
+                  @keyup.enter="onSearch">
                   <template #prefix><app-icon name="search" :size="16" /></template>
                 </n-input>
               </div>
@@ -90,6 +101,10 @@ onMounted(store.loadHistory)
                   :options="statusOptions"
                   @update:value="onStatusChange" />
               </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="onSearch">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
             </div>
           </div>
         </div>
@@ -205,6 +220,12 @@ onMounted(store.loadHistory)
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 .history-table-wrap {

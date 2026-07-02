@@ -50,14 +50,12 @@ const statusOptions = computed(() => [
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / catalog.pageSize)))
 
-let filterTimer: ReturnType<typeof setTimeout> | undefined
 async function applyFilter() {
-  clearTimeout(filterTimer)
   page.value = 1
   await catalog.applyFilter({ search: keyword.value, status: filterKey.value === 'all' ? null : filterKey.value })
 }
-watch(keyword, () => { clearTimeout(filterTimer); filterTimer = setTimeout(applyFilter, 300) })
-watch(filterKey, () => { clearTimeout(filterTimer); applyFilter() })
+// 關鍵字改由「搜尋」按鈕 / Enter 觸發；下拉狀態維持即時套用
+watch(filterKey, () => { applyFilter() })
 async function changePage(p: number) { page.value = p; await catalog.goPage(p) }
 
 function fmtDate(v?: string | null) {
@@ -113,10 +111,15 @@ onMounted(load)
                 <n-input
                   v-model:value="keyword"
                   clearable
-                  :placeholder="t('products.searchPlaceholder')">
+                  :placeholder="t('products.searchPlaceholder')"
+                  @keyup.enter="applyFilter">
                   <template #prefix><app-icon name="search" :size="15" /></template>
                 </n-input>
               </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyFilter">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
             </div>
           </div>
         </div>
@@ -240,6 +243,12 @@ onMounted(load)
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 .history-table-card {

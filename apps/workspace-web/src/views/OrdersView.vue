@@ -24,18 +24,12 @@ const page = ref(1)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
-let filterTimer: ReturnType<typeof setTimeout> | undefined
 async function applyFilter() {
-  clearTimeout(filterTimer)
   page.value = 1
   await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value })
 }
-watch(emailFilter, () => {
-  clearTimeout(filterTimer)
-  filterTimer = setTimeout(applyFilter, 300)
-})
+// 買家信箱改由「搜尋」按鈕 / Enter 觸發；下拉狀態維持即時套用
 watch(statusFilter, () => {
-  clearTimeout(filterTimer)
   applyFilter()
 })
 
@@ -90,6 +84,10 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
                   v-model:value="statusFilter"
                   :options="statusOptions" />
               </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyFilter">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
             </div>
           </div>
         </div>
@@ -196,6 +194,12 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 .od-load-error {

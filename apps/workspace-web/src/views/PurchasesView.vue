@@ -52,6 +52,10 @@ onMounted(store.load)
                   :options="statusOptions"
                   @update:value="applyStatus" />
               </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyStatus(status)">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
             </div>
           </div>
         </div>
@@ -150,6 +154,12 @@ onMounted(store.load)
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 .od-load-error {

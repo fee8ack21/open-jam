@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useAuditLogStore } from '@/stores/auditLog'
@@ -40,17 +40,11 @@ function resultTag(result?: string | null) {
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
-let filterTimer: ReturnType<typeof setTimeout> | undefined
 async function applyFilter() {
-  clearTimeout(filterTimer)
   page.value = 1
   await store.applyFilter({ action: actionFilter.value, target: targetFilter.value })
 }
-// 篩選即時生效：逐字輸入以 debounce 收斂，避免每次擊鍵都打 API（對齊其他管理頁的即時篩選）
-watch([actionFilter, targetFilter], () => {
-  clearTimeout(filterTimer)
-  filterTimer = setTimeout(applyFilter, 300)
-})
+// 篩選改由「搜尋」按鈕 / Enter 觸發（不再逐字自動打 API）
 async function changePage(p: number) {
   page.value = p
   await store.goPage(p)
@@ -105,6 +99,10 @@ onMounted(store.load)
                   <template #prefix><app-icon name="tag" :size="16" /></template>
                 </n-input>
               </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyFilter">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
             </div>
           </div>
         </div>
@@ -237,6 +235,12 @@ onMounted(store.load)
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 .history-table-wrap {

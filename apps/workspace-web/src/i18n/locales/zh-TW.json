@@ -247,6 +247,7 @@
     "msgSaveFailed": "更新失敗"
   },
   "catalogCategories": {
+    "searchPlaceholder": "搜尋分類名稱或 slug",
     "childSub": "管理此頂層分類底下的子分類",
     "rootSub": "共 {count} 個平台分類，用於市集瀏覽與商品歸類",
     "newChild": "新增子分類",
