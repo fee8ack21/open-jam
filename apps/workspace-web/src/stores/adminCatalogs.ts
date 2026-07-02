@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { catalogApi } from '@/api';
 import i18n from '@/i18n';
@@ -12,35 +12,59 @@ function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFail
   return problem?.detail ?? problem?.title ?? fallback;
 }
 
+/** 查詢條件（皆為選填；空字串 / null 視為未篩選）。 */
+export interface AdminCatalogFilter {
+  search?: string;
+  status?: CatalogStatus | null;
+}
+
+const PAGE_SIZE = 20;
+
 /**
- * 平台管理員的全平台商品列表 store：跨商店載入商品（唯讀總覽）。
- * 串接 CatalogService `GET /v1/catalogs`（市集瀏覽端點，可帶 Store / 分類 / 關鍵字過濾）。
- * 僅 Admin 使用。
+ * 平台管理員的全平台商品列表 store：分頁跨商店載入商品（唯讀總覽）。
+ * 串接 CatalogService `GET /v1/catalogs`（可帶 Status / 關鍵字過濾）。僅 Admin 使用。
  */
 export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
-  const items = ref<CatalogSummaryDto[]>([]); // 全平台商品
-  const totalCount = ref(0);
+  const items = ref<CatalogSummaryDto[]>([]); // 目前頁次的商品
+  const totalCount = ref(0);                  // 目前篩選條件下的總筆數
+  const offset = ref(0);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const filter = ref<AdminCatalogFilter>({ search: '', status: null });
 
-  /** 已發佈商品數，供側欄徽章與標題顯示。 */
-  const publishedCount = computed(
-    () => items.value.filter((p) => p.status === CatalogStatus.Published).length,
-  );
-
-  /** 載入全平台商品列表。 */
+  /** 載入目前 offset / 篩選條件下的一頁商品。 */
   async function load() {
     loading.value = true;
     error.value = null;
     try {
-      const res = await catalogApi.catalogs.list({ Offset: 0, Limit: 100 });
+      const res = await catalogApi.catalogs.list({
+        Offset: offset.value,
+        Limit: PAGE_SIZE,
+        Search: filter.value.search?.trim() || undefined,
+        Status: filter.value.status ?? undefined,
+      });
       items.value = res.data.items ?? [];
       totalCount.value = res.data.totalCount ?? items.value.length;
     } catch (err) {
       error.value = messageOf(err, i18n.global.t('storeError.loadProductsFailed'));
+      items.value = [];
+      totalCount.value = 0;
     } finally {
       loading.value = false;
     }
+  }
+
+  /** 套用新的篩選條件並回到第一頁重新載入。 */
+  async function applyFilter(next: AdminCatalogFilter) {
+    filter.value = { ...filter.value, ...next };
+    offset.value = 0;
+    await load();
+  }
+
+  /** 跳至指定頁（1-based）。 */
+  async function goPage(page: number) {
+    offset.value = Math.max(0, (page - 1) * PAGE_SIZE);
+    await load();
   }
 
   /**
@@ -66,10 +90,14 @@ export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
   return {
     items,
     totalCount,
+    offset,
+    pageSize: PAGE_SIZE,
     loading,
     error,
-    publishedCount,
+    filter,
     load,
+    applyFilter,
+    goPage,
     setFeatured,
   };
 });

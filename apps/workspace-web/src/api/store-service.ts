@@ -55,6 +55,16 @@ export interface AssetUploadUrlResponse {
   expiresAt?: string;
 }
 
+/** 確認 Avatar/Banner 已上傳完成的請求。 */
+export interface ConfirmAssetUploadRequest {
+  /**
+   * 欲確認的 Asset ID（由上傳簽章 URL 回應取得）。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  assetId?: string;
+}
+
 /** 追蹤／取消追蹤商店請求。 */
 export interface FollowStoreRequest {
   /**
@@ -76,18 +86,6 @@ export interface GetStoreApplicationsResponse {
   items?: StoreApplicationDto[] | null;
 }
 
-/** 全平台商店列表分頁回應。 */
-export interface ListStoresResponse {
-  /**
-   * 符合條件的總筆數（未分頁）。
-   * @format int32
-   * @example 42
-   */
-  totalCount?: number;
-  /** 本頁商店清單。 */
-  items?: StoreDto[] | null;
-}
-
 /** 商店追蹤者分頁查詢回應。 */
 export interface GetStoreFollowersResponse {
   /**
@@ -98,6 +96,18 @@ export interface GetStoreFollowersResponse {
   totalCount?: number;
   /** 本頁追蹤者清單。 */
   items?: StoreFollowerDto[] | null;
+}
+
+/** 全平台商店列表分頁回應。 */
+export interface ListStoresResponse {
+  /**
+   * 符合條件的總筆數（未分頁）。
+   * @format int32
+   * @example 42
+   */
+  totalCount?: number;
+  /** 本頁商店清單。 */
+  items?: StoreDto[] | null;
 }
 
 /** 登入使用者所屬商店資訊。 */
@@ -596,6 +606,11 @@ export class Api<SecurityDataType extends unknown> {
          * @example "Pending"
          */
         Status?: StoreApplicationStatus;
+        /**
+         * true 只回已審核（Approved / Rejected）；null 表示不限。與 Status 併用時以 Status 為準。
+         * @example true
+         */
+        Reviewed?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -634,6 +649,11 @@ export class Api<SecurityDataType extends unknown> {
          * @example "Pending"
          */
         Status?: StoreApplicationStatus;
+        /**
+         * true 只回已審核（Approved / Rejected）；null 表示不限。與 Status 併用時以 Status 為準。
+         * @example true
+         */
+        Reviewed?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -944,6 +964,28 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Stores
+     * @name ConfirmAvatarUpload
+     * @summary 確認商店頭像（Avatar）已上傳完成。僅 Owner 可操作。
+     * @request POST:/v1/stores/{id}/avatar/confirm
+     */
+    confirmAvatarUpload: (
+      id: string,
+      data: ConfirmAssetUploadRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StoreDto, any>({
+        path: `/v1/stores/${id}/avatar/confirm`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Stores
      * @name RequestBannerUploadUrl
      * @summary 申請商店橫幅（Banner）上傳簽章 URL。僅 Owner 可操作。
      * @request POST:/v1/stores/{id}/banner/upload-url
@@ -955,6 +997,28 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<AssetUploadUrlResponse, any>({
         path: `/v1/stores/${id}/banner/upload-url`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Stores
+     * @name ConfirmBannerUpload
+     * @summary 確認商店橫幅（Banner）已上傳完成。僅 Owner 可操作。
+     * @request POST:/v1/stores/{id}/banner/confirm
+     */
+    confirmBannerUpload: (
+      id: string,
+      data: ConfirmAssetUploadRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StoreDto, any>({
+        path: `/v1/stores/${id}/banner/confirm`,
         method: "POST",
         body: data,
         type: ContentType.Json,

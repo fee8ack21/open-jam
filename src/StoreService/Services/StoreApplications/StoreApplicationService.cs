@@ -102,6 +102,8 @@ public class StoreApplicationService(
         var query = db.StoreApplications.AsNoTracking().AsQueryable();
         if (request.Status.HasValue)
             query = query.Where(a => a.Status == request.Status.Value);
+        else if (request.Reviewed == true)
+            query = query.Where(a => a.Status != StoreApplicationStatus.Pending);
 
         var total = await query.CountAsync(ct);
         var items = await query

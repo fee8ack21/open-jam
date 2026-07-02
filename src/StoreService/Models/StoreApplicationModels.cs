@@ -36,6 +36,10 @@ public class GetStoreApplicationsRequest
     /// <summary>過濾審核狀態。</summary>
     /// <example>Pending</example>
     public StoreApplicationStatus? Status { get; set; }
+
+    /// <summary>true 只回已審核（Approved / Rejected）；null 表示不限。與 Status 併用時以 Status 為準。</summary>
+    /// <example>true</example>
+    public bool? Reviewed { get; set; }
 }
 
 /// <summary>開店申請分頁查詢回應。</summary>

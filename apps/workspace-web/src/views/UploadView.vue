@@ -139,11 +139,7 @@ async function submit(publish: boolean) {
 
 <template>
   <div :data-screen-label="t('route.upload')">
-    <div class="page-head" style="margin-bottom:24px;">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.sellerStudio') }}</p>
-        <h1 class="h-title">{{ t('route.upload') }}</h1>
-      </div>
+    <div class="page-head" style="margin-bottom:24px; justify-content:flex-start;">
       <button class="link-btn" style="font-size:14px;" @click="store.go('products')"><app-icon name="arrowLeft" :size="16" /> {{ t('upload.backToProducts') }}</button>
     </div>
 

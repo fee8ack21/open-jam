@@ -65,43 +65,36 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
 
 <template>
   <div :data-screen-label="t('route.orders')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.sellerStudio') }}</p>
-        <h1 class="h-title">{{ t('route.orders') }}</h1>
-        <p class="h-sub">{{ t('orders.total', { count: totalCount }) }}</p>
-      </div>
-    </div>
-
-    <!-- 篩選工具列 -->
-    <div class="card-pad history-toolbar">
-      <div class="filter-bar">
-        <div class="fb-group">
-          <div class="fb-field" style="flex:2 1 240px;">
-            <label class="fb-label">{{ t('orders.buyerEmail') }}</label>
-            <n-input
-              v-model:value="emailFilter"
-              clearable
-              :placeholder="t('orders.buyerEmailPlaceholder')"
-              @keyup.enter="applyFilter">
-              <template #prefix><app-icon name="search" :size="16" /></template>
-            </n-input>
-          </div>
-          <div class="fb-field" style="flex:1 1 180px;">
-            <label class="fb-label">{{ t('orders.orderStatus') }}</label>
-            <n-select
-              v-model:value="statusFilter"
-              :options="statusOptions" />
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div v-if="error" class="card-pad od-load-error">{{ error }}</div>
 
     <n-spin :show="loading">
-      <!-- 訂單表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
-      <div class="card-pad history-table-card" style="padding:8px 8px 4px;">
+      <!-- 篩選列與訂單表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
+      <div class="card-pad history-table-card">
+        <div class="list-filter">
+          <div class="filter-bar">
+            <div class="fb-group">
+              <div class="fb-field" style="flex:2 1 240px;">
+                <label class="fb-label">{{ t('orders.buyerEmail') }}</label>
+                <n-input
+                  v-model:value="emailFilter"
+                  clearable
+                  :placeholder="t('orders.buyerEmailPlaceholder')"
+                  @keyup.enter="applyFilter">
+                  <template #prefix><app-icon name="search" :size="16" /></template>
+                </n-input>
+              </div>
+              <div class="fb-field" style="flex:1 1 180px;">
+                <label class="fb-label">{{ t('orders.orderStatus') }}</label>
+                <n-select
+                  v-model:value="statusFilter"
+                  :options="statusOptions" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 訂單表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
         <div class="history-table-wrap">
           <table class="tbl history-table">
             <thead>
@@ -158,21 +151,22 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
 </template>
 
 <style scoped>
-.history-toolbar {
-  margin-bottom: 16px;
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.list-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.list-filter :deep(.n-input),
+.list-filter :deep(.n-input-wrapper),
+.list-filter :deep(.n-base-selection),
+.list-filter :deep(.n-base-selection__border),
+.list-filter :deep(.n-base-selection__state-border) {
   border-radius: 10px;
 }
 
-.history-toolbar :deep(.n-input),
-.history-toolbar :deep(.n-input-wrapper),
-.history-toolbar :deep(.n-base-selection),
-.history-toolbar :deep(.n-base-selection__border),
-.history-toolbar :deep(.n-base-selection__state-border) {
-  border-radius: 10px;
-}
-
-.history-toolbar :deep(.n-input__border),
-.history-toolbar :deep(.n-input__state-border) {
+.list-filter :deep(.n-input__border),
+.list-filter :deep(.n-input__state-border) {
   border-radius: 10px;
 }
 
@@ -212,11 +206,14 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
 }
 
 .history-table-card {
+  padding: 0;
   border-radius: 10px;
+  overflow: hidden;
 }
 
 .history-table-wrap {
   overflow-x: auto;
+  padding: 8px 8px 4px;
 }
 
 .history-table {

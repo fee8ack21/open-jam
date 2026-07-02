@@ -319,6 +319,10 @@ public class ListCatalogsRequest
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? CategoryId { get; set; }
 
+    /// <summary>限定商品狀態；null 表示不限。僅對含未上架商品的查詢（mine / by-store）生效。</summary>
+    /// <example>Published</example>
+    public CatalogStatus? Status { get; set; }
+
     /// <summary>限定標籤名稱；null 表示不限。</summary>
     /// <example>retro</example>
     public string? Tag { get; set; }

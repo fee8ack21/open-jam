@@ -61,7 +61,7 @@ function goToMarket() { window.location.href = env.MARKET_PAGE_URL }
         </button>
       </n-dropdown>
       <button class="icon-btn" @click="goToMarket" :title="t('header.backToMarket')" :aria-label="t('header.backToMarket')">
-        <app-icon name="home" :size="20" />
+        <app-icon name="bag" :size="20" />
       </button>
       <div class="icon-btn" :title="t('header.notifications')">
         <app-icon name="bell" :size="20" />

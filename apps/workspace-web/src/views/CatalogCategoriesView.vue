@@ -181,12 +181,7 @@ onMounted(load)
 
 <template>
   <div :data-screen-label="t('route.catalogCategories')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
-        <h1 class="h-title">{{ isChildList ? currentParent?.name : t('route.catalogCategories') }}</h1>
-        <p class="h-sub">{{ isChildList ? t('catalogCategories.childSub') : t('catalogCategories.rootSub', { count: categories.length }) }}</p>
-      </div>
+    <div class="page-head" style="justify-content:flex-end;">
       <n-button type="primary" size="large" @click="openCreate(activeParentId)">
         <template #icon><app-icon name="plus" :size="16" /></template>
         {{ isChildList ? t('catalogCategories.newChild') : t('catalogCategories.newCategory') }}

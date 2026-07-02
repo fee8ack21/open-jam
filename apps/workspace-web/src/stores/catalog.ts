@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { catalogApi } from '@/api';
 import i18n from '@/i18n';
@@ -30,6 +30,20 @@ function slugify(name: string): string {
   return `${padded}-${Date.now().toString(36)}`.slice(0, 100);
 }
 
+/** 商品列表查詢條件（皆為選填；空字串 / null 視為未篩選）。 */
+export interface CatalogListFilter {
+  search?: string;
+  status?: CatalogStatus | null;
+}
+
+/** 目前列表資料來源：'mine' 走 listMine（Owner），'store' 走 listByStore（Admin）。 */
+interface CatalogSource {
+  kind: 'mine' | 'store';
+  storeId: string;
+}
+
+const PAGE_SIZE = 20;
+
 /** 建立新商品所需的草稿資料。 */
 export interface NewCatalogInput {
   storeId: string;
@@ -52,15 +66,16 @@ export interface NewCatalogInput {
  * 取代原 dashboard mock，提供商品列表與上 / 下架、建立新商品（含版本與檔案上傳）。
  */
 export const useCatalogStore = defineStore('catalog', () => {
-  const products = ref<CatalogSummaryDto[]>([]);
+  const products = ref<CatalogSummaryDto[]>([]); // 目前頁次的商品
+  const totalCount = ref(0);                     // 目前篩選條件下的總筆數
+  const offset = ref(0);
   const categories = ref<CatalogCategoryDto[]>([]);
   const loading = ref(false);
   const busyId = ref<string | null>(null);   // 進行中的商品 id（避免重複點擊）
   const creating = ref(false);
   const error = ref<string | null>(null);
-
-  const publishedCount = computed(() => products.value.filter((p) => p.status === CatalogStatus.Published).length);
-  const statusCount = (status: CatalogStatus) => products.value.filter((p) => p.status === status).length;
+  const filter = ref<CatalogListFilter>({ search: '', status: null });
+  const source = ref<CatalogSource | null>(null);
 
   /** 載入分類（建立商品時將分類 slug 對應成 id）。 */
   async function loadCategories() {
@@ -73,49 +88,79 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
-  /** 載入指定商店的全部商品（含未上架）。 */
+  /** 依目前 source / offset / filter 取得一頁商品。 */
+  async function fetchPage() {
+    const src = source.value;
+    if (!src || !src.storeId) {
+      products.value = [];
+      totalCount.value = 0;
+      return;
+    }
+    loading.value = true;
+    error.value = null;
+    const query = {
+      Offset: offset.value,
+      Limit: PAGE_SIZE,
+      Search: filter.value.search?.trim() || undefined,
+      Status: filter.value.status ?? undefined,
+    };
+    try {
+      const res = src.kind === 'mine'
+        ? await catalogApi.catalogs.listMine({ StoreId: src.storeId, ...query })
+        : await catalogApi.catalogs.listByStore(src.storeId, query);
+      products.value = res.data.items ?? [];
+      totalCount.value = res.data.totalCount ?? products.value.length;
+    } catch (err) {
+      const fallback = src.kind === 'mine'
+        ? i18n.global.t('storeError.loadCatalogFailed')
+        : i18n.global.t('storeError.loadStoreCatalogsFailed');
+      error.value = messageOf(err, fallback);
+      products.value = [];
+      totalCount.value = 0;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /** 載入指定商店的全部商品（含未上架，Owner 視角）；回到第一頁。 */
   async function load(storeId: string) {
-    if (!storeId) {
-      products.value = [];
-      return;
-    }
-    loading.value = true;
-    error.value = null;
-    try {
-      const res = await catalogApi.catalogs.listMine({ StoreId: storeId, Offset: 0, Limit: 100 });
-      products.value = res.data.items ?? [];
-    } catch (err) {
-      error.value = messageOf(err, i18n.global.t('storeError.loadCatalogFailed'));
-    } finally {
-      loading.value = false;
-    }
+    source.value = storeId ? { kind: 'mine', storeId } : null;
+    offset.value = 0;
+    await fetchPage();
   }
 
-  /** （Admin）載入指定商店的全部商品（含草稿 / 已停權）。 */
+  /** （Admin）載入指定商店的全部商品（含草稿 / 已停權）；回到第一頁。 */
   async function loadByStore(storeId: string) {
-    if (!storeId) {
-      products.value = [];
-      return;
-    }
-    loading.value = true;
-    error.value = null;
-    try {
-      const res = await catalogApi.catalogs.listByStore(storeId, { Offset: 0, Limit: 100 });
-      products.value = res.data.items ?? [];
-    } catch (err) {
-      error.value = messageOf(err, i18n.global.t('storeError.loadStoreCatalogsFailed'));
-    } finally {
-      loading.value = false;
-    }
+    source.value = storeId ? { kind: 'store', storeId } : null;
+    offset.value = 0;
+    await fetchPage();
   }
 
-  /** （Admin）停權商品（任一狀態 → Suspended），停權後重新載入該商店。 */
-  async function suspend(id: string, storeId: string) {
+  /** 重新載入目前頁次（動作後刷新，不重置頁碼）。 */
+  async function reload() {
+    await fetchPage();
+  }
+
+  /** 套用新的篩選條件並回到第一頁重新載入。 */
+  async function applyFilter(next: CatalogListFilter) {
+    filter.value = { ...filter.value, ...next };
+    offset.value = 0;
+    await fetchPage();
+  }
+
+  /** 跳至指定頁（1-based）。 */
+  async function goPage(page: number) {
+    offset.value = Math.max(0, (page - 1) * PAGE_SIZE);
+    await fetchPage();
+  }
+
+  /** （Admin）停權商品（任一狀態 → Suspended），停權後重新載入目前頁次。 */
+  async function suspend(id: string) {
     busyId.value = id;
     error.value = null;
     try {
       await catalogApi.catalogs.suspend(id);
-      await loadByStore(storeId);
+      await reload();
       return true;
     } catch (err) {
       error.value = messageOf(err, i18n.global.t('storeError.suspendProductFailed'));
@@ -125,13 +170,13 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
-  /** （Admin）解除停權（Suspended → Archived），完成後重新載入該商店。 */
-  async function unsuspend(id: string, storeId: string) {
+  /** （Admin）解除停權（Suspended → Archived），完成後重新載入目前頁次。 */
+  async function unsuspend(id: string) {
     busyId.value = id;
     error.value = null;
     try {
       await catalogApi.catalogs.unsuspend(id);
-      await loadByStore(storeId);
+      await reload();
       return true;
     } catch (err) {
       error.value = messageOf(err, i18n.global.t('storeError.unsuspendFailed'));
@@ -142,12 +187,12 @@ export const useCatalogStore = defineStore('catalog', () => {
   }
 
   /** 上架（Draft / Archived → Published）。需已有目前版本。 */
-  async function publish(id: string, storeId: string) {
+  async function publish(id: string) {
     busyId.value = id;
     error.value = null;
     try {
       await catalogApi.catalogs.publish(id);
-      await load(storeId);
+      await reload();
       return true;
     } catch (err) {
       error.value = messageOf(err, i18n.global.t('storeError.publishNeedVersion'));
@@ -158,12 +203,12 @@ export const useCatalogStore = defineStore('catalog', () => {
   }
 
   /** 下架封存（Published → Archived）。 */
-  async function archive(id: string, storeId: string) {
+  async function archive(id: string) {
     busyId.value = id;
     error.value = null;
     try {
       await catalogApi.catalogs.archive(id);
-      await load(storeId);
+      await reload();
       return true;
     } catch (err) {
       error.value = messageOf(err, i18n.global.t('storeError.archiveFailed'));
@@ -238,16 +283,21 @@ export const useCatalogStore = defineStore('catalog', () => {
 
   return {
     products,
+    totalCount,
+    offset,
+    pageSize: PAGE_SIZE,
     categories,
     loading,
     busyId,
     creating,
     error,
-    publishedCount,
-    statusCount,
+    filter,
     loadCategories,
     load,
     loadByStore,
+    reload,
+    applyFilter,
+    goPage,
     suspend,
     unsuspend,
     publish,

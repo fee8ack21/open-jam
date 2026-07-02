@@ -88,6 +88,8 @@ public class CatalogManager(
 
         if (publishedOnly)
             query = query.Where(c => c.Status == CatalogStatus.Published);
+        else if (request.Status is { } status)
+            query = query.Where(c => c.Status == status);
 
         if (request.StoreId is { } storeId)
             query = query.Where(c => c.StoreId == storeId);

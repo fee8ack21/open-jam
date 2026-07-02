@@ -25,13 +25,6 @@ function accent(p: WishlistItem) { return `hsl(${p.hue} 85% 58%)` }
 
 <template>
   <div data-screen-label="Wishlist">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.myLibrary') }}</p>
-        <h1 class="h-title">{{ t('wishlist.title') }}</h1>
-        <p class="h-sub">{{ t('wishlist.sub', { count: store.wishlist.length }) }}</p>
-      </div>
-    </div>
 
     <div v-if="store.wishlist.length" class="grid">
       <div v-for="p in list" :key="p.id" class="card" :style="{ '--accent': accent(p) }">

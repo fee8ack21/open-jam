@@ -75,12 +75,6 @@ onMounted(store.load)
 
 <template>
   <div :data-screen-label="t('route.openStore')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('openStore.eyebrow') }}</p>
-        <h1 class="h-title">{{ t('route.openStore') }}</h1>
-      </div>
-    </div>
 
     <n-spin :show="loading">
       <div class="dash-grid" style="gap:18px;">

@@ -36,34 +36,27 @@ onMounted(store.load)
 
 <template>
   <div :data-screen-label="t('route.purchases')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.myLibrary') }}</p>
-        <h1 class="h-title">{{ t('route.purchases') }}</h1>
-        <p class="h-sub">{{ t('purchases.subStats', { count: totalCount }) }}</p>
-      </div>
-    </div>
-
-    <!-- 篩選工具列 -->
-    <div class="card-pad history-toolbar">
-      <div class="filter-bar">
-        <div class="fb-group">
-          <div class="fb-field" style="flex:1 1 200px;">
-            <label class="fb-label">{{ t('orders.orderStatus') }}</label>
-            <n-select
-              :value="status"
-              :options="statusOptions"
-              @update:value="applyStatus" />
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div v-if="error" class="card-pad od-load-error">{{ error }}</div>
 
     <n-spin :show="loading">
-      <!-- 訂單表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
-      <div class="card-pad history-table-card" style="padding:8px 8px 4px;">
+      <!-- 篩選列與訂單表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
+      <div class="card-pad history-table-card">
+        <div class="list-filter">
+          <div class="filter-bar">
+            <div class="fb-group">
+              <div class="fb-field" style="flex:1 1 200px;">
+                <label class="fb-label">{{ t('orders.orderStatus') }}</label>
+                <n-select
+                  :value="status"
+                  :options="statusOptions"
+                  @update:value="applyStatus" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 訂單表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
         <div class="history-table-wrap">
           <table class="tbl history-table">
             <thead>
@@ -119,14 +112,15 @@ onMounted(store.load)
 </template>
 
 <style scoped>
-.history-toolbar {
-  margin-bottom: 16px;
-  border-radius: 10px;
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.list-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
 }
 
-.history-toolbar :deep(.n-base-selection),
-.history-toolbar :deep(.n-base-selection__border),
-.history-toolbar :deep(.n-base-selection__state-border) {
+.list-filter :deep(.n-base-selection),
+.list-filter :deep(.n-base-selection__border),
+.list-filter :deep(.n-base-selection__state-border) {
   border-radius: 10px;
 }
 
@@ -166,11 +160,14 @@ onMounted(store.load)
 }
 
 .history-table-card {
+  padding: 0;
   border-radius: 10px;
+  overflow: hidden;
 }
 
 .history-table-wrap {
   overflow-x: auto;
+  padding: 8px 8px 4px;
 }
 
 .history-table {

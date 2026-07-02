@@ -7,7 +7,7 @@ import { StoreApplicationStatus } from '@/api/store-service'
 
 const { t, locale } = useI18n()
 const store = useStoreReviewStore()
-const { history, loading } = storeToRefs(store)
+const { history, historyTotal, loading } = storeToRefs(store)
 
 // 審核結果 → 顯示用標籤
 const RESULT = {
@@ -18,13 +18,11 @@ function resultOf(s?: StoreApplicationStatus) {
   return (s != null && RESULT[s as keyof typeof RESULT]) || { labelKey: 'appStatus.unknown', type: 'default' as const }
 }
 
-// ── 篩選 / 排序狀態 ──────────────────────────────────────────
+// ── 篩選狀態（結果為伺服器端分頁；關鍵字為目前頁次的客戶端過濾）──
 const keyword = ref('')
-/** 審核結果篩選：all | Approved | Rejected */
+/** 審核結果篩選：all | Approved | Rejected（伺服器端）。 */
 const statusFilter = ref<'all' | StoreApplicationStatus>('all')
-/** 排序欄位 + 方向 */
-const sortKey = ref<'reviewedAt' | 'createdAt' | 'storeName' | 'storeSlug' | 'email'>('reviewedAt')
-const sortDesc = ref(true)
+const page = ref(1)
 
 const statusOptions = computed(() => [
   { label: t('reviewHistory.filterAll'), value: 'all' },
@@ -46,93 +44,63 @@ function initial(email?: string | null) {
   return (email?.charAt(0) || '?').toUpperCase()
 }
 
-function toggleSort(key: typeof sortKey.value) {
-  if (sortKey.value === key) {
-    sortDesc.value = !sortDesc.value
-    return
-  }
-  sortKey.value = key
-  sortDesc.value = key === 'reviewedAt' || key === 'createdAt'
-}
+const totalPages = computed(() => Math.max(1, Math.ceil(historyTotal.value / store.pageSize)))
+const hasFilter = computed(() => keyword.value.trim() !== '' || statusFilter.value !== 'all')
 
-/** 套用關鍵字、結果篩選與排序後的清單。 */
+/** 依關鍵字過濾目前頁次的已審核紀錄（結果篩選已於伺服器端套用）。 */
 const visible = computed(() => {
   const q = keyword.value.trim().toLowerCase()
-  let list = history.value.slice()
-
-  if (statusFilter.value !== 'all') {
-    list = list.filter((a) => a.status === statusFilter.value)
-  }
-  if (q) {
-    list = list.filter((a) =>
-      [a.storeName, a.storeSlug, a.email]
-        .some((f) => (f ?? '').toLowerCase().includes(q)),
-    )
-  }
-
-  const dir = sortDesc.value ? -1 : 1
-  list.sort((a, b) => {
-    const key = sortKey.value
-    const av = (a[key] ?? '') as string
-    const bv = (b[key] ?? '') as string
-    if (key === 'storeName') return av.localeCompare(bv, 'zh-Hant') * dir
-    // 時間欄位以 ISO 字串可直接字典序比較
-    return (av < bv ? -1 : av > bv ? 1 : 0) * dir
-  })
-  return list
+  if (!q) return history.value
+  return history.value.filter((a) =>
+    [a.storeName, a.storeSlug, a.email].some((f) => (f ?? '').toLowerCase().includes(q)),
+  )
 })
 
-onMounted(store.load)
+async function onStatusChange() {
+  page.value = 1
+  await store.applyHistoryFilter(statusFilter.value === 'all' ? null : statusFilter.value)
+}
+async function changePage(p: number) { page.value = p; await store.goHistoryPage(p) }
+
+onMounted(store.loadHistory)
 </script>
 
 <template>
   <div :data-screen-label="t('route.reviewHistory')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
-        <h1 class="h-title">{{ t('route.reviewHistory') }}</h1>
-        <p class="h-sub">{{ t('reviewHistory.subStats', { count: history.length }) }}</p>
-      </div>
-    </div>
-
-    <!-- 篩選 / 排序工具列 -->
-    <div class="card-pad history-toolbar">
-      <div class="filter-bar">
-        <div class="fb-group">
-          <div class="fb-field" style="flex:2 1 220px;">
-            <label class="fb-label">{{ t('common.keyword') }}</label>
-            <n-input
-              v-model:value="keyword"
-              clearable
-              :placeholder="t('reviewHistory.searchPlaceholder')">
-              <template #prefix><app-icon name="search" :size="16" /></template>
-            </n-input>
-          </div>
-          <div class="fb-field" style="flex:1 1 140px;">
-            <label class="fb-label">{{ t('reviewHistory.resultLabel') }}</label>
-            <n-select
-              v-model:value="statusFilter"
-              :options="statusOptions" />
-          </div>
-        </div>
-      </div>
-    </div>
 
     <n-spin :show="loading">
-      <!-- 紀錄表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
-      <div class="card-pad history-table-card" style="padding:8px 8px 4px;">
+      <!-- 篩選列與紀錄表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
+      <div class="card-pad history-table-card">
+        <div class="list-filter">
+          <div class="filter-bar">
+            <div class="fb-group">
+              <div class="fb-field" style="flex:2 1 220px;">
+                <label class="fb-label">{{ t('common.keyword') }}</label>
+                <n-input
+                  v-model:value="keyword"
+                  clearable
+                  :placeholder="t('reviewHistory.searchPlaceholder')">
+                  <template #prefix><app-icon name="search" :size="16" /></template>
+                </n-input>
+              </div>
+              <div class="fb-field" style="flex:1 1 140px;">
+                <label class="fb-label">{{ t('reviewHistory.resultLabel') }}</label>
+                <n-select
+                  v-model:value="statusFilter"
+                  :options="statusOptions"
+                  @update:value="onStatusChange" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 紀錄表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
         <div class="history-table-wrap">
           <table class="tbl history-table">
             <thead>
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
-                  <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ t(col.labelKey) }}</span>
-                    <app-icon
-                      v-if="sortKey === col.key"
-                      :name="sortDesc ? 'chevronD' : 'chevronU'"
-                      :size="15" />
-                  </button>
+                  <span>{{ t(col.labelKey) }}</span>
                 </th>
                 <th style="width:120px; text-align:right;">{{ t('reviewHistory.colResult') }}</th>
               </tr>
@@ -143,10 +111,10 @@ onMounted(store.load)
                 <td :colspan="columns.length + 1" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="receipt" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ history.length ? t('reviewHistory.emptyFilteredTitle') : t('reviewHistory.emptyTitle') }}
+                    {{ hasFilter ? t('reviewHistory.emptyFilteredTitle') : t('reviewHistory.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ history.length ? t('reviewHistory.emptyFilteredDesc') : t('reviewHistory.emptyDesc') }}
+                    {{ hasFilter ? t('reviewHistory.emptyFilteredDesc') : t('reviewHistory.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -180,27 +148,32 @@ onMounted(store.load)
           </table>
         </div>
       </div>
+
+      <div v-if="totalPages > 1" class="history-pager">
+        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+      </div>
     </n-spin>
   </div>
 </template>
 
 <style scoped>
-.history-toolbar {
-  margin-bottom: 16px;
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.list-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.list-filter :deep(.n-input),
+.list-filter :deep(.n-input-wrapper),
+.list-filter :deep(.n-base-selection),
+.list-filter :deep(.n-base-selection-label) {
   border-radius: 10px;
 }
 
-.history-toolbar :deep(.n-input),
-.history-toolbar :deep(.n-input-wrapper),
-.history-toolbar :deep(.n-base-selection),
-.history-toolbar :deep(.n-base-selection-label) {
-  border-radius: 10px;
-}
-
-.history-toolbar :deep(.n-input__border),
-.history-toolbar :deep(.n-input__state-border),
-.history-toolbar :deep(.n-base-selection__border),
-.history-toolbar :deep(.n-base-selection__state-border) {
+.list-filter :deep(.n-input__border),
+.list-filter :deep(.n-input__state-border),
+.list-filter :deep(.n-base-selection__border),
+.list-filter :deep(.n-base-selection__state-border) {
   border-radius: 10px;
 }
 
@@ -236,22 +209,17 @@ onMounted(store.load)
 
 .history-table-wrap {
   overflow-x: auto;
+  padding: 8px 8px 4px;
 }
 
 .history-table {
   min-width: 940px;
 }
 
-.sort-head {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+.history-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 8px;
 }
 
 .history-table thead th {
@@ -261,7 +229,9 @@ onMounted(store.load)
 }
 
 .history-table-card {
+  padding: 0;
   border-radius: 10px;
+  overflow: hidden;
 }
 
 .history-table thead th + th {

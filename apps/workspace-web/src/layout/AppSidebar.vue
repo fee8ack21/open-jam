@@ -90,7 +90,6 @@ function isActive(view: string) { return route.name === view }
       <template v-if="!isReady" />
       <template v-else-if="isAdmin">
         <div class="nav-group">
-          <div class="nav-label">{{ t('sidebar.platformAdmin') }}</div>
           <div class="nav-item" :class="{ on: isActive('admin-overview') }" @click="nav('admin-overview')">
             <span class="nav-ic"><app-icon name="grid" :size="19" /></span>
             <span>{{ t('route.adminOverview') }}</span>
@@ -138,7 +137,6 @@ function isActive(view: string) { return route.name === view }
       </template>
       <template v-else-if="store.mode === 'sell'">
         <div class="nav-group">
-          <div class="nav-label">{{ t('sidebar.sellerStudio') }}</div>
           <div v-for="it in navSell" :key="it.view" class="nav-item" :class="{ on: isActive(it.view) }" @click="nav(it.view)">
             <span class="nav-ic"><app-icon :name="it.icon" :size="19" /></span>
             <span>{{ t(it.labelKey) }}</span>
@@ -148,7 +146,6 @@ function isActive(view: string) { return route.name === view }
       </template>
       <template v-else>
         <div class="nav-group">
-          <div class="nav-label">{{ t('sidebar.myLibrary') }}</div>
           <div v-for="it in navBuy" :key="it.view" class="nav-item" :class="{ on: isActive(it.view) }" @click="nav(it.view)">
             <span class="nav-ic"><app-icon :name="it.icon" :size="19" /></span>
             <span>{{ t(it.labelKey) }}</span>

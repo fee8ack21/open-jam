@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
@@ -27,11 +27,13 @@ const dashboard = useDashboardStore()
 const storeList = useStoreListStore()
 const catalog = useCatalogStore()
 const { items } = storeToRefs(storeList)
-const { products, loading, busyId } = storeToRefs(catalog)
+const { products, totalCount, loading, busyId } = storeToRefs(catalog)
 
 const storeId = computed(() => String(route.params.id ?? ''))
 const store = computed(() => items.value.find((s) => s.id === storeId.value) ?? null)
-const publishedCount = computed(() => products.value.filter((p) => p.status === CatalogStatus.Published).length)
+const page = ref(1)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / catalog.pageSize)))
+async function changePage(p: number) { page.value = p; await catalog.goPage(p) }
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleDateString(locale.value) : '—'
@@ -46,7 +48,7 @@ async function load() {
 /** 停權商品（任一狀態 → Suspended）。僅 Admin 可操作。 */
 async function onSuspend(p: CatalogSummaryDto) {
   if (!p.id) return
-  const ok = await catalog.suspend(p.id, storeId.value)
+  const ok = await catalog.suspend(p.id)
   if (ok) message.success(t('storeProducts.msgSuspended'))
   else message.error(catalog.error ?? t('storeProducts.msgSuspendFailed'))
 }
@@ -54,7 +56,7 @@ async function onSuspend(p: CatalogSummaryDto) {
 /** 解除停權（Suspended → Archived，與後端一致）。僅 Admin 可操作。 */
 async function onUnsuspend(p: CatalogSummaryDto) {
   if (!p.id) return
-  const ok = await catalog.unsuspend(p.id, storeId.value)
+  const ok = await catalog.unsuspend(p.id)
   if (ok) message.success(t('storeProducts.msgUnsuspended'))
   else message.error(catalog.error ?? t('storeProducts.msgUnsuspendFailed'))
 }
@@ -64,16 +66,6 @@ onMounted(load)
 
 <template>
   <div :data-screen-label="t('route.storeProducts')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
-        <h1 class="h-title">{{ store?.storeName ?? t('route.storeProducts') }}</h1>
-        <p class="h-sub">
-          <span v-if="store" class="store-mono">{{ store.storeSlug }}.openjam.co</span>
-          <span v-if="store"> · </span>{{ t('storeProducts.subStats', { total: products.length, published: publishedCount }) }}
-        </p>
-      </div>
-    </div>
 
     <!-- 麵包屑：返回商店列表 -->
     <div class="store-breadcrumb">
@@ -145,6 +137,10 @@ onMounted(load)
           </tbody>
         </table>
       </div>
+
+      <div v-if="totalPages > 1" class="history-pager">
+        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+      </div>
     </n-spin>
   </div>
 </template>
@@ -152,6 +148,12 @@ onMounted(load)
 <style scoped>
 .store-table-card {
   border-radius: 10px;
+}
+
+.history-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 8px;
 }
 
 .store-product-table thead th {

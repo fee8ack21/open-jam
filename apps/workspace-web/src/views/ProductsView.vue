@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
@@ -25,13 +25,12 @@ const dashboard = useDashboardStore()
 const message = useMessage()
 const catalog = useCatalogStore()
 const storeApp = useStoreApplicationStore()
-const { products, loading, busyId } = storeToRefs(catalog)
+const { products, totalCount, loading, busyId } = storeToRefs(catalog)
 
 const filterKey = ref<'all' | CatalogStatus>('all')
-/** 日期範圍篩選（[起, 迄] 毫秒時間戳），null 表示不限，比對上架時間。 */
-const dateRange = ref<[number, number] | null>(null)
-/** 關鍵字查詢，比對作品名稱／摘要／slug。 */
+/** 關鍵字查詢（伺服器端，比對作品名稱）。 */
 const keyword = ref('')
+const page = ref(1)
 
 // 目前登入創作者的商店 id（取第一間）
 const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
@@ -40,41 +39,26 @@ const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
 const reviewing = ref<CatalogSummaryDto | null>(null)
 function openReviews(p: CatalogSummaryDto) { reviewing.value = p }
 
-// 狀態下拉選項（含各狀態件數），對齊訂單管理的下拉篩選
+// 狀態下拉選項（對齊訂單管理的下拉篩選）
 const statusOptions = computed(() => [
-  { label: `${t('catalogStatus.all')} (${products.value.length})`, value: 'all' as const },
-  { label: `${t('catalogStatus.published')} (${catalog.statusCount(CatalogStatus.Published)})`, value: CatalogStatus.Published },
-  { label: `${t('catalogStatus.draft')} (${catalog.statusCount(CatalogStatus.Draft)})`, value: CatalogStatus.Draft },
-  { label: `${t('catalogStatus.archived')} (${catalog.statusCount(CatalogStatus.Archived)})`, value: CatalogStatus.Archived },
-  { label: `${t('catalogStatus.suspended')} (${catalog.statusCount(CatalogStatus.Suspended)})`, value: CatalogStatus.Suspended },
+  { label: t('catalogStatus.all'), value: 'all' as const },
+  { label: t('catalogStatus.published'), value: CatalogStatus.Published },
+  { label: t('catalogStatus.draft'), value: CatalogStatus.Draft },
+  { label: t('catalogStatus.archived'), value: CatalogStatus.Archived },
+  { label: t('catalogStatus.suspended'), value: CatalogStatus.Suspended },
 ])
 
-/** 將毫秒時間戳轉為當地 YYYY-MM-DD，供與上架時間做同格式字串比較。 */
-function dayKey(ts: number): string {
-  const d = new Date(ts)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / catalog.pageSize)))
 
-const rows = computed(() => {
-  let list = products.value
-  if (filterKey.value !== 'all') list = list.filter((p) => p.status === filterKey.value)
-  const kw = keyword.value.trim().toLowerCase()
-  if (kw) {
-    list = list.filter((p) =>
-      [p.name, p.summary, p.slug].some((v) => v?.toLowerCase().includes(kw)),
-    )
-  }
-  if (dateRange.value) {
-    const [from, to] = [dayKey(dateRange.value[0]), dayKey(dateRange.value[1])]
-    list = list.filter((p) => {
-      if (!p.publishedAt) return false
-      const k = dayKey(new Date(p.publishedAt).getTime())
-      return k >= from && k <= to
-    })
-  }
-  return list
-})
+let filterTimer: ReturnType<typeof setTimeout> | undefined
+async function applyFilter() {
+  clearTimeout(filterTimer)
+  page.value = 1
+  await catalog.applyFilter({ search: keyword.value, status: filterKey.value === 'all' ? null : filterKey.value })
+}
+watch(keyword, () => { clearTimeout(filterTimer); filterTimer = setTimeout(applyFilter, 300) })
+watch(filterKey, () => { clearTimeout(filterTimer); applyFilter() })
+async function changePage(p: number) { page.value = p; await catalog.goPage(p) }
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleDateString(locale.value) : '—'
@@ -92,8 +76,8 @@ async function toggle(p: CatalogSummaryDto) {
   if (!p.id) return
   const wasPublished = p.status === CatalogStatus.Published
   const ok = wasPublished
-    ? await catalog.archive(p.id, storeId.value)
-    : await catalog.publish(p.id, storeId.value)
+    ? await catalog.archive(p.id)
+    : await catalog.publish(p.id)
   if (ok) message.success(wasPublished ? t('products.msgArchived') : t('products.msgPublished'))
   else message.error(catalog.error ?? t('products.msgActionFailed'))
 }
@@ -108,52 +92,36 @@ onMounted(load)
 
 <template>
   <div :data-screen-label="t('route.products')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.sellerStudio') }}</p>
-        <h1 class="h-title">{{ t('route.products') }}</h1>
-        <p class="h-sub">{{ t('products.subStats', { total: products.length, published: catalog.publishedCount }) }}</p>
-      </div>
+    <div class="page-head" style="justify-content:flex-end;">
       <button class="cta-pop" @click="dashboard.go('upload')"><app-icon name="plus" :size="16" :stroke="2.4" />{{ t('products.newProduct') }}</button>
     </div>
 
-    <!-- 篩選工具列：單行時四欄平均分布、間隔一致；空間不足時整組換行，最多兩行並填滿寬度 -->
-    <div class="card-pad history-toolbar">
-      <div class="filter-bar">
-        <div class="fb-group">
-          <div class="fb-field" style="flex:1 1 140px;">
-            <label class="fb-label">{{ t('common.status') }}</label>
-            <n-select
-              v-model:value="filterKey"
-              :options="statusOptions" />
-          </div>
-          <div class="fb-field" style="flex:2 1 200px;">
-            <label class="fb-label">{{ t('common.keyword') }}</label>
-            <n-input
-              v-model:value="keyword"
-              clearable
-              :placeholder="t('products.searchPlaceholder')">
-              <template #prefix><app-icon name="search" :size="15" /></template>
-            </n-input>
-          </div>
-        </div>
-        <div class="fb-group">
-          <div class="fb-field" style="flex:1 1 240px;">
-            <label class="fb-label">{{ t('products.colPublishedAt') }}</label>
-            <n-date-picker
-              v-model:value="dateRange"
-              type="daterange"
-              clearable
-              :start-placeholder="t('common.startDate')"
-              :end-placeholder="t('common.endDate')" />
-          </div>
-        </div>
-      </div>
-    </div>
-
     <n-spin :show="loading">
-      <!-- 商品表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
-      <div class="card-pad history-table-card" style="padding:8px 8px 4px;">
+      <!-- 篩選列與商品表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
+      <div class="card-pad history-table-card">
+        <div class="list-filter">
+          <div class="filter-bar">
+            <div class="fb-group">
+              <div class="fb-field" style="flex:1 1 140px;">
+                <label class="fb-label">{{ t('common.status') }}</label>
+                <n-select
+                  v-model:value="filterKey"
+                  :options="statusOptions" />
+              </div>
+              <div class="fb-field" style="flex:2 1 200px;">
+                <label class="fb-label">{{ t('common.keyword') }}</label>
+                <n-input
+                  v-model:value="keyword"
+                  clearable
+                  :placeholder="t('products.searchPlaceholder')">
+                  <template #prefix><app-icon name="search" :size="15" /></template>
+                </n-input>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 商品表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
         <div class="history-table-wrap">
           <table class="tbl history-table">
             <thead>
@@ -168,7 +136,7 @@ onMounted(load)
             </thead>
             <tbody>
               <!-- 無紀錄：整列佔滿全部欄位 -->
-              <tr v-if="!loading && !rows.length">
+              <tr v-if="!loading && !products.length">
                 <td colspan="6" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="box" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">{{ t('products.emptyTitle') }}</div>
@@ -177,7 +145,7 @@ onMounted(load)
                   </div>
                 </td>
               </tr>
-              <tr v-for="p in rows" :key="p.id">
+              <tr v-for="p in products" :key="p.id">
                 <td>
                   <div class="prod-cell">
                     <span class="prod-cover" :style="coverStyle(p.coverHue)">
@@ -208,6 +176,10 @@ onMounted(load)
           </table>
         </div>
       </div>
+
+      <div v-if="totalPages > 1" class="history-pager">
+        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+      </div>
     </n-spin>
 
     <!-- 評論檢視 -->
@@ -220,23 +192,23 @@ onMounted(load)
 </template>
 
 <style scoped>
-/* 對齊訂單管理（OrdersView）／admin 頁面的 10px 圓角與表格樣式 */
-.history-toolbar {
-  margin-bottom: 16px;
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.list-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.list-filter :deep(.n-date-picker),
+.list-filter :deep(.n-input),
+.list-filter :deep(.n-input-wrapper),
+.list-filter :deep(.n-base-selection),
+.list-filter :deep(.n-base-selection__border),
+.list-filter :deep(.n-base-selection__state-border) {
   border-radius: 10px;
 }
 
-.history-toolbar :deep(.n-date-picker),
-.history-toolbar :deep(.n-input),
-.history-toolbar :deep(.n-input-wrapper),
-.history-toolbar :deep(.n-base-selection),
-.history-toolbar :deep(.n-base-selection__border),
-.history-toolbar :deep(.n-base-selection__state-border) {
-  border-radius: 10px;
-}
-
-.history-toolbar :deep(.n-input__border),
-.history-toolbar :deep(.n-input__state-border) {
+.list-filter :deep(.n-input__border),
+.list-filter :deep(.n-input__state-border) {
   border-radius: 10px;
 }
 
@@ -271,11 +243,20 @@ onMounted(load)
 }
 
 .history-table-card {
+  padding: 0;
   border-radius: 10px;
+  overflow: hidden;
+}
+
+.history-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 8px;
 }
 
 .history-table-wrap {
   overflow-x: auto;
+  padding: 8px 8px 4px;
 }
 
 .history-table {

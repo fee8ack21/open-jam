@@ -7,10 +7,13 @@
 
 /* ---------- app shell ---------- */
 .dash-shell {
+  --rail-w: 76px;      /* 收合時的窄軌寬度 */
+  --side-w: 236px;     /* hover 展開後的寬度 */
   display: grid;
-  grid-template-columns: 256px 1fr;
+  grid-template-columns: var(--rail-w) 1fr;
   height: 100%;
   align-items: stretch;
+  position: relative;  /* 作為 hover 展開浮層 .side 的定位基準 */
 }
 
 /* ---------- sidebar ---------- */
@@ -22,6 +25,36 @@
   border-right: 1.5px solid var(--border);
   padding: 18px 16px;
   z-index: 40;
+}
+
+/* ---------- 桌機：預設收合為窄軌，hover 才展開為浮層 ---------- */
+@media (min-width: 861px) {
+  .side {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    width: var(--rail-w);
+    overflow: hidden; white-space: nowrap;
+    transition: width .22s cubic-bezier(.4,0,.2,1), box-shadow .22s;
+  }
+  /* .side 為 absolute 已脫離 grid 流，主區塊需明確落在第 2 欄（1fr），
+     否則會被自動放進 76px 的窄軌欄位而看似空白 */
+  .dash-main { grid-column: 2; }
+  .side:hover {
+    width: var(--side-w); z-index: 50;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: 8px 0 30px rgba(10,12,24,.12);
+  }
+
+  /* 收合狀態隱藏文字，只留 icon（水平列元素，隱藏不影響高度） */
+  .side:not(:hover) .brand-name,
+  .side:not(:hover) .nav-item > span:not(.nav-ic),
+  .side:not(:hover) .nav-count { display: none; }
+
+  /* 模式切換是垂直區塊：用 visibility 保留佔位，避免展開時 nav 上下位移 */
+  .side:not(:hover) .mode-switch { visibility: hidden; }
+
+  /* 收合狀態 nav icon 置中；brand 維持與展開時相同的左對齊，避免 hover 時 logo 水平位移 */
+  .side:not(:hover) .nav-item { justify-content: center; padding: 10px 0; }
+  .side:not(:hover) .nav-item:hover { transform: none; }
 }
 .side-brand { flex: none; box-sizing: border-box; height: var(--nav-h); display: flex; align-items: center; gap: 11px; padding: 0 8px 18px; cursor: pointer; user-select: none; }
 .side-brand .brand-mark { width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, var(--c-violet), var(--c-pink)); display: grid; place-items: center; flex: none; box-shadow: 3px 3px 0 var(--text); transition: transform .18s; }
@@ -42,7 +75,7 @@
 .nav-label { font-family: var(--oj-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); padding: 12px 12px 8px; }
 .nav-item {
   position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px;
-  cursor: pointer; color: var(--text-soft); font-weight: 600; font-size: 14.5px; user-select: none;
+  cursor: pointer; color: var(--text-soft); font-weight: 600; font-size: 14.5px; line-height: 1.2; user-select: none;
   transition: background .15s, color .15s, transform .12s; margin-bottom: 2px;
 }
 .nav-item:hover { background: var(--oj-primary-wash); color: var(--oj-primary); transform: translateX(2px); }

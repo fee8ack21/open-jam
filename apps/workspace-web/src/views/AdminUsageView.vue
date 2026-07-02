@@ -68,13 +68,6 @@ onMounted(store.load)
 
 <template>
   <div :data-screen-label="t('route.resourceUsage')">
-    <div class="page-intro">
-      <p class="h-eyebrow">{{ t('adminUsage.eyebrow') }}</p>
-      <h1 class="h-title">{{ t('route.resourceUsage') }}</h1>
-      <p class="h-sub">
-        {{ t('adminUsage.sub', { percent: store.usedPercent, used: fmtBytes(store.usedBytes), quota: fmtBytes(store.quotaBytes) }) }}
-      </p>
-    </div>
 
     <!-- KPI -->
     <div class="kpi-grid">

@@ -8,14 +8,30 @@ import { useStoreReviewStore } from '@/stores/storeReview'
 const { t, locale } = useI18n()
 const message = useMessage()
 const store = useStoreReviewStore()
-const { items, loading, pendingCount } = storeToRefs(store)
+const { items, pendingTotal, loading } = storeToRefs(store)
 
 // 每筆申請的處理中狀態（避免重複點擊）與駁回意見草稿
 const busyId = ref<string | null>(null)
 const rejectComment = ref<Record<string, string>>({})
+const page = ref(1)
 const keyword = ref('')
-const sortKey = ref<'storeName' | 'storeSlug' | 'email' | 'createdAt'>('createdAt')
-const sortDesc = ref(true)
+const appliedKeyword = ref('') // 已套用的關鍵字（按下搜尋才更新）
+
+// 依已套用關鍵字過濾目前頁次的申請
+const visible = computed(() => {
+  const q = appliedKeyword.value.toLowerCase()
+  if (!q) return items.value
+  return items.value.filter((a) =>
+    [a.storeName, a.storeSlug, a.email].some((f) => (f ?? '').toLowerCase().includes(q)),
+  )
+})
+
+// 按下搜尋：套用目前關鍵字並重新載入列表
+async function onSearch() {
+  appliedKeyword.value = keyword.value.trim()
+  page.value = 1
+  await store.load()
+}
 
 const columns = [
   { key: 'storeName', labelKey: 'review.colStoreName', hideSm: false },
@@ -24,37 +40,12 @@ const columns = [
   { key: 'createdAt', labelKey: 'review.colCreatedAt', hideSm: true },
 ] as const
 
+const totalPages = computed(() => Math.max(1, Math.ceil(pendingTotal.value / store.pageSize)))
+async function changePage(p: number) { page.value = p; await store.goPendingPage(p) }
+
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
-
-function toggleSort(key: typeof sortKey.value) {
-  if (sortKey.value === key) {
-    sortDesc.value = !sortDesc.value
-    return
-  }
-  sortKey.value = key
-  sortDesc.value = key === 'createdAt'
-}
-
-const visible = computed(() => {
-  const q = keyword.value.trim().toLowerCase()
-  const list = q
-    ? items.value.filter((a) =>
-      [a.storeName, a.storeSlug, a.email]
-        .some((field) => (field ?? '').toLowerCase().includes(q)),
-    )
-    : items.value.slice()
-
-  const dir = sortDesc.value ? -1 : 1
-  return list.sort((a, b) => {
-    const key = sortKey.value
-    const av = (a[key] ?? '') as string
-    const bv = (b[key] ?? '') as string
-    if (key === 'createdAt') return (av < bv ? -1 : av > bv ? 1 : 0) * dir
-    return av.localeCompare(bv, 'zh-Hant') * dir
-  })
-})
 
 async function onApprove(id?: string) {
   if (!id) return
@@ -88,45 +79,38 @@ onMounted(store.load)
 
 <template>
   <div :data-screen-label="t('route.review')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
-        <h1 class="h-title">{{ t('route.review') }}</h1>
-        <p class="h-sub">{{ t('review.subStats', { count: pendingCount }) }}</p>
-      </div>
-    </div>
-
-    <div class="card-pad review-toolbar">
-      <div class="filter-bar">
-        <div class="fb-group">
-          <div class="fb-field" style="flex:1 1 auto;">
-            <label class="fb-label">{{ t('common.keyword') }}</label>
-            <n-input
-              v-model:value="keyword"
-              clearable
-              :placeholder="t('review.searchPlaceholder')">
-              <template #prefix><app-icon name="search" :size="16" /></template>
-            </n-input>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <n-spin :show="loading">
-      <!-- 待審核表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
-      <div class="card-pad review-table-card" style="padding:8px 8px 4px;">
+      <!-- 篩選列與待審核表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
+      <div class="card-pad review-card">
+        <div class="review-filter">
+          <div class="filter-bar">
+            <div class="fb-group">
+              <div class="fb-field fb-keyword">
+                <label class="fb-label">{{ t('common.keyword') }}</label>
+                <n-input
+                  v-model:value="keyword"
+                  clearable
+                  :placeholder="t('review.searchPlaceholder')"
+                  @keyup.enter="onSearch">
+                  <template #prefix><app-icon name="search" :size="16" /></template>
+                </n-input>
+              </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="onSearch">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 待審核表格：即使無資料仍顯示表頭，空狀態以 tbody 整列呈現 -->
         <div class="review-table-wrap">
           <table class="tbl review-table">
             <thead>
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
-                  <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ t(col.labelKey) }}</span>
-                    <app-icon
-                      v-if="sortKey === col.key"
-                      :name="sortDesc ? 'chevronD' : 'chevronU'"
-                      :size="15" />
-                  </button>
+                  <span>{{ t(col.labelKey) }}</span>
                 </th>
                 <th class="hide-sm">{{ t('common.status') }}</th>
                 <th style="width:170px; text-align:right;">{{ t('review.colActions') }}</th>
@@ -138,10 +122,10 @@ onMounted(store.load)
                 <td :colspan="columns.length + 2" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-violet); margin:0 auto 14px;"><app-icon name="shield" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ items.length ? t('review.emptyFilteredTitle') : t('review.emptyTitle') }}
+                    {{ appliedKeyword ? t('review.emptyFilteredTitle') : t('review.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ items.length ? t('review.emptyFilteredDesc') : t('review.emptyDesc') }}
+                    {{ appliedKeyword ? t('review.emptyFilteredDesc') : t('review.emptyDesc') }}
                   </div>
                 </td>
               </tr>
@@ -211,40 +195,65 @@ onMounted(store.load)
           </table>
         </div>
       </div>
+
+      <div v-if="totalPages > 1" class="history-pager">
+        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+      </div>
     </n-spin>
   </div>
 </template>
 
 <style scoped>
-.review-toolbar {
-  margin-bottom: 16px;
+/* 單一卡片：外框由 .card-pad 提供，內距歸零由內部區段各自管理 */
+.review-card {
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.review-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.review-filter :deep(.n-input),
+.review-filter :deep(.n-input-wrapper) {
   border-radius: 10px;
 }
 
-.review-toolbar :deep(.n-input),
-.review-toolbar :deep(.n-input-wrapper) {
+.review-filter :deep(.n-input__border),
+.review-filter :deep(.n-input__state-border) {
   border-radius: 10px;
 }
 
-.review-toolbar :deep(.n-input__border),
-.review-toolbar :deep(.n-input__state-border) {
-  border-radius: 10px;
-}
-
-/* 篩選列：兩組各佔一半，單行並排（共四欄平均分布），不足時整組換行成最多兩行 */
+/* 篩選列：僅單一關鍵字欄位，靠右對齊、不滿版 */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .fb-group {
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  flex: 1 1 360px;
+  flex: 1 1 auto;
   min-width: 0;
+}
+
+/* 關鍵字欄位滿版，撐滿按鈕以外的剩餘寬度 */
+.fb-keyword {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 /* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
@@ -263,32 +272,23 @@ onMounted(store.load)
 
 .review-table-wrap {
   overflow-x: auto;
+  padding: 8px 8px 4px;
 }
 
 .review-table {
   min-width: 860px;
 }
 
-.sort-head {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+.history-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 8px;
 }
 
 .review-table thead th {
   font-size: 12.5px;
   padding-top: 12px;
   vertical-align: middle;
-}
-
-.review-table-card {
-  border-radius: 10px;
 }
 
 .review-table thead th + th {

@@ -29,10 +29,6 @@ const kpis = computed(() => [
 
 <template>
   <div :data-screen-label="t('route.overview')">
-    <div class="page-intro">
-      <p class="h-eyebrow">{{ t('overview.eyebrow', { store: storeName }) }}</p>
-      <p class="h-sub">{{ t('overview.sub', { delta: g.monthDelta, count: g.statusCount('review') }) }}</p>
-    </div>
 
     <!-- KPI -->
     <div class="kpi-grid">

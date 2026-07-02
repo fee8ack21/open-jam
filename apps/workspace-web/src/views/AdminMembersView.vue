@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useMemberListStore } from '@/stores/memberList'
-import { UserRole, UserStatus, type UserSummaryDto } from '@/api/auth-service'
+import { UserRole, UserStatus } from '@/api/auth-service'
 
 const { t, locale } = useI18n()
 const store = useMemberListStore()
-const { items, loading } = storeToRefs(store)
+const { items, totalCount, loading } = storeToRefs(store)
 
 onMounted(store.load)
 
@@ -29,14 +29,13 @@ function roleOf(r?: UserRole) {
     : { labelKey: 'memberRole.user', type: 'default' as const }
 }
 
-// ── 篩選 / 排序狀態 ──────────────────────────────────────────
+// ── 篩選狀態（伺服器端分頁）──────────────────────────────────
 const keyword = ref('')
 /** 角色篩選：all | User | Admin */
 const roleFilter = ref<'all' | UserRole>('all')
 /** 狀態篩選：all | <UserStatus> */
 const statusFilter = ref<'all' | UserStatus>('all')
-const sortKey = ref<'email' | 'createdAt' | 'updatedAt'>('createdAt')
-const sortDesc = ref(true)
+const page = ref(1)
 
 const roleOptions = computed(() => [
   { label: t('members.filterAllRoles'), value: 'all' },
@@ -65,105 +64,80 @@ function initial(email?: string | null) {
   return (email?.charAt(0) || '?').toUpperCase()
 }
 
-function toggleSort(key: typeof sortKey.value) {
-  if (sortKey.value === key) {
-    sortDesc.value = !sortDesc.value
-    return
-  }
-  sortKey.value = key
-  sortDesc.value = true
-}
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
+const hasFilter = computed(() =>
+  keyword.value.trim() !== '' || roleFilter.value !== 'all' || statusFilter.value !== 'all',
+)
 
-/** 套用關鍵字、角色 / 狀態篩選與排序後的清單。 */
-const visible = computed<UserSummaryDto[]>(() => {
-  const q = keyword.value.trim().toLowerCase()
-  let list = items.value.slice()
-
-  if (roleFilter.value !== 'all') list = list.filter((m) => m.role === roleFilter.value)
-  if (statusFilter.value !== 'all') list = list.filter((m) => m.status === statusFilter.value)
-  if (q) list = list.filter((m) => (m.email ?? '').toLowerCase().includes(q))
-
-  const dir = sortDesc.value ? -1 : 1
-  list.sort((a, b) => {
-    const key = sortKey.value
-    const av = (a[key] ?? '') as string
-    const bv = (b[key] ?? '') as string
-    if (key === 'email') return av.localeCompare(bv) * dir
-    return (av < bv ? -1 : av > bv ? 1 : 0) * dir
+let filterTimer: ReturnType<typeof setTimeout> | undefined
+async function applyFilter() {
+  clearTimeout(filterTimer)
+  page.value = 1
+  await store.applyFilter({
+    search: keyword.value,
+    role: roleFilter.value === 'all' ? null : roleFilter.value,
+    status: statusFilter.value === 'all' ? null : statusFilter.value,
   })
-  return list
-})
+}
+watch(keyword, () => { clearTimeout(filterTimer); filterTimer = setTimeout(applyFilter, 300) })
+watch([roleFilter, statusFilter], () => { clearTimeout(filterTimer); applyFilter() })
+async function changePage(p: number) { page.value = p; await store.goPage(p) }
 </script>
 
 <template>
   <div :data-screen-label="t('route.members')">
-    <div class="page-head">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.platformAdmin') }}</p>
-        <h1 class="h-title">{{ t('route.members') }}</h1>
-        <p class="h-sub">
-          {{ t('members.subStats', { total: items.length, active: store.activeCount, admin: store.adminCount }) }}
-        </p>
-      </div>
-    </div>
-
-    <!-- 篩選 / 排序工具列 -->
-    <div class="card-pad store-toolbar">
-      <div class="filter-bar">
-        <div class="fb-group">
-          <div class="fb-field" style="flex:2 1 220px;">
-            <label class="fb-label">{{ t('common.keyword') }}</label>
-            <n-input
-              v-model:value="keyword"
-              clearable
-              :placeholder="t('members.searchPlaceholder')">
-              <template #prefix><app-icon name="search" :size="16" /></template>
-            </n-input>
-          </div>
-          <div class="fb-field" style="flex:1 1 130px;">
-            <label class="fb-label">{{ t('members.role') }}</label>
-            <n-select v-model:value="roleFilter" :options="roleOptions" />
-          </div>
-          <div class="fb-field" style="flex:1 1 130px;">
-            <label class="fb-label">{{ t('common.status') }}</label>
-            <n-select v-model:value="statusFilter" :options="statusOptions" />
-          </div>
-        </div>
-      </div>
-    </div>
 
     <n-spin :show="loading">
-      <div class="card-pad store-table-card" style="padding:8px 8px 4px;">
+      <!-- 篩選列與表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
+      <div class="card-pad store-table-card">
+        <div class="list-filter">
+          <div class="filter-bar">
+            <div class="fb-group">
+              <div class="fb-field" style="flex:2 1 220px;">
+                <label class="fb-label">{{ t('common.keyword') }}</label>
+                <n-input
+                  v-model:value="keyword"
+                  clearable
+                  :placeholder="t('members.searchPlaceholder')">
+                  <template #prefix><app-icon name="search" :size="16" /></template>
+                </n-input>
+              </div>
+              <div class="fb-field" style="flex:1 1 130px;">
+                <label class="fb-label">{{ t('members.role') }}</label>
+                <n-select v-model:value="roleFilter" :options="roleOptions" />
+              </div>
+              <div class="fb-field" style="flex:1 1 130px;">
+                <label class="fb-label">{{ t('common.status') }}</label>
+                <n-select v-model:value="statusFilter" :options="statusOptions" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="store-table-wrap">
           <table class="tbl store-table">
             <thead>
               <tr>
                 <th v-for="col in columns" :key="col.key" :class="{ 'hide-sm': col.hideSm }">
-                  <button class="sort-head" type="button" @click="toggleSort(col.key)">
-                    <span>{{ t(col.labelKey) }}</span>
-                    <app-icon
-                      v-if="sortKey === col.key"
-                      :name="sortDesc ? 'chevronD' : 'chevronU'"
-                      :size="15" />
-                  </button>
+                  <span>{{ t(col.labelKey) }}</span>
                 </th>
                 <th class="hide-sm">{{ t('members.role') }}</th>
                 <th class="hide-sm">{{ t('common.status') }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-if="!loading && !visible.length">
+              <tr v-if="!loading && !items.length">
                 <td :colspan="columns.length + 2" style="text-align:center; padding:48px 24px;">
                   <span class="kpi-ic" style="background:var(--c-cyan); margin:0 auto 14px;"><app-icon name="users" :size="22" /></span>
                   <div style="font-weight:700; font-size:15px;">
-                    {{ items.length ? t('members.emptyFilteredTitle') : t('members.emptyTitle') }}
+                    {{ hasFilter ? t('members.emptyFilteredTitle') : t('members.emptyTitle') }}
                   </div>
                   <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">
-                    {{ items.length ? t('members.emptyFilteredDesc') : t('members.emptyDesc') }}
+                    {{ hasFilter ? t('members.emptyFilteredDesc') : t('members.emptyDesc') }}
                   </div>
                 </td>
               </tr>
-              <tr v-for="m in visible" v-else :key="m.id">
+              <tr v-for="m in items" v-else :key="m.id">
                 <td>
                   <div class="prod-cell">
                     <span class="store-rank">{{ initial(m.email) }}</span>
@@ -198,18 +172,23 @@ const visible = computed<UserSummaryDto[]>(() => {
           </table>
         </div>
       </div>
+
+      <div v-if="totalPages > 1" class="history-pager">
+        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+      </div>
     </n-spin>
   </div>
 </template>
 
 <style scoped>
-.store-toolbar {
-  margin-bottom: 16px;
-  border-radius: 10px;
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.list-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
 }
 
-.store-toolbar :deep(.n-input),
-.store-toolbar :deep(.n-base-selection) {
+.list-filter :deep(.n-input),
+.list-filter :deep(.n-base-selection) {
   border-radius: 10px;
 }
 
@@ -243,6 +222,7 @@ const visible = computed<UserSummaryDto[]>(() => {
 
 .store-table-wrap {
   overflow-x: auto;
+  padding: 8px 8px 4px;
 }
 
 .store-table {
@@ -250,19 +230,15 @@ const visible = computed<UserSummaryDto[]>(() => {
 }
 
 .store-table-card {
+  padding: 0;
   border-radius: 10px;
+  overflow: hidden;
 }
 
-.sort-head {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+.history-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 8px;
 }
 
 .store-table thead th {

@@ -76,12 +76,6 @@ async function onSave() {
 
 <template>
   <div :data-screen-label="t('route.storeSettings')">
-    <div class="page-head" style="margin-bottom:22px;">
-      <div>
-        <p class="h-eyebrow">{{ t('sidebar.sellerStudio') }}</p>
-        <h1 class="h-title">{{ t('route.storeSettings') }}</h1>
-      </div>
-    </div>
 
     <n-spin :show="loading">
       <div class="dash-grid" style="gap:18px;">

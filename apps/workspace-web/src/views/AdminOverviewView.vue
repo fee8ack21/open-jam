@@ -62,13 +62,6 @@ onMounted(() => {
 
 <template>
   <div :data-screen-label="t('route.adminOverview')">
-    <div class="page-intro">
-      <p class="h-eyebrow">{{ t('adminOverview.eyebrow') }}</p>
-      <h1 class="h-title">{{ t('adminOverview.title') }}</h1>
-      <p class="h-sub">
-        {{ t('adminOverview.sub', { delta: stats.monthDelta, count: review.pendingCount }) }}
-      </p>
-    </div>
 
     <!-- KPI -->
     <div class="kpi-grid">
