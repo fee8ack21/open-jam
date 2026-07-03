@@ -15,9 +15,10 @@
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "gen:api": "pnpm gen:api:store && pnpm gen:api:catalog",
+    "gen:api": "pnpm gen:api:store && pnpm gen:api:catalog && pnpm gen:api:notification",
     "gen:api:store": "swagger-typescript-api generate -p openapi/store-service.json -o src/api -n store-service.ts --single-http-client --module-name-first-tag",
     "gen:api:catalog": "swagger-typescript-api generate -p openapi/catalog-service.json -o src/api -n catalog-service.ts --single-http-client --module-name-first-tag",
+    "gen:api:notification": "swagger-typescript-api generate -p openapi/notification-service.json -o src/api -n notification-service.ts --single-http-client --module-name-first-tag",
     "gen:i18n": "node scripts/i18n-xlsx-to-json.mjs",
     "gen:i18n:xlsx": "node scripts/i18n-json-to-xlsx.mjs"
   },

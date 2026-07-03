@@ -8,6 +8,7 @@ class AppEnv {
   DOCS_URL = 'https://docs.openjam.co';
   CATALOG_API_URL = 'https://api.openjam.co/catalog-service';
   STORE_API_URL = 'https://api.openjam.co/store-service';
+  NOTIFICATION_API_URL = 'https://api.openjam.co/notification-service';
   [key: string]: string;
 
   constructor() {

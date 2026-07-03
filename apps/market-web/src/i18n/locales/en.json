@@ -242,5 +242,17 @@
     "coachDocsTitle": "Documentation",
     "coachDocsDesc": "System design and specification docs",
     "coachDone": "Got it"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "loading": "Loading…",
+    "markAllRead": "Mark all as read",
+    "justNow": "Just now",
+    "minsAgo": "{n} min ago",
+    "hoursAgo": "{n} hr ago",
+    "daysAgo": "{n} days ago",
+    "catalogPublished": "{storeName} released a new product \"{catalogName}\"",
+    "storeAnnouncement": "{storeName}: {title}"
   }
 }

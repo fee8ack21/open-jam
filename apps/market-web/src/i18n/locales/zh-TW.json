@@ -242,5 +242,17 @@
     "coachDocsTitle": "專案文件",
     "coachDocsDesc": "系統設計與規格說明文件",
     "coachDone": "知道了"
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "目前沒有通知",
+    "loading": "載入中…",
+    "markAllRead": "全部標為已讀",
+    "justNow": "剛剛",
+    "minsAgo": "{n} 分鐘前",
+    "hoursAgo": "{n} 小時前",
+    "daysAgo": "{n} 天前",
+    "catalogPublished": "{storeName} 上架了新商品「{catalogName}」",
+    "storeAnnouncement": "{storeName}：{title}"
   }
 }

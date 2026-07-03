@@ -555,5 +555,13 @@
     "noItems": "無項目",
     "loadingLinks": "載入下載連結…",
     "noFiles": "此商品版本無可下載檔案。"
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "目前沒有通知",
+    "markAllRead": "全部標為已讀",
+    "justNow": "剛剛",
+    "catalogPublished": "{storeName} 上架了新商品「{catalogName}」",
+    "storeAnnouncement": "{storeName}：{title}"
   }
 }

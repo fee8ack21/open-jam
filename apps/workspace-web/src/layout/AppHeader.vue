@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import NotificationBell from '@/components/NotificationBell.vue'
 import { ME as me } from '@/data/products'
 import { env } from '@/environment'
 import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n'
@@ -63,10 +64,7 @@ function goToMarket() { window.location.href = env.MARKET_PAGE_URL }
       <button class="icon-btn" @click="goToMarket" :title="t('header.backToMarket')" :aria-label="t('header.backToMarket')">
         <app-icon name="bag" :size="20" />
       </button>
-      <div class="icon-btn" :title="t('header.notifications')">
-        <app-icon name="bell" :size="20" />
-        <span class="cart-badge">3</span>
-      </div>
+      <NotificationBell />
       <div class="user-menu">
         <button class="icon-btn user-trigger" :class="{ on: userMenuOpen }" @click="userMenuOpen = !userMenuOpen" :title="t('header.menu')">
           <app-icon name="menu" :size="20" />

@@ -555,5 +555,13 @@
     "noItems": "No items",
     "loadingLinks": "Loading download links…",
     "noFiles": "This product version has no downloadable files."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "justNow": "Just now",
+    "catalogPublished": "{storeName} released a new product \"{catalogName}\"",
+    "storeAnnouncement": "{storeName}: {title}"
   }
 }

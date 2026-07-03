@@ -1,0 +1,493 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "NotificationService",
+        "version": "v1"
+    },
+    "paths": {
+        "/v1/notification-requests": {
+            "post": {
+                "tags": [
+                    "NotificationRequests"
+                ],
+                "summary": "\u5efa\u7acb\u5546\u5e97\u516c\u544a\u901a\u77e5\u4efb\u52d9\uff1bScheduledAt \u70ba null \u8868\u793a\u7acb\u5373\u767c\u9001\u3002",
+                "operationId": "Create",
+                "requestBody": {
+                    "description": "\u5546\u5e97\u3001\u516c\u544a\u5167\u5bb9\u8207\u9810\u5b9a\u767c\u9001\u6642\u9593\u3002",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateNotificationRequestRequest"
+                            }
+                        },
+                        "text/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateNotificationRequestRequest"
+                            }
+                        },
+                        "application/*+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateNotificationRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationRequestDto"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationRequestDto"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationRequestDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "NotificationRequests"
+                ],
+                "summary": "\u67e5\u8a62\u5546\u5e97\u7684\u901a\u77e5\u4efb\u52d9\u5217\u8868\uff08\u5206\u9801\uff0c\u53ef\u4f9d\u72c0\u614b\u904e\u6ffe\uff09\u3002",
+                "operationId": "List",
+                "parameters": [
+                    {
+                        "name": "StoreId",
+                        "in": "query",
+                        "description": "\u5546\u5e97 ID\uff08\u5fc5\u586b\uff0c\u50c5\u8a72\u5546\u5e97 Owner \u53ef\u67e5\u8a62\uff09\u3002",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        },
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    {
+                        "name": "Status",
+                        "in": "query",
+                        "description": "\u4ee5\u4efb\u52d9\u72c0\u614b\u904e\u6ffe\uff1bnull \u8868\u793a\u4e0d\u904e\u6ffe\u3002",
+                        "schema": {
+                            "$ref": "#/components/schemas/NotificationRequestStatus"
+                        },
+                        "example": "Pending"
+                    },
+                    {
+                        "name": "Offset",
+                        "in": "query",
+                        "description": "\u7565\u904e\u7b46\u6578\u3002",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "example": 0
+                        },
+                        "example": 0
+                    },
+                    {
+                        "name": "Limit",
+                        "in": "query",
+                        "description": "\u53d6\u56de\u7b46\u6578\u4e0a\u9650\u3002",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "example": 20
+                        },
+                        "example": 20
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListNotificationRequestsResponse"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListNotificationRequestsResponse"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListNotificationRequestsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/notification-requests/{id}": {
+            "delete": {
+                "tags": [
+                    "NotificationRequests"
+                ],
+                "summary": "\u53d6\u6d88\u5c1a\u672a\u767c\u9001\u7684\u901a\u77e5\u4efb\u52d9\uff08\u50c5 Pending \u53ef\u53d6\u6d88\uff09\u3002",
+                "operationId": "Cancel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\u901a\u77e5\u4efb\u52d9 ID\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/notifications/mine": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "\u67e5\u8a62\u767b\u5165\u4f7f\u7528\u8005\u672c\u4eba\u7684\u901a\u77e5\u5217\u8868\uff08\u5206\u9801\uff0c\u53ef\u50c5\u672a\u8b80\uff09\u3002",
+                "operationId": "ListMine",
+                "parameters": [
+                    {
+                        "name": "Offset",
+                        "in": "query",
+                        "description": "\u7565\u904e\u7b46\u6578\u3002",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "example": 0
+                        },
+                        "example": 0
+                    },
+                    {
+                        "name": "Limit",
+                        "in": "query",
+                        "description": "\u53d6\u56de\u7b46\u6578\u4e0a\u9650\u3002",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "example": 20
+                        },
+                        "example": 20
+                    },
+                    {
+                        "name": "UnreadOnly",
+                        "in": "query",
+                        "description": "\u662f\u5426\u50c5\u5217\u51fa\u672a\u8b80\u901a\u77e5\u3002",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        },
+                        "example": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListNotificationsResponse"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListNotificationsResponse"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListNotificationsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/notifications/mine/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "\u67e5\u8a62\u767b\u5165\u4f7f\u7528\u8005\u672c\u4eba\u7684\u672a\u8b80\u901a\u77e5\u6578\uff08\u524d\u7aef\u9234\u943a\u8f2a\u8a62\u7528\uff09\u3002",
+                "operationId": "GetUnreadCount",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnreadCountResponse"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnreadCountResponse"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnreadCountResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/notifications/{id}/read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "\u5c07\u672c\u4eba\u7684\u55ae\u7b46\u901a\u77e5\u6a19\u70ba\u5df2\u8b80\u3002\u5df2\u8b80\u5247 no-op\u3002",
+                "operationId": "MarkRead",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\u901a\u77e5 ID\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/notifications/read-all": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "\u5c07\u672c\u4eba\u7684\u5168\u90e8\u672a\u8b80\u901a\u77e5\u6a19\u70ba\u5df2\u8b80\u3002",
+                "operationId": "MarkAllRead",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "tags": [
+                    "NotificationService"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CreateNotificationRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "storeId": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u5c0d\u8c61\u5546\u5e97 ID\uff08fan-out \u81f3\u8a72\u5546\u5e97\u7684\u8ffd\u8e64\u8005\uff09\u3002\u50c5\u5546\u5e97 Owner \u53ef\u5efa\u7acb\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "\u516c\u544a\u6a19\u984c\u3002",
+                        "nullable": true,
+                        "example": "\u590f\u5b63\u7279\u8ce3\u958b\u8dd1"
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "\u516c\u544a\u5167\u6587\u3002",
+                        "nullable": true,
+                        "example": "\u5168\u5e97\u7d20\u6750 8 \u6298\uff0c\u53ea\u5230\u6708\u5e95\uff01"
+                    },
+                    "scheduledAt": {
+                        "type": "string",
+                        "description": "\u9810\u5b9a\u767c\u9001\u6642\u9593\uff1bnull \u8868\u793a\u7acb\u5373\u767c\u9001\u3002",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u5efa\u7acb\u5546\u5e97\u516c\u544a\u901a\u77e5\u4efb\u52d9\uff08\u53ef\u9810\u5b9a\u767c\u9001\u6642\u9593\uff09\u3002"
+            },
+            "ListNotificationRequestsResponse": {
+                "type": "object",
+                "properties": {
+                    "totalCount": {
+                        "type": "integer",
+                        "description": "\u7b26\u5408\u689d\u4ef6\u7684\u7e3d\u7b46\u6578\u3002",
+                        "format": "int32",
+                        "example": 7
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NotificationRequestDto"
+                        },
+                        "description": "\u672c\u9801\u4efb\u52d9\u3002",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u5546\u5e97\u901a\u77e5\u4efb\u52d9\u5217\u8868\u56de\u61c9\u3002"
+            },
+            "ListNotificationsResponse": {
+                "type": "object",
+                "properties": {
+                    "totalCount": {
+                        "type": "integer",
+                        "description": "\u7b26\u5408\u689d\u4ef6\u7684\u7e3d\u7b46\u6578\u3002",
+                        "format": "int32",
+                        "example": 42
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/NotificationDto"
+                        },
+                        "description": "\u672c\u9801\u901a\u77e5\u3002",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u672c\u4eba\u901a\u77e5\u5217\u8868\u56de\u61c9\u3002"
+            },
+            "NotificationDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "\u901a\u77e5 ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u985e\u578b\uff0c\u524d\u7aef\u64da\u6b64\u642d\u914d Payload \u6e32\u67d3\u3002",
+                        "nullable": true,
+                        "example": "catalog.published"
+                    },
+                    "payload": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u5167\u5bb9\u53c3\u6578\uff08JSON \u5b57\u4e32\uff0ccamelCase\uff0c\u4f9d Type \u6c7a\u5b9a\u7d50\u69cb\uff09\u3002",
+                        "nullable": true,
+                        "example": "{\"catalogId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"catalogName\":\"\u63d2\u756b\u7d20\u6750\u5305\",\"storeName\":\"\u5c0f\u660e\u7684\u6578\u4f4d\u5546\u5e97\"}"
+                    },
+                    "readAt": {
+                        "type": "string",
+                        "description": "\u5df2\u8b80\u6642\u9593\uff1bnull \u8868\u793a\u672a\u8b80\u3002",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u5efa\u7acb\u6642\u9593\u3002",
+                        "format": "date-time"
+                    }
+                },
+                "additionalProperties": false,
+                "description": "In-app \u901a\u77e5\u55ae\u7b46\u8cc7\u6599\u3002"
+            },
+            "NotificationRequestDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u4efb\u52d9 ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u985e\u578b\u3002",
+                        "nullable": true,
+                        "example": "store.announcement"
+                    },
+                    "storeId": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u5c0d\u8c61\u5546\u5e97 ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "payload": {
+                        "type": "string",
+                        "description": "\u901a\u77e5\u5167\u5bb9\u53c3\u6578\uff08JSON \u5b57\u4e32\uff0ccamelCase\uff0c\u4f9d Type \u6c7a\u5b9a\u7d50\u69cb\uff09\u3002",
+                        "nullable": true,
+                        "example": "{\"title\":\"\u590f\u5b63\u7279\u8ce3\u958b\u8dd1\",\"message\":\"\u5168\u5e97\u7d20\u6750 8 \u6298\uff0c\u53ea\u5230\u6708\u5e95\uff01\"}"
+                    },
+                    "scheduledAt": {
+                        "type": "string",
+                        "description": "\u9810\u5b9a\u767c\u9001\u6642\u9593\u3002",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/NotificationRequestStatus"
+                    },
+                    "dispatchedAt": {
+                        "type": "string",
+                        "description": "\u5b8c\u6210 fan-out \u7684\u6642\u9593\uff1bnull \u8868\u793a\u5c1a\u672a\u767c\u9001\u3002",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "description": "\u5efa\u7acb\u6642\u9593\u3002",
+                        "format": "date-time"
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u901a\u77e5\u4efb\u52d9\u55ae\u7b46\u8cc7\u6599\u3002"
+            },
+            "NotificationRequestStatus": {
+                "enum": [
+                    "Pending",
+                    "Dispatched",
+                    "Cancelled",
+                    "Failed"
+                ],
+                "type": "string",
+                "description": "\u901a\u77e5\u4efb\u52d9\u72c0\u614b\u3002"
+            },
+            "UnreadCountResponse": {
+                "type": "object",
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "description": "\u672a\u8b80\u901a\u77e5\u6578\u3002",
+                        "format": "int32",
+                        "example": 3
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u672a\u8b80\u901a\u77e5\u6578\u56de\u61c9\u3002"
+            }
+        }
+    }
+}
