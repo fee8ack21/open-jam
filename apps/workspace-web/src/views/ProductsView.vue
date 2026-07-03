@@ -91,7 +91,10 @@ onMounted(load)
 <template>
   <div :data-screen-label="t('route.products')">
     <div class="page-head" style="justify-content:flex-end;">
-      <button class="cta-pop" @click="dashboard.go('upload')"><app-icon name="plus" :size="16" :stroke="2.4" />{{ t('products.newProduct') }}</button>
+      <n-button class="fb-search-btn" type="primary" @click="dashboard.go('upload')">
+        <template #icon><app-icon name="plus" :size="16" :stroke="2.4" /></template>
+        {{ t('products.newProduct') }}
+      </n-button>
     </div>
 
     <n-spin :show="loading">
@@ -178,10 +181,10 @@ onMounted(load)
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div v-if="totalPages > 1" class="history-pager">
-        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        <div class="history-pager">
+          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        </div>
       </div>
     </n-spin>
 

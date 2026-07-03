@@ -19,7 +19,7 @@ export interface MemberListFilter {
   status?: UserStatus | null;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /**
  * 平台管理員的會員列表 store：分頁載入並檢視全平台會員。

@@ -12,7 +12,7 @@ function messageOf(err: unknown, fallback = i18n.global.t('storeError.loadPurcha
   return problem?.detail ?? problem?.title ?? fallback;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /** 單一訂單項目的可下載檔案載入狀態。 */
 export interface ItemDownloads {

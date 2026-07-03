@@ -17,7 +17,7 @@ export interface AuditLogFilter {
   target?: string;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /**
  * 平台管理員的稽核日誌 store：分頁查詢 LogService `/v1/audit-logs`。

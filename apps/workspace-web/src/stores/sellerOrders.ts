@@ -17,7 +17,7 @@ export interface SellerOrderFilter {
   status?: OrderStatus | null;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /**
  * 賣家視角的訂單列表 store：分頁查詢 OrderService `/v1/orders/store/{storeId}`

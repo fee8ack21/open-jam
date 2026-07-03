@@ -41,8 +41,13 @@ const columns = [
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
-function initial(email?: string | null) {
-  return (email?.charAt(0) || '?').toUpperCase()
+
+// 駁回原因彈窗：內容過長改以 dialog 顯示，避免在表格列內破版
+const reasonOpen = ref(false)
+const reasonText = ref('')
+function openReason(reason: string) {
+  reasonText.value = reason
+  reasonOpen.value = true
 }
 
 const totalPages = computed(() => Math.max(1, Math.ceil(historyTotal.value / store.pageSize)))
@@ -135,13 +140,7 @@ onMounted(store.loadHistory)
               </tr>
               <tr v-for="a in visible" v-else :key="a.id">
                 <td>
-                  <div class="prod-cell">
-                    <span class="history-rank">{{ initial(a.email) }}</span>
-                    <div style="min-width:0;">
-                      <div class="pc-title">{{ a.storeName }}</div>
-                      <div class="pc-meta">{{ a.reviewComment ? t('reviewHistory.rejectReasonPrefix', { reason: a.reviewComment }) : t('reviewHistory.reviewed') }}</div>
-                    </div>
-                  </div>
+                  <div class="pc-title">{{ a.storeName }}</div>
                 </td>
                 <td>
                   <span class="history-mono">{{ a.storeSlug }}.openjam.co</span>
@@ -156,18 +155,33 @@ onMounted(store.loadHistory)
                   <span class="history-mono">{{ fmtDate(a.reviewedAt) }}</span>
                 </td>
                 <td style="text-align:right;">
-                  <n-tag :type="resultOf(a.status).type" size="small" round>{{ t(resultOf(a.status).labelKey) }}</n-tag>
+                  <div class="result-cell">
+                    <n-tag :type="resultOf(a.status).type" size="small" round>{{ t(resultOf(a.status).labelKey) }}</n-tag>
+                    <n-tag
+                      v-if="a.reviewComment"
+                      size="small"
+                      round
+                      class="reason-tag"
+                      @click="openReason(a.reviewComment)">
+                      {{ t('reviewHistory.viewReason') }}
+                    </n-tag>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div v-if="totalPages > 1" class="history-pager">
-        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        <div class="history-pager">
+          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        </div>
       </div>
     </n-spin>
+
+    <!-- 駁回原因彈窗：完整內容，長文可捲動不破版 -->
+    <n-modal v-model:show="reasonOpen" preset="card" :title="t('reviewHistory.reasonModalTitle')" style="max-width:520px;">
+      <p class="reason-body">{{ reasonText }}</p>
+    </n-modal>
   </div>
 </template>
 
@@ -263,21 +277,34 @@ onMounted(store.loadHistory)
   border-left: 1.5px solid var(--border);
 }
 
-.history-rank {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  flex: none;
-  background: var(--oj-primary-wash);
-  color: var(--oj-primary);
-  font-size: 12px;
-  font-weight: 800;
-}
-
 .history-mono {
   font-family: var(--oj-mono);
+  color: var(--text-soft);
+}
+
+/* 結果欄：狀態標籤在上、駁回原因連結在下，靠右對齊 */
+.result-cell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* 駁回原因：外觀比照結果 badge，點擊開啟彈窗 */
+.reason-tag {
+  cursor: pointer;
+}
+
+.reason-tag:hover {
+  opacity: 0.8;
+}
+
+/* 彈窗內文：保留換行、長字換行避免溢出 */
+.reason-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
   color: var(--text-soft);
 }
 </style>

@@ -42,7 +42,7 @@ interface CatalogSource {
   storeId: string;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /** 建立新商品所需的草稿資料。 */
 export interface NewCatalogInput {

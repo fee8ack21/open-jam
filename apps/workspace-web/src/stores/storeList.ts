@@ -18,7 +18,7 @@ export interface StoreListFilter {
   status?: StoreStatus | null;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /**
  * 平台管理員的商店列表 store：分頁載入並管理全平台商店（停權／解除停權／關閉）。

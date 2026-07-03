@@ -18,7 +18,7 @@ export interface AdminCatalogFilter {
   status?: CatalogStatus | null;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /**
  * 平台管理員的全平台商品列表 store：分頁跨商店載入商品（唯讀總覽）。

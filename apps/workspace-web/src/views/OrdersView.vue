@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useSellerOrdersStore } from '@/stores/sellerOrders'
@@ -9,10 +10,14 @@ import { orderStatusOptions, formatOrderAmount, formatOrderTime, orderStatusMeta
 import type { OrderStatus, OrderSummaryDto } from '@/api/order-service'
 
 const { t } = useI18n()
+const message = useMessage()
 const statusOptions = computed(() => orderStatusOptions())
 const store = useSellerOrdersStore()
 const storeApp = useStoreApplicationStore()
 const { items, totalCount, loading, error, detail, detailLoading, detailError } = storeToRefs(store)
+
+// 載入錯誤以彈出 message 呈現，表格維持空狀態
+watch(error, (msg) => { if (msg) message.error(msg) })
 
 // 賣家本人商店 ID（開店資料由 router guard 先載入）；變動時重新綁定查詢來源。
 const myStoreId = computed(() => storeApp.primaryStore?.id ?? null)
@@ -60,8 +65,6 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
 <template>
   <div :data-screen-label="t('route.orders')">
 
-    <div v-if="error" class="card-pad od-load-error">{{ error }}</div>
-
     <n-spin :show="loading">
       <!-- 篩選列與訂單表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
       <div class="card-pad history-table-card">
@@ -82,6 +85,7 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
                 <label class="fb-label">{{ t('orders.orderStatus') }}</label>
                 <n-select
                   v-model:value="statusFilter"
+                  :placeholder="t('orders.orderStatusPlaceholder')"
                   :options="statusOptions" />
               </div>
               <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyFilter">
@@ -131,7 +135,7 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
           </table>
         </div>
 
-        <div v-if="totalPages > 1" class="history-pager">
+        <div class="history-pager">
           <n-pagination
             :page="page"
             :page-count="totalPages"
@@ -200,13 +204,6 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
 .fb-search-btn {
   height: 42px;
   border-radius: 10px;
-}
-
-.od-load-error {
-  margin-bottom: 16px;
-  border-radius: 10px;
-  color: var(--c-red, #e5484d);
-  font-size: 13px;
 }
 
 .history-table-card {

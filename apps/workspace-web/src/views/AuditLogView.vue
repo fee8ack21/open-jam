@@ -152,7 +152,7 @@ onMounted(store.load)
           </table>
         </div>
 
-        <div v-if="totalPages > 1" class="audit-pager">
+        <div class="audit-pager">
           <n-pagination
             :page="page"
             :page-count="totalPages"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { catalogApi } from '@/api'
@@ -18,6 +18,8 @@ const message = useMessage()
 const categories = ref<CatalogCategoryDto[]>([])
 const keyword = ref('')
 const appliedKeyword = ref('') // 已套用的關鍵字（按下搜尋才更新）
+const PAGE_SIZE = 10
+const page = ref(1)
 const loading = ref(false)
 const saving = ref(false)
 const deletingId = ref<string | null>(null)
@@ -96,9 +98,19 @@ const rows = computed<CategoryRow[]>(() => {
     .map((category) => ({ ...category, depth: activeParentId.value ? 1 : 0 }))
 })
 
-// 按下搜尋：套用目前關鍵字（分類為前端一次載入，僅過濾目前層級）
+// 分頁：分類為前端一次載入，於目前層級的過濾結果上做客戶端分頁
+const totalPages = computed(() => Math.max(1, Math.ceil(rows.value.length / PAGE_SIZE)))
+const pagedRows = computed(() => {
+  const start = (page.value - 1) * PAGE_SIZE
+  return rows.value.slice(start, start + PAGE_SIZE)
+})
+// 資料變動（刪除 / 過濾）後夾住頁碼，避免停在空白頁
+watch(totalPages, (n) => { if (page.value > n) page.value = n })
+
+// 按下搜尋：套用目前關鍵字並回到第一頁（分類為前端一次載入，僅過濾目前層級）
 function onSearch() {
   appliedKeyword.value = keyword.value.trim()
+  page.value = 1
 }
 
 const currentParent = computed(() => categories.value.find((category) => category.id === activeParentId.value) ?? null)
@@ -122,11 +134,13 @@ const parentOptions = computed(() => {
 
 function showRootCategories() {
   activeParentId.value = null
+  page.value = 1
 }
 
 function showChildCategories(category: CatalogCategoryDto) {
   if (!category.id || category.parentId) return
   activeParentId.value = category.id
+  page.value = 1
 }
 
 function validateForm() {
@@ -247,7 +261,7 @@ onMounted(load)
                 <div style="font-size:13px; color:var(--text-faint); margin-top:4px;">{{ emptyHint }}</div>
               </td>
             </tr>
-            <tr v-for="category in rows" v-else :key="category.id">
+            <tr v-for="category in pagedRows" v-else :key="category.id">
               <td>
                 <div style="display:flex; align-items:center; gap:11px; min-width:0;" :style="{ paddingLeft: `${category.depth * 22}px` }">
                   <span class="rank" :class="category.depth === 0 ? 'r1' : category.depth === 1 ? 'r2' : 'rx'">
@@ -281,6 +295,10 @@ onMounted(load)
             </tr>
           </tbody>
         </table>
+        </div>
+
+        <div class="history-pager">
+          <n-pagination :page="page" :page-count="totalPages" @update:page="(p: number) => (page = p)" />
         </div>
       </div>
     </n-spin>
@@ -388,6 +406,12 @@ onMounted(load)
 .category-table-wrap {
   overflow-x: auto;
   padding: 8px 8px 4px;
+}
+
+.history-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 8px;
 }
 
 .category-breadcrumb {

@@ -199,10 +199,10 @@ async function onSave() {
   position: relative;
   box-sizing: border-box;
   width: 84px; height: 84px;
+  min-height: 84px; max-height: 84px;  /* 硬性固定高度，避免在 flex 列中被撐高（aspect-ratio 交互 bug） */
   flex: 0 0 auto;          /* 固定尺寸的 flex 子項：永不被列高拉伸 */
   align-self: center;       /* 與名稱垂直置中，不受容器 align 影響 */
   cursor: pointer;
-  aspect-ratio: 1 / 1;
   border-radius: 50%;
   background-size: cover;
   background-position: center;

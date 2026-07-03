@@ -17,7 +17,7 @@ export interface AdminOrderFilter {
   status?: OrderStatus | null;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /**
  * 平台管理員的訂單列表 store：分頁查詢 OrderService `/v1/orders`（全部訂單，

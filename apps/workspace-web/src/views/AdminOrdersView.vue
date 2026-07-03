@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useAdminOrdersStore } from '@/stores/adminOrders'
@@ -8,9 +9,13 @@ import { orderStatusOptions, formatOrderAmount, formatOrderTime, orderStatusMeta
 import type { OrderStatus, OrderSummaryDto } from '@/api/order-service'
 
 const { t } = useI18n()
+const message = useMessage()
 const statusOptions = computed(() => orderStatusOptions())
 const store = useAdminOrdersStore()
 const { items, totalCount, loading, error, detail, detailLoading, detailError } = storeToRefs(store)
+
+// 載入錯誤以彈出 message 呈現，表格維持空狀態
+watch(error, (msg) => { if (msg) message.error(msg) })
 
 // 篩選狀態（買家信箱即時 debounce，狀態下拉即時生效）
 const emailFilter = ref('')
@@ -45,8 +50,6 @@ onMounted(store.load)
 
 <template>
   <div :data-screen-label="t('route.adminOrders')">
-
-    <div v-if="error" class="card-pad od-load-error">{{ error }}</div>
 
     <n-spin :show="loading">
       <!-- 篩選列與訂單表格合併為單一卡片：篩選在上、整寬分隔線、表格在下 -->
@@ -115,7 +118,7 @@ onMounted(store.load)
           </table>
         </div>
 
-        <div v-if="totalPages > 1" class="history-pager">
+        <div class="history-pager">
           <n-pagination
             :page="page"
             :page-count="totalPages"
@@ -184,13 +187,6 @@ onMounted(store.load)
 .fb-search-btn {
   height: 42px;
   border-radius: 10px;
-}
-
-.od-load-error {
-  margin-bottom: 16px;
-  border-radius: 10px;
-  color: var(--c-red, #e5484d);
-  font-size: 13px;
 }
 
 .history-table-card {

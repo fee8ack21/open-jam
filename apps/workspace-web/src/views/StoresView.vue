@@ -59,9 +59,6 @@ async function changePage(p: number) { page.value = p; await store.goPage(p) }
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
-function initial(name?: string | null) {
-  return (name?.charAt(0) || '?').toUpperCase()
-}
 
 /** 進入該商店的商品列表。 */
 function openProducts(id?: string) {
@@ -159,13 +156,9 @@ onMounted(store.load)
               </tr>
               <tr v-for="s in items" v-else :key="s.id">
                 <td>
-                  <div class="prod-cell">
-                    <img v-if="s.avatarUrl" class="store-avatar" :src="s.avatarUrl" :alt="s.storeName ?? ''" />
-                    <span v-else class="store-rank">{{ initial(s.storeName) }}</span>
-                    <div style="min-width:0;">
-                      <button class="store-name-button" @click="openProducts(s.id)">{{ s.storeName }}</button>
-                      <div class="pc-meta">{{ s.description || t('stores.noDescription') }}</div>
-                    </div>
+                  <div style="min-width:0;">
+                    <button class="store-name-button" @click="openProducts(s.id)">{{ s.storeName }}</button>
+                    <div v-if="s.description" class="pc-meta">{{ s.description }}</div>
                   </div>
                 </td>
                 <td>
@@ -227,10 +220,10 @@ onMounted(store.load)
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div v-if="totalPages > 1" class="history-pager">
-        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        <div class="history-pager">
+          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        </div>
       </div>
     </n-spin>
   </div>
@@ -326,27 +319,6 @@ onMounted(store.load)
 
 .store-table tbody td + td {
   border-left: 1.5px solid var(--border);
-}
-
-.store-rank {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  flex: none;
-  background: var(--oj-primary-wash);
-  color: var(--oj-primary);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.store-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  object-fit: cover;
-  flex: none;
 }
 
 .store-mono {

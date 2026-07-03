@@ -14,7 +14,7 @@ function messageOf(err: unknown, fallback = i18n.global.t('storeError.actionFail
   return problem?.detail ?? problem?.title ?? fallback;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 /**
  * 平台管理員的店家審核 store：分頁載入並審核全平台開店申請。

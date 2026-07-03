@@ -174,10 +174,10 @@ async function changePage(p: number) { page.value = p; await store.goPage(p) }
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div v-if="totalPages > 1" class="history-pager">
-        <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        <div class="history-pager">
+          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+        </div>
       </div>
     </n-spin>
   </div>
