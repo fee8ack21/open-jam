@@ -20,6 +20,7 @@ public class CatalogManager(
     StoreServiceClient storeClient,
     QuotaServiceClient quotaClient,
     AuditLogPublisher auditLog,
+    CatalogEventPublisher eventPublisher,
     IMapper mapper) : ICatalogManager
 {
     private readonly string _publicBaseUrl = (storageOptions.Value.PublicBaseUrl ?? "").TrimEnd('/');
@@ -240,10 +241,13 @@ public class CatalogManager(
 
         try
         {
+            var isFirstPublish = catalog.PublishedAt is null;
+
             catalog.Status = CatalogStatus.Published;
             catalog.PublishedAt ??= DateTimeOffset.UtcNow;
 
             auditLog.Add(currentUser.UserId, "catalog.publish", "Catalog", catalog.Id, tenant: catalog.StoreId);
+            eventPublisher.AddCatalogPublished(catalog, isFirstPublish);
 
             await db.SaveChangesAsync(ct);
         }

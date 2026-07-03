@@ -10,7 +10,11 @@ using StoreService.Models;
 namespace StoreService.Services.StoreFollowers;
 
 /// <summary>商店追蹤者業務邏輯實作。</summary>
-public class StoreFollowerService(StoreDbContext db, ICurrentUserAccessor currentUser, IMapper mapper) : IStoreFollowerService
+public class StoreFollowerService(
+    StoreDbContext db,
+    ICurrentUserAccessor currentUser,
+    StoreEventPublisher eventPublisher,
+    IMapper mapper) : IStoreFollowerService
 {
     /// <inheritdoc/>
     public async Task FollowAsync(Guid storeId, FollowStoreRequest request, CancellationToken ct)
@@ -33,6 +37,8 @@ public class StoreFollowerService(StoreDbContext db, ICurrentUserAccessor curren
                 Email = email,
             });
 
+            eventPublisher.AddStoreFollowerChanged(storeId, email, currentUser.UserId, followed: true);
+
             await db.SaveChangesAsync(ct);
         }
     }
@@ -48,6 +54,9 @@ public class StoreFollowerService(StoreDbContext db, ICurrentUserAccessor curren
         if (follower is not null)
         {
             db.StoreFollowers.Remove(follower);
+
+            eventPublisher.AddStoreFollowerChanged(storeId, follower.Email, follower.UserId, followed: false);
+
             await db.SaveChangesAsync(ct);
         }
     }

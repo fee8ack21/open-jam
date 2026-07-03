@@ -324,6 +324,35 @@ services:
       hydra:
         condition: service_started
 
+  notification-service:
+    container_name: ${PROJECT_NAME}-notification-service
+    build:
+      context: ../../src
+      dockerfile: NotificationService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_notification;Username=${DB_USER};Password=${DB_PASSWORD}
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Services__StoreService__BaseUrl: http://${PROJECT_NAME}-store-service:8080
+      Notification__CatalogUrlPattern: ${NOTIFICATION_CATALOG_URL_PATTERN}
+      Hydra__Issuer: ${HYDRA_PUBLIC_URL}
+      Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
+    ports:
+      - "5180:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      hydra:
+        condition: service_started
+      store-service:
+        condition: service_started
+
   creator-web:
     container_name: ${PROJECT_NAME}-creator-web
     build:

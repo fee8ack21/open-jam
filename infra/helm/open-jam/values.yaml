@@ -332,6 +332,23 @@ orderService:
       cpu: 300m
       memory: 512Mi
 
+notificationService:
+  enabled: true
+  image:
+    repository: open-jam/notification-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  # 通知信商品連結樣板，佔位符 {storeSlug} / {catalogId}
+  catalogUrlPattern: "https://{storeSlug}.openjam.co/product/{catalogId}"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
 creatorWeb:
   enabled: true
   image:

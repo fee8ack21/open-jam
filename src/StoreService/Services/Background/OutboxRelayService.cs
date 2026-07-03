@@ -61,9 +61,14 @@ public class OutboxRelayService(
 
             foreach (var message in messages)
             {
-                object evt = message.EventType.StartsWith("email.", StringComparison.Ordinal)
-                    ? JsonSerializer.Deserialize<EmailRequestedEvent>(message.Payload)!
-                    : JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload)!;
+                object evt = message.EventType switch
+                {
+                    var t when t.StartsWith("email.", StringComparison.Ordinal)
+                        => JsonSerializer.Deserialize<EmailRequestedEvent>(message.Payload)!,
+                    StoreEventPublisher.StoreFollowerChangedType
+                        => JsonSerializer.Deserialize<StoreFollowerChangedEvent>(message.Payload)!,
+                    _   => JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload)!,
+                };
 
                 await bus.Publish(evt, ct);
                 message.ProcessedAt = DateTimeOffset.UtcNow;

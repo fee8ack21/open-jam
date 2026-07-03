@@ -86,6 +86,7 @@ public class OutboxRelayService(
     private static object? DeserializeEvent(OutboxMessage message) => message.EventType switch
     {
         var t when t.StartsWith("email.") => JsonSerializer.Deserialize<EmailRequestedEvent>(message.Payload),
+        "user.registered" => JsonSerializer.Deserialize<UserRegisteredEvent>(message.Payload),
         _ => null,
     };
 }

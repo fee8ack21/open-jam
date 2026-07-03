@@ -5,6 +5,7 @@ using Shared.Auth;
 using Shared.Data;
 using Shared.Middleware;
 using Shared.Web;
+using StoreService.Consumers;
 using StoreService.Data;
 using StoreService.Options;
 using StoreService.Services;
@@ -23,16 +24,27 @@ builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 builder.Services.AddDbContext<StoreDbContext>(opts =>
     opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// MassTransit + RabbitMQ（publish only，Outbox 事件）
+// MassTransit + RabbitMQ（Outbox 事件發布 + 消費 UserRegisteredEvent 回填追蹤者 UserId）
 builder.Services.AddMassTransit(x =>
 {
-    x.UsingRabbitMq((_, cfg) =>
+    x.AddConsumer<UserRegisteredConsumer>(cfg =>
+    {
+        cfg.UseMessageRetry(r => r.Exponential(
+            retryLimit:    5,
+            minInterval:   TimeSpan.FromSeconds(1),
+            maxInterval:   TimeSpan.FromSeconds(30),
+            intervalDelta: TimeSpan.FromSeconds(2)));
+    });
+
+    x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
         });
+
+        cfg.ConfigureEndpoints(ctx);
     });
 });
 
@@ -50,6 +62,7 @@ builder.Services.AddScoped<StorageServiceClient>();
 
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
 builder.Services.AddScoped<AuditLogPublisher>();
+builder.Services.AddScoped<StoreEventPublisher>();
 builder.Services.AddScoped<IStoreManager, StoreManager>();
 builder.Services.AddScoped<IStoreApplicationService, StoreApplicationService>();
 builder.Services.AddScoped<IStoreFollowerService, StoreFollowerService>();

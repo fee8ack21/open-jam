@@ -78,6 +78,7 @@ builder.Services.AddScoped<OrderServiceClient>();
 
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
 builder.Services.AddScoped<AuditLogPublisher>();
+builder.Services.AddScoped<CatalogEventPublisher>();
 builder.Services.AddScoped<ICatalogManager, CatalogManager>();
 builder.Services.AddScoped<ICatalogVersionService, CatalogVersionService>();
 builder.Services.AddScoped<ICatalogCategoryService, CatalogCategoryService>();

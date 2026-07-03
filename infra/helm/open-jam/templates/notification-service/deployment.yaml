@@ -1,0 +1,99 @@
+{{- if .Values.notificationService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-notification-service
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: notification-service
+spec:
+  replicas: {{ .Values.notificationService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: notification-service
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: {{ printf "%s:%s" .Values.notificationService.image.repository .Values.notificationService.image.tag | quote }}
+          imagePullPolicy: {{ .Values.notificationService.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: PathBase
+              value: "/notification-service"
+            - name: Logging__LogLevel__Default
+              value: "Warning"
+            - name: Logging__LogLevel__Microsoft
+              value: "Warning"
+            - name: Logging__LogLevel__Microsoft.Hosting.Lifetime
+              value: "Warning"
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: notification-service-connection-string
+            - name: RabbitMQ__Host
+              value: {{ include "open-jam.rabbitmqHost" . | quote }}
+            - name: RabbitMQ__Username
+              value: {{ .Values.rabbitmq.user | quote }}
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: rabbitmq-password
+            - name: Services__StoreService__BaseUrl
+              value: {{ include "open-jam.storeServiceUrl" . | quote }}
+            - name: Notification__CatalogUrlPattern
+              value: {{ .Values.notificationService.catalogUrlPattern | quote }}
+            - name: Hydra__Issuer
+              value: {{ include "open-jam.hydraPublicUrl" . | quote }}
+            - name: Hydra__MetadataAddress
+              value: {{ include "open-jam.hydraMetadataAddress" . | quote }}
+          {{- with .Values.notificationService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - >
+              /wait-for-it.sh {{ include "open-jam.postgresHost" . }}:5432 --timeout=60 --strict &&
+              /wait-for-it.sh {{ include "open-jam.rabbitmqHost" . }}:5672 --timeout=60 --strict &&
+              dotnet NotificationService.dll
+          volumeMounts:
+            - name: wait-for-it
+              mountPath: /wait-for-it.sh
+              subPath: wait-for-it.sh
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 3
+      volumes:
+        - name: wait-for-it
+          configMap:
+            name: {{ include "open-jam.fullname" . }}-wait-for-it
+            defaultMode: 0755
+{{- end }}

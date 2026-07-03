@@ -25,6 +25,7 @@ dotnet ef migrations add <Name>   # 新增 EF Core Migration（需 dotnet-ef too
 | StoreService | 開店申請 / 店家 / 追蹤 REST API | http://localhost:5172，Swagger: `/swagger` |
 | CatalogService | 商品 / 版本 / 分類 / 標籤 REST API | http://localhost:5176，Swagger: `/swagger` |
 | OrderService | 訂單 / 結帳 / 狀態歷程 REST API | http://localhost:5179，Swagger: `/swagger` |
+| NotificationService | 通知（追蹤者上架 / 公告，Email + in-app）REST API | http://localhost:5180，Swagger: `/swagger` |
 | EmailService | RabbitMQ Worker（無 HTTP port） | — |
 | Bootstrap | Seed，一次性執行後結束 | — |
 
@@ -95,7 +96,7 @@ pnpm preview
 
 **`ExceptionMiddleware`** — 僅用於 **REST API 服務**。在 `Program.cs` 以 `app.UseExceptionMiddleware()` 掛載，需排在所有其他 middleware 之前。MVC 服務不使用此 middleware，改以 `app.UseExceptionHandler(...)` 處理。
 
-**Events**（`Shared/Events/`）— `EmailRequestedEvent`、`AuditLogRequestedEvent`、`FileReadyEvent`：各服務在業務 transaction 內寫入 Outbox，由 `OutboxRelayService` 排程搬入 RabbitMQ。
+**Events**（`Shared/Events/`）— `EmailRequestedEvent`、`AuditLogRequestedEvent`、`FileReadyEvent`、`PaymentSucceededEvent`、`OrderCompletedEvent`、`CatalogPublishedEvent`、`StoreFollowerChangedEvent`、`UserRegisteredEvent`：各服務在業務 transaction 內寫入 Outbox，由 `OutboxRelayService` 排程搬入 RabbitMQ。
 
 ## Outbox 模式
 
@@ -170,11 +171,22 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
 - **金流整合**：訂單先建立（`Pending`），PaymentService 以 `OrderId` 建立 Stripe Checkout Session；付款成功後 `PaymentSucceededConsumer` 消費 `PaymentSucceededEvent`（`Shared/Events/`）→ `CompleteFromPaymentAsync` 履約完成訂單（以訂單既有狀態做冪等判斷，搭配 MassTransit 指數退避重試）。履約（發放下載權限）由 CatalogService 另行消費同事件，OrderService 僅追蹤訂單狀態。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`（`order.create` / `order.cancel` / `order.complete`）。
 
+## NotificationService（`src/NotificationService/`）
+
+REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 in-app 通知（`Notification`）。Controller（`Notifications` / `NotificationRequests`）僅轉接，業務在 `Services/<Feature>/` 的 `INotificationManager` / `INotificationRequestService`。
+
+- **統一排程管線**：所有通知（即時與預定日期）皆為一筆 `NotificationRequest`（`ScheduledAt`，即時 = 建立當下；狀態 `Pending → Dispatched`，另有 `Cancelled` / `Failed`）。`NotificationDispatcherService`（`IHostedService`）掃描到期任務，整個 fan-out 包在單一交易並以 `FOR UPDATE SKIP LOCKED` 持鎖：失敗整體回滾、下一輪重試（`AttemptCount` 達上限轉 `Failed`）。
+- **通知類型**：`catalog.published`（消費 `CatalogPublishedEvent`，僅 `IsFirstPublish` 建任務）、`store.announcement`（Owner 經 `POST /v1/notification-requests` 建立，可帶 `ScheduledAt` 預定發送，僅 `Pending` 可取消）。
+- **fan-out 對象**：本地 `store_follower_ref` 參照表（微服務 Ref Table），由 `StoreFollowerChangedEvent` 同步、`UserRegisteredEvent` 回填訪客 `UserId`（信箱一律小寫）。已關聯帳號者建 in-app `Notification`（`(RequestId, RecipientEmail)` 唯一）；全部追蹤者經 Outbox 發 `EmailRequestedEvent`（模板 `notification.catalog_published` / `notification.store_announcement`）由 EmailService 寄信。訪客追蹤者只收 Email。
+- **in-app API**：`GET /v1/notifications/mine`（分頁 + `unreadOnly`）、`GET /v1/notifications/mine/unread-count`（前端鈴鐺輪詢）、`POST /{id}/read`、`POST /read-all`，皆以 JWT `sub` 限縮。
+- **`StoreServiceClient`**（named `"store"`）：Owner 驗證（轉發 Bearer token 至 `GET /v1/stores/me`）+ dispatch 時匿名查商店公開資訊（`GET /v1/stores/{id}`，取店名 / slug 渲染通知，不建 store ref 表）。
+- **Consumer 冪等**：`CatalogPublishedConsumer` 以 `ProcessedEvent`（`OutboxMessageId` 唯一）+ `NotificationRequest.SourceEventId` 唯一索引去重；追蹤同步與 UserId 回填為天然冪等 upsert / delete / update。
+
 ## Bootstrap（`src/Bootstrap/`）
 
-一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）後結束。
+一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
 
-掛載 4 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
+掛載 5 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection` / `NotificationConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
 
 ## 環境設定
 
@@ -196,7 +208,7 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
   "Smtp": { "Host": "localhost", "Port": 1025, "SecureSocket": "Auto", "FromAddress": "noreply@openjam.co" },
   "SendGrid": { "ApiKey": "<prod-only，由 GCP Secret Manager 注入>" }
 }
-// StorageService / StoreService / OrderService 額外需要（REST API，驗 Hydra 簽發的 JWT）
+// StorageService / StoreService / OrderService / NotificationService 額外需要（REST API，驗 Hydra 簽發的 JWT）
 {
   "Hydra": { "Issuer": "http://localhost:4444/" }
 }
@@ -231,5 +243,14 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
 // OrderService 額外需要（賣家視角訂單查詢驗證商店 Owner 身分）
 {
   "Services": { "StoreService": { "BaseUrl": "http://localhost:5172" } }
+}
+// NotificationService 額外需要（Owner 驗證 + dispatch 時查商店公開資訊 + 信件商品連結）
+{
+  "Services": { "StoreService": { "BaseUrl": "http://localhost:5172" } },
+  "Notification": {
+    "CatalogUrlPattern": "https://{storeSlug}.openjam.co/product/{catalogId}",  // 開發環境覆蓋為 creator-web dev server
+    "DispatchMaxAttempts": 5,
+    "DispatchBatchSize": 500
+  }
 }
 ```

@@ -87,6 +87,22 @@ public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> l
             "開店申請已駁回通知",
             [("zh-TW", "Open Jam · 你的商店申請審核結果", storeApplicationRejectedHtml)]);
 
+        var notificationCatalogPublishedHtml = await File.ReadAllTextAsync(
+            Path.Combine(ResourcesDir, "notification-catalog-published-email-template.html"));
+
+        var notificationStoreAnnouncementHtml = await File.ReadAllTextAsync(
+            Path.Combine(ResourcesDir, "notification-store-announcement-email-template.html"));
+
+        await UpsertAsync(
+            "notification.catalog_published",
+            "追蹤商店新品上架通知",
+            [("zh-TW", "Open Jam · {{store_name}} 上架了新商品", notificationCatalogPublishedHtml)]);
+
+        await UpsertAsync(
+            "notification.store_announcement",
+            "追蹤商店公告通知",
+            [("zh-TW", "Open Jam · {{store_name}}：{{title}}", notificationStoreAnnouncementHtml)]);
+
         await db.SaveChangesAsync();
         logger.LogInformation("Email templates seeded");
     }

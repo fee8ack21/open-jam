@@ -113,6 +113,9 @@ public class UserService(
         record.UsedAt      = DateTimeOffset.UtcNow;
         record.User.Status = UserStatus.Active;
 
+        // 信箱所有權已證明，發布註冊完成事件（StoreService / NotificationService 據此回填追蹤紀錄的 UserId）
+        db.OutboxMessages.Add(BuildUserRegisteredOutbox(record.User.Id, record.User.Email));
+
         await db.SaveChangesAsync();
         return (true, null);
     }
@@ -220,6 +223,18 @@ public class UserService(
         ));
 
         return (token, outbox);
+    }
+
+    private static OutboxMessage BuildUserRegisteredOutbox(Guid userId, string email)
+    {
+        var outbox = new OutboxMessage { EventType = "user.registered" };
+        outbox.Payload = JsonSerializer.Serialize(new UserRegisteredEvent(
+            OutboxMessageId: outbox.Id,
+            UserId:          userId,
+            Email:           NormalizeEmail(email),
+            RegisteredAt:    DateTimeOffset.UtcNow
+        ));
+        return outbox;
     }
 
     private (PasswordResetToken Token, OutboxMessage Outbox) BuildPasswordResetOutbox(Guid userId, string email)

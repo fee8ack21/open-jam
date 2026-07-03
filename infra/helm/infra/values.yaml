@@ -50,6 +50,8 @@ ingress:
           serviceName: open-jam-payment-service
         - path: /order-service
           serviceName: open-jam-order-service
+        - path: /notification-service
+          serviceName: open-jam-notification-service
     - host: docs.openjam.co
       serviceName: open-jam-docs
     - host: "*.openjam.co"
