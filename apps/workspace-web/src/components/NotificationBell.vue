@@ -8,6 +8,7 @@ import {
   type StoreAnnouncementPayload,
 } from '@/stores/notifications'
 import type { NotificationDto } from '@/api/notification-service'
+import { env } from '@/environment'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -63,8 +64,22 @@ function toggle() {
   if (open.value) void store.loadPanel()
 }
 
+/** 由 catalog.published 通知的 payload 組出商品頁網址；資訊不足時回傳 null。 */
+function catalogUrlOf(n: NotificationDto): string | null {
+  if (n.type !== 'catalog.published') return null
+  try {
+    const p = JSON.parse(n.payload ?? '{}') as CatalogPublishedPayload
+    if (!p.storeSlug || !p.catalogId) return null
+    return `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', p.storeSlug)}/product/${p.catalogId}`
+  } catch {
+    return null
+  }
+}
+
 function onItemClick(n: NotificationDto) {
   if (n.id) void store.markRead(n.id)
+  const url = catalogUrlOf(n)
+  if (url) window.open(url, '_blank', 'noopener')
 }
 
 watch(

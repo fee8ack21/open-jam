@@ -44,6 +44,7 @@ watch(canSell, (can) => {
 <template>
   <n-config-provider :theme="null" :theme-overrides="overrides">
   <n-message-provider>
+  <n-dialog-provider>
     <div class="oj-root" :class="rootClass">
       <div class="dash-shell">
         <app-sidebar :open="drawerOpen" @navigate="drawerOpen = false" />
@@ -59,6 +60,7 @@ watch(canSell, (can) => {
         </div>
       </div>
     </div>
+  </n-dialog-provider>
   </n-message-provider>
   </n-config-provider>
 </template>

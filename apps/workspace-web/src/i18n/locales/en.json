@@ -460,7 +460,8 @@
     "orders": "Orders",
     "storeSettings": "Store settings",
     "purchases": "Purchases",
-    "wishlist": "Wishlist"
+    "wishlist": "Wishlist",
+    "announcements": "Announcements"
   },
   "header": {
     "openMenu": "Open menu",
@@ -563,5 +564,42 @@
     "justNow": "Just now",
     "catalogPublished": "{storeName} released a new product \"{catalogName}\"",
     "storeAnnouncement": "{storeName}: {title}"
+  },
+  "announcements": {
+    "createTitle": "Post an announcement",
+    "createDesc": "Notify everyone following your store. Send now or schedule for later.",
+    "fieldTitle": "Title",
+    "fieldTitlePlaceholder": "e.g. Summer sale is on",
+    "fieldMessage": "Message",
+    "fieldMessagePlaceholder": "What do you want to tell your followers…",
+    "fieldScheduledAt": "Scheduled time",
+    "fieldScheduledAtPlaceholder": "Leave empty to send now",
+    "fieldScheduledAtHint": "Pick a future time to schedule; leave empty to notify followers immediately.",
+    "submitNow": "Send now",
+    "submitScheduled": "Schedule",
+    "colTitle": "Title",
+    "colScheduledAt": "Scheduled at",
+    "colDispatchedAt": "Dispatched at",
+    "colActions": "Actions",
+    "cancelAction": "Cancel sending",
+    "cancelConfirmTitle": "Cancel this announcement?",
+    "cancelConfirmDesc": "\"{title}\" has not been sent yet. Cancelling will skip notifying followers.",
+    "emptyTitle": "No announcements yet",
+    "emptyDesc": "Post your first announcement to keep followers in the loop.",
+    "msgCreated": "Announcement sent — followers will be notified shortly",
+    "msgScheduled": "Announcement scheduled",
+    "msgScheduledInPast": "Scheduled time must be in the future",
+    "msgCancelled": "Announcement cancelled",
+    "msgLoadFailed": "Failed to load announcements",
+    "msgCreateFailed": "Failed to create announcement",
+    "msgCancelFailed": "Failed to cancel announcement"
+  },
+  "requestStatus": {
+    "all": "All statuses",
+    "pending": "Pending",
+    "dispatched": "Dispatched",
+    "cancelled": "Cancelled",
+    "failed": "Failed",
+    "unknown": "Unknown"
   }
 }

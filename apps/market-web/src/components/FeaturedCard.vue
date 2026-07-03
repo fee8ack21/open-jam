@@ -12,7 +12,7 @@ import type { Product } from '@/data/products';
 const props = defineProps<{ product: Product }>();
 const { t } = useI18n();
 
-const href = computed(() => `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', props.product.storeSlug)}/products/${props.product.id}`);
+const href = computed(() => `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', props.product.storeSlug)}/product/${props.product.id}`);
 const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]).slice(0, 2).join(''));
 // 誠實標示：人工策展的標「編輯精選」，演算法補入的標「熱門」，不讓熱門商品冒充編輯精選。
 const tag = computed(() =>

@@ -460,7 +460,8 @@
     "orders": "訂單管理",
     "storeSettings": "商店設定",
     "purchases": "購買紀錄",
-    "wishlist": "Wishlist"
+    "wishlist": "Wishlist",
+    "announcements": "公告通知"
   },
   "header": {
     "openMenu": "開啟選單",
@@ -563,5 +564,42 @@
     "justNow": "剛剛",
     "catalogPublished": "{storeName} 上架了新商品「{catalogName}」",
     "storeAnnouncement": "{storeName}：{title}"
+  },
+  "announcements": {
+    "createTitle": "發布公告",
+    "createDesc": "通知所有追蹤你商店的粉絲，可立即發送或預定發送時間。",
+    "fieldTitle": "公告標題",
+    "fieldTitlePlaceholder": "例如：夏季特賣開跑",
+    "fieldMessage": "公告內文",
+    "fieldMessagePlaceholder": "想對追蹤者說的話…",
+    "fieldScheduledAt": "預定發送時間",
+    "fieldScheduledAtPlaceholder": "留空表示立即發送",
+    "fieldScheduledAtHint": "設定未來時間可預約發送；留空則立即通知追蹤者。",
+    "submitNow": "立即發送",
+    "submitScheduled": "預約發送",
+    "colTitle": "標題",
+    "colScheduledAt": "預定時間",
+    "colDispatchedAt": "發送時間",
+    "colActions": "操作",
+    "cancelAction": "取消發送",
+    "cancelConfirmTitle": "取消這則公告？",
+    "cancelConfirmDesc": "「{title}」尚未發送，取消後將不會通知追蹤者。",
+    "emptyTitle": "還沒有公告",
+    "emptyDesc": "發布第一則公告，讓追蹤者知道你的最新動態。",
+    "msgCreated": "公告已送出，將立即通知追蹤者",
+    "msgScheduled": "公告已預約，將於預定時間發送",
+    "msgScheduledInPast": "預定時間須晚於現在",
+    "msgCancelled": "公告已取消",
+    "msgLoadFailed": "公告列表載入失敗",
+    "msgCreateFailed": "公告建立失敗",
+    "msgCancelFailed": "公告取消失敗"
+  },
+  "requestStatus": {
+    "all": "全部狀態",
+    "pending": "待發送",
+    "dispatched": "已發送",
+    "cancelled": "已取消",
+    "failed": "發送失敗",
+    "unknown": "未知"
   }
 }

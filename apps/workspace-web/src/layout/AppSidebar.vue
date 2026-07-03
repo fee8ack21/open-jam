@@ -17,6 +17,7 @@ const NAV = {
     { view: 'products', labelKey: 'route.products', icon: 'box', countKey: 'products' },
     { view: 'upload', labelKey: 'route.upload', icon: 'upload' },
     { view: 'orders', labelKey: 'route.orders', icon: 'receipt' },
+    { view: 'announcements', labelKey: 'route.announcements', icon: 'bell' },
     { view: 'store-settings', labelKey: 'route.storeSettings', icon: 'gear' },
   ],
   buy: [
