@@ -10,7 +10,6 @@
 import { Api as CatalogApi, HttpClient as CatalogHttpClient } from '@/api/catalog-service';
 import { Api as StoreApi, HttpClient as StoreHttpClient } from '@/api/store-service';
 import { Api as OrderApi, HttpClient as OrderHttpClient } from '@/api/order-service';
-import { Api as PaymentApi, HttpClient as PaymentHttpClient } from '@/api/payment-service';
 import { env } from '@/environment';
 import { userManager } from '@/oidc/auth';
 
@@ -30,7 +29,6 @@ const authFetch: typeof fetch = async (input, init = {}) => {
 const catalogHttp = new CatalogHttpClient({ baseUrl: env.CATALOG_API_URL, customFetch: authFetch });
 const storeHttp = new StoreHttpClient({ baseUrl: env.STORE_API_URL, customFetch: authFetch });
 const orderHttp = new OrderHttpClient({ baseUrl: env.ORDER_API_URL, customFetch: authFetch });
-const paymentHttp = new PaymentHttpClient({ baseUrl: env.PAYMENT_API_URL, customFetch: authFetch });
 
 /** CatalogService API client（商品瀏覽公開；收藏 wishlist 需登入）。 */
 export const catalogApi = new CatalogApi(catalogHttp);
@@ -38,8 +36,9 @@ export const catalogApi = new CatalogApi(catalogHttp);
 /** StoreService API client（公開商店資訊：GET /v1/stores/{slug}）。 */
 export const storeApi = new StoreApi(storeHttp);
 
-/** OrderService API client（結帳建立訂單；消費者免註冊，匿名亦可下單）。 */
+/**
+ * OrderService API client（結帳建立訂單；消費者免註冊，匿名亦可下單）。
+ * Stripe Checkout Session 由 OrderService 於建單時向 PaymentService 建立（僅限內部呼叫），
+ * 付款頁 URL 隨建單回應帶回，前端不直接呼叫 PaymentService。
+ */
 export const orderApi = new OrderApi(orderHttp);
-
-/** PaymentService API client（建立 Stripe Checkout Session，導向付款頁）。 */
-export const paymentApi = new PaymentApi(paymentHttp);

@@ -5,6 +5,9 @@ public class ServiceOptions
 {
     /// <summary>StoreService（商店 / 成員 API）端點設定。</summary>
     public ServiceEndpointOptions StoreService { get; set; } = new();
+
+    /// <summary>PaymentService（金流 / Checkout Session API）端點設定。</summary>
+    public ServiceEndpointOptions PaymentService { get; set; } = new();
 }
 
 /// <summary>單一外部服務端點設定。</summary>

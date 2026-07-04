@@ -18,7 +18,7 @@ public class PaymentManager(
     AuditLogPublisher auditLog) : IPaymentManager
 {
     public async Task<CheckoutSessionResponse> CreateCheckoutSessionAsync(
-        CreateCheckoutSessionRequest request, Guid? userId, CancellationToken ct)
+        CreateCheckoutSessionRequest request, CancellationToken ct)
     {
         // 同一訂單已有未過期的 Pending 付款時直接重用，避免使用者重複建立 Checkout Session（如重複點擊購買鈕）。
         var existing = await db.Payments
@@ -46,7 +46,7 @@ public class PaymentManager(
         {
             Id = Guid.NewGuid(),
             OrderId = request.OrderId,
-            UserId = userId,
+            UserId = request.UserId,
             Email = request.Email,
             Amount = request.Amount,
             Currency = request.Currency.ToLowerInvariant(),
@@ -100,7 +100,7 @@ public class PaymentManager(
         });
 
         auditLog.Add(
-            who: userId,
+            who: request.UserId,
             action: "payment.checkout.created",
             target: "Payment",
             targetId: payment.Id,

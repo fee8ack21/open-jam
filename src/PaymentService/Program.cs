@@ -44,6 +44,8 @@ builder.Services.AddHostedService<OutboxRelayService>();
 builder.Services.AddHostedService<StripeWebhookProcessorService>();
 
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
+// checkout-session 僅限內部服務（OrderService）以 service token 呼叫。
+builder.Services.AddOpenJamInternalServicePolicy(builder.Configuration);
 builder.Services.AddOpenJamCors(builder.Configuration);
 
 builder.Services.AddControllers()

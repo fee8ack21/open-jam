@@ -51,6 +51,12 @@ var storeBaseUrl = (services.StoreService.BaseUrl ?? "http://localhost:5172").Tr
 builder.Services.AddHttpClient("store", client => client.BaseAddress = new Uri(storeBaseUrl));
 builder.Services.AddScoped<StoreServiceClient>();
 
+// 結帳建單後向 PaymentService 建立 Stripe Checkout Session（server-to-server，以 service token 認證）。
+var paymentBaseUrl = (services.PaymentService.BaseUrl ?? "http://localhost:5178").TrimEnd('/') + "/";
+builder.Services.AddHttpClient("payment", client => client.BaseAddress = new Uri(paymentBaseUrl));
+builder.Services.AddScoped<PaymentServiceClient>();
+builder.Services.AddOpenJamServiceTokenClient(builder.Configuration);
+
 builder.Services.AddScoped<IOrderManager, OrderManager>();
 builder.Services.AddScoped<AuditLogPublisher>();
 builder.Services.AddScoped<OrderEventPublisher>();

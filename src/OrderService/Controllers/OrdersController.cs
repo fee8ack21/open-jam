@@ -14,7 +14,7 @@ namespace OrderService.Controllers;
 [Route("v{version:apiVersion}/orders")]
 public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor currentUser) : ControllerBase
 {
-    /// <summary>建立訂單（結帳）。消費者免註冊，憑 Email 即可下單。</summary>
+    /// <summary>建立訂單（結帳）。消費者免註冊，憑 Email 即可下單；回應含 Stripe Checkout 付款頁 URL。</summary>
     /// <param name="request">買家 Email、貨幣與訂單項目。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpPost]

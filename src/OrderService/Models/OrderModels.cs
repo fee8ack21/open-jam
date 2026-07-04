@@ -168,6 +168,10 @@ public class OrderResponse
 
     /// <summary>狀態變更歷程（依時間排序）。</summary>
     public List<OrderStatusHistoryResponse> StatusHistory { get; set; } = [];
+
+    /// <summary>Stripe Checkout 付款頁 URL；僅建立訂單（結帳）回應帶值，前端導向此 URL 完成付款。</summary>
+    /// <example>https://checkout.stripe.com/c/pay/cs_test_123</example>
+    public string? CheckoutUrl { get; set; }
 }
 
 /// <summary>訂單項目回應。</summary>

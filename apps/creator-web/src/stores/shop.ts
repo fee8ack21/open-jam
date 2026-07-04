@@ -8,7 +8,7 @@ import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { PRODUCTS, type Product } from '@/data/products';
 import { STORE, type Store } from '@/data/store';
-import { catalogApi, orderApi, paymentApi, storeApi } from '@/api';
+import { catalogApi, orderApi, storeApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import i18n from '@/i18n';
 import { env } from '@/environment';
@@ -297,9 +297,9 @@ export const useShopStore = defineStore('shop', () => {
   function startCheckout() { order.value = null; }
 
   /**
-   * 結帳：於 OrderService 建立訂單，再向 PaymentService 取得 Stripe Checkout Session，
-   * 回傳應導向的 Stripe 付款頁 URL（由呼叫端 `window.location.href` 跳轉填寫信用卡資訊）。
-   * 金額一律以最低貨幣單位（cents）送出；訂單總額以後端回傳為準，確保與實際扣款一致。
+   * 結帳：於 OrderService 建立訂單，由 OrderService 向 PaymentService 建立 Stripe Checkout Session，
+   * 建單回應直接帶回應導向的 Stripe 付款頁 URL（由呼叫端 `window.location.href` 跳轉填寫信用卡資訊）。
+   * 金額一律以最低貨幣單位（cents）送出。
    */
   async function checkout(buyer: Buyer): Promise<string> {
     if (!cartProducts.value.length) throw new Error(i18n.global.t('checkout.emptyTitle'));
@@ -330,19 +330,6 @@ export const useShopStore = defineStore('shop', () => {
       });
       const created = orderRes.data;
 
-      const productName = lines.length === 1
-        ? lines[0].title
-        : i18n.global.t('checkout.multiItemName', { title: lines[0].title, count: lines.length });
-      const amount = created.totalAmount ?? Math.round(subtotal.value * 100);
-
-      const sessionRes = await paymentApi.payments.createCheckoutSession({
-        orderId: created.id as string,
-        email: buyer.email,
-        amount,
-        currency,
-        productName,
-      });
-
       pendingOrder.value = {
         orderId: created.id as string,
         orderNumber: created.orderNumber ?? '',
@@ -352,7 +339,7 @@ export const useShopStore = defineStore('shop', () => {
       };
       save('pendingOrder', pendingOrder.value);
 
-      const url = sessionRes.data.url;
+      const url = created.checkoutUrl;
       if (!url) throw new Error('無法取得付款頁面網址');
       return url;
     } finally {

@@ -282,6 +282,7 @@ services:
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
       Stripe__SuccessUrl: ${PAYMENT_SUCCESS_URL}
       Stripe__CancelUrl: ${PAYMENT_CANCEL_URL}
+      ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
@@ -307,6 +308,11 @@ services:
       RabbitMQ__Host: ${RABBITMQ_HOST}
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Services__StoreService__BaseUrl: http://${PROJECT_NAME}-store-service:8080
+      Services__PaymentService__BaseUrl: http://${PROJECT_NAME}-payment-service:8080
+      ServiceAuth__TokenUrl: http://${PROJECT_NAME}-hydra:4444/oauth2/token
+      ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
+      ServiceAuth__ClientSecret: ${HYDRA_SERVICE_CLIENT_SECRET:-change-me-in-production}
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
@@ -317,6 +323,10 @@ services:
       rabbitmq:
         condition: service_healthy
       hydra:
+        condition: service_started
+      store-service:
+        condition: service_started
+      payment-service:
         condition: service_started
 
   notification-service:
@@ -415,6 +425,8 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
       Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
+      HydraClients__Service__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
+      HydraClients__Service__ClientSecret: ${HYDRA_SERVICE_CLIENT_SECRET:-change-me-in-production}
     depends_on:
       postgres:
         condition: service_healthy

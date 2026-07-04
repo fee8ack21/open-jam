@@ -71,6 +71,8 @@ spec:
               value: {{ .Values.paymentService.stripe.successUrl | quote }}
             - name: Stripe__CancelUrl
               value: {{ .Values.paymentService.stripe.cancelUrl | quote }}
+            - name: ServiceAuth__ClientId
+              value: {{ .Values.hydraClients.service.clientId | quote }}
             - name: Hydra__Issuer
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: Hydra__MetadataAddress

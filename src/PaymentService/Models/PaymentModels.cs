@@ -8,6 +8,10 @@ public class CreateCheckoutSessionRequest
     /// <summary>商品訂單 ID。</summary>
     public Guid OrderId { get; set; }
 
+    /// <summary>購買者使用者 ID；null 表示匿名購買。由 OrderService 帶入（呼叫者為內部服務，非買家本人）。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid? UserId { get; set; }
+
     /// <summary>購買者電子信箱。</summary>
     public string Email { get; set; } = "";
 

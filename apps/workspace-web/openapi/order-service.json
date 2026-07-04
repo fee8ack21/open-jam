@@ -7,20 +7,28 @@
   "paths": {
     "/v1/orders": {
       "post": {
-        "tags": ["Orders"],
-        "summary": "建立訂單（結帳）。消費者免註冊，憑 Email 即可下單。",
+        "tags": [
+          "Orders"
+        ],
+        "summary": "建立訂單（結帳）。消費者免註冊，憑 Email 即可下單；回應含 Stripe Checkout 付款頁 URL。",
         "operationId": "Create",
         "requestBody": {
           "description": "買家 Email、貨幣與訂單項目。",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateOrderRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
             },
             "text/json": {
-              "schema": { "$ref": "#/components/schemas/CreateOrderRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
             },
             "application/*+json": {
-              "schema": { "$ref": "#/components/schemas/CreateOrderRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
             }
           }
         },
@@ -28,15 +36,29 @@
           "201": {
             "description": "Created",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OrderResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
               }
             }
           }
         }
       },
       "get": {
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "summary": "查詢全部訂單列表（含各狀態），可依商店 / 買家 / 狀態過濾。僅 Admin 可操作。",
         "operationId": "List",
         "parameters": [
@@ -44,45 +66,84 @@
             "name": "StoreId",
             "in": "query",
             "description": "限定所屬商店 ID（賣方）；null 表示不限。",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "BuyerUserId",
             "in": "query",
             "description": "限定購買者使用者 ID；null 表示不限。",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "BuyerEmail",
             "in": "query",
             "description": "限定購買者 Email；null 表示不限。",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string",
+              "example": "buyer@example.com"
+            },
+            "example": "buyer@example.com"
           },
           {
             "name": "Status",
             "in": "query",
             "description": "限定訂單狀態；null 表示不限。",
-            "schema": { "$ref": "#/components/schemas/OrderStatus" }
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            },
+            "example": "Completed"
           },
           {
             "name": "Offset",
             "in": "query",
             "description": "略過筆數。",
-            "schema": { "type": "integer", "format": "int32" }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
             "description": "每頁筆數（最大 100）。",
-            "schema": { "type": "integer", "format": "int32" }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ListOrdersResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
               }
             }
           }
@@ -91,7 +152,9 @@
     },
     "/v1/orders/{id}": {
       "get": {
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "summary": "查詢訂單完整資訊（含項目與狀態歷程）。",
         "operationId": "Get",
         "parameters": [
@@ -100,15 +163,30 @@
             "in": "path",
             "description": "訂單 ID。",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OrderResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
               }
             }
           }
@@ -117,7 +195,9 @@
     },
     "/v1/orders/by-number/{orderNumber}": {
       "get": {
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "summary": "以訂單編號查詢訂單完整資訊。",
         "operationId": "GetByNumber",
         "parameters": [
@@ -126,15 +206,29 @@
             "in": "path",
             "description": "人類可讀訂單編號（如 OJ-20260624-1A2B3C4D）。",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OrderResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
               }
             }
           }
@@ -143,7 +237,9 @@
     },
     "/v1/orders/mine": {
       "get": {
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "summary": "查詢登入使用者本人的訂單列表（分頁）。",
         "operationId": "ListMine",
         "parameters": [
@@ -151,45 +247,84 @@
             "name": "StoreId",
             "in": "query",
             "description": "限定所屬商店 ID（賣方）；null 表示不限。",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "BuyerUserId",
             "in": "query",
             "description": "限定購買者使用者 ID；null 表示不限。",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "BuyerEmail",
             "in": "query",
             "description": "限定購買者 Email；null 表示不限。",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string",
+              "example": "buyer@example.com"
+            },
+            "example": "buyer@example.com"
           },
           {
             "name": "Status",
             "in": "query",
             "description": "限定訂單狀態；null 表示不限。",
-            "schema": { "$ref": "#/components/schemas/OrderStatus" }
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            },
+            "example": "Completed"
           },
           {
             "name": "Offset",
             "in": "query",
             "description": "略過筆數。",
-            "schema": { "type": "integer", "format": "int32" }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
             "description": "每頁筆數（最大 100）。",
-            "schema": { "type": "integer", "format": "int32" }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ListOrdersResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
               }
             }
           }
@@ -198,7 +333,9 @@
     },
     "/v1/orders/store/{storeId}": {
       "get": {
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "summary": "查詢指定商店收到的訂單列表（賣家視角，分頁）。僅該商店 Owner 可操作。",
         "operationId": "ListByStore",
         "parameters": [
@@ -207,51 +344,136 @@
             "in": "path",
             "description": "商店 ID（賣方）。",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
           {
             "name": "StoreId",
             "in": "query",
             "description": "限定所屬商店 ID（賣方）；null 表示不限。",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "BuyerUserId",
             "in": "query",
             "description": "限定購買者使用者 ID；null 表示不限。",
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "BuyerEmail",
             "in": "query",
             "description": "限定購買者 Email；null 表示不限。",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string",
+              "example": "buyer@example.com"
+            },
+            "example": "buyer@example.com"
           },
           {
             "name": "Status",
             "in": "query",
             "description": "限定訂單狀態；null 表示不限。",
-            "schema": { "$ref": "#/components/schemas/OrderStatus" }
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            },
+            "example": "Completed"
           },
           {
             "name": "Offset",
             "in": "query",
             "description": "略過筆數。",
-            "schema": { "type": "integer", "format": "int32" }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
             "description": "每頁筆數（最大 100）。",
-            "schema": { "type": "integer", "format": "int32" }
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ListOrdersResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOrdersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/orders/purchased/{catalogId}": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "查詢登入使用者是否已購買（已完成訂單）某商品。供評論前的購買驗證。",
+        "operationId": "HasPurchased",
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseCheckResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseCheckResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseCheckResponse"
+                }
               }
             }
           }
@@ -260,7 +482,9 @@
     },
     "/v1/orders/{id}/cancel": {
       "post": {
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "summary": "取消未付款的訂單。具名買家僅本人可取消；匿名訂單憑訂單 ID 取消。",
         "operationId": "Cancel",
         "parameters": [
@@ -269,20 +493,29 @@
             "in": "path",
             "description": "訂單 ID。",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
           "description": "取消原因（選填）。",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CancelOrderRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              }
             },
             "text/json": {
-              "schema": { "$ref": "#/components/schemas/CancelOrderRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              }
             },
             "application/*+json": {
-              "schema": { "$ref": "#/components/schemas/CancelOrderRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              }
             }
           }
         },
@@ -290,10 +523,34 @@
           "200": {
             "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OrderResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
               }
             }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "OrderService"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -301,10 +558,18 @@
   },
   "components": {
     "schemas": {
-      "OrderStatus": {
-        "enum": ["Pending", "Paid", "Completed", "Cancelled", "Refunded"],
-        "type": "string",
-        "description": "訂單狀態。數位商品付款成功後即視為履約完成（Completed）。"
+      "CancelOrderRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "取消原因（選填）。",
+            "nullable": true,
+            "example": "改變心意"
+          }
+        },
+        "additionalProperties": false,
+        "description": "取消訂單請求。"
       },
       "CreateOrderItemRequest": {
         "type": "object",
@@ -360,74 +625,15 @@
           },
           "items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CreateOrderItemRequest" },
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemRequest"
+            },
             "description": "訂單項目（至少一筆）。",
             "nullable": true
           }
         },
         "additionalProperties": false,
         "description": "建立訂單（結帳）請求。"
-      },
-      "CancelOrderRequest": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "description": "取消原因（選填）。",
-            "nullable": true,
-            "example": "改變心意"
-          }
-        },
-        "additionalProperties": false,
-        "description": "取消訂單請求。"
-      },
-      "OrderSummaryDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "訂單 ID。",
-            "format": "uuid"
-          },
-          "orderNumber": {
-            "type": "string",
-            "description": "人類可讀訂單編號。",
-            "nullable": true,
-            "example": "OJ-20260624-1A2B3C4D"
-          },
-          "storeId": {
-            "type": "string",
-            "description": "訂單所屬商店 ID（賣方）。",
-            "format": "uuid",
-            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-          },
-          "status": { "$ref": "#/components/schemas/OrderStatus" },
-          "currency": {
-            "type": "string",
-            "description": "貨幣代碼。",
-            "nullable": true,
-            "example": "usd"
-          },
-          "totalAmount": {
-            "type": "integer",
-            "description": "訂單總金額（最低貨幣單位）。",
-            "format": "int64",
-            "example": 1990
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "建立時間（UTC）。",
-            "format": "date-time"
-          },
-          "completedAt": {
-            "type": "string",
-            "description": "履約完成時間（UTC）；null 表示尚未完成。",
-            "format": "date-time",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "訂單列表項目（精簡）。"
       },
       "ListOrdersResponse": {
         "type": "object",
@@ -440,7 +646,9 @@
           },
           "items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/OrderSummaryDto" },
+            "items": {
+              "$ref": "#/components/schemas/OrderSummaryDto"
+            },
             "description": "本頁訂單清單。",
             "nullable": true
           }
@@ -482,26 +690,6 @@
         "additionalProperties": false,
         "description": "訂單項目回應。"
       },
-      "OrderStatusHistoryResponse": {
-        "type": "object",
-        "properties": {
-          "oldStatus": { "$ref": "#/components/schemas/OrderStatus" },
-          "newStatus": { "$ref": "#/components/schemas/OrderStatus" },
-          "reason": {
-            "type": "string",
-            "description": "變更原因。",
-            "nullable": true,
-            "example": "Payment succeeded"
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "變更時間（UTC）。",
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": false,
-        "description": "訂單狀態歷程回應。"
-      },
       "OrderResponse": {
         "type": "object",
         "properties": {
@@ -534,7 +722,9 @@
             "nullable": true,
             "example": "buyer@example.com"
           },
-          "status": { "$ref": "#/components/schemas/OrderStatus" },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
           "currency": {
             "type": "string",
             "description": "貨幣代碼。",
@@ -566,26 +756,126 @@
           },
           "items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/OrderItemResponse" },
+            "items": {
+              "$ref": "#/components/schemas/OrderItemResponse"
+            },
             "description": "訂單項目。",
             "nullable": true
           },
           "statusHistory": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/OrderStatusHistoryResponse" },
+            "items": {
+              "$ref": "#/components/schemas/OrderStatusHistoryResponse"
+            },
             "description": "狀態變更歷程（依時間排序）。",
             "nullable": true
+          },
+          "checkoutUrl": {
+            "type": "string",
+            "description": "Stripe Checkout 付款頁 URL；僅建立訂單（結帳）回應帶值，前端導向此 URL 完成付款。",
+            "nullable": true,
+            "example": "https://checkout.stripe.com/c/pay/cs_test_123"
           }
         },
         "additionalProperties": false,
         "description": "訂單完整資訊回應（含項目與狀態歷程）。"
-      }
-    },
-    "securitySchemes": {
-      "Bearer": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+      },
+      "OrderStatus": {
+        "enum": [
+          "Pending",
+          "Paid",
+          "Completed",
+          "Cancelled",
+          "Refunded"
+        ],
+        "type": "string",
+        "description": "訂單狀態。數位商品付款成功後即視為履約完成（Completed）。"
+      },
+      "OrderStatusHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "oldStatus": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "newStatus": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "reason": {
+            "type": "string",
+            "description": "變更原因。",
+            "nullable": true,
+            "example": "Payment succeeded"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "變更時間（UTC）。",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "訂單狀態歷程回應。"
+      },
+      "OrderSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "訂單 ID。",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string",
+            "description": "人類可讀訂單編號。",
+            "nullable": true,
+            "example": "OJ-20260624-1A2B3C4D"
+          },
+          "storeId": {
+            "type": "string",
+            "description": "訂單所屬商店 ID（賣方）。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "currency": {
+            "type": "string",
+            "description": "貨幣代碼。",
+            "nullable": true,
+            "example": "usd"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "description": "訂單總金額（最低貨幣單位）。",
+            "format": "int64",
+            "example": 1990
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間（UTC）。",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "description": "履約完成時間（UTC）；null 表示尚未完成。",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "訂單列表項目（精簡）。"
+      },
+      "PurchaseCheckResponse": {
+        "type": "object",
+        "properties": {
+          "purchased": {
+            "type": "boolean",
+            "description": "登入使用者是否曾以已完成訂單購買此商品。",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "商品購買驗證回應。"
       }
     }
   }

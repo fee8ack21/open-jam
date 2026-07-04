@@ -70,6 +70,13 @@ Hydra Admin URL (cluster-internal).
 {{- end }}
 
 {{/*
+Hydra Public API URL (cluster-internal)，for 服務間 client_credentials 取 token 使用。
+*/}}
+{{- define "open-jam.hydraInternalPublicUrl" -}}
+{{- printf "http://%s-hydra:4444" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
 SMTP host: mailpit service name when mailpit is enabled, otherwise smtp.host.
 */}}
 {{- define "open-jam.smtpHost" -}}

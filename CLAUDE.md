@@ -92,6 +92,8 @@ pnpm preview
 
 **`AddOpenJamJwtAuth`**（`Shared/Auth/JwtBearerExtensions.cs`）— REST API 服務於 `Program.cs` 呼叫，加入 JwtBearer 驗證（驗 Hydra JWKS）與 `"Admin"` 授權 policy（`RequireRole("Admin")`）。
 
+**服務間認證**（`Shared/Auth/ServiceAuth*.cs`）— 內部 API（如 PaymentService checkout-session）不對外開放時使用。呼叫端 `AddOpenJamServiceTokenClient` 註冊 `ServiceTokenClient`（singleton，向 Hydra 以 `client_credentials` 換 token 並快取至到期前一分鐘，client 為 Bootstrap seed 的 `open-jam-service`）；被呼叫端 `AddOpenJamInternalServicePolicy` 加入 `"InternalService"` policy（要求 JWT `sub` == `ServiceAuth:ClientId`）。設定取自 `ServiceAuth` 區段（`TokenUrl` / `ClientId` / `ClientSecret`）。
+
 **`AppException` 子類** — `NotFoundException(404)` / `ForbiddenException(403)` / `ConflictException(409)` / `ValidationException(422)` / `UnauthorizedException(401)`。
 
 **`ExceptionMiddleware`** — 僅用於 **REST API 服務**。在 `Program.cs` 以 `app.UseExceptionMiddleware()` 掛載，需排在所有其他 middleware 之前。MVC 服務不使用此 middleware，改以 `app.UseExceptionHandler(...)` 處理。
@@ -168,7 +170,7 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
 - **賣方歸屬**：`Order.StoreId`（索引化）標記訂單所屬商店，一張訂單對應單一商店，於 `CreateOrderRequest` 帶入。三種列表視角：買家 `GET /v1/orders/mine`（以登入 `sub` 限縮）、賣家 `GET /v1/orders/store/{storeId}`（`ListByStoreAsync` 先以 `StoreServiceClient` 驗證 Owner 再限縮）、Admin `GET /v1/orders`（`ListOrdersRequest.StoreId` / 買家 / 狀態任意過濾）。
 - **`StoreServiceClient`**（named `"store"` HttpClient，BaseUrl 由 `ServiceOptions` 設定）：轉發呼叫者 Bearer token 至 StoreService `GET /v1/stores/me`，驗證賣家視角查詢者為該商店 Owner。
 - **訂單編號**：`OrderNumberGenerator` 產生人類可讀且全域唯一的 `OrderNumber`（格式 `OJ-yyyyMMdd-XXXXXXXX`）。
-- **金流整合**：訂單先建立（`Pending`），PaymentService 以 `OrderId` 建立 Stripe Checkout Session；付款成功後 `PaymentSucceededConsumer` 消費 `PaymentSucceededEvent`（`Shared/Events/`）→ `CompleteFromPaymentAsync` 履約完成訂單（以訂單既有狀態做冪等判斷，搭配 MassTransit 指數退避重試）。履約（發放下載權限）由 CatalogService 另行消費同事件，OrderService 僅追蹤訂單狀態。
+- **金流整合**：結帳單一入口 `POST /v1/orders`——訂單先建立（`Pending`），OrderService 隨即以 **`PaymentServiceClient`**（named `"payment"` HttpClient，帶 `ServiceTokenClient` 取得的 service token）呼叫 PaymentService 以 `OrderId` 建立 Stripe Checkout Session（該端點掛 `"InternalService"` policy 僅限內部服務呼叫，買家 `UserId` 由 request body 帶入），付款頁 URL 以 `OrderResponse.CheckoutUrl` 隨建單回應交給前端導向（前端不直接呼叫 PaymentService）；Session 建立失敗訂單保留 `Pending`。付款成功後 `PaymentSucceededConsumer` 消費 `PaymentSucceededEvent`（`Shared/Events/`）→ `CompleteFromPaymentAsync` 履約完成訂單（以訂單既有狀態做冪等判斷，搭配 MassTransit 指數退避重試）。履約（發放下載權限）由 CatalogService 另行消費同事件，OrderService 僅追蹤訂單狀態。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`（`order.create` / `order.cancel` / `order.complete`）。
 
 ## NotificationService（`src/NotificationService/`）
@@ -240,9 +242,18 @@ REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 
     "StoreService": { "BaseUrl": "http://localhost:5172" }
   }
 }
-// OrderService 額外需要（賣家視角訂單查詢驗證商店 Owner 身分）
+// OrderService 額外需要（賣家視角訂單查詢驗證商店 Owner 身分 + 結帳建立 Checkout Session）
 {
-  "Services": { "StoreService": { "BaseUrl": "http://localhost:5172" } }
+  "Services": {
+    "StoreService": { "BaseUrl": "http://localhost:5172" },
+    "PaymentService": { "BaseUrl": "http://localhost:5178" }
+  },
+  // 呼叫 PaymentService 內部端點用的 service token（Hydra client_credentials）
+  "ServiceAuth": {
+    "TokenUrl": "http://localhost:4444/oauth2/token",
+    "ClientId": "open-jam-service",
+    "ClientSecret": "<Bootstrap seed 的 Service client secret，正式以 Secret 覆蓋>"
+  }
 }
 // NotificationService 額外需要（Owner 驗證 + dispatch 時查商店公開資訊 + 信件商品連結）
 {

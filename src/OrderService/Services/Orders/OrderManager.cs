@@ -14,6 +14,7 @@ public class OrderManager(
     OrderDbContext db,
     IMapper mapper,
     StoreServiceClient storeClient,
+    PaymentServiceClient paymentClient,
     AuditLogPublisher auditLog,
     OrderEventPublisher orderEvents) : IOrderManager
 {
@@ -49,8 +50,21 @@ public class OrderManager(
 
         await db.SaveChangesAsync(ct);
 
-        return await GetAsync(order.Id, ct);
+        // 訂單落地後向 PaymentService 建立 Checkout Session，付款頁 URL 隨建單回應交給前端導向。
+        // 失敗時訂單保留 Pending（不回滾），由前端重試結帳；PaymentService 以 OrderId 去重重用既有 Session。
+        var session = await paymentClient.CreateCheckoutSessionAsync(
+            order.Id, userId, order.BuyerEmail, order.TotalAmount, currency, BuildProductName(order), ct);
+
+        var response = await GetAsync(order.Id, ct);
+        response.CheckoutUrl = session.Url;
+        return response;
     }
+
+    /// <summary>組出顯示於 Stripe Checkout 頁面的商品名稱：單品用品名，多品以首件名稱加總件數。</summary>
+    private static string BuildProductName(Order order) =>
+        order.Items.Count == 1
+            ? order.Items[0].CatalogName
+            : $"{order.Items[0].CatalogName} 等 {order.Items.Count} 件商品";
 
     /// <inheritdoc/>
     public Task<OrderResponse> GetAsync(Guid id, CancellationToken ct) =>
