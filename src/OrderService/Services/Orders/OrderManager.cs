@@ -1,9 +1,11 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OrderService.Data;
 using OrderService.Data.Entities;
 using OrderService.Models;
+using OrderService.Options;
 using OrderService.Services;
 using Shared.Exceptions;
 
@@ -15,13 +17,34 @@ public class OrderManager(
     IMapper mapper,
     StoreServiceClient storeClient,
     PaymentServiceClient paymentClient,
+    CatalogServiceClient catalogClient,
     AuditLogPublisher auditLog,
-    OrderEventPublisher orderEvents) : IOrderManager
+    OrderEventPublisher orderEvents,
+    IOptions<OrderOptions> orderOptions,
+    ILogger<OrderManager> logger) : IOrderManager
 {
     /// <inheritdoc/>
     public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid? userId, CancellationToken ct)
     {
-        var currency = request.Currency.ToLowerInvariant();
+        // 伺服器端核價：逐項向 CatalogService 取回商品現況（匿名呼叫，未上架 / 不存在回 404），
+        // 名稱 / 單價 / 版本 / 幣別一律以伺服器端快照為準，不信任 client 傳入值。
+        var catalogs = new List<CatalogServiceClient.CatalogInfo>(request.Items.Count);
+        foreach (var item in request.Items)
+        {
+            var catalog = await catalogClient.GetCatalogAsync(item.CatalogId, ct)
+                ?? throw new ValidationException($"商品 {item.CatalogId} 不存在或未上架。");
+
+            if (catalog.StoreId != request.StoreId)
+                throw new ValidationException($"商品 {catalog.Name} 不屬於此商店。");
+            if (catalog.CurrentVersion is null)
+                throw new ValidationException($"商品 {catalog.Name} 尚無可購買的版本。");
+
+            catalogs.Add(catalog);
+        }
+
+        var currency = catalogs[0].Currency.ToLowerInvariant();
+        if (catalogs.Any(c => !string.Equals(c.Currency, catalogs[0].Currency, StringComparison.OrdinalIgnoreCase)))
+            throw new ValidationException("訂單項目的幣別不一致，請分開結帳。");
 
         var order = new Order
         {
@@ -32,13 +55,13 @@ public class OrderManager(
             BuyerEmail  = request.BuyerEmail,
             Currency    = currency,
             Status      = OrderStatus.Pending,
-            Items       = request.Items.Select(i => new OrderItem
+            Items       = catalogs.Select(c => new OrderItem
             {
                 Id               = Guid.NewGuid(),
-                CatalogId        = i.CatalogId,
-                CatalogVersionId = i.CatalogVersionId,
-                CatalogName      = i.CatalogName,
-                UnitPrice        = i.UnitPrice,
+                CatalogId        = c.Id,
+                CatalogVersionId = c.CurrentVersion!.Id,
+                CatalogName      = c.Name,
+                UnitPrice        = ToMinorUnits(c.Price),
             }).ToList(),
         };
 
@@ -65,6 +88,10 @@ public class OrderManager(
         order.Items.Count == 1
             ? order.Items[0].CatalogName
             : $"{order.Items[0].CatalogName} 等 {order.Items.Count} 件商品";
+
+    /// <summary>商品售價（主幣單位）換算為最低貨幣單位（如 cents），與 Stripe 金額格式一致。</summary>
+    private static long ToMinorUnits(decimal price) =>
+        (long)Math.Round(price * 100m, MidpointRounding.AwayFromZero);
 
     /// <inheritdoc/>
     public Task<OrderResponse> GetAsync(Guid id, CancellationToken ct) =>
@@ -152,6 +179,21 @@ public class OrderManager(
         auditLog.Add(order.BuyerUserId, "order.complete", "Order", order.Id, tenant: null);
         // 同一 transaction 內發出履約完成事件（攜帶商品明細，供 CatalogService 累加銷量等）。
         orderEvents.AddOrderCompleted(order);
+
+        // 訂單完成信（含下載頁連結）：best effort——商店資訊查詢失敗時僅記 log，不阻擋履約完成。
+        try
+        {
+            var store = await storeClient.GetStoreAsync(order.StoreId, ct);
+            var downloadUrl = orderOptions.Value.DownloadUrlPattern
+                .Replace("{storeSlug}", store.StoreSlug)
+                .Replace("{orderId}", order.Id.ToString());
+            orderEvents.AddOrderCompletedEmail(order, store.StoreName, downloadUrl);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "訂單 {OrderId} 完成信寄送準備失敗（查詢商店 {StoreId} 資訊），僅略過寄信。",
+                order.Id, order.StoreId);
+        }
 
         await db.SaveChangesAsync(ct);
     }

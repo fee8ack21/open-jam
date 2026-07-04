@@ -152,11 +152,22 @@ public class CatalogVersionService(
 
     /// <inheritdoc/>
     public async Task<List<PurchasedVersionAssetDto>> ListPurchasedDownloadsAsync(
-        Guid catalogId, Guid versionId, CancellationToken ct)
+        Guid catalogId, Guid versionId, Guid? orderId, CancellationToken ct)
     {
-        // 買家視角：須已購買（完成訂單）此商品；非 Owner 授權。
-        if (!await orderClient.HasPurchasedAsync(catalogId, ct))
-            throw new ForbiddenException("尚未購買此商品，無法下載。");
+        // 買家視角授權（非 Owner）：訪客憑訂單 ID（不可猜測的 GUID 作為下載憑證，
+        // 隨訂單完成信寄給買家）驗證該訂單已完成且包含此商品；登入買家以購買紀錄驗證。
+        if (orderId is Guid oid)
+        {
+            if (!await orderClient.OrderGrantsCatalogAsync(oid, catalogId, ct))
+                throw new ForbiddenException("此訂單不存在、尚未完成或不包含此商品。");
+        }
+        else
+        {
+            if (currentUser.UserId is null)
+                throw new UnauthorizedException();
+            if (!await orderClient.HasPurchasedAsync(catalogId, ct))
+                throw new ForbiddenException("尚未購買此商品，無法下載。");
+        }
 
         await LoadVersionAsync(catalogId, versionId, ct);
 

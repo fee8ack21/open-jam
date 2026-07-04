@@ -154,5 +154,21 @@
   "storeError": {
     "noVersion": "Some items have no purchasable version yet, please try again later",
     "noPaymentUrl": "Couldn’t get the payment page URL"
+  },
+  "order": {
+    "screenLabel": "Order downloads",
+    "title": "Your downloads",
+    "orderNumber": "Order",
+    "total": "Total",
+    "download": "Download",
+    "refresh": "Refresh",
+    "noFiles": "This product has no downloadable files yet.",
+    "loadFilesError": "Couldn't load download links. Refresh and try again.",
+    "pendingTitle": "Payment not completed yet",
+    "pendingDesc": "Once your payment is complete, refresh this page to download your files.",
+    "errorTitle": "Order not found",
+    "errorDesc": "Check that the download link from your email is complete, or contact the store for help.",
+    "linkNote": "Download links expire after a short while — refresh this page to get fresh ones. Keep this page's URL safe.",
+    "backToStore": "Back to store"
   }
 }

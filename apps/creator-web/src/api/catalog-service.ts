@@ -2050,17 +2050,25 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags CatalogVersions
      * @name ListPurchasedDownloads
-     * @summary 列出買家已購商品某版本的可下載檔案（含短效下載 URL）。以購買紀錄授權，須已有該商品的完成訂單。
+     * @summary 列出買家已購商品某版本的可下載檔案（含短效下載 URL）。登入買家以購買紀錄授權；訪客憑訂單 ID（隨訂單完成信寄出的下載憑證）授權。
      * @request GET:/v1/catalogs/{catalogId}/versions/{versionId}/downloads
      */
     listPurchasedDownloads: (
       catalogId: string,
       versionId: string,
+      query?: {
+        /**
+         * 訪客下載憑證：已完成且包含此商品的訂單 ID；登入買家可省略。
+         * @format uuid
+         */
+        orderId?: string;
+      },
       params: RequestParams = {},
     ) =>
       this.http.request<PurchasedVersionAssetDto[], any>({
         path: `/v1/catalogs/${catalogId}/versions/${versionId}/downloads`,
         method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),

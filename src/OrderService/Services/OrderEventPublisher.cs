@@ -14,6 +14,9 @@ public class OrderEventPublisher(OrderDbContext db)
     /// <summary>訂單完成事件的 Outbox EventType。</summary>
     public const string OrderCompletedType = "order.completed";
 
+    /// <summary>訂單完成信（含下載連結）的 Outbox EventType。</summary>
+    public const string OrderCompletedEmailType = "email.order_completed";
+
     /// <summary>寫入一筆 OrderCompletedEvent（攜帶商品明細）。不負責 SaveChanges。</summary>
     public void AddOrderCompleted(Order order)
     {
@@ -26,6 +29,30 @@ public class OrderEventPublisher(OrderDbContext db)
             Items: order.Items
                 .Select(i => new OrderCompletedItem(i.CatalogId, i.CatalogVersionId))
                 .ToList());
+        outbox.Payload = JsonSerializer.Serialize(evt, OutboxJson.Options);
+        db.OutboxMessages.Add(outbox);
+    }
+
+    /// <summary>寫入一筆訂單完成信 EmailRequestedEvent（模板 <c>order.completed</c>，含下載頁連結）。不負責 SaveChanges。</summary>
+    public void AddOrderCompletedEmail(Order order, string storeName, string downloadUrl)
+    {
+        var outbox = new OutboxMessage { EventType = OrderCompletedEmailType };
+        var evt = new EmailRequestedEvent(
+            OutboxMessageId: outbox.Id,
+            To: order.BuyerEmail,
+            TemplateKey: "order.completed",
+            Params: new Dictionary<string, string>
+            {
+                ["order_number"] = order.OrderNumber,
+                ["store_name"]   = storeName,
+                ["product_name"] = order.Items.Count == 1
+                    ? order.Items[0].CatalogName
+                    : $"{order.Items[0].CatalogName} 等 {order.Items.Count} 件商品",
+                ["total_amount"] = (order.TotalAmount / 100m).ToString("0.##"),
+                ["currency"]     = order.Currency.ToUpperInvariant(),
+                ["download_url"] = downloadUrl,
+            },
+            Locale: "zh-TW");
         outbox.Payload = JsonSerializer.Serialize(evt, OutboxJson.Options);
         db.OutboxMessages.Add(outbox);
     }

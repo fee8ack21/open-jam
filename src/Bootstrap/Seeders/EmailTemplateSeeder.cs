@@ -103,6 +103,14 @@ public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> l
             "追蹤商店公告通知",
             [("zh-TW", "Open Jam · {{store_name}}：{{title}}", notificationStoreAnnouncementHtml)]);
 
+        var orderCompletedHtml = await File.ReadAllTextAsync(
+            Path.Combine(ResourcesDir, "order-completed-email-template.html"));
+
+        await UpsertAsync(
+            "order.completed",
+            "訂單完成通知（含下載連結）",
+            [("zh-TW", "Open Jam · 你的訂單已完成，商品可以下載了", orderCompletedHtml)]);
+
         await db.SaveChangesAsync();
         logger.LogInformation("Email templates seeded");
     }

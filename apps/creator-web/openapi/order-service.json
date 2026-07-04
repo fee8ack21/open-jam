@@ -579,28 +579,10 @@
             "description": "商品 ID。",
             "format": "uuid",
             "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-          },
-          "catalogVersionId": {
-            "type": "string",
-            "description": "商品版本 ID。",
-            "format": "uuid",
-            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-          },
-          "catalogName": {
-            "type": "string",
-            "description": "商品名稱（下單當下快照）。",
-            "nullable": true,
-            "example": "復古 8-bit 音效包"
-          },
-          "unitPrice": {
-            "type": "integer",
-            "description": "單價（最低貨幣單位，如 cents）。",
-            "format": "int64",
-            "example": 1990
           }
         },
         "additionalProperties": false,
-        "description": "建立訂單時的單一項目。"
+        "description": "建立訂單時的單一項目。數位商品數量固定為 1。"
       },
       "CreateOrderRequest": {
         "type": "object",
@@ -617,18 +599,12 @@
             "nullable": true,
             "example": "buyer@example.com"
           },
-          "currency": {
-            "type": "string",
-            "description": "貨幣代碼（小寫，如 \"usd\"、\"twd\"）。",
-            "nullable": true,
-            "example": "usd"
-          },
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CreateOrderItemRequest"
             },
-            "description": "訂單項目（至少一筆）。",
+            "description": "訂單項目（至少一筆，商品不得重複）。名稱 / 單價 / 版本 / 幣別由伺服器端向 CatalogService 取得快照，不接受外部指定。",
             "nullable": true
           }
         },

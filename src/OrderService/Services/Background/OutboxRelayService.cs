@@ -45,6 +45,11 @@ public class OutboxRelayService(
                                 var evt = JsonSerializer.Deserialize<OrderCompletedEvent>(msg.Payload, OutboxJson.Options);
                                 if (evt != null) await bus.Publish(evt, ct);
                             }
+                            else if (msg.EventType.StartsWith("email."))
+                            {
+                                var evt = JsonSerializer.Deserialize<EmailRequestedEvent>(msg.Payload, OutboxJson.Options);
+                                if (evt != null) await bus.Publish(evt, ct);
+                            }
 
                             msg.ProcessedAt = DateTimeOffset.UtcNow;
                         }

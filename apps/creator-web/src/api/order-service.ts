@@ -28,7 +28,7 @@ export interface CancelOrderRequest {
   reason?: string | null;
 }
 
-/** 建立訂單時的單一項目。 */
+/** 建立訂單時的單一項目。數位商品數量固定為 1。 */
 export interface CreateOrderItemRequest {
   /**
    * 商品 ID。
@@ -36,23 +36,6 @@ export interface CreateOrderItemRequest {
    * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
    */
   catalogId?: string;
-  /**
-   * 商品版本 ID。
-   * @format uuid
-   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-   */
-  catalogVersionId?: string;
-  /**
-   * 商品名稱（下單當下快照）。
-   * @example "復古 8-bit 音效包"
-   */
-  catalogName?: string | null;
-  /**
-   * 單價（最低貨幣單位，如 cents）。
-   * @format int64
-   * @example 1990
-   */
-  unitPrice?: number;
 }
 
 /** 建立訂單（結帳）請求。 */
@@ -68,12 +51,7 @@ export interface CreateOrderRequest {
    * @example "buyer@example.com"
    */
   buyerEmail?: string | null;
-  /**
-   * 貨幣代碼（小寫，如 "usd"、"twd"）。
-   * @example "usd"
-   */
-  currency?: string | null;
-  /** 訂單項目（至少一筆）。 */
+  /** 訂單項目（至少一筆，商品不得重複）。名稱 / 單價 / 版本 / 幣別由伺服器端向 CatalogService 取得快照，不接受外部指定。 */
   items?: CreateOrderItemRequest[] | null;
 }
 

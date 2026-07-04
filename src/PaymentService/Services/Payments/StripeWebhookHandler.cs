@@ -137,6 +137,9 @@ public class StripeWebhookHandler(
         var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == paymentId.Value, ct);
         if (payment == null) return;
 
+        // 只有仍是 Pending 才標記失敗；遲到 / 亂序的失敗事件不得覆蓋已成功的付款。
+        if (payment.Status != PaymentStatus.Pending) return;
+
         payment.Status = PaymentStatus.Failed;
         payment.FailedAt = DateTimeOffset.UtcNow;
 
@@ -189,6 +192,9 @@ public class StripeWebhookHandler(
         var payment = await db.Payments
             .FirstOrDefaultAsync(p => p.ProviderPaymentId == intent.Id || p.ProviderCheckoutId == intent.Id, ct);
         if (payment == null) return;
+
+        // 只有仍是 Pending 才標記失敗（Checkout 內刷卡失敗後重試成功是常見流程，失敗事件可能晚到）。
+        if (payment.Status != PaymentStatus.Pending) return;
 
         payment.Status = PaymentStatus.Failed;
         payment.FailedAt = DateTimeOffset.UtcNow;

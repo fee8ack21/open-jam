@@ -30,6 +30,10 @@ onMounted(() => {
 
 const goList = () => router.push({ name: 'list' });
 const goCheckout = () => router.push({ name: 'checkout' });
+/** 前往訂單下載頁（訪客憑訂單 ID 下載，與訂單完成信中的連結相同）。 */
+const goOrder = () => {
+  if (order.value?.orderId) router.push({ name: 'order', params: { orderId: order.value.orderId } });
+};
 </script>
 
 <template>
@@ -52,7 +56,7 @@ const goCheckout = () => router.push({ name: 'checkout' });
             <div class="cart-item-creator">{{ it.creator }} · {{ it.totalSize }}</div>
             <div class="cart-item-foot">
               <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono)">{{ it.formats.join(' · ') }}</span>
-              <n-button size="small" type="primary" secondary>
+              <n-button size="small" type="primary" secondary @click="goOrder">
                 <template #icon><app-icon name="download" :size="15" /></template>
                 {{ t('result.download') }}
               </n-button>
@@ -64,7 +68,7 @@ const goCheckout = () => router.push({ name: 'checkout' });
 
       <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
         <n-button size="large" @click="goList">{{ t('result.continueExplore') }}</n-button>
-        <n-button size="large" type="primary">
+        <n-button size="large" type="primary" @click="goOrder">
           <template #icon><app-icon name="download" :size="18" /></template>
           {{ t('result.downloadAll') }}
         </n-button>

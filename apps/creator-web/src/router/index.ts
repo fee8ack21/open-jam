@@ -12,6 +12,7 @@ import ListView from '@/views/ListView.vue';
 import DetailView from '@/views/DetailView.vue';
 import CheckoutView from '@/views/CheckoutView.vue';
 import CheckoutResultView from '@/views/CheckoutResultView.vue';
+import OrderView from '@/views/OrderView.vue';
 import NotFoundView from '@/views/NotFoundView.vue';
 
 export const routes: RouteRecordRaw[] = [
@@ -21,6 +22,8 @@ export const routes: RouteRecordRaw[] = [
   // Stripe Checkout 完成後的導回頁（對應 PaymentService 的 SuccessUrl / CancelUrl）
   { path: '/checkout/success', name: 'checkout-success', component: CheckoutResultView },
   { path: '/checkout/cancel', name: 'checkout-cancel', component: CheckoutResultView },
+  // 訂單下載頁：訂單完成信中的連結導向此頁，訪客憑訂單 ID 下載已購檔案
+  { path: '/orders/:orderId', name: 'order', component: OrderView },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ];
 

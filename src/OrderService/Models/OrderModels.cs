@@ -13,32 +13,16 @@ public class CreateOrderRequest
     /// <example>buyer@example.com</example>
     public string BuyerEmail { get; set; } = "";
 
-    /// <summary>貨幣代碼（小寫，如 "usd"、"twd"）。</summary>
-    /// <example>usd</example>
-    public string Currency { get; set; } = "usd";
-
-    /// <summary>訂單項目（至少一筆）。</summary>
+    /// <summary>訂單項目（至少一筆，商品不得重複）。名稱 / 單價 / 版本 / 幣別由伺服器端向 CatalogService 取得快照，不接受外部指定。</summary>
     public List<CreateOrderItemRequest> Items { get; set; } = [];
 }
 
-/// <summary>建立訂單時的單一項目。</summary>
+/// <summary>建立訂單時的單一項目。數位商品數量固定為 1。</summary>
 public class CreateOrderItemRequest
 {
     /// <summary>商品 ID。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid CatalogId { get; set; }
-
-    /// <summary>商品版本 ID。</summary>
-    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
-    public Guid CatalogVersionId { get; set; }
-
-    /// <summary>商品名稱（下單當下快照）。</summary>
-    /// <example>復古 8-bit 音效包</example>
-    public string CatalogName { get; set; } = "";
-
-    /// <summary>單價（最低貨幣單位，如 cents）。</summary>
-    /// <example>1990</example>
-    public long UnitPrice { get; set; }
 }
 
 /// <summary>取消訂單請求。</summary>

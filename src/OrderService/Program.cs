@@ -31,6 +31,9 @@ builder.Services.AddMassTransit(x =>
             intervalDelta: TimeSpan.FromSeconds(2)));
     });
 
+    // 註冊事件回填訪客訂單的 BuyerUserId（冪等 UPDATE）。
+    x.AddConsumer<UserRegisteredConsumer>();
+
     x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
@@ -44,6 +47,7 @@ builder.Services.AddMassTransit(x =>
 });
 
 builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
+builder.Services.Configure<OrderOptions>(builder.Configuration.GetSection("Order"));
 
 // 賣家視角訂單查詢需向 StoreService 驗證商店 Owner 身分（轉發呼叫者 Bearer token）。
 var services = builder.Configuration.GetSection("Services").Get<ServiceOptions>() ?? new ServiceOptions();
@@ -56,6 +60,11 @@ var paymentBaseUrl = (services.PaymentService.BaseUrl ?? "http://localhost:5178"
 builder.Services.AddHttpClient("payment", client => client.BaseAddress = new Uri(paymentBaseUrl));
 builder.Services.AddScoped<PaymentServiceClient>();
 builder.Services.AddOpenJamServiceTokenClient(builder.Configuration);
+
+// 結帳核價：向 CatalogService 匿名查詢商品現況（價格 / 版本 / 所屬商店）。
+var catalogBaseUrl = (services.CatalogService.BaseUrl ?? "http://localhost:5176").TrimEnd('/') + "/";
+builder.Services.AddHttpClient("catalog", client => client.BaseAddress = new Uri(catalogBaseUrl));
+builder.Services.AddScoped<CatalogServiceClient>();
 
 builder.Services.AddScoped<IOrderManager, OrderManager>();
 builder.Services.AddScoped<AuditLogPublisher>();

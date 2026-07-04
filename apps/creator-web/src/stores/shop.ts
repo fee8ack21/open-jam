@@ -36,6 +36,8 @@ interface Buyer {
 /** 完成的訂單紀錄。 */
 interface Order {
   id: string;
+  /** 訂單 ID（GUID），訪客憑此於訂單下載頁取得檔案。 */
+  orderId: string;
   items: CartProduct[];
   total: number;
   buyer: Buyer;
@@ -259,8 +261,9 @@ export const useShopStore = defineStore('shop', () => {
   }
 
   function addToCart(id: string, qty = 1) {
-    const item = cart.value.find((c) => c.id === id);
-    if (item) item.qty += qty; else cart.value.push({ id, qty });
+    // 數位商品同品項固定一份：已在購物車即 no-op（UI 無數量欄位，累加會造成看不見的重複計價）
+    if (cart.value.some((c) => c.id === id)) return;
+    cart.value.push({ id, qty });
     save('cart', cart.value);
   }
   function setQty(id: string, qty: number) {
@@ -305,28 +308,13 @@ export const useShopStore = defineStore('shop', () => {
     if (!cartProducts.value.length) throw new Error(i18n.global.t('checkout.emptyTitle'));
     checkingOut.value = true;
     try {
-      // 下單需商品版本 ID；列表載入的精簡資料未含版本，故補載缺漏項目的商品詳情。
-      const missing = cartProducts.value.filter((p) => !p.versionId).map((p) => p.id);
-      await Promise.all(missing.map((id) => loadProduct(id)));
-
       const lines = cartProducts.value;
-      if (lines.some((p) => !p.versionId)) {
-        throw new Error(i18n.global.t('storeError.noVersion'));
-      }
 
-      const currency = (lines[0].currency || 'usd').toLowerCase();
-      const items = lines.map((p) => ({
-        catalogId: p.id,
-        catalogVersionId: p.versionId as string,
-        catalogName: p.title,
-        unitPrice: Math.round(p.price * 100 * p.qty),
-      }));
-
+      // 只送商品 ID：名稱 / 單價 / 版本 / 幣別皆由 OrderService 向 CatalogService 取得快照核價
       const orderRes = await orderApi.orders.create({
         storeId: storefront.value.id,
         buyerEmail: buyer.email,
-        currency,
-        items,
+        items: lines.map((p) => ({ catalogId: p.id })),
       });
       const created = orderRes.data;
 
@@ -356,6 +344,7 @@ export const useShopStore = defineStore('shop', () => {
     if (!p) return false;
     order.value = {
       id: p.orderNumber || p.orderId,
+      orderId: p.orderId,
       items: p.items,
       total: p.total,
       buyer: p.buyer,

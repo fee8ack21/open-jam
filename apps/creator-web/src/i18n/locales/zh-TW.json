@@ -154,5 +154,21 @@
   "storeError": {
     "noVersion": "部分商品尚無可購買的版本，請稍後再試",
     "noPaymentUrl": "無法取得付款頁面網址"
+  },
+  "order": {
+    "screenLabel": "訂單下載頁",
+    "title": "訂單下載",
+    "orderNumber": "訂單編號",
+    "total": "總計",
+    "download": "下載",
+    "refresh": "重新整理",
+    "noFiles": "此商品目前沒有可下載的檔案。",
+    "loadFilesError": "無法載入下載連結，請重新整理再試。",
+    "pendingTitle": "訂單尚未完成付款",
+    "pendingDesc": "完成付款後重新整理此頁，即可下載你購買的檔案。",
+    "errorTitle": "找不到訂單",
+    "errorDesc": "請確認信件中的下載連結是否完整，或聯絡商店尋求協助。",
+    "linkNote": "下載連結有時效性，過期後重新整理此頁即可重新取得。請妥善保存這個頁面的網址。",
+    "backToStore": "回到商店"
   }
 }

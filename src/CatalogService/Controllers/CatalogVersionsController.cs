@@ -69,15 +69,17 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
         Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct) =>
         Ok(await versionService.GetAssetDownloadUrlAsync(catalogId, versionId, assetId, ct));
 
-    /// <summary>列出買家已購商品某版本的可下載檔案（含短效下載 URL）。以購買紀錄授權，須已有該商品的完成訂單。</summary>
+    /// <summary>列出買家已購商品某版本的可下載檔案（含短效下載 URL）。登入買家以購買紀錄授權；訪客憑訂單 ID（隨訂單完成信寄出的下載憑證）授權。</summary>
     /// <param name="catalogId">商品 ID。</param>
     /// <param name="versionId">版本 ID。</param>
+    /// <param name="orderId">訪客下載憑證：已完成且包含此商品的訂單 ID；登入買家可省略。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("{versionId:guid}/downloads")]
+    [AllowAnonymous]
     [ProducesResponseType<List<PurchasedVersionAssetDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<PurchasedVersionAssetDto>>> ListPurchasedDownloadsAsync(
-        Guid catalogId, Guid versionId, CancellationToken ct) =>
-        Ok(await versionService.ListPurchasedDownloadsAsync(catalogId, versionId, ct));
+        Guid catalogId, Guid versionId, [FromQuery] Guid? orderId, CancellationToken ct) =>
+        Ok(await versionService.ListPurchasedDownloadsAsync(catalogId, versionId, orderId, ct));
 
     /// <summary>刪除版本可下載檔案。</summary>
     /// <param name="catalogId">商品 ID。</param>

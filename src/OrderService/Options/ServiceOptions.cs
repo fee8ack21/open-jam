@@ -8,6 +8,9 @@ public class ServiceOptions
 
     /// <summary>PaymentService（金流 / Checkout Session API）端點設定。</summary>
     public ServiceEndpointOptions PaymentService { get; set; } = new();
+
+    /// <summary>CatalogService（商品 API）端點設定，結帳核價用。</summary>
+    public ServiceEndpointOptions CatalogService { get; set; } = new();
 }
 
 /// <summary>單一外部服務端點設定。</summary>

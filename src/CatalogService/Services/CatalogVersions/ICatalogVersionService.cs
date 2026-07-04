@@ -28,10 +28,11 @@ public interface ICatalogVersionService
 
     /// <summary>
     /// 列出買家已購商品某版本的可下載檔案（含短效下載 URL）。
-    /// 以購買者身分驗證：須已有該商品的完成訂單，否則 403。
+    /// 登入買家以購買紀錄驗證（須已有該商品的完成訂單）；
+    /// 訪客憑 <paramref name="orderId"/>（不可猜測的訂單 ID 作為下載憑證）驗證，否則 403。
     /// </summary>
     Task<List<PurchasedVersionAssetDto>> ListPurchasedDownloadsAsync(
-        Guid catalogId, Guid versionId, CancellationToken ct);
+        Guid catalogId, Guid versionId, Guid? orderId, CancellationToken ct);
 
     /// <summary>刪除版本可下載檔案。僅 Owner 可操作。</summary>
     Task DeleteAssetAsync(Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct);
