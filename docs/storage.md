@@ -5,9 +5,10 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 ## 服務職責
 
 - 提供功能 API 簽發上傳 / 下載用的 signed URL。
-- 接收直傳檔案，觸發**異步處理 pipeline**（掃毒 → 轉碼 / 預覽生成 → 標記 ready）。
+- 接收直傳檔案，觸發**異步處理 pipeline**（掃毒 → 轉碼 / 預覽生成 → 標記 ready；掃毒與轉碼為未來工作，MVP 為 stub 直接 ready）。
 - 授權下載：付費內容須經授權後才能取得。
-- 檔案生命週期管理（軟刪除、orphan 清理）。
+- 檔案生命週期管理（confirm / reference 標記、軟刪除、orphan 清理）。
+- 用量統計：`GET /v1/files/usage?creatorId=`（單一租戶，僅計 Ready 且 referenced 檔案，供 [[Quota]] 對帳）、`GET /v1/files/usage/summary`（Admin，平台彙總，workspace-web 資源頁）。
 
 ## 儲存後端（IStorageProvider 抽象）
 

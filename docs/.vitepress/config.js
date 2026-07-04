@@ -61,9 +61,11 @@ export default defineConfig({
         text: '功能規格',
         items: [
           { text: '認證授權 Auth', link: '/auth' },
+          { text: '商店 Store', link: '/store' },
           { text: '商品 Catalog', link: '/catalog' },
-          { text: '訂單 Order', link: '/order' },
+          { text: '訂單與金流 Order', link: '/order' },
           { text: '儲存 Storage', link: '/storage' },
+          { text: '通知 Notification', link: '/notification' },
           { text: '信件 Email', link: '/email' },
           { text: '配額 Quota', link: '/quota' },
           { text: '日誌 Log', link: '/log' },

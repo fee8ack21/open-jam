@@ -10,16 +10,18 @@
 
 ```
 src/
-  Auth/             # 認證授權（OIDC / Hydra）
-  EmailService/     # 寄信服務
-  StorageService/   # 檔案儲存 / 轉碼 / 預覽
-  LogService/       # Audit Log / 日誌
-  StoreService/     # 開店申請 / 商店 / 追蹤
-  CatalogService/   # 商品 / 版本 / 分類 / 標籤
-  OrderService/     # 訂單與金流
-  QuotaService/     # 資源配額計量
-  Bootstrap/        # 平台初始化 seed
-  Shared/           # 共用程式庫
+  Auth/                 # 認證授權（OIDC / Hydra）
+  EmailService/         # 寄信服務
+  StorageService/       # 檔案儲存 / 轉碼 / 預覽
+  LogService/           # Audit Log / 日誌
+  StoreService/         # 開店申請 / 商店 / 追蹤
+  CatalogService/       # 商品 / 版本 / 分類 / 標籤 / 評論 / 收藏
+  OrderService/         # 訂單 / 結帳入口 / 狀態歷程
+  PaymentService/       # Stripe Checkout 金流 / Webhook
+  QuotaService/         # 資源配額計量
+  NotificationService/  # 追蹤者通知（上架 / 公告）
+  Bootstrap/            # 平台初始化 seed
+  Shared/               # 共用程式庫
 apps/
   workspace-web/    # 用戶後台
   creator-web/      # 創作者商品空間

@@ -23,7 +23,9 @@ dotnet ef migrations add <Name>   # 新增 EF Core Migration（需 dotnet-ef too
 | LogService | Audit Log REST API | http://localhost:5170，Swagger: `/swagger` |
 | StorageService | 檔案上傳 / 下載 URL 簽發 REST API | http://localhost:5171，Swagger: `/swagger` |
 | StoreService | 開店申請 / 店家 / 追蹤 REST API | http://localhost:5172，Swagger: `/swagger` |
-| CatalogService | 商品 / 版本 / 分類 / 標籤 REST API | http://localhost:5176，Swagger: `/swagger` |
+| CatalogService | 商品 / 版本 / 分類 / 標籤 / 評論 / 收藏 REST API | http://localhost:5176，Swagger: `/swagger` |
+| QuotaService | 租戶資源配額計量 REST API | http://localhost:5177，Swagger: `/swagger` |
+| PaymentService | Stripe Checkout 金流 REST API | http://localhost:5178，Swagger: `/swagger` |
 | OrderService | 訂單 / 結帳 / 狀態歷程 REST API | http://localhost:5179，Swagger: `/swagger` |
 | NotificationService | 通知（追蹤者上架 / 公告，Email + in-app）REST API | http://localhost:5180，Swagger: `/swagger` |
 | EmailService | RabbitMQ Worker（無 HTTP port） | — |
@@ -42,8 +44,8 @@ docker build -f Auth/Dockerfile -t open-jam-auth .
 | App | 用途 | 認證 |
 |-----|------|------|
 | market-web | 市集首頁 / landing | OIDC（oidc-client-ts） |
-| creator-web | 創作者店面：商品列表 / 詳情 / 結帳 | 無（消費者免註冊） |
-| workspace-web | 創作者後台：開店、商品 / 訂單管理、上架、設定 | OIDC（oidc-client-ts） |
+| creator-web | 創作者店面：商品列表 / 詳情 / 結帳（Stripe Checkout 導轉） | 無（消費者免註冊） |
+| workspace-web | 創作者後台（開店、商品 / 訂單 / 公告管理、上架、設定、購買紀錄與下載）+ 管理員後台（會員 / 商店 / 商品 / 訂單 / 資源用量 / 稽核） | OIDC（oidc-client-ts） |
 
 ```bash
 pnpm dev    # Vite dev server（預設 5173，多個並跑依序遞增）
@@ -109,10 +111,12 @@ pnpm preview
 ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 
 **核心服務**：
-- `UserService` — 註冊、登入、密碼重設、email 驗證
+- `UserService` — 註冊、登入、密碼重設、email 驗證；註冊成功經 Outbox 發 `UserRegisteredEvent`（供 StoreService / NotificationService 回填訪客 UserId）
 - `HydraService` — 包裝 Hydra Admin API（accept/reject login/consent）
 - `Argon2idHasher` — 密碼雜湊
 - `OutboxRelayService` — Outbox → RabbitMQ
+
+**REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。
 
 **錯誤處理**：使用 ASP.NET Core 內建 `app.UseExceptionHandler("/Home/Error")`（非開發環境）導頁至 Error Page。不掛載 `ExceptionMiddleware`（JSON 輸出不適用於 MVC 畫面流程）。
 
@@ -142,25 +146,53 @@ REST API，簽發上傳 / 下載 URL 並管理檔案生命週期。
 - **儲存後端**：`IStorageProvider` 抽象，依 `Storage:Provider` 設定切換地端 `LocalStorageProvider`（本地檔案系統，預設存於 `Files/` 資料夾）或雲端 `GcsStorageProvider`（GCS，signed URL 用服務帳戶金鑰或 GKE Workload Identity 的 IAM SignBlob）。
 - **流程**：`FilesController` 簽發上傳 / 下載 URL（本地由 `BlobUrlSigner` 以 HMAC 簽章，取代 presigned URL）→ 客戶端直傳；本地經 `BlobController` 接收上傳寫入 `LocalFileStore` 後即觸發 `StorageEventService` → `FileProcessingService` 處理 → publish `FileReadyEvent`（GCS 則由 bucket notification 觸發）。
 - **本地 blob 端點**：`BlobController`（`/v1/files/blob/{**key}`）負責本地儲存的 PUT 上傳 / GET 下載；`public/` 前綴免簽章供匿名讀取，其餘須帶有效 `expires` + `sig`。
+- **檔案生命週期與配額銜接**：簽發 signed URL **不計配額**。`POST /v1/files/{id}/confirm` 驗證物件存在後觸發處理 pipeline（Local / GCS 共用同一條 confirm 路徑）；`POST /v1/files/{id}/reference` 由功能 API 於資產 reference 建立後標記檔案「已被使用」——只有 referenced 檔案計入配額對帳，未 referenced 者逾期由清理排程回收。
+- **用量查詢**：`GET /v1/files/usage?creatorId=`（回該租戶 Ready 且 referenced 檔案 size 總和，QuotaService 每日對帳用）、`GET /v1/files/usage/summary`（Admin，平台儲存用量彙總，workspace-web 資源頁）。
 - **背景**：`OrphanCleanupService` 清理保留期過後的孤兒檔案（硬刪除）。
 
 ## StoreService（`src/StoreService/`）
 
 REST API，管理開店申請、店家與追蹤。Controller（`StoreApplications` / `Stores` / `StoreFollowers`）僅轉接，業務在 `Services/<Feature>/` 的 `IStoreApplicationService` / `IStoreManager` / `IStoreFollowerService`。
 
-- **`StorageServiceClient`**：以 `HttpClient`（named `"storage"`，BaseUrl 由 `ServiceOptions` 設定）呼叫 StorageService 簽發 Avatar / Banner 上傳 URL。
+- **`StorageServiceClient`**：以 `HttpClient`（named `"storage"`，BaseUrl 由 `ServiceOptions` 設定）呼叫 StorageService 簽發 Avatar / Banner 上傳 URL；上傳後前端呼叫 `POST /v1/stores/{id}/avatar|banner/confirm` 轉呼叫 StorageService confirm。
+- **全平台商店列表**：`GET /v1/stores`（Admin），供 workspace-web 管理員後台。
 - **`StoreSlugValidator` / `StoreAuthorization`**：子網域 slug 驗證與店家成員授權。
+- **追蹤者事件**：Follow / Unfollow 經 Outbox 發 `StoreFollowerChangedEvent`（NotificationService 同步 ref 表）；`UserRegisteredConsumer` 消費 `UserRegisteredEvent` 回填訪客追蹤者的 `UserId`。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`。
 
 ## CatalogService（`src/CatalogService/`）
 
-REST API，管理數位商品（`Catalog`）、版本（`CatalogVersion`）、平台分類（`CatalogCategory`，以 `ParentId` 自我參照多層子分類）與標籤（`CatalogTag`，名稱強制小寫、維護 `UsageCount`）。Controller（`Catalogs` / `CatalogVersions` / `CatalogCategories` / `CatalogTags`）僅轉接，業務在 `Services/<Feature>/` 的 `ICatalogManager` / `ICatalogVersionService` / `ICatalogCategoryService` / `ICatalogTagService`。
+REST API，管理數位商品（`Catalog`）、版本（`CatalogVersion`）、平台分類（`CatalogCategory`，以 `ParentId` 自我參照多層子分類）、標籤（`CatalogTag`，名稱強制小寫、維護 `UsageCount`）、評論（`CatalogReview`）與收藏（`CatalogFavorite`）。Controller（`Catalogs` / `CatalogVersions` / `CatalogCategories` / `CatalogTags` / `CatalogReviews` / `CatalogFavorites`）僅轉接，業務在 `Services/<Feature>/` 的 `ICatalogManager` / `ICatalogVersionService` / `ICatalogCategoryService` / `ICatalogTagService` / `ICatalogReviewService` / `ICatalogFavoriteService`。
 
-- **商品狀態**：`Draft → Published`（需先有版本）↔ `Archived`；`Suspended` 由 Admin 停權 / 解除。`CatalogStatus` 索引化以利瀏覽過濾。
+- **商品狀態**：`Draft → Published`（需先有版本）↔ `Archived`；`Suspended` 由 Admin 停權 / 解除。`CatalogStatus` 索引化以利瀏覽過濾。上 / 下架時呼叫 QuotaService `POST /v1/products/count` ±1 檢查上架商品數上限；首次上架經 Outbox 發 `CatalogPublishedEvent`（`IsFirstPublish`，觸發追蹤者通知）。
 - **資產分兩類**：展示型 `CatalogAsset`（縮圖 / 截圖 / 預覽影音，公開讀取，`public/` 前綴）；版本可下載檔 `CatalogVersionAsset`（買家實際取得內容，私有，須授權簽發下載 URL）。Asset `Id` 與 StorageService 簽發的 `FileId` 同值。
-- **`StorageServiceClient`**（named `"storage"`）：簽發上傳 / 下載 URL。**`StoreServiceClient`**（named `"store"`）：轉發呼叫者 Bearer token 至 StoreService `GET /v1/stores/me` 驗證商品所屬商店的 Owner 身分（`CatalogAuthorization.LoadOwnedCatalogAsync`）。
+- **資產 confirm 管線（配額扣量）**：簽上傳 URL 不計配額；使用者提交確認時依序——StorageService `POST /v1/files/{id}/confirm`（確保 Ready、取實際大小）→ QuotaService `POST /v1/charges`（`ChargeId = FileId` 冪等扣量，超額 409 / 超上限 422 擋下）→ 建立資產 reference → StorageService `POST /v1/files/{id}/reference` 標記已使用。每步冪等，前端重試安全。
+- **計數與策展**：`SalesCount`（`OrderCompletedConsumer` 消費 `OrderCompletedEvent` 原子累加，`ProcessedEvent` 去重）、`ViewCount`（`POST /v1/catalogs/{id}/view`，前端以 localStorage 時間窗去重）、`RatingAverage` / `RatingCount`（隨評論維護）、`IsFeatured`（Admin `POST /{id}/feature` / `/unfeature`，首頁精選 × 熱門混合策展）。列表 API 支援排序與價格篩選。
+- **評論**：限已購買者（`OrderServiceClient` 轉發 Bearer token 至 OrderService `GET /v1/orders/purchased/{catalogId}` 驗證），每人每商品一則（`PUT /v1/catalogs/{id}/reviews/mine` upsert / `DELETE` 撤下）。
+- **買家下載**：`GET /v1/catalogs/{id}/versions/{versionId}/downloads` 以購買紀錄授權（同上 `OrderServiceClient`），回版本可下載檔清單含短效下載 URL。
+- **`StorageServiceClient`**（named `"storage"`）：簽發上傳 / 下載 URL、confirm / reference。**`StoreServiceClient`**（named `"store"`）：轉發呼叫者 Bearer token 至 StoreService `GET /v1/stores/me` 驗證商品所屬商店的 Owner 身分（`CatalogAuthorization.LoadOwnedCatalogAsync`）。**`QuotaServiceClient`**（named `"quota"`）：轉發呼叫者 Bearer token（JWT `sub` = 租戶）扣量與商品數計數。
 - **`CatalogSlugValidator`**：slug 格式驗證；商品 slug 於同一商店內唯一、分類 slug 全域唯一。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`。
+
+## QuotaService（`src/QuotaService/`）
+
+REST API，租戶（創作者）資源配額計量與扣量。Controller（`Charges` / `Products` / `Usage`）僅轉接，業務在 `Services/Quotas/` 的 `IQuotaManager`。MVP 不分方案，固定額度取自 `Quota` 設定（帳號總量 / 單檔 / 單商品總量 / 上架商品數）；`tenant_id` 一律由 JWT `sub` 推導，request 不接受外部指定。
+
+- **扣量** `POST /v1/charges`：由功能 API（CatalogService）於資產 confirm 時呼叫，`ChargeId`（慣例 = FileId）為冪等鍵——同一交易內先 `ON CONFLICT DO NOTHING` 插入 `committed` 扣量紀錄（`reservation` 表），再以 **DB 原子條件式 UPDATE**（`WHERE used + reserved + @S <= quota`，以影響行數判斷成敗）扣 `tenant_usage.used`，天然防並發超額。超總量回 409；超單檔 / 單商品總量上限回 422。`tenant_usage` 於首次 charge 時 lazy upsert（`quota` 快照當下設定值）。
+- **商品數計數** `POST /v1/products/count`：CatalogService 上 / 下架時 ±1，原子檢查 `MaxPublishedProducts`（僅計 `Published`，超限 409）。
+- **用量查詢**：`GET /v1/usage/me`（租戶後台顯示）、`GET /v1/usage/{tenantId}`（Admin）。
+- **背景**：`ReconciliationService` 每日以 StorageService `GET /v1/files/usage`（僅計 Ready 且 referenced 檔案）對帳校正 `used`（含資產刪除後的用量釋放，不即時退款）；`ReservationSweeperService` 收斂舊制預扣（`reserved`）殘量，新流程不再產生預扣。
+- 純 REST API 服務，無事件訂閱；`StorageServiceClient` 供對帳查詢。
+
+## PaymentService（`src/PaymentService/`）
+
+REST API，Stripe Checkout 金流整合。Controller（`Payments` / `Webhook`）僅轉接，業務在 `Services/Payments/` 的 `IPaymentManager` / `StripeWebhookHandler`。
+
+- **建立 Checkout Session**：`POST /v1/payments/checkout-session` 掛 `"InternalService"` policy，僅限 OrderService 以 service token 呼叫（買家不直接接觸本服務）。以 `OrderId` 建 Stripe Checkout Session（`payment_id` / `order_id` 放 Session metadata）；同訂單已有未過期 `Pending` 付款時直接重用既有 Session（含並發 unique violation 時重用勝者），避免重複建立。`GET /v1/payments/{id}`（Admin）查詢付款。
+- **付款狀態**：`Payment` `Pending → Succeeded` / `Failed` / `Expired`；每次轉移寫一筆 `PaymentTransaction`（`Created` / `Success` / `Fail` / `Expired`，留 Stripe raw payload）。
+- **Webhook 兩段式處理**：`POST /v1/webhook/stripe` 驗簽後僅將原始事件落地 `ProviderEvent`（以 Stripe event id 去重）即回 200，避免處理中掛掉遺失 webhook；`StripeWebhookProcessorService`（`IHostedService`）排程處理未完成事件——`checkout.session.completed` / `async_payment_succeeded` → `Succeeded` 並經 Outbox 發 `PaymentSucceededEvent`；`async_payment_failed` / `payment_intent.payment_failed` → `Failed`；`checkout.session.expired` → 僅 `Pending` 轉 `Expired`。
+- **設定**：`Stripe`（`SecretKey` / `PublishableKey` / `WebhookSecret` / `SuccessUrl` / `CancelUrl`，成功 / 取消頁導回前端 checkout result 頁）。
+- **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`（`payment.checkout.created` 等）。
 
 ## OrderService（`src/OrderService/`）
 
@@ -168,9 +200,10 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
 
 - **訂單狀態**：`Pending → Paid → Completed`，另有 `Cancelled` / `Refunded`。`OrderStatus` 索引化以利過濾。數位商品付款成功即一次轉移為 `Completed` 並填 `CompletedAt`（`Paid` 保留供未來人工審核流程）。每次狀態轉移寫一筆 `OrderStatusHistory`（`OldStatus` 可為 null 表建立）。
 - **賣方歸屬**：`Order.StoreId`（索引化）標記訂單所屬商店，一張訂單對應單一商店，於 `CreateOrderRequest` 帶入。三種列表視角：買家 `GET /v1/orders/mine`（以登入 `sub` 限縮）、賣家 `GET /v1/orders/store/{storeId}`（`ListByStoreAsync` 先以 `StoreServiceClient` 驗證 Owner 再限縮）、Admin `GET /v1/orders`（`ListOrdersRequest.StoreId` / 買家 / 狀態任意過濾）。
+- **購買驗證與取消**：`GET /v1/orders/purchased/{catalogId}` 查登入使用者是否已有該商品的完成訂單（供 CatalogService 評論 / 買家下載授權）；`POST /v1/orders/{id}/cancel` 取消未付款訂單（具名買家僅本人，匿名訂單憑訂單 ID）。
 - **`StoreServiceClient`**（named `"store"` HttpClient，BaseUrl 由 `ServiceOptions` 設定）：轉發呼叫者 Bearer token 至 StoreService `GET /v1/stores/me`，驗證賣家視角查詢者為該商店 Owner。
 - **訂單編號**：`OrderNumberGenerator` 產生人類可讀且全域唯一的 `OrderNumber`（格式 `OJ-yyyyMMdd-XXXXXXXX`）。
-- **金流整合**：結帳單一入口 `POST /v1/orders`——訂單先建立（`Pending`），OrderService 隨即以 **`PaymentServiceClient`**（named `"payment"` HttpClient，帶 `ServiceTokenClient` 取得的 service token）呼叫 PaymentService 以 `OrderId` 建立 Stripe Checkout Session（該端點掛 `"InternalService"` policy 僅限內部服務呼叫，買家 `UserId` 由 request body 帶入），付款頁 URL 以 `OrderResponse.CheckoutUrl` 隨建單回應交給前端導向（前端不直接呼叫 PaymentService）；Session 建立失敗訂單保留 `Pending`。付款成功後 `PaymentSucceededConsumer` 消費 `PaymentSucceededEvent`（`Shared/Events/`）→ `CompleteFromPaymentAsync` 履約完成訂單（以訂單既有狀態做冪等判斷，搭配 MassTransit 指數退避重試）。履約（發放下載權限）由 CatalogService 另行消費同事件，OrderService 僅追蹤訂單狀態。
+- **金流整合**：結帳單一入口 `POST /v1/orders`——訂單先建立（`Pending`），OrderService 隨即以 **`PaymentServiceClient`**（named `"payment"` HttpClient，帶 `ServiceTokenClient` 取得的 service token）呼叫 PaymentService 以 `OrderId` 建立 Stripe Checkout Session（該端點掛 `"InternalService"` policy 僅限內部服務呼叫，買家 `UserId` 由 request body 帶入），付款頁 URL 以 `OrderResponse.CheckoutUrl` 隨建單回應交給前端導向（前端不直接呼叫 PaymentService）；Session 建立失敗訂單保留 `Pending`。付款成功後 `PaymentSucceededConsumer` 消費 `PaymentSucceededEvent`（`Shared/Events/`）→ `CompleteFromPaymentAsync` 履約完成訂單（以訂單既有狀態做冪等判斷，搭配 MassTransit 指數退避重試），並經 Outbox 發 `OrderCompletedEvent`（CatalogService 消費以累加銷量；下載授權由 CatalogService 於下載當下以購買紀錄即時驗證）。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`（`order.create` / `order.cancel` / `order.complete`）。
 
 ## NotificationService（`src/NotificationService/`）
@@ -210,7 +243,7 @@ REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 
   "Smtp": { "Host": "localhost", "Port": 1025, "SecureSocket": "Auto", "FromAddress": "noreply@openjam.co" },
   "SendGrid": { "ApiKey": "<prod-only，由 GCP Secret Manager 注入>" }
 }
-// StorageService / StoreService / OrderService / NotificationService 額外需要（REST API，驗 Hydra 簽發的 JWT）
+// 各 REST API 服務（StorageService / StoreService / CatalogService / QuotaService / PaymentService / OrderService / NotificationService）額外需要（驗 Hydra 簽發的 JWT）
 {
   "Hydra": { "Issuer": "http://localhost:4444/" }
 }
@@ -234,12 +267,32 @@ REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 
 {
   "Services": { "StorageService": { "BaseUrl": "http://localhost:5171" } }
 }
-// CatalogService 額外需要（簽發資產上傳 URL + 驗證商店 Owner 身分）
+// CatalogService 額外需要（簽發資產上傳 URL + Owner 驗證 + 配額扣量 + 購買驗證）
 {
   "Storage": { "PublicBaseUrl": "http://localhost:5171/v1/files/blob" },  // 展示型資產公開讀取前綴
   "Services": {
     "StorageService": { "BaseUrl": "http://localhost:5171" },
-    "StoreService": { "BaseUrl": "http://localhost:5172" }
+    "StoreService": { "BaseUrl": "http://localhost:5172" },
+    "QuotaService": { "BaseUrl": "http://localhost:5177" },
+    "OrderService": { "BaseUrl": "http://localhost:5179" }
+  }
+}
+// QuotaService 額外需要（固定額度 + 每日對帳查 StorageService 用量）
+{
+  "Quota": {
+    "MaxAccountStorageBytes": 53687091200,   // 帳號總量 50 GiB
+    "MaxFileSizeBytes": 2147483648,          // 單檔 2 GiB
+    "MaxProductTotalBytes": 10737418240,     // 單商品總量 10 GiB
+    "MaxPublishedProducts": 100              // 上架商品數
+  },
+  "Services": { "StorageService": { "BaseUrl": "http://localhost:5171" } }
+}
+// PaymentService 額外需要（Stripe 金鑰與導回頁；正式以 Secret 覆蓋）
+{
+  "Stripe": {
+    "SecretKey": "sk_test_...", "PublishableKey": "pk_test_...", "WebhookSecret": "whsec_...",
+    "SuccessUrl": "http://localhost:5174/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+    "CancelUrl": "http://localhost:5174/checkout/cancel"
   }
 }
 // OrderService 額外需要（賣家視角訂單查詢驗證商店 Owner 身分 + 結帳建立 Checkout Session）

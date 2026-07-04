@@ -23,7 +23,7 @@
 
 - **固定價**：創作者設定固定售價。
 - **免費**：免費商品（仍可憑信箱領取，見 [[Order]]）。
-- **折扣碼 / 優惠碼**：創作者可發折扣碼。
+- **折扣碼 / 優惠碼**（未來工作）：創作者可發折扣碼。
 
 ### 檔案與版本
 
@@ -45,6 +45,22 @@
 
 - **平台固定分類**：由平台定義，供探索頁（market-web）組織與篩選。
 - **創作者自由標籤**：創作者自行加註，補充分類粒度。
+
+## 評論與收藏
+
+- **評論評分**：限**已購買者**（CatalogService 以呼叫者身分向 [[Order]] `GET /v1/orders/purchased/{catalogId}` 驗證完成訂單），每人每商品一則（upsert / 可刪除）；商品維護 `RatingAverage` / `RatingCount`。
+- **收藏（Wishlist）**：登入使用者可收藏 / 取消收藏商品，查詢自己的收藏清單。
+
+## 計數與策展
+
+- **銷量 `SalesCount`**：消費 `OrderCompletedEvent` 原子累加（`ProcessedEvent` 冪等去重）。
+- **瀏覽數 `ViewCount`**：`POST /v1/catalogs/{id}/view`，前端以 localStorage 時間窗去重。
+- **精選 `IsFeatured`**：Admin 設定精選旗標，首頁採「精選 × 熱門」混合策展。
+- 商品列表 API 支援排序（熱門 / 最新 / 價格）與價格區間篩選。
+
+## 買家下載
+
+- 買家於已完成訂單後，經 `GET /v1/catalogs/{id}/versions/{versionId}/downloads` 取得版本可下載檔清單與短效下載 URL；授權以購買紀錄即時驗證（見 [[Order]] 履約）。
 
 ## 預覽
 

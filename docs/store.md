@@ -63,7 +63,7 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 | UserId | Guid? | null 表示尚未關聯帳號（訪客憑信箱追蹤） |
 | Email | string | |
 
-唯一索引 `(StoreId, Email)`。`UserId` 補關聯為**未來工作**：Auth 註冊後發出 Event，StoreService consume 後回填，本次 MVP 僅保留欄位、不實作 consumer。
+唯一索引 `(StoreId, Email)`。`UserId` 回填**已實作**：Auth 註冊後經 Outbox 發 `UserRegisteredEvent`，StoreService 的 `UserRegisteredConsumer` 依 Email 比對回填 `UserId`。Follow / Unfollow 另發 `StoreFollowerChangedEvent` 供 [[Notification]] 同步追蹤者參照表。
 
 ### Assets
 
@@ -100,6 +100,7 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 |---|---|---|
 | `GET /v1/stores/{idOrSlug}` | 公開 | 商店基本資訊（含 Avatar/Banner 公開 URL） |
 | `GET /v1/stores/me` | 登入使用者 | 透過 StoreMembers 查自己所屬商店 |
+| `GET /v1/stores` | Admin | 全平台商店列表（分頁，workspace-web 管理後台） |
 | `PATCH /v1/stores/{id}` | Owner | 更新 StoreName / Description |
 | `POST /v1/stores/{id}/suspend` `/unsuspend` | Admin | 平台停權 / 解除停權 |
 | `POST /v1/stores/{id}/close` | Owner 或 Admin | `Active`/`Suspended` → `Closed`（終態，不可逆） |
@@ -165,7 +166,7 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 
 ## 平台基礎設施：JWT 驗證與 Role
 
-StoreApplications 的審核（approve/reject）需要管理員權限，但目前所有 REST API 服務（[[Log]]、[[Storage]]）都還沒有實際的 JWT Bearer 驗證 middleware（`ICurrentUserAccessor` 只讀 Claims，無 `AddAuthentication`/`AddJwtBearer`）。本服務同時補上這塊平台基礎設施：
+StoreApplications 的審核（approve/reject）需要管理員權限。此段記錄隨本服務一併建立、現已為全平台共用的 JWT 驗證基礎設施（`AddOpenJamJwtAuth`，各 REST API 服務皆已套用）：
 
 1. **[[Auth]] User.Role**：`User` entity 新增 `Role` 屬性，`UserRole` enum（`User` / `Admin`），預設 `User`，新增 EF Core migration（`open_jam_auth`）。Admin 指派方式：MVP 不提供 API/UI，由維運人員直接更新資料庫 `users.role` 欄位。
 
@@ -195,6 +196,5 @@ StoreApplications 的審核（approve/reject）需要管理員權限，但目前
 
 ## 未來工作（不在本次範圍）
 
-- StoreFollowers.UserId 回填：Auth 註冊發出 `UserRegisteredEvent`，StoreService consume 並依 Email 比對回填。
 - Avatar/Banner 舊資產的孤兒清理。
 - StoreMembers 多角色（Staff 等）與成員管理 API。

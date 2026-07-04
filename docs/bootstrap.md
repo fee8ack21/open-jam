@@ -15,31 +15,23 @@ Bootstrap 負責**預建平台運行所需的資料**。因架構採 **DB per se
 - **冪等**：已存在則跳過，可安全重跑。
 - seed 比照 **migration 版本控管**，可增量套用（保留字、分類、方案等會演進）。
 
-## 預建資料清單
+## Seeder 執行清單（依序）
 
-### 平台必要（prod）
+| Seeder | 資料 | 說明 |
+|--------|------|------|
+| `HydraClientSeeder` | Hydra OIDC client | Web client（SPA 登入）+ Service client（服務間 `client_credentials`，`open-jam-service`），設定 key `HydraClients:Web` / `:Service` |
+| `EmailTemplateSeeder` | Email 模板 | 寫入 EmailService DB（[[Email]]） |
+| `UserSeeder` | 平台管理員 + dev 假帳號 | `AdminUser:Email` / `:Password` 皆有值才 seed 管理員；`MockUsers:Enabled` 控制假帳號（正式須 `false`） |
+| `StoreSeeder` | dev 假店家 | `MockStores:Enabled` 控制（正式須 `false`） |
+| `CatalogCategorySeeder` | 平台固定分類 | 寫入 CatalogService DB（[[Catalog]]） |
+| `StoreFollowerRefSeeder` | 追蹤者參照表回填 | 回填 NotificationService `store_follower_ref`（[[Notification]]），重跑冪等 |
 
-| 資料 | 歸屬 | 來源 |
-|------|------|------|
-| 子網域保留字 | Bootstrap（共用）| [[Catalog]] / [[Auth]] / [[Quota]] |
-| Hydra Client（各 SPA / API 的 OIDC client）| Bootstrap（基建）| [[Auth]] |
-| RBAC 角色與權限（Consumer / Creator / Admin）| Auth | [[Auth]] |
-| 初始 Admin 帳號與角色 | Auth | [[Auth]] |
-| Email Template | EmailService | [[Email]] |
-| 平台固定分類 | Catalog | [[Catalog]] |
-| 固定配額額度（設定值，不分方案）| Quota | [[Quota]] |
+掛載 5 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection` / `NotificationConnection`（具名連線字串，非共用 `DefaultConnection`）。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入設定。
 
-### 開發假資料（dev only）
+### 尚未納入（規劃）
 
-- 預設使用者（消費者 & 創作者）。
-- 測試商品。
-
-## 相依順序
-
-- Hydra Client → 各 SPA / API。
-- RBAC 角色 → 初始 Admin。
-- 創作者方案 → 配額額度。
-- 平台固定分類 → （商品）。
+- 子網域保留字（目前為 `StoreSlugValidator` 內建黑名單，非 seed 資料）。
+- 固定配額額度（由 QuotaService `appsettings` 提供，見 [[Quota]]）。
 
 ## 技術與架構
 
