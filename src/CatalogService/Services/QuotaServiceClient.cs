@@ -6,47 +6,28 @@ using Shared.Exceptions;
 namespace CatalogService.Services;
 
 /// <summary>
-/// 呼叫 QuotaService 進行儲存空間預扣 / 釋放與上架商品數計數的客戶端。
+/// 呼叫 QuotaService 進行儲存空間扣量與上架商品數計數的客戶端。
 /// 轉發呼叫者的 Bearer token，讓 QuotaService 以同一身分（JWT sub = 租戶）判斷配額。
 /// </summary>
 public class QuotaServiceClient(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
 {
-    /// <summary>預扣指定位元組數，回傳預扣紀錄 ID（由本端產生作為冪等鍵）。配額不足拋 409、超單檔 / 單商品上限拋 422。</summary>
-    /// <param name="sizeBytes">欲預扣的位元組數。</param>
+    /// <summary>扣指定位元組數（使用者提交確認後呼叫）。冪等：同 chargeId 重送不重複扣量。配額不足拋 409、超單檔 / 單商品上限拋 422。</summary>
+    /// <param name="chargeId">扣量冪等鍵（慣例帶入檔案 ID）。</param>
+    /// <param name="sizeBytes">實際使用的位元組數。</param>
     /// <param name="productId">關聯商品 ID（單商品總量上限用）。</param>
     /// <param name="ct">Cancellation token。</param>
-    public async Task<Guid> ReserveAsync(long sizeBytes, Guid productId, CancellationToken ct)
+    public async Task ChargeAsync(Guid chargeId, long sizeBytes, Guid productId, CancellationToken ct)
     {
-        var reservationId = Guid.NewGuid();
-
-        using var request = Build(HttpMethod.Post, "v1/reservations");
+        using var request = Build(HttpMethod.Post, "v1/charges");
         request.Content = JsonContent.Create(new
         {
-            ReservationId = reservationId,
+            ChargeId = chargeId,
             Size = sizeBytes,
             ProductId = (Guid?)productId,
         });
 
         using var response = await Send(request, ct);
         await EnsureQuotaSuccessAsync(response, ct);
-
-        return reservationId;
-    }
-
-    /// <summary>釋放預扣（簽章失敗等情境）。best-effort：失敗不拋出，避免遮蔽原始錯誤。</summary>
-    /// <param name="reservationId">預扣紀錄 ID。</param>
-    /// <param name="ct">Cancellation token。</param>
-    public async Task ReleaseAsync(Guid reservationId, CancellationToken ct)
-    {
-        try
-        {
-            using var request = Build(HttpMethod.Post, $"v1/reservations/{reservationId}/release");
-            using var response = await Send(request, ct);
-        }
-        catch
-        {
-            // 釋放為盡力而為；逾時未 commit 的預扣最終由 QuotaService sweeper 回收。
-        }
     }
 
     /// <summary>增減上架商品數（+1 進入 Published、-1 離開 Published）。超上限拋 409。</summary>

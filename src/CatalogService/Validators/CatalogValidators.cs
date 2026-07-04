@@ -98,6 +98,17 @@ public class RequestCatalogAssetUploadUrlRequestValidator : AbstractValidator<Re
     }
 }
 
+/// <summary>確認展示型資產上傳完成請求驗證。</summary>
+public class ConfirmCatalogAssetRequestValidator : AbstractValidator<ConfirmCatalogAssetRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public ConfirmCatalogAssetRequestValidator()
+    {
+        RuleFor(x => x.Type)
+            .IsInEnum().WithMessage("資產類型無效。");
+    }
+}
+
 /// <summary>商品列表查詢請求驗證：分頁範圍。</summary>
 public class ListCatalogsRequestValidator : AbstractValidator<ListCatalogsRequest>
 {

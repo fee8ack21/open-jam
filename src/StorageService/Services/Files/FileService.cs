@@ -30,7 +30,6 @@ public class FileService(
         {
             CreatorId     = request.CreatorId,
             ProductId     = request.ProductId,
-            ReservationId = request.ReservationId,
             OriginalName  = request.OriginalName,
             ContentType  = request.ContentType,
             SizeBytes    = request.SizeBytes,
@@ -95,6 +94,26 @@ public class FileService(
     }
 
     /// <inheritdoc/>
+    public async Task<FileDto> MarkReferencedAsync(Guid id, CancellationToken ct)
+    {
+        var file = await db.StoredFiles
+            .FirstOrDefaultAsync(f => f.Id == id && f.DeletedAt == null, ct)
+            ?? throw new NotFoundException($"檔案 {id} 不存在");
+
+        if (file.Status != FileStatus.Ready)
+            throw new ValidationException($"檔案 {id} 尚未完成處理（狀態：{file.Status}），無法標記為已使用");
+
+        // 冪等：已標記則直接回傳現狀。
+        if (file.ReferencedAt is null)
+        {
+            file.ReferencedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return mapper.Map<FileDto>(file);
+    }
+
+    /// <inheritdoc/>
     public async Task<GetDownloadUrlResponse> GetDownloadUrlAsync(Guid id, CancellationToken ct)
     {
         var file = await db.StoredFiles
@@ -133,10 +152,11 @@ public class FileService(
     /// <inheritdoc/>
     public async Task<TenantUsageResponse> GetTenantUsageAsync(Guid creatorId, CancellationToken ct)
     {
-        // 全域 Query Filter 已排除軟刪除；僅加總已 Ready 檔案。
+        // 全域 Query Filter 已排除軟刪除；僅加總已 Ready 且已被使用（referenced）的檔案，
+        // 上傳完成但未經功能 API 確認使用的檔案不計入配額。
         var total = await db.StoredFiles
             .AsNoTracking()
-            .Where(f => f.CreatorId == creatorId && f.Status == FileStatus.Ready)
+            .Where(f => f.CreatorId == creatorId && f.Status == FileStatus.Ready && f.ReferencedAt != null)
             .SumAsync(f => f.SizeBytes ?? 0, ct);
 
         return new TenantUsageResponse { CreatorId = creatorId, TotalBytes = total };

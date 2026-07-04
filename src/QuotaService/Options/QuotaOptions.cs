@@ -14,7 +14,4 @@ public class QuotaOptions
 
     /// <summary>上架（Published）商品數上限。預設 100。</summary>
     public int MaxPublishedProducts { get; set; } = 100;
-
-    /// <summary>預扣有效期（分鐘）；須 ≥ signed URL 時效，並涵蓋大檔 resumable 上傳。預設 240。</summary>
-    public int ReservationTtlMinutes { get; set; } = 240;
 }

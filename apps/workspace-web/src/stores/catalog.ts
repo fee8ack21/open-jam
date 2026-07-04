@@ -232,7 +232,7 @@ export const useCatalogStore = defineStore('catalog', () => {
    * 建立新商品的完整流程：
    *   1. 建立商品（Draft）
    *   2. 建立版本 1.0.0 並設為目前版本
-   *   3. 逐一申請版本檔案簽章 URL 並直傳
+   *   3. 逐一申請版本檔案簽章 URL、直傳並確認（confirm 時後端才建立資產並扣配額）
    *   4. 視需要送審上架
    * 成功回傳建立後的 CatalogDto；失敗將訊息寫入 error 並回傳 null。
    */
@@ -268,6 +268,8 @@ export const useCatalogStore = defineStore('catalog', () => {
           sizeBytes: file.size,
         });
         if (urlRes.data.uploadUrl) await putFile(urlRes.data.uploadUrl, file);
+        // 直傳完成後確認：後端此時才建立資產 reference 並扣儲存配額。
+        await catalogApi.catalogVersions.confirmAsset(catalogId, versionId, urlRes.data.assetId!);
       }
 
       if (input.publish) await catalogApi.catalogs.publish(catalogId);

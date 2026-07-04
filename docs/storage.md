@@ -18,9 +18,9 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 
 ## 上傳流程（簽章直傳）
 
-1. 前端向**功能 API** 請求上傳；功能 API **先檢查配額**（單檔 / 單商品 / 帳號總量上限，見 [[Catalog]]、[[Quota]]）。
-2. 通過後簽發 **upload signed URL**（內含大小、content-type 限制與時效）。
-3. 前端透過 signed URL **直傳** storage，不經功能 API 轉傳。
+1. 前端向**功能 API** 請求上傳，功能 API 轉向 StorageService 簽發 **upload signed URL**（內含大小、content-type 限制與時效）。**簽發階段不計配額**。
+2. 前端透過 signed URL **直傳** storage，不經功能 API 轉傳。
+3. 使用者**提交確認**後，功能 API 執行 confirm 管線：確認檔案 Ready → 向 [[Quota]] **扣量**（單檔 / 單商品 / 帳號總量上限）→ 建立資產 reference → 呼叫 `POST /v1/files/{id}/reference` 標記檔案**已被使用**。未標記的檔案不計配額，逾期由清理排程回收。
 4. 大檔（影片）支援 **resumable 上傳**（GCS resumable / S3 multipart），斷線可續傳。
 5. 上傳檔案須做**類型驗證**（magic-bytes 比對實際類型，非僅副檔名）與**大小上限**檢查。
 
@@ -72,7 +72,7 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 - **路徑 / bucket 結構**：以租戶（creator）維度劃分前綴；**原始檔**與**衍生檔**（HLS、預覽、縮圖）分開存放。雲端 GCS 採**雙 bucket**：公開讀取資產（`public/*`，如商店 Avatar/Banner、商品縮圖）存於 `open-jam-public`，私有付費檔存於 `open-jam-private`；`StorageOptions.BucketFor(key)` 依 key 前綴 `public/` 自動選 bucket。地端 Local 無 bucket 概念，僅以 `public/` 前綴區分匿名讀取。
 - **軟刪除**：商品下架 / 刪除採軟刪除。
 - **已售出保留下載權**：已購買的商品仍保留買家下載權（對應 [[Auth]] 的 GDPR 與帳號刪除策略）。
-- **orphan 清理**：以排程清除無人購買且已軟刪的孤兒檔案。
+- **orphan 清理**：以排程清除孤兒檔案——上傳逾時未完成者標記 Failed；Ready 後逾期仍未被使用（未建立 reference）的商品檔軟刪除；已軟刪且過保留期者自儲存後端永久刪除。
 - 帳號刪除（[[Auth]]）連帶的檔案處理依上述策略執行。
 
 ## 技術與架構

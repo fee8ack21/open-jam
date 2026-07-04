@@ -387,10 +387,18 @@ public class RequestCatalogAssetUploadUrlRequest
     public long SizeBytes { get; set; }
 }
 
-/// <summary>展示型資產上傳簽章 URL 回應。</summary>
+/// <summary>確認展示型資產上傳完成的請求（使用者提交確認時呼叫，此時才扣配額並建立資產）。</summary>
+public class ConfirmCatalogAssetRequest
+{
+    /// <summary>資產類型。</summary>
+    /// <example>Screenshot</example>
+    public CatalogAssetType Type { get; set; }
+}
+
+/// <summary>展示型資產上傳簽章 URL 回應。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。</summary>
 public class CatalogAssetUploadUrlResponse
 {
-    /// <summary>已建立的 Asset ID。</summary>
+    /// <summary>檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid AssetId { get; set; }
 

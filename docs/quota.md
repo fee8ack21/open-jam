@@ -1,22 +1,22 @@
 # 資源配額 Quota
 
-QuotaService 負責**租戶（creator）資源配額的計量、預扣與回滾**。在簽發上傳 signed URL 前原子地檢查並預扣，與 [[Storage]] 的上傳流程銜接，確保並發下不超額。
+QuotaService 負責**租戶（creator）資源配額的計量與扣量**。簽發上傳 signed URL 階段**不計配額**；使用者提交確認、功能 API 建立檔案 reference 時才原子地檢查並扣量，與 [[Storage]] 的上傳流程銜接，確保並發下不超額。
 
 本頁聚焦資源配額；租戶識別（JWT claim）見 [[Auth]]、子網域路由見 [[Infra]]，不在本頁範圍。
 
 ## 範圍與前提（MVP）
 
 - **不實作創作者訂閱方案**：所有商店共用一組**固定額度**，由 `appsettings` 設定，非依方案動態變動。日後要做付費方案時再把固定值換成依方案查詢即可，API 與資料模型不變。
-- **租戶識別**：`tenant_id` 即**創作者使用者 ID**，取自 JWT 的 `sub`（`ICurrentUserAccessor`），與 [[Storage]] `FileReadyEvent.CreatorId` 一致。MVP 為 1 創作者 : 1 商店。
+- **租戶識別**：`tenant_id` 即**創作者使用者 ID**，取自 JWT 的 `sub`（`ICurrentUserAccessor`），與 [[Storage]] 檔案紀錄的 `CreatorId` 一致。MVP 為 1 創作者 : 1 商店。
 
 ## 計量資源
 
 | 資源 | 性質 | 維護方式 |
 |------|------|----------|
-| 帳號總儲存空間（bytes） | 帳號總用量 | 預扣 / commit / release（核心對象） |
+| 帳號總儲存空間（bytes） | 帳號總用量 | 確認時原子扣量（核心對象） |
 | 上架商品數量 | 原子計數器 | 同樣的原子條件式增減 |
-| 單檔大小上限 | 即時檢查 | 上傳當下檢查，不維護預扣狀態 |
-| 單商品總量上限 | 即時檢查 | 上傳當下檢查（見「即時上限檢查」） |
+| 單檔大小上限 | 即時檢查 | 扣量當下檢查，不維護狀態 |
+| 單商品總量上限 | 即時檢查 | 扣量當下檢查（見「即時上限檢查」） |
 
 固定額度設定（預設值，可於 `appsettings` 覆蓋）：
 
@@ -26,43 +26,44 @@ QuotaService 負責**租戶（creator）資源配額的計量、預扣與回滾*
     "MaxAccountStorageBytes": 53687091200,   // 帳號總量 50 GiB
     "MaxFileSizeBytes": 2147483648,          // 單檔 2 GiB
     "MaxProductTotalBytes": 10737418240,     // 單商品總量 10 GiB
-    "MaxPublishedProducts": 100,             // 上架商品數
-    "ReservationTtlMinutes": 240             // 預扣有效期（須 ≥ signed URL 時效，涵蓋影片 resumable 上傳）
+    "MaxPublishedProducts": 100              // 上架商品數
   }
 }
 ```
 
 ## 用量資料模型
 
-- **租戶用量（`tenant_usage`）**：`tenant_id`（PK）、`quota`（建列當下從設定快照）、`used`（bytes）、`reserved`（bytes）、`product_count`、`updated_at`。
-  - **建列時機**：首次 `reserve` 時 **lazy upsert**（不依賴開店事件），`quota` 取當下設定值快照。
-- **預扣紀錄（`reservation`）**：`id`（PK，Guid，即 `ReservationId`）、`tenant_id`、`size`、`status`（`reserved` / `committed` / `released`）、`expiry`、`created_at`。
-  - `id` 作為跨服務關聯鍵，貫穿上傳 → ready → commit 全程。
+- **租戶用量（`tenant_usage`）**：`tenant_id`（PK）、`quota`（建列當下從設定快照）、`used`（bytes）、`reserved`（bytes，舊制預扣殘量，僅遞減至 0）、`product_count`、`updated_at`。
+  - **建列時機**：首次 `charge` 時 **lazy upsert**（不依賴開店事件），`quota` 取當下設定值快照。
+- **扣量紀錄（`reservation`）**：`id`（PK，Guid，即 `ChargeId`，慣例 = 檔案 ID）、`tenant_id`、`product_id`、`size`、`status`、`created_at`。
+  - 新流程一律直接以 `committed` 入帳；`reserved` / `released` 為舊制預扣的歷史資料（由 sweeper 收斂）。
+  - `id` 作為冪等鍵與跨服務關聯鍵（= StorageService `FileId` = CatalogService `AssetId`）。
 
-## 配額檢查與預扣流程（上傳）
+## 配額扣量流程（上傳確認）
 
 呼叫方為**功能 API（[[Catalog]] / CatalogService）**，QuotaService 不被 [[Storage]] 直接呼叫——[[Storage]] 維持為純儲存原語。
 
 ```
 CatalogService 上傳流程：
-  1. reserve(S)  ──POST /v1/reservations──▶ QuotaService（回 ReservationId）
-  2. 簽 URL      ──upload-url(ReservationId)──▶ StorageService（存於 file 紀錄）
-  3. 回前端直傳
-  ※ 步驟 2 失敗 → 主動 release(ReservationId)
+  1. 簽 URL         ──upload-url──▶ StorageService（不計配額、不建資產）
+  2. 回前端直傳（PUT signed URL）
+  3. 使用者提交確認 ──confirm──▶ CatalogService
+       3a. confirm 檔案  ──POST /v1/files/{id}/confirm──▶ StorageService（確保 Ready、取得實際大小）
+       3b. 扣配額        ──POST /v1/charges──▶ QuotaService（ChargeId = FileId，409 / 422 擋下）
+       3c. 建立資產 reference（CatalogAsset / CatalogVersionAsset）
+       3d. 標記檔案已使用 ──POST /v1/files/{id}/reference──▶ StorageService
 ```
 
-1. CatalogService 在簽發 upload signed URL **之前**向 QuotaService `reserve` S bytes 並做即時上限檢查。
-2. **原子條件式更新**（見下），通過才建立 reservation；`expiry` 取 `now + ReservationTtlMinutes`（須涵蓋 signed URL 時效與大檔 resumable 上傳）。
-3. CatalogService 將 `ReservationId` 帶給 StorageService `upload-url`；StorageService 存於 file 紀錄，並於後續 `FileReadyEvent` 回帶。
-4. **commit（事件驅動）**：QuotaService 訂閱 [[Storage]] `FileReadyEvent`，以 `ReservationId` 找 reservation，依事件實際 `SizeBytes` commit。
-5. **release**：
-   - 主要靠 **sweeper**（排程）回滾過期且仍 `reserved` 的 reservation。
-   - CatalogService 在「簽章失敗、檔案根本沒上傳」時可主動呼叫 `release` 即時釋放。
+1. 簽發 signed URL 階段**完全不涉及配額**；上傳後未確認的檔案不計量，逾期由 [[Storage]] 清理排程回收。
+2. 使用者提交確認時，CatalogService 以 `ChargeId = FileId` 向 QuotaService `charge` 實際大小並做即時上限檢查；配額不足（409）或超上限（422）時，資產 reference 不會建立。
+3. `charge` 通過後才建立資產 reference，並回頭將檔案標記為已使用（referenced）——只有已標記檔案計入配額對帳。
+4. 整條 confirm 管線每一步皆冪等，前端重試安全。
+5. **刪除資產**：CatalogService 同步軟刪 [[Storage]] 檔案；`used` 由每日對帳釋放（不即時退款）。
 
 ### 即時上限檢查（無預扣狀態）
 
-- **單檔上限**：`S <= MaxFileSizeBytes`，於 `reserve` 同時驗證，超過回 422。
-- **單商品總量上限**：`reserve` 帶 `product_id`，QuotaService 加總該商品**目前已 committed reservation 的 size + 本次 S**，超過 `MaxProductTotalBytes` 則拒絕。（reservation 需存 `product_id`。）
+- **單檔上限**：`S <= MaxFileSizeBytes`，於 `charge` 同時驗證，超過回 422。
+- **單商品總量上限**：`charge` 帶 `product_id`，QuotaService 加總該商品**已 committed 扣量的 size（含本次）**，超過 `MaxProductTotalBytes` 則拒絕。
 
 ### 商品數計數（product_count）
 
@@ -78,56 +79,48 @@ CatalogService 上傳流程：
 
   ```sql
   UPDATE tenant_usage
-  SET reserved = reserved + @S, updated_at = now()
+  SET used = used + @S, updated_at = now()
   WHERE tenant_id = @T AND used + reserved + @S <= quota
   ```
 
 - 商品數量上限以同樣的原子條件式增減（`product_count + 1 <= MaxPublishedProducts`）。
-- **狀態機與冪等規則**（commit 與 sweeper 可能競態，必須冪等）：
-  - `reserve`：呼叫方傳入 `ReservationId`（client 端產生 Guid）作冪等鍵；重送同 id 回原結果，不重複預扣。
-  - `commit(id, actual)`：`actual` 取自 `FileReadyEvent.SizeBytes`（null 時退回 `reservation.size`）。實際大小可能 ≠ 預扣大小，故 `used` 加實際、`reserved` 釋放當初預扣量：
-    - 僅當 `status = reserved` → `used += actual`、`reserved -= reservation.size`、`status = committed`。
-    - **遲到 commit**（reservation 已被 sweeper `released`）：`status = released` → 補記 `used += actual`、`status = committed`，**不動 `reserved`**（已於 release 扣回 `reservation.size`）。檔案實際已 ready 存在，必須計入。
-    - `status` 已是 `committed`：no-op（事件重送去重）。
-  - `release(id)`：僅當 `status = reserved` → `reserved -= size`、`status = released`；其他狀態 no-op。
-  - `status` 欄位本身即為去重 / 順序保護的依據。
+- **冪等規則**：
+  - `charge`：呼叫方傳入 `ChargeId`（慣例 = 檔案 ID）作冪等鍵；同一交易內先冪等插入 `committed` 扣量紀錄（`ON CONFLICT DO NOTHING`，0 rows = 已扣過直接 no-op），再做上限檢查與原子扣量，任一步失敗整體 rollback。
+  - 舊制 `reserved` 歷史資料由 **sweeper**（排程）釋放收斂，新流程不再產生。
 - **Redis 僅作快取顯示用量**（後台呈現用），不作為授權 / 配額判斷依據。
 
 ## 統計量維護與對帳
 
-- **跨動計數器**：commit / release 即時增減 `used` / `reserved`，查詢快速。
-- **每日對帳**：排程加總實際檔案校正 `used`，修正計數器漂移；不一致時以實際用量為準。
-  - **資料源**：需 [[Storage]] 提供 per-tenant 用量加總端點（`GET /v1/files/usage?creatorId=`，回該租戶 ready 檔案 size 總和）——此為 QuotaService 的相依，StorageService 需新增。
+- **跨動計數器**：charge 即時增加 `used`，查詢快速。
+- **每日對帳**：排程加總實際檔案校正 `used`，修正計數器漂移（含資產刪除後的用量釋放）；不一致時以實際用量為準。
+  - **資料源**：[[Storage]] per-tenant 用量加總端點（`GET /v1/files/usage?creatorId=`），回該租戶 **Ready 且已被使用（referenced）** 檔案的 size 總和；未確認的上傳不計入。
 
 ## 方案降級 / 額度調整
 
-- MVP 無方案，但若調降固定額度導致 `used > quota`：**禁止新上傳**（預扣檢查必然失敗），**保留既有檔案不刪**，由創作者自行清理後恢復上傳。
+- MVP 無方案，但若調降固定額度導致 `used > quota`：**禁止新上傳**（扣量檢查必然失敗），**保留既有檔案不刪**，由創作者自行清理後恢復上傳。
 
 ## REST API 契約
 
-遵循 [[Develop]] 三層 + Service DI、`offset`/`limit` 分頁、FluentValidation（422，欄位 `errors`）、AutoMapper、`ExceptionMiddleware` 轉 RFC 9457 Problem Details、`AddOpenJamJwtAuth` 驗 Hydra JWT。開發 URL 待分配（接續 CatalogService 5176，建議 5177），Swagger 於 `/swagger`。
+遵循 [[Develop]] 三層 + Service DI、`offset`/`limit` 分頁、FluentValidation（422，欄位 `errors`）、AutoMapper、`ExceptionMiddleware` 轉 RFC 9457 Problem Details、`AddOpenJamJwtAuth` 驗 Hydra JWT。開發 URL 5177，Swagger 於 `/swagger`。
 
 | Method | Path | 用途 | 授權 | 失敗碼 |
 |--------|------|------|------|--------|
-| `POST` | `/v1/reservations` | 預扣（含單檔 / 單商品即時檢查） | 租戶 JWT | 409 超額 / 422 超單檔或單商品上限 |
-| `POST` | `/v1/reservations/{id}/release` | 主動釋放預扣 | 租戶 JWT | 404 |
+| `POST` | `/v1/charges` | 扣量（含單檔 / 單商品 / 總量即時檢查；冪等） | 租戶 JWT | 409 超額 / 422 超單檔或單商品上限 |
 | `POST` | `/v1/products/count` | 商品數 +1 / -1（上架 / 下架時由 CatalogService 呼叫） | 租戶 JWT | 409 超上限 |
 | `GET`  | `/v1/usage/me` | 查目前用量（後台顯示） | 租戶 JWT | — |
 | `GET`  | `/v1/usage/{tenantId}` | 查指定租戶用量 | Admin | 404 |
 
 - `tenant_id` 一律由 JWT `sub` 推導（`ICurrentUserAccessor`），request 不接受外部指定 tenant，避免越權。
-- `commit` 無 HTTP 端點：QuotaService 作為 RabbitMQ consumer 訂閱 `FileReadyEvent`（與 LogService / EmailService 同 pattern）。
 - 超額（總量 / 商品數）回 **409 Conflict**；超單檔 / 單商品上限屬輸入層回 **422**。
 
-## 對其他服務的相依（需配套修改）
+## 對其他服務的相依
 
-1. **`Shared/Events/FileReadyEvent`**：新增 `Guid? ReservationId` 欄位。
-2. **StorageService**：`upload-url` request 新增 `ReservationId`，存於 file 紀錄並於 `FileReadyEvent` 回帶；新增 `GET /v1/files/usage` 對帳用加總端點。
-3. **CatalogService**：上傳流程插入 `reserve`（簽章前）與失敗 `release`；新增 `QuotaServiceClient`（named `"quota"`）；上 / 下架時呼叫 `/v1/products/count`。
+1. **StorageService**：`POST /v1/files/{id}/reference` 標記檔案已使用；`GET /v1/files/usage` 對帳用加總端點（僅計 referenced）；未 referenced 檔案由清理排程回收。
+2. **CatalogService**：資產 confirm 管線（confirm 檔案 → `charge` → 建 reference → 標記 referenced）；新增 `QuotaServiceClient`（named `"quota"`）；上 / 下架時呼叫 `/v1/products/count`；刪除資產時軟刪 Storage 檔案。
 
 ## 技術與架構
 
 - .NET 微服務（`src/QuotaService/`），整體結構慣例見 [[Develop]]，可參考 CatalogService / StoreService。
 - 資料庫 `open_jam_quota`（snake_case、`BaseDbContext` audit / 軟刪除慣例）。
-- 事件採 RabbitMQ + MassTransit（與 [[Storage]] / [[Email]] 一致）。
+- 純 REST API 服務，無事件訂閱（扣量由功能 API 於 confirm 時同步呼叫）。
 - 跨服務關聯：上傳流程 [[Storage]]、商品上下架與額度語意 [[Catalog]]、租戶識別 [[Auth]]、稽核 [[Log]]。

@@ -41,15 +41,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}
                   key: quota-service-connection-string
-            - name: RabbitMQ__Host
-              value: {{ include "open-jam.rabbitmqHost" . | quote }}
-            - name: RabbitMQ__Username
-              value: {{ .Values.rabbitmq.user | quote }}
-            - name: RabbitMQ__Password
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "open-jam.secretName" . }}
-                  key: rabbitmq-password
             - name: Services__StorageService__BaseUrl
               value: {{ include "open-jam.storageServiceUrl" . | quote }}
             - name: Hydra__Issuer
@@ -65,7 +56,6 @@ spec:
             - -c
             - >
               /wait-for-it.sh {{ include "open-jam.postgresHost" . }}:5432 --timeout=60 --strict &&
-              /wait-for-it.sh {{ include "open-jam.rabbitmqHost" . }}:5672 --timeout=60 --strict &&
               dotnet QuotaService.dll
           volumeMounts:
             - name: wait-for-it

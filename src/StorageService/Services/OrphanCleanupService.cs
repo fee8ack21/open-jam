@@ -10,7 +10,8 @@ namespace StorageService.Services;
 /// <summary>
 /// 排程清理孤兒檔案的背景服務，每小時執行一次：
 /// 1. 超過 UploadTimeoutHours 仍在 Uploading 狀態 → 標記 Failed（上傳逾時）。
-/// 2. 軟刪除超過 SoftDeleteRetentionDays → 從儲存後端永久刪除並移除 DB 紀錄。
+/// 2. 商品檔 Ready 後超過 UnreferencedRetentionDays 仍未被使用（未建立 reference）→ 軟刪除。
+/// 3. 軟刪除超過 SoftDeleteRetentionDays → 從儲存後端永久刪除並移除 DB 紀錄。
 /// </summary>
 public class OrphanCleanupService(
     IServiceScopeFactory scopeFactory,
@@ -60,7 +61,26 @@ public class OrphanCleanupService(
         if (stale.Count > 0)
             await db.SaveChangesAsync(ct);
 
-        // 2. 軟刪除超過保留期 → 永久刪除（硬刪除）
+        // 2. 商品檔上傳完成但逾期未被使用（未建立 reference，不計配額）→ 軟刪除回收。
+        //    僅限關聯商品的檔案；商店 Avatar/Banner 等非商品檔不走 reference 流程，不在此清理。
+        var unreferencedDeadline = DateTimeOffset.UtcNow.AddDays(-_opts.UnreferencedRetentionDays);
+        var unreferenced = await db.StoredFiles
+            .Where(f => f.Status == FileStatus.Ready
+                     && f.ReferencedAt == null
+                     && f.ProductId != null
+                     && f.CreatedAt < unreferencedDeadline)
+            .ToListAsync(ct);
+
+        foreach (var file in unreferenced)
+        {
+            db.StoredFiles.Remove(file);
+            logger.LogInformation("Unreferenced file {FileId} soft-deleted after retention", file.Id);
+        }
+
+        if (unreferenced.Count > 0)
+            await db.SaveChangesAsync(ct);
+
+        // 3. 軟刪除超過保留期 → 永久刪除（硬刪除）
         //    需 IgnoreQueryFilters 才能查到已軟刪除的資料（全域過濾器預設排除 DeletedAt != null）。
         var retentionDeadline = DateTimeOffset.UtcNow.AddDays(-_opts.SoftDeleteRetentionDays);
         var expired = await db.StoredFiles

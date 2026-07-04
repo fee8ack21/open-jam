@@ -112,10 +112,10 @@ public class RequestVersionAssetUploadUrlRequest
     public long SizeBytes { get; set; }
 }
 
-/// <summary>版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。</summary>
+/// <summary>版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。</summary>
 public class VersionAssetUploadUrlResponse
 {
-    /// <summary>已建立的 Asset ID。</summary>
+    /// <summary>檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid AssetId { get; set; }
 

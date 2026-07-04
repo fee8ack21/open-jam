@@ -77,10 +77,10 @@ export interface CatalogAssetDto {
   createdAt?: string;
 }
 
-/** 展示型資產上傳簽章 URL 回應。 */
+/** 展示型資產上傳簽章 URL 回應。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。 */
 export interface CatalogAssetUploadUrlResponse {
   /**
-   * 已建立的 Asset ID。
+   * 檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。
    * @format uuid
    * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
    */
@@ -498,6 +498,12 @@ export interface CatalogVersionDto {
   createdAt?: string;
 }
 
+/** 確認展示型資產上傳完成的請求（使用者提交確認時呼叫，此時才扣配額並建立資產）。 */
+export interface ConfirmCatalogAssetRequest {
+  /** 商品展示型資產類型。 */
+  type?: CatalogAssetType;
+}
+
 /** 建立商品分類請求（平台維護）。 */
 export interface CreateCatalogCategoryRequest {
   /**
@@ -641,6 +647,16 @@ export interface ListReviewsResponse {
   ratingCount?: number;
   /** 本頁評論清單（依時間新到舊）。 */
   items?: CatalogReviewDto[] | null;
+}
+
+export interface ProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
 }
 
 /** 買家已購商品的可下載檔案（含短效下載 URL）。 */
@@ -849,10 +865,10 @@ export interface UpsertReviewRequest {
   comment?: string | null;
 }
 
-/** 版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。 */
+/** 版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。 */
 export interface VersionAssetUploadUrlResponse {
   /**
-   * 已建立的 Asset ID。
+   * 檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。
    * @format uuid
    * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
    */
@@ -1816,7 +1832,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags Catalogs
      * @name RequestAssetUploadUrl
-     * @summary 申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。
+     * @summary 申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。簽發階段不扣配額、不建資產。僅 Owner 可操作。
      * @request POST:/v1/catalogs/{id}/assets/upload-url
      */
     requestAssetUploadUrl: (
@@ -1826,6 +1842,29 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<CatalogAssetUploadUrlResponse, any>({
         path: `/v1/catalogs/${id}/assets/upload-url`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name ConfirmAsset
+     * @summary 確認展示型資產上傳完成：扣配額、建立資產並標記檔案已使用。冪等。僅 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/assets/{assetId}/confirm
+     */
+    confirmAsset: (
+      id: string,
+      assetId: string,
+      data: ConfirmCatalogAssetRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogAssetDto, ProblemDetails>({
+        path: `/v1/catalogs/${id}/assets/${assetId}/confirm`,
         method: "POST",
         body: data,
         type: ContentType.Json,
@@ -1946,7 +1985,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags CatalogVersions
      * @name RequestAssetUploadUrl
-     * @summary 申請版本可下載檔案上傳簽章 URL（私有物件）。
+     * @summary 申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額、不建資產。
      * @request POST:/v1/catalogs/{catalogId}/versions/{versionId}/assets/upload-url
      */
     requestAssetUploadUrl: (
@@ -1960,6 +1999,27 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name ConfirmAsset
+     * @summary 確認版本可下載檔案上傳完成：扣配額、建立資產並標記檔案已使用。冪等。
+     * @request POST:/v1/catalogs/{catalogId}/versions/{versionId}/assets/{assetId}/confirm
+     */
+    confirmAsset: (
+      catalogId: string,
+      versionId: string,
+      assetId: string,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogVersionAssetDto, ProblemDetails>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}/confirm`,
+        method: "POST",
         format: "json",
         ...params,
       }),

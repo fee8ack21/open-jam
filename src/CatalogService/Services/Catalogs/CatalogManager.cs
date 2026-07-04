@@ -342,28 +342,54 @@ public class CatalogManager(
 
         var fileType = CatalogAssetContentTypes.Resolve(request.Type, request.ContentType);
 
-        // 簽發上傳 URL 前先向 QuotaService 預扣；後續任何失敗都釋放預扣。
-        var reservationId = await quotaClient.ReserveAsync(request.SizeBytes, catalog.Id, ct);
+        // 簽發階段不預扣配額、不建資產紀錄；使用者提交確認（confirm）時才建立 reference 並扣量。
+        var result = await storageClient.RequestUploadUrlAsync(
+            userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
+            fileType, isPublic: true, ct);
 
-        try
+        return new CatalogAssetUploadUrlResponse
         {
-            var result = await storageClient.RequestUploadUrlAsync(
-                userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
-                fileType, isPublic: true, reservationId, ct);
+            AssetId = result.FileId,
+            UploadUrl = result.UploadUrl,
+            PublicUrl = result.PublicUrl ?? BuildPublicUrl(result.StorageKey),
+            ExpiresAt = result.ExpiresAt,
+        };
+    }
 
+    /// <inheritdoc/>
+    public async Task<CatalogAssetDto> ConfirmAssetAsync(
+        Guid id, Guid assetId, ConfirmCatalogAssetRequest request, CancellationToken ct)
+    {
+        var catalog = await LoadOwnedCatalogAsync(id, ct);
+
+        // 1. 確認檔案已直傳完成並取得實際大小（冪等）。
+        var file = await storageClient.ConfirmUploadAsync(assetId, ct);
+        if (file.ProductId != catalog.Id)
+            throw new ValidationException("檔案不屬於此商品。");
+        if (file.Status != StorageFileStatus.Ready)
+            throw new ValidationException("檔案尚未完成處理，請稍後再試。");
+
+        // 2. 扣配額（冪等鍵 = 檔案 ID）；配額不足在建立 reference 前擋下。
+        await quotaClient.ChargeAsync(assetId, file.SizeBytes ?? 0, catalog.Id, ct);
+
+        // 3. 建立資產 reference（冪等：已存在則沿用）。
+        var asset = await db.CatalogAssets
+            .FirstOrDefaultAsync(a => a.Id == assetId && a.CatalogId == catalog.Id, ct);
+        if (asset is null)
+        {
             var nextSortOrder = await db.CatalogAssets
                 .Where(a => a.CatalogId == catalog.Id && a.Type == request.Type)
                 .CountAsync(ct);
 
-            var asset = new CatalogAsset
+            asset = new CatalogAsset
             {
-                Id = result.FileId,
+                Id = assetId,
                 CatalogId = catalog.Id,
                 Type = request.Type,
-                FileName = request.FileName,
-                StorageKey = result.StorageKey,
-                FileSize = request.SizeBytes,
-                ContentType = request.ContentType,
+                FileName = file.OriginalName,
+                StorageKey = file.StorageKey,
+                FileSize = file.SizeBytes ?? 0,
+                ContentType = file.ContentType,
                 SortOrder = nextSortOrder,
             };
             db.CatalogAssets.Add(asset);
@@ -373,20 +399,14 @@ public class CatalogManager(
                 catalog.ThumbnailAssetId = asset.Id;
 
             await db.SaveChangesAsync(ct);
+        }
 
-            return new CatalogAssetUploadUrlResponse
-            {
-                AssetId = asset.Id,
-                UploadUrl = result.UploadUrl,
-                PublicUrl = result.PublicUrl ?? BuildPublicUrl(result.StorageKey),
-                ExpiresAt = result.ExpiresAt,
-            };
-        }
-        catch
-        {
-            await quotaClient.ReleaseAsync(reservationId, ct);
-            throw;
-        }
+        // 4. 標記檔案已被使用（冪等），未標記檔案逾期會被 StorageService 清理且不計配額。
+        await storageClient.MarkReferencedAsync(assetId, ct);
+
+        var dto = mapper.Map<CatalogAssetDto>(asset);
+        dto.Url = BuildPublicUrl(asset.StorageKey);
+        return dto;
     }
 
     /// <inheritdoc/>
@@ -397,6 +417,9 @@ public class CatalogManager(
         var asset = await db.CatalogAssets
             .FirstOrDefaultAsync(a => a.Id == assetId && a.CatalogId == catalog.Id, ct)
             ?? throw new NotFoundException("找不到資產。");
+
+        // 先軟刪儲存端檔案（404 視為已刪，冪等），配額用量由 QuotaService 對帳釋放。
+        await storageClient.DeleteFileAsync(assetId, ct);
 
         db.CatalogAssets.Remove(asset);
 

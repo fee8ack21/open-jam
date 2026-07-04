@@ -20,7 +20,7 @@ public class FilesController(IFileService fileService) : ControllerBase
 {
     /// <summary>申請上傳簽章 URL（presigned PUT）。</summary>
     /// <remarks>
-    /// 功能 API 在完成配額檢查後呼叫此端點，取得簽章 URL 交由前端直傳儲存後端。
+    /// 簽發階段不涉及配額：配額於使用者提交確認、功能 API 建立 reference 時才計量。
     /// 本地儲存於 blob 端點接收上傳後即觸發處理 pipeline；GCS 由 bucket notification 觸發，
     /// 皆無需客戶端另行回報。
     /// </remarks>
@@ -34,7 +34,7 @@ public class FilesController(IFileService fileService) : ControllerBase
         [FromBody] RequestUploadUrlRequest request, CancellationToken ct) =>
         Ok(await fileService.RequestUploadUrlAsync(request, ct));
 
-    /// <summary>加總指定創作者已 Ready 檔案的位元組總和（QuotaService 每日對帳用）。</summary>
+    /// <summary>加總指定創作者已 Ready 且已被使用（referenced）檔案的位元組總和（QuotaService 每日對帳用）。</summary>
     /// <param name="creatorId">創作者（租戶）ID。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("usage")]
@@ -65,6 +65,20 @@ public class FilesController(IFileService fileService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<ActionResult<FileDto>> ConfirmUploadAsync(Guid id, CancellationToken ct) =>
         Ok(await fileService.ConfirmUploadAsync(id, ct));
+
+    /// <summary>標記檔案已被實際使用（建立 File reference）。</summary>
+    /// <remarks>
+    /// 功能 API 在使用者提交確認、完成配額計量並建立資產 reference 後呼叫。
+    /// 僅 Ready 檔案可標記；未標記的檔案不計入配額，且逾期未被使用將由清理排程回收。冪等。
+    /// </remarks>
+    /// <param name="id">檔案 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/reference")]
+    [ProducesResponseType<FileDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<FileDto>> MarkReferencedAsync(Guid id, CancellationToken ct) =>
+        Ok(await fileService.MarkReferencedAsync(id, ct));
 
     /// <summary>查詢檔案元資訊與處理狀態。</summary>
     /// <param name="id">檔案 ID。</param>

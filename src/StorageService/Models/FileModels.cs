@@ -13,10 +13,6 @@ public class RequestUploadUrlRequest
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? ProductId { get; set; }
 
-    /// <summary>配額預扣紀錄 ID（QuotaService）；功能 API 預扣後帶入，隨 FileReadyEvent 回帶供 commit；null 表示未經配額預扣。</summary>
-    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
-    public Guid? ReservationId { get; set; }
-
     /// <summary>使用者上傳時的原始檔名（含副檔名）。</summary>
     /// <example>intro-video.mp4</example>
     public string OriginalName { get; set; } = "";
@@ -80,14 +76,14 @@ public class GetDownloadUrlResponse
     public DateTimeOffset ExpiresAt { get; set; }
 }
 
-/// <summary>租戶實際用量回應（每日對帳用，加總已 Ready 檔案大小）。</summary>
+/// <summary>租戶實際用量回應（每日對帳用，加總已 Ready 且已被使用（referenced）的檔案大小）。</summary>
 public class TenantUsageResponse
 {
     /// <summary>租戶（創作者）ID。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid CreatorId { get; set; }
 
-    /// <summary>該租戶已 Ready 檔案的位元組總和。</summary>
+    /// <summary>該租戶已 Ready 且已被使用檔案的位元組總和。</summary>
     /// <example>1048576</example>
     public long TotalBytes { get; set; }
 }
@@ -157,6 +153,10 @@ public class FileDto
     /// <summary>所屬商品 ID。</summary>
     public Guid? ProductId { get; set; }
 
+    /// <summary>在儲存後端的物件鍵值。</summary>
+    /// <example>creators/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../intro-video.mp4</example>
+    public string StorageKey { get; set; } = "";
+
     /// <summary>使用者上傳時的原始檔名。</summary>
     /// <example>intro-video.mp4</example>
     public string OriginalName { get; set; } = "";
@@ -180,6 +180,9 @@ public class FileDto
     /// <summary>是否為公開預覽衍生檔。</summary>
     /// <example>false</example>
     public bool IsPreview { get; set; }
+
+    /// <summary>功能 API 確認此檔已被實際使用的時間；null 表示尚未被使用。</summary>
+    public DateTimeOffset? ReferencedAt { get; set; }
 
     /// <summary>建立時間（UTC）。</summary>
     public DateTimeOffset CreatedAt { get; set; }

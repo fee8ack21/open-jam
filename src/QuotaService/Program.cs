@@ -1,8 +1,6 @@
 using System.Text.Json.Serialization;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Data;
-using QuotaService.Consumers;
 using QuotaService.Data;
 using QuotaService.Options;
 using QuotaService.Services;
@@ -22,30 +20,6 @@ builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 builder.Services.AddDbContext<QuotaDbContext>(opts =>
     opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// MassTransit + RabbitMQ（consumer：FileReadyEvent → commit 預扣）
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<FileReadyConsumer>(cfg =>
-    {
-        cfg.UseMessageRetry(r => r.Exponential(
-            retryLimit:    5,
-            minInterval:   TimeSpan.FromSeconds(1),
-            maxInterval:   TimeSpan.FromSeconds(30),
-            intervalDelta: TimeSpan.FromSeconds(2)));
-    });
-
-    x.UsingRabbitMq((ctx, cfg) =>
-    {
-        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
-        {
-            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
-            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
-        });
-
-        cfg.ConfigureEndpoints(ctx);
-    });
-});
-
 // 強型別設定（Options pattern）
 builder.Services.Configure<QuotaOptions>(builder.Configuration.GetSection("Quota"));
 builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
@@ -59,7 +33,7 @@ builder.Services.AddScoped<StorageServiceClient>();
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
 builder.Services.AddScoped<IQuotaManager, QuotaManager>();
 
-// 背景服務：逾時預扣 sweeper + 每日對帳
+// 背景服務：逾時預扣 sweeper（清理舊制歷史資料）+ 每日對帳
 builder.Services.AddHostedService<ReservationSweeperService>();
 builder.Services.AddHostedService<ReconciliationService>();
 

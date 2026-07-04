@@ -10,19 +10,19 @@
  * ---------------------------------------------------------------
  */
 
-/** 商品列表排序方式。 */
-export enum CatalogSort {
-  Newest = "Newest",
-  PriceLowToHigh = "PriceLowToHigh",
-  PriceHighToLow = "PriceHighToLow",
-}
-
 /** 商品狀態。 */
 export enum CatalogStatus {
   Draft = "Draft",
   Published = "Published",
   Archived = "Archived",
   Suspended = "Suspended",
+}
+
+/** 商品列表排序方式。 */
+export enum CatalogSort {
+  Newest = "Newest",
+  PriceLowToHigh = "PriceLowToHigh",
+  PriceHighToLow = "PriceHighToLow",
 }
 
 /** 商品展示型資產類型。 */
@@ -77,10 +77,10 @@ export interface CatalogAssetDto {
   createdAt?: string;
 }
 
-/** 展示型資產上傳簽章 URL 回應。 */
+/** 展示型資產上傳簽章 URL 回應。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。 */
 export interface CatalogAssetUploadUrlResponse {
   /**
-   * 已建立的 Asset ID。
+   * 檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。
    * @format uuid
    * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
    */
@@ -126,6 +126,11 @@ export interface CatalogCategoryDto {
    * @example "audio"
    */
   slug?: string | null;
+  /**
+   * 分類補充敘述；null 表示未設定。
+   * @example "樂譜、配樂、分軌音檔"
+   */
+  description?: string | null;
   /**
    * 同層顯示排序。
    * @format int32
@@ -248,6 +253,55 @@ export interface CatalogDto {
   createdAt?: string;
   /**
    * 最後更新時間。
+   * @format date-time
+   */
+  updatedAt?: string | null;
+}
+
+/** 目前使用者的商品收藏（wishlist）回應。 */
+export interface CatalogFavoritesResponse {
+  /** 目前使用者已收藏的商品 ID 清單（依收藏時間遞減）。 */
+  catalogIds?: string[] | null;
+}
+
+/** 商品評論回應。 */
+export interface CatalogReviewDto {
+  /**
+   * 評論唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 所屬商品 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  catalogId?: string;
+  /**
+   * 評論者使用者 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  reviewerUserId?: string;
+  /**
+   * 評分（1–5）。
+   * @format int32
+   * @example 5
+   */
+  rating?: number;
+  /**
+   * 留言內容；null 表示僅評分未留言。
+   * @example "非常實用，物超所值！"
+   */
+  comment?: string | null;
+  /**
+   * 建立時間。
+   * @format date-time
+   */
+  createdAt?: string;
+  /**
+   * 最後更新時間；null 表示未曾更新。
    * @format date-time
    */
   updatedAt?: string | null;
@@ -444,6 +498,12 @@ export interface CatalogVersionDto {
   createdAt?: string;
 }
 
+/** 確認展示型資產上傳完成的請求（使用者提交確認時呼叫，此時才扣配額並建立資產）。 */
+export interface ConfirmCatalogAssetRequest {
+  /** 商品展示型資產類型。 */
+  type?: CatalogAssetType;
+}
+
 /** 建立商品分類請求（平台維護）。 */
 export interface CreateCatalogCategoryRequest {
   /**
@@ -462,6 +522,11 @@ export interface CreateCatalogCategoryRequest {
    * @example "audio"
    */
   slug?: string | null;
+  /**
+   * 分類補充敘述（選填，最多 200 字）。
+   * @example "樂譜、配樂、分軌音檔"
+   */
+  description?: string | null;
   /**
    * 同層顯示排序。
    * @format int32
@@ -566,6 +631,76 @@ export interface ListCatalogsResponse {
   items?: CatalogSummaryDto[] | null;
 }
 
+/** 商品評論列表分頁回應（含彙總）。 */
+export interface ListReviewsResponse {
+  /**
+   * 平均評分（0–5）；無評論時為 0。
+   * @format double
+   * @example 4.6
+   */
+  ratingAverage?: number;
+  /**
+   * 評論總數。
+   * @format int32
+   * @example 128
+   */
+  ratingCount?: number;
+  /** 本頁評論清單（依時間新到舊）。 */
+  items?: CatalogReviewDto[] | null;
+}
+
+export interface ProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+}
+
+/** 買家已購商品的可下載檔案（含短效下載 URL）。 */
+export interface PurchasedVersionAssetDto {
+  /**
+   * 資產唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 原始檔名。
+   * @example "pixel-sfx-pack-v1.zip"
+   */
+  fileName?: string | null;
+  /**
+   * MIME 類型。
+   * @example "application/zip"
+   */
+  contentType?: string | null;
+  /**
+   * 檔案大小（bytes）。
+   * @format int64
+   * @example 10485760
+   */
+  fileSize?: number;
+  /**
+   * 同版本內顯示排序。
+   * @format int32
+   * @example 0
+   */
+  sortOrder?: number;
+  /**
+   * 短效下載 URL（簽章）。
+   * @example "https://storage.openjam.co/..."
+   */
+  downloadUrl?: string | null;
+  /**
+   * 下載 URL 過期時間（UTC）。
+   * @format date-time
+   */
+  expiresAt?: string;
+}
+
 /** 申請展示型資產上傳簽章 URL 請求。 */
 export interface RequestCatalogAssetUploadUrlRequest {
   /** 商品展示型資產類型。 */
@@ -662,6 +797,11 @@ export interface UpdateCatalogCategoryRequest {
    */
   slug?: string | null;
   /**
+   * 分類補充敘述；null 表示不變更。
+   * @example "樂譜、配樂、分軌音檔"
+   */
+  description?: string | null;
+  /**
    * 同層顯示排序；null 表示不變更。
    * @format int32
    * @example 1
@@ -710,69 +850,6 @@ export interface UpdateCatalogRequest {
   currency?: string | null;
 }
 
-/** 版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。 */
-export interface VersionAssetUploadUrlResponse {
-  /**
-   * 已建立的 Asset ID。
-   * @format uuid
-   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-   */
-  assetId?: string;
-  /**
-   * 前端應使用此 URL 以 HTTP PUT 直傳檔案。
-   * @example "http://localhost:5171/v1/files/blob/creators/.../pixel-sfx-pack-v1.pdf?expires=1735689600&sig=..."
-   */
-  uploadUrl?: string | null;
-  /**
-   * 簽章 URL 過期時間（UTC）。
-   * @format date-time
-   */
-  expiresAt?: string;
-}
-
-/** 商品評論回應。 */
-export interface CatalogReviewDto {
-  /**
-   * 評論唯一識別碼。
-   * @format uuid
-   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-   */
-  id?: string;
-  /**
-   * 所屬商品 ID。
-   * @format uuid
-   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-   */
-  catalogId?: string;
-  /**
-   * 評論者使用者 ID。
-   * @format uuid
-   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-   */
-  reviewerUserId?: string;
-  /**
-   * 評分（1–5）。
-   * @format int32
-   * @example 5
-   */
-  rating?: number;
-  /**
-   * 留言內容；null 表示僅評分未留言。
-   * @example "非常實用，物超所值！"
-   */
-  comment?: string | null;
-  /**
-   * 建立時間。
-   * @format date-time
-   */
-  createdAt?: string;
-  /**
-   * 最後更新時間；null 表示未曾更新。
-   * @format date-time
-   */
-  updatedAt?: string | null;
-}
-
 /** 新增 / 更新評論請求（同一使用者對同一商品為 upsert）。 */
 export interface UpsertReviewRequest {
   /**
@@ -788,22 +865,24 @@ export interface UpsertReviewRequest {
   comment?: string | null;
 }
 
-/** 商品評論列表分頁回應（含彙總）。 */
-export interface ListReviewsResponse {
+/** 版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。 */
+export interface VersionAssetUploadUrlResponse {
   /**
-   * 平均評分（0–5）；無評論時為 0。
-   * @format double
-   * @example 4.6
+   * 檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
    */
-  ratingAverage?: number;
+  assetId?: string;
   /**
-   * 評論總數。
-   * @format int32
-   * @example 128
+   * 前端應使用此 URL 以 HTTP PUT 直傳檔案。
+   * @example "http://localhost:5171/v1/files/blob/creators/.../pixel-sfx-pack-v1.pdf?expires=1735689600&sig=..."
    */
-  ratingCount?: number;
-  /** 本頁評論清單（依時間新到舊）。 */
-  items?: CatalogReviewDto[] | null;
+  uploadUrl?: string | null;
+  /**
+   * 簽章 URL 過期時間（UTC）。
+   * @format date-time
+   */
+  expiresAt?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -1160,6 +1239,141 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  catalogFavorites = {
+    /**
+     * No description
+     *
+     * @tags CatalogFavorites
+     * @name ListMine
+     * @summary 查詢目前使用者已收藏的商品 ID 清單。
+     * @request GET:/v1/catalogs/favorites
+     */
+    listMine: (params: RequestParams = {}) =>
+      this.http.request<CatalogFavoritesResponse, any>({
+        path: `/v1/catalogs/favorites`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogFavorites
+     * @name Add
+     * @summary 收藏商品。已收藏則 no-op。
+     * @request POST:/v1/catalogs/{id}/favorite
+     */
+    add: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/favorite`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogFavorites
+     * @name Remove
+     * @summary 取消收藏商品。未收藏則 no-op。
+     * @request DELETE:/v1/catalogs/{id}/favorite
+     */
+    remove: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/favorite`,
+        method: "DELETE",
+        ...params,
+      }),
+  };
+  catalogReviews = {
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name List
+     * @summary 分頁列出商品評論（公開），含平均分與評論數。
+     * @request GET:/v1/catalogs/{catalogId}/reviews
+     */
+    list: (
+      catalogId: string,
+      query?: {
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListReviewsResponse, any>({
+        path: `/v1/catalogs/${catalogId}/reviews`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name GetMine
+     * @summary 取得目前使用者對此商品的評論；尚未評論回傳 204。
+     * @request GET:/v1/catalogs/{catalogId}/reviews/mine
+     */
+    getMine: (catalogId: string, params: RequestParams = {}) =>
+      this.http.request<CatalogReviewDto, any>({
+        path: `/v1/catalogs/${catalogId}/reviews/mine`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name UpsertMine
+     * @summary 新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。
+     * @request PUT:/v1/catalogs/{catalogId}/reviews/mine
+     */
+    upsertMine: (
+      catalogId: string,
+      data: UpsertReviewRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogReviewDto, any>({
+        path: `/v1/catalogs/${catalogId}/reviews/mine`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogReviews
+     * @name DeleteMine
+     * @summary 刪除本人對此商品的評論。
+     * @request DELETE:/v1/catalogs/{catalogId}/reviews/mine
+     */
+    deleteMine: (catalogId: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${catalogId}/reviews/mine`,
+        method: "DELETE",
+        ...params,
+      }),
+  };
   catalogs = {
     /**
      * No description
@@ -1183,6 +1397,11 @@ export class Api<SecurityDataType extends unknown> {
          * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
          */
         CategoryId?: string;
+        /**
+         * 限定商品狀態；null 表示不限。僅對含未上架商品的查詢（mine / by-store）生效。
+         * @example "Published"
+         */
+        Status?: CatalogStatus;
         /**
          * 限定標籤名稱；null 表示不限。
          * @example "retro"
@@ -1210,7 +1429,10 @@ export class Api<SecurityDataType extends unknown> {
          * @example 30
          */
         MaxPrice?: number;
-        /** 排序方式；省略時預設最新上架。 */
+        /**
+         * 排序方式；省略時預設最新上架。
+         * @example "Newest"
+         */
         Sort?: CatalogSort;
         /**
          * 略過筆數。
@@ -1276,6 +1498,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         CategoryId?: string;
         /**
+         * 限定商品狀態；null 表示不限。僅對含未上架商品的查詢（mine / by-store）生效。
+         * @example "Published"
+         */
+        Status?: CatalogStatus;
+        /**
          * 限定標籤名稱；null 表示不限。
          * @example "retro"
          */
@@ -1285,6 +1512,28 @@ export class Api<SecurityDataType extends unknown> {
          * @example "音效"
          */
         Search?: string;
+        /**
+         * 僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。
+         * @example true
+         */
+        Featured?: boolean;
+        /**
+         * 售價下限（含）；null 表示不限。
+         * @format double
+         * @example 0
+         */
+        MinPrice?: number;
+        /**
+         * 售價上限（含）；null 表示不限。
+         * @format double
+         * @example 30
+         */
+        MaxPrice?: number;
+        /**
+         * 排序方式；省略時預設最新上架。
+         * @example "Newest"
+         */
+        Sort?: CatalogSort;
         /**
          * 略過筆數。
          * @format int32
@@ -1332,6 +1581,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         CategoryId?: string;
         /**
+         * 限定商品狀態；null 表示不限。僅對含未上架商品的查詢（mine / by-store）生效。
+         * @example "Published"
+         */
+        Status?: CatalogStatus;
+        /**
          * 限定標籤名稱；null 表示不限。
          * @example "retro"
          */
@@ -1341,6 +1595,28 @@ export class Api<SecurityDataType extends unknown> {
          * @example "音效"
          */
         Search?: string;
+        /**
+         * 僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。
+         * @example true
+         */
+        Featured?: boolean;
+        /**
+         * 售價下限（含）；null 表示不限。
+         * @format double
+         * @example 0
+         */
+        MinPrice?: number;
+        /**
+         * 售價上限（含）；null 表示不限。
+         * @format double
+         * @example 30
+         */
+        MaxPrice?: number;
+        /**
+         * 排序方式；省略時預設最新上架。
+         * @example "Newest"
+         */
+        Sort?: CatalogSort;
         /**
          * 略過筆數。
          * @format int32
@@ -1399,21 +1675,6 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         type: ContentType.Json,
         format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Catalogs
-     * @name IncrementView
-     * @summary 商品詳情頁瀏覽次數 +1（公開）。
-     * @request POST:/v1/catalogs/{id}/view
-     */
-    incrementView: (id: string, params: RequestParams = {}) =>
-      this.http.request<void, any>({
-        path: `/v1/catalogs/${id}/view`,
-        method: "POST",
         ...params,
       }),
 
@@ -1525,6 +1786,21 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Catalogs
+     * @name IncrementView
+     * @summary 商品詳情頁瀏覽次數 +1（公開）。
+     * @request POST:/v1/catalogs/{id}/view
+     */
+    incrementView: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/view`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
      * @name Feature
      * @summary 設為編輯精選（市集首頁精選輪播）。僅 Admin 可操作。
      * @request POST:/v1/catalogs/{id}/feature
@@ -1556,7 +1832,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags Catalogs
      * @name RequestAssetUploadUrl
-     * @summary 申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。
+     * @summary 申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。簽發階段不扣配額、不建資產。僅 Owner 可操作。
      * @request POST:/v1/catalogs/{id}/assets/upload-url
      */
     requestAssetUploadUrl: (
@@ -1566,6 +1842,29 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<CatalogAssetUploadUrlResponse, any>({
         path: `/v1/catalogs/${id}/assets/upload-url`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name ConfirmAsset
+     * @summary 確認展示型資產上傳完成：扣配額、建立資產並標記檔案已使用。冪等。僅 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/assets/{assetId}/confirm
+     */
+    confirmAsset: (
+      id: string,
+      assetId: string,
+      data: ConfirmCatalogAssetRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogAssetDto, ProblemDetails>({
+        path: `/v1/catalogs/${id}/assets/${assetId}/confirm`,
         method: "POST",
         body: data,
         type: ContentType.Json,
@@ -1686,7 +1985,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags CatalogVersions
      * @name RequestAssetUploadUrl
-     * @summary 申請版本可下載檔案上傳簽章 URL（私有物件）。
+     * @summary 申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額、不建資產。
      * @request POST:/v1/catalogs/{catalogId}/versions/{versionId}/assets/upload-url
      */
     requestAssetUploadUrl: (
@@ -1700,6 +1999,27 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name ConfirmAsset
+     * @summary 確認版本可下載檔案上傳完成：扣配額、建立資產並標記檔案已使用。冪等。
+     * @request POST:/v1/catalogs/{catalogId}/versions/{versionId}/assets/{assetId}/confirm
+     */
+    confirmAsset: (
+      catalogId: string,
+      versionId: string,
+      assetId: string,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogVersionAssetDto, ProblemDetails>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}/confirm`,
+        method: "POST",
         format: "json",
         ...params,
       }),
@@ -1729,6 +2049,26 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags CatalogVersions
+     * @name ListPurchasedDownloads
+     * @summary 列出買家已購商品某版本的可下載檔案（含短效下載 URL）。以購買紀錄授權，須已有該商品的完成訂單。
+     * @request GET:/v1/catalogs/{catalogId}/versions/{versionId}/downloads
+     */
+    listPurchasedDownloads: (
+      catalogId: string,
+      versionId: string,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PurchasedVersionAssetDto[], any>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/downloads`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
      * @name DeleteAsset
      * @summary 刪除版本可下載檔案。
      * @request DELETE:/v1/catalogs/{catalogId}/versions/{versionId}/assets/{assetId}
@@ -1741,94 +2081,6 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<void, any>({
         path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}`,
-        method: "DELETE",
-        ...params,
-      }),
-  };
-  catalogReviews = {
-    /**
-     * No description
-     *
-     * @tags CatalogReviews
-     * @name List
-     * @summary 分頁列出商品評論（公開），含平均分與評論數。
-     * @request GET:/v1/catalogs/{catalogId}/reviews
-     */
-    list: (
-      catalogId: string,
-      query?: {
-        /**
-         * 略過筆數。
-         * @format int32
-         * @example 0
-         */
-        Offset?: number;
-        /**
-         * 每頁筆數（最大 100）。
-         * @format int32
-         * @example 20
-         */
-        Limit?: number;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.http.request<ListReviewsResponse, any>({
-        path: `/v1/catalogs/${catalogId}/reviews`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags CatalogReviews
-     * @name GetMine
-     * @summary 取得目前使用者對此商品的評論；尚未評論回傳 204。
-     * @request GET:/v1/catalogs/{catalogId}/reviews/mine
-     */
-    getMine: (catalogId: string, params: RequestParams = {}) =>
-      this.http.request<CatalogReviewDto, any>({
-        path: `/v1/catalogs/${catalogId}/reviews/mine`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags CatalogReviews
-     * @name UpsertMine
-     * @summary 新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。
-     * @request PUT:/v1/catalogs/{catalogId}/reviews/mine
-     */
-    upsertMine: (
-      catalogId: string,
-      data: UpsertReviewRequest,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<CatalogReviewDto, any>({
-        path: `/v1/catalogs/${catalogId}/reviews/mine`,
-        method: "PUT",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags CatalogReviews
-     * @name DeleteMine
-     * @summary 刪除本人對此商品的評論。
-     * @request DELETE:/v1/catalogs/{catalogId}/reviews/mine
-     */
-    deleteMine: (catalogId: string, params: RequestParams = {}) =>
-      this.http.request<void, any>({
-        path: `/v1/catalogs/${catalogId}/reviews/mine`,
         method: "DELETE",
         ...params,
       }),

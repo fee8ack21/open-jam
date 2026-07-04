@@ -34,7 +34,7 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
         return CreatedAtAction(nameof(ListAsync), new { catalogId, version = "1.0" }, version);
     }
 
-    /// <summary>申請版本可下載檔案上傳簽章 URL（私有物件）。</summary>
+    /// <summary>申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額、不建資產。</summary>
     /// <param name="catalogId">商品 ID。</param>
     /// <param name="versionId">版本 ID。</param>
     /// <param name="request">檔案資訊。</param>
@@ -44,6 +44,19 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     public async Task<ActionResult<VersionAssetUploadUrlResponse>> RequestAssetUploadUrlAsync(
         Guid catalogId, Guid versionId, [FromBody] RequestVersionAssetUploadUrlRequest request, CancellationToken ct) =>
         Ok(await versionService.RequestAssetUploadUrlAsync(catalogId, versionId, request, ct));
+
+    /// <summary>確認版本可下載檔案上傳完成：扣配額、建立資產並標記檔案已使用。冪等。</summary>
+    /// <param name="catalogId">商品 ID。</param>
+    /// <param name="versionId">版本 ID。</param>
+    /// <param name="assetId">資產（檔案）ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{versionId:guid}/assets/{assetId:guid}/confirm")]
+    [ProducesResponseType<CatalogVersionAssetDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<CatalogVersionAssetDto>> ConfirmAssetAsync(
+        Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct) =>
+        Ok(await versionService.ConfirmAssetAsync(catalogId, versionId, assetId, ct));
 
     /// <summary>取得版本可下載檔案的下載簽章 URL（管理用途）。</summary>
     /// <param name="catalogId">商品 ID。</param>

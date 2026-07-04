@@ -14,8 +14,8 @@ public class StoredFile : ICreatedAt, IUpdatedAt, IDeletedAt, IDeletedBy
     /// <summary>所屬商品 ID；null 表示尚未關聯商品。</summary>
     public Guid? ProductId { get; set; }
 
-    /// <summary>對應的配額預扣紀錄 ID（QuotaService）；null 表示此檔未經配額預扣。隨 FileReadyEvent 回帶以供 commit。</summary>
-    public Guid? ReservationId { get; set; }
+    /// <summary>功能 API 確認此檔已被實際使用（掛上商品資產等 reference）的時間；null 表示尚未被使用。</summary>
+    public DateTimeOffset? ReferencedAt { get; set; }
 
     /// <summary>在儲存後端（本地檔案 / GCS）的物件鍵值，格式：creators/{creatorId}/{fileId}/{originalName}。</summary>
     public string StorageKey { get; set; } = "";

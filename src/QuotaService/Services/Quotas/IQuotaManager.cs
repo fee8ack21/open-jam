@@ -5,16 +5,13 @@ namespace QuotaService.Services.Quotas;
 /// <summary>資源配額計量、預扣與回滾的業務邏輯。</summary>
 public interface IQuotaManager
 {
-    /// <summary>建立儲存空間預扣（含單檔 / 單商品即時上限檢查）。冪等：同 ReservationId 回傳既有結果。</summary>
-    Task<ReservationResponse> ReserveAsync(ReserveRequest request, CancellationToken ct);
+    /// <summary>
+    /// 使用者提交確認後的儲存空間扣量（含單檔 / 單商品 / 帳號總量原子檢查）。
+    /// 冪等：同 ChargeId 重送不重複扣量。配額不足拋 409；超單檔 / 單商品上限拋 422。
+    /// </summary>
+    Task ChargeAsync(ChargeRequest request, CancellationToken ct);
 
-    /// <summary>commit 預扣：上傳成功後將預扣轉為實際用量。由 FileReadyEvent 觸發，須冪等。</summary>
-    Task CommitAsync(Guid reservationId, long actualSize, CancellationToken ct);
-
-    /// <summary>釋放預扣（取消 / 逾時 / 主動釋放）。HTTP 呼叫時找不到回 404。</summary>
-    Task ReleaseAsync(Guid reservationId, CancellationToken ct);
-
-    /// <summary>釋放所有逾時且仍未 commit 的預扣，回傳釋放筆數（sweeper 用）。</summary>
+    /// <summary>釋放所有逾時且仍未 commit 的舊制預扣，回傳釋放筆數（sweeper 清理歷史資料用）。</summary>
     Task<int> ReleaseExpiredAsync(CancellationToken ct);
 
     /// <summary>增減上架商品數（原子檢查上限）。</summary>

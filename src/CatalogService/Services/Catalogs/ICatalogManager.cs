@@ -41,10 +41,16 @@ public interface ICatalogManager
     /// <summary>商品詳情頁瀏覽次數 +1（公開，原子累加）。</summary>
     Task IncrementViewAsync(Guid id, CancellationToken ct);
 
-    /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。</summary>
+    /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。簽發階段不扣配額。僅 Owner 可操作。</summary>
     Task<CatalogAssetUploadUrlResponse> RequestAssetUploadUrlAsync(
         Guid id, RequestCatalogAssetUploadUrlRequest request, CancellationToken ct);
 
-    /// <summary>刪除展示型資產。僅 Owner 可操作。</summary>
+    /// <summary>
+    /// 確認展示型資產上傳完成：扣配額、建立資產 reference 並標記檔案已使用。冪等。僅 Owner 可操作。
+    /// </summary>
+    Task<CatalogAssetDto> ConfirmAssetAsync(
+        Guid id, Guid assetId, ConfirmCatalogAssetRequest request, CancellationToken ct);
+
+    /// <summary>刪除展示型資產（同步軟刪儲存端檔案）。僅 Owner 可操作。</summary>
     Task DeleteAssetAsync(Guid id, Guid assetId, CancellationToken ct);
 }

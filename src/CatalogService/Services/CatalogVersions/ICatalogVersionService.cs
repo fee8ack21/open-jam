@@ -12,9 +12,15 @@ public interface ICatalogVersionService
     /// <summary>建立新版本，並將其設為商品的目前版本。僅 Owner 可操作。</summary>
     Task<CatalogVersionDto> CreateAsync(Guid catalogId, CreateCatalogVersionRequest request, CancellationToken ct);
 
-    /// <summary>申請版本可下載檔案上傳簽章 URL（私有物件）。僅 Owner 可操作。</summary>
+    /// <summary>申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額。僅 Owner 可操作。</summary>
     Task<VersionAssetUploadUrlResponse> RequestAssetUploadUrlAsync(
         Guid catalogId, Guid versionId, RequestVersionAssetUploadUrlRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// 確認版本可下載檔案上傳完成：扣配額、建立資產 reference 並標記檔案已使用。冪等。僅 Owner 可操作。
+    /// </summary>
+    Task<CatalogVersionAssetDto> ConfirmAssetAsync(
+        Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct);
 
     /// <summary>取得版本可下載檔案的下載簽章 URL（管理用途）。僅 Owner 可操作。</summary>
     Task<StorageDownloadUrlResult> GetAssetDownloadUrlAsync(

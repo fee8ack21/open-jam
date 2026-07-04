@@ -21,6 +21,7 @@ public class StorageDbContext(DbContextOptions<StorageDbContext> options, ICurre
             e.HasIndex(f => f.CreatorId);
             e.HasIndex(f => f.ProductId);
             e.HasIndex(f => new { f.Status, f.CreatedAt });
+            e.HasIndex(f => f.ReferencedAt);
             e.Property(f => f.StorageKey).HasMaxLength(1024).IsRequired();
             e.Property(f => f.OriginalName).HasMaxLength(512).IsRequired();
             e.Property(f => f.ContentType).HasMaxLength(128).IsRequired();

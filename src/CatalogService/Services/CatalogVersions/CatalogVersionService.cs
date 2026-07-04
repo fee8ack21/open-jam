@@ -75,45 +75,64 @@ public class CatalogVersionService(
 
         var fileType = CatalogAssetContentTypes.ResolveDownloadable(request.ContentType);
 
-        // 簽發上傳 URL 前先向 QuotaService 預扣；後續任何失敗都釋放預扣。
-        var reservationId = await quotaClient.ReserveAsync(request.SizeBytes, catalog.Id, ct);
+        // 簽發階段不預扣配額、不建資產紀錄；使用者提交確認（confirm）時才建立 reference 並扣量。
+        var result = await storageClient.RequestUploadUrlAsync(
+            userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
+            fileType, isPublic: false, ct);
 
-        try
+        return new VersionAssetUploadUrlResponse
         {
-            var result = await storageClient.RequestUploadUrlAsync(
-                userId, catalog.Id, request.FileName, request.ContentType, request.SizeBytes,
-                fileType, isPublic: false, reservationId, ct);
+            AssetId = result.FileId,
+            UploadUrl = result.UploadUrl,
+            ExpiresAt = result.ExpiresAt,
+        };
+    }
 
+    /// <inheritdoc/>
+    public async Task<CatalogVersionAssetDto> ConfirmAssetAsync(
+        Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct)
+    {
+        var catalog = await CatalogAuthorization.LoadOwnedCatalogAsync(db, storeClient, currentUser, catalogId, ct);
+        var version = await LoadVersionAsync(catalogId, versionId, ct);
+
+        // 1. 確認檔案已直傳完成並取得實際大小（冪等）。
+        var file = await storageClient.ConfirmUploadAsync(assetId, ct);
+        if (file.ProductId != catalog.Id)
+            throw new ValidationException("檔案不屬於此商品。");
+        if (file.Status != StorageFileStatus.Ready)
+            throw new ValidationException("檔案尚未完成處理，請稍後再試。");
+
+        // 2. 扣配額（冪等鍵 = 檔案 ID）；配額不足在建立 reference 前擋下。
+        await quotaClient.ChargeAsync(assetId, file.SizeBytes ?? 0, catalog.Id, ct);
+
+        // 3. 建立資產 reference（冪等：已存在則沿用）。
+        var asset = await db.CatalogVersionAssets
+            .FirstOrDefaultAsync(a => a.Id == assetId && a.CatalogVersionId == version.Id, ct);
+        if (asset is null)
+        {
             var nextSortOrder = await db.CatalogVersionAssets
                 .Where(a => a.CatalogVersionId == version.Id)
                 .CountAsync(ct);
 
-            var asset = new CatalogVersionAsset
+            asset = new CatalogVersionAsset
             {
-                Id = result.FileId,
+                Id = assetId,
                 CatalogVersionId = version.Id,
-                FileName = request.FileName,
-                StorageKey = result.StorageKey,
-                FileSize = request.SizeBytes,
-                ContentType = request.ContentType,
+                FileName = file.OriginalName,
+                StorageKey = file.StorageKey,
+                FileSize = file.SizeBytes ?? 0,
+                ContentType = file.ContentType,
                 SortOrder = nextSortOrder,
             };
             db.CatalogVersionAssets.Add(asset);
 
             await db.SaveChangesAsync(ct);
+        }
 
-            return new VersionAssetUploadUrlResponse
-            {
-                AssetId = asset.Id,
-                UploadUrl = result.UploadUrl,
-                ExpiresAt = result.ExpiresAt,
-            };
-        }
-        catch
-        {
-            await quotaClient.ReleaseAsync(reservationId, ct);
-            throw;
-        }
+        // 4. 標記檔案已被使用（冪等），未標記檔案逾期會被 StorageService 清理且不計配額。
+        await storageClient.MarkReferencedAsync(assetId, ct);
+
+        return mapper.Map<CatalogVersionAssetDto>(asset);
     }
 
     /// <inheritdoc/>
@@ -174,6 +193,9 @@ public class CatalogVersionService(
         var asset = await db.CatalogVersionAssets
             .FirstOrDefaultAsync(a => a.Id == assetId && a.CatalogVersionId == versionId, ct)
             ?? throw new NotFoundException("找不到檔案。");
+
+        // 先軟刪儲存端檔案（404 視為已刪，冪等），配額用量由 QuotaService 對帳釋放。
+        await storageClient.DeleteFileAsync(assetId, ct);
 
         db.CatalogVersionAssets.Remove(asset);
         await db.SaveChangesAsync(ct);

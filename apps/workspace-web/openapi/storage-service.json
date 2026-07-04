@@ -1,59 +1,1003 @@
 {
-  "openapi": "3.0.1",
-  "info": {
-    "title": "StorageService",
-    "version": "1.0"
-  },
-  "paths": {
-    "/v1/files/usage/summary": {
-      "get": {
-        "tags": ["Files"],
-        "summary": "彙總全平台儲存用量（數量 / 大小 / 公開私有 / 孤兒檔 / 創作者明細）。僅 Admin 可操作。",
-        "operationId": "GetPlatformUsage",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": { "schema": { "$ref": "#/components/schemas/PlatformUsageResponse" } },
-              "application/json": { "schema": { "$ref": "#/components/schemas/PlatformUsageResponse" } },
-              "text/json": { "schema": { "$ref": "#/components/schemas/PlatformUsageResponse" } }
+    "openapi": "3.0.1",
+    "info": {
+        "title": "StorageService",
+        "version": "v1"
+    },
+    "paths": {
+        "/v1/files/blob/{key}": {
+            "put": {
+                "tags": [
+                    "Blob"
+                ],
+                "summary": "\u63a5\u6536\u5ba2\u6236\u7aef\u76f4\u50b3\u7684\u6a94\u6848\u5167\u5bb9\uff0c\u5beb\u5165\u672c\u5730\u5132\u5b58\u5f8c\u89f8\u767c\u8655\u7406 pipeline\u3002",
+                "operationId": "Upload",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "description": "\u7269\u4ef6\u9375\u503c\uff08catch-all \u8def\u5f91\uff09\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "expires",
+                        "in": "query",
+                        "description": "URL \u5230\u671f\u6642\u9593\uff08Unix \u79d2\uff09\u3002",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "sig",
+                        "in": "query",
+                        "description": "HMAC \u7c3d\u7ae0\u3002",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Blob"
+                ],
+                "summary": "\u63d0\u4f9b\u672c\u5730\u5132\u5b58\u6a94\u6848\u7684\u4e0b\u8f09\uff1b`public/` \u524d\u7db4\u514d\u7c3d\u7ae0\uff0c\u5176\u9918\u9808\u5e36\u6709\u6548\u7c3d\u7ae0\u3002",
+                "operationId": "Download",
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "path",
+                        "description": "\u7269\u4ef6\u9375\u503c\uff08catch-all \u8def\u5f91\uff09\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "expires",
+                        "in": "query",
+                        "description": "URL \u5230\u671f\u6642\u9593\uff08Unix \u79d2\uff09\uff1b\u516c\u958b\u7269\u4ef6\u53ef\u7701\u7565\u3002",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "sig",
+                        "in": "query",
+                        "description": "HMAC \u7c3d\u7ae0\uff1b\u516c\u958b\u7269\u4ef6\u53ef\u7701\u7565\u3002",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
+        },
+        "/v1/files/upload-url": {
+            "post": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u7533\u8acb\u4e0a\u50b3\u7c3d\u7ae0 URL\uff08presigned PUT\uff09\u3002",
+                "description": "\u7c3d\u767c\u968e\u6bb5\u4e0d\u6d89\u53ca\u914d\u984d\uff1a\u914d\u984d\u65bc\u4f7f\u7528\u8005\u63d0\u4ea4\u78ba\u8a8d\u3001\u529f\u80fd API \u5efa\u7acb reference \u6642\u624d\u8a08\u91cf\u3002\r\n\u672c\u5730\u5132\u5b58\u65bc blob \u7aef\u9ede\u63a5\u6536\u4e0a\u50b3\u5f8c\u5373\u89f8\u767c\u8655\u7406 pipeline\uff1bGCS \u7531 bucket notification \u89f8\u767c\uff0c\r\n\u7686\u7121\u9700\u5ba2\u6236\u7aef\u53e6\u884c\u56de\u5831\u3002",
+                "operationId": "RequestUploadUrl",
+                "requestBody": {
+                    "description": "\u4e0a\u50b3\u5143\u8cc7\u8a0a\u3002",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequestUploadUrlRequest"
+                            }
+                        },
+                        "text/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequestUploadUrlRequest"
+                            }
+                        },
+                        "application/*+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequestUploadUrlRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestUploadUrlResponse"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestUploadUrlResponse"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RequestUploadUrlResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/files/usage": {
+            "get": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u52a0\u7e3d\u6307\u5b9a\u5275\u4f5c\u8005\u5df2 Ready \u4e14\u5df2\u88ab\u4f7f\u7528\uff08referenced\uff09\u6a94\u6848\u7684\u4f4d\u5143\u7d44\u7e3d\u548c\uff08QuotaService \u6bcf\u65e5\u5c0d\u5e33\u7528\uff09\u3002",
+                "operationId": "GetTenantUsage",
+                "parameters": [
+                    {
+                        "name": "creatorId",
+                        "in": "query",
+                        "description": "\u5275\u4f5c\u8005\uff08\u79df\u6236\uff09ID\u3002",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TenantUsageResponse"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TenantUsageResponse"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TenantUsageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/files/usage/summary": {
+            "get": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u5f59\u7e3d\u5168\u5e73\u53f0\u5132\u5b58\u7528\u91cf\uff08\u6578\u91cf / \u5927\u5c0f / \u516c\u958b\u79c1\u6709 / \u5b64\u5152\u6a94 / \u5275\u4f5c\u8005\u660e\u7d30\uff09\u3002\u50c5 Admin \u53ef\u64cd\u4f5c\u3002",
+                "operationId": "GetPlatformUsage",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PlatformUsageResponse"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PlatformUsageResponse"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PlatformUsageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/files/{id}/confirm": {
+            "post": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u78ba\u8a8d\u6a94\u6848\u5df2\u76f4\u50b3\u5b8c\u6210\uff0c\u89f8\u767c\u8655\u7406 pipeline \u4e26\u6a19\u8a18 Ready\u3002",
+                "description": "\u96f2\u7aef\uff08GCS\uff09\u6a21\u5f0f\u4e0b\uff0c\u524d\u7aef\u900f\u904e\u7c3d\u7ae0 URL \u76f4\u50b3\u5f8c\u7531\u529f\u80fd API \u547c\u53eb\u6b64\u7aef\u9ede\u78ba\u8a8d\uff1b\r\nStorageService \u9a57\u8b49\u7269\u4ef6\u78ba\u5be6\u5b58\u5728\u5f8c\u57f7\u884c\u8655\u7406\u4e26\u767c\u5e03 FileReadyEvent\u3002\r\n\u672c\u5730\u5132\u5b58\u7531 blob \u7aef\u9ede\u63a5\u6536\u4e0a\u50b3\u6642\u81ea\u52d5\u89f8\u767c\uff0c\u7121\u9700\u547c\u53eb\u3002\u51aa\u7b49\u3002",
+                "operationId": "ConfirmUpload",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\u6a94\u6848 ID\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/files/{id}/reference": {
+            "post": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u6a19\u8a18\u6a94\u6848\u5df2\u88ab\u5be6\u969b\u4f7f\u7528\uff08\u5efa\u7acb File reference\uff09\u3002",
+                "description": "\u529f\u80fd API \u5728\u4f7f\u7528\u8005\u63d0\u4ea4\u78ba\u8a8d\u3001\u5b8c\u6210\u914d\u984d\u8a08\u91cf\u4e26\u5efa\u7acb\u8cc7\u7522 reference \u5f8c\u547c\u53eb\u3002\r\n\u50c5 Ready \u6a94\u6848\u53ef\u6a19\u8a18\uff1b\u672a\u6a19\u8a18\u7684\u6a94\u6848\u4e0d\u8a08\u5165\u914d\u984d\uff0c\u4e14\u903e\u671f\u672a\u88ab\u4f7f\u7528\u5c07\u7531\u6e05\u7406\u6392\u7a0b\u56de\u6536\u3002\u51aa\u7b49\u3002",
+                "operationId": "MarkReferenced",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\u6a94\u6848 ID\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/files/{id}": {
+            "get": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u67e5\u8a62\u6a94\u6848\u5143\u8cc7\u8a0a\u8207\u8655\u7406\u72c0\u614b\u3002",
+                "operationId": "Get",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\u6a94\u6848 ID\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileDto"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u8edf\u522a\u9664\u6a94\u6848\uff1b\u5df2\u8cfc\u8cb7\u7684\u5546\u54c1\u4ecd\u4fdd\u7559\u8cb7\u5bb6\u4e0b\u8f09\u6b0a\u3002",
+                "operationId": "Delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\u6a94\u6848 ID\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/files/{id}/download-url": {
+            "get": {
+                "tags": [
+                    "Files"
+                ],
+                "summary": "\u53d6\u5f97\u5df2\u6388\u6b0a\u7684\u4e0b\u8f09\u7c3d\u7ae0 URL\uff08presigned GET\uff09\u3002",
+                "description": "\u6b64\u7aef\u9ede\u4e0d\u81ea\u884c\u9a57\u8b49\u8cb7\u5bb6\u662f\u5426\u64c1\u6709\u5546\u54c1\uff08entitlement check\uff09\uff0c\r\n\u61c9\u7531\u529f\u80fd API \u5b8c\u6210\u6388\u6b0a\u9a57\u8b49\u5f8c\u518d\u547c\u53eb\u6b64\u7aef\u9ede\u3002\r\n\u50c5 Ready \u72c0\u614b\u7684\u6a94\u6848\u624d\u80fd\u53d6\u5f97\u4e0b\u8f09 URL\u3002",
+                "operationId": "GetDownloadUrl",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "\u6a94\u6848 ID\u3002",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDownloadUrlResponse"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDownloadUrlResponse"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDownloadUrlResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "text/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "tags": [
+                    "StorageService"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
         }
-      }
+    },
+    "components": {
+        "schemas": {
+            "CreatorUsageDto": {
+                "type": "object",
+                "properties": {
+                    "creatorId": {
+                        "type": "string",
+                        "description": "\u5275\u4f5c\u8005 ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "fileCount": {
+                        "type": "integer",
+                        "description": "\u5df2 Ready \u6a94\u6848\u6578\u3002",
+                        "format": "int32",
+                        "example": 312
+                    },
+                    "bytes": {
+                        "type": "integer",
+                        "description": "\u5df2 Ready \u6a94\u6848\u4f4d\u5143\u7d44\u7e3d\u548c\u3002",
+                        "format": "int64",
+                        "example": 19783458816
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u55ae\u4e00\u5275\u4f5c\u8005\u7528\u91cf\u660e\u7d30\u3002"
+            },
+            "FileDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "\u6a94\u6848\u552f\u4e00\u8b58\u5225\u78bc\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "creatorId": {
+                        "type": "string",
+                        "description": "\u64c1\u6709\u8005\uff08\u5275\u4f5c\u8005\uff09ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "productId": {
+                        "type": "string",
+                        "description": "\u6240\u5c6c\u5546\u54c1 ID\u3002",
+                        "format": "uuid",
+                        "nullable": true
+                    },
+                    "storageKey": {
+                        "type": "string",
+                        "description": "\u5728\u5132\u5b58\u5f8c\u7aef\u7684\u7269\u4ef6\u9375\u503c\u3002",
+                        "nullable": true,
+                        "example": "creators/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../intro-video.mp4"
+                    },
+                    "originalName": {
+                        "type": "string",
+                        "description": "\u4f7f\u7528\u8005\u4e0a\u50b3\u6642\u7684\u539f\u59cb\u6a94\u540d\u3002",
+                        "nullable": true,
+                        "example": "intro-video.mp4"
+                    },
+                    "contentType": {
+                        "type": "string",
+                        "description": "MIME \u985e\u578b\u3002",
+                        "nullable": true,
+                        "example": "video/mp4"
+                    },
+                    "sizeBytes": {
+                        "type": "integer",
+                        "description": "\u6a94\u6848\u5927\u5c0f\uff08bytes\uff09\u3002",
+                        "format": "int64",
+                        "nullable": true,
+                        "example": 104857600
+                    },
+                    "fileType": {
+                        "$ref": "#/components/schemas/FileType"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/FileStatus"
+                    },
+                    "isPreview": {
+                        "type": "boolean",
+                        "description": "\u662f\u5426\u70ba\u516c\u958b\u9810\u89bd\u884d\u751f\u6a94\u3002",
+                        "example": false
+                    },
+                    "referencedAt": {
+                        "type": "string",
+                        "description": "\u529f\u80fd API \u78ba\u8a8d\u6b64\u6a94\u5df2\u88ab\u5be6\u969b\u4f7f\u7528\u7684\u6642\u9593\uff1bnull \u8868\u793a\u5c1a\u672a\u88ab\u4f7f\u7528\u3002",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "description": "\u5efa\u7acb\u6642\u9593\uff08UTC\uff09\u3002",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "description": "\u6700\u5f8c\u66f4\u65b0\u6642\u9593\uff08UTC\uff09\u3002",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u6a94\u6848\u7d00\u9304\u56de\u61c9 DTO\u3002"
+            },
+            "FileStatus": {
+                "enum": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "type": "integer",
+                "description": "\u6a94\u6848\u8655\u7406\u72c0\u614b\u3002",
+                "format": "int32"
+            },
+            "FileType": {
+                "enum": [
+                    0,
+                    1,
+                    2
+                ],
+                "type": "integer",
+                "description": "\u5a92\u9ad4\u985e\u578b\u5206\u985e\u3002",
+                "format": "int32"
+            },
+            "GetDownloadUrlResponse": {
+                "type": "object",
+                "properties": {
+                    "fileId": {
+                        "type": "string",
+                        "description": "\u6a94\u6848 ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "downloadUrl": {
+                        "type": "string",
+                        "description": "\u6709\u6548\u7684\u77ed\u6548\u4e0b\u8f09 URL\uff1b\u8abf\u7528\u65b9\u61c9\u7acb\u5373\u8f49\u4ea4\u7d66\u7d42\u7aef\u4f7f\u7528\u8005\uff0c\u4e0d\u61c9\u5feb\u53d6\u3002",
+                        "nullable": true,
+                        "example": "http://localhost:5171/v1/files/blob/creators/.../intro-video.mp4?expires=1735689600&sig=..."
+                    },
+                    "expiresAt": {
+                        "type": "string",
+                        "description": "\u7c3d\u7ae0 URL \u904e\u671f\u6642\u9593\uff08UTC\uff09\u3002",
+                        "format": "date-time"
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u4e0b\u8f09\u7c3d\u7ae0 URL \u56de\u61c9\u3002"
+            },
+            "PlatformUsageResponse": {
+                "type": "object",
+                "properties": {
+                    "usedBytes": {
+                        "type": "integer",
+                        "description": "\u5df2 Ready \u6a94\u6848\u4f4d\u5143\u7d44\u7e3d\u548c\uff08\u516c\u958b + \u79c1\u6709\uff09\u3002",
+                        "format": "int64",
+                        "example": 71403606016
+                    },
+                    "fileCount": {
+                        "type": "integer",
+                        "description": "\u5df2 Ready \u6a94\u6848\u7e3d\u6578\u3002",
+                        "format": "int32",
+                        "example": 1180
+                    },
+                    "publicBytes": {
+                        "type": "integer",
+                        "description": "\u516c\u958b\u5c55\u793a\u578b\u8cc7\u7522\uff08\u9810\u89bd / \u7e2e\u5716\uff09\u4f4d\u5143\u7d44\u7e3d\u548c\u3002",
+                        "format": "int64",
+                        "example": 21260124160
+                    },
+                    "privateBytes": {
+                        "type": "integer",
+                        "description": "\u79c1\u6709\u53ef\u4e0b\u8f09\u8cc7\u7522\u4f4d\u5143\u7d44\u7e3d\u548c\u3002",
+                        "format": "int64",
+                        "example": 50143481856
+                    },
+                    "orphanFileCount": {
+                        "type": "integer",
+                        "description": "\u5b64\u5152\u6a94\u6578\u91cf\uff08\u4e0a\u50b3\u672a\u5b8c\u6210 / \u8655\u7406\u5931\u6557\uff0c\u4fdd\u7559\u671f\u904e\u5f8c\u5c07\u6e05\u7406\uff09\u3002",
+                        "format": "int32",
+                        "example": 23
+                    },
+                    "orphanBytes": {
+                        "type": "integer",
+                        "description": "\u5b64\u5152\u6a94\u4f4d\u5143\u7d44\u7e3d\u548c\uff08\u542b\u672a\u78ba\u8a8d\u5927\u5c0f\u8005\u4ee5 0 \u8a08\uff09\u3002",
+                        "format": "int64",
+                        "example": 104857600
+                    },
+                    "byCreator": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CreatorUsageDto"
+                        },
+                        "description": "\u7528\u91cf\u524d\u5e7e\u540d\u7684\u5275\u4f5c\u8005\u660e\u7d30\uff08\u4f9d\u4f4d\u5143\u7d44\u6578\u905e\u6e1b\uff09\u3002",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u5e73\u53f0\u5132\u5b58\u7528\u91cf\u5f59\u7e3d\uff08Admin\uff09\u3002\u50c5\u6db5\u84cb StorageService \u53ef\u5be6\u969b\u7d71\u8a08\u7684\u6307\u6a19\uff1a\r\n\u7269\u4ef6\u6578\u91cf / \u5927\u5c0f\uff08\u4f9d\u516c\u958b\u5c55\u793a vs \u79c1\u6709\u53ef\u4e0b\u8f09\u62c6\u5206\uff09\u8207\u5b64\u5152\u6a94\u3002\r\n\u4e0b\u8f09\u6d41\u91cf\u8207\u6b77\u53f2\u8da8\u52e2\u9700\u53e6\u5efa\u6307\u6a19\u7ba1\u7dda\uff0c\u4e0d\u5728\u6b64\u7aef\u9ede\u3002"
+            },
+            "ProblemDetails": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int32",
+                        "nullable": true
+                    },
+                    "detail": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "instance": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": {}
+            },
+            "RequestUploadUrlRequest": {
+                "type": "object",
+                "properties": {
+                    "creatorId": {
+                        "type": "string",
+                        "description": "\u64c1\u6709\u8005\uff08\u5275\u4f5c\u8005\uff09ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "productId": {
+                        "type": "string",
+                        "description": "\u6240\u5c6c\u5546\u54c1 ID\uff1bnull \u8868\u793a\u5c1a\u672a\u95dc\u806f\u5546\u54c1\uff08\u66ab\u5b58\u5f8c\u518d\u95dc\u806f\uff09\u3002",
+                        "format": "uuid",
+                        "nullable": true,
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "originalName": {
+                        "type": "string",
+                        "description": "\u4f7f\u7528\u8005\u4e0a\u50b3\u6642\u7684\u539f\u59cb\u6a94\u540d\uff08\u542b\u526f\u6a94\u540d\uff09\u3002",
+                        "nullable": true,
+                        "example": "intro-video.mp4"
+                    },
+                    "contentType": {
+                        "type": "string",
+                        "description": "MIME \u985e\u578b\uff1bStorageService \u9a57\u8b49\u662f\u5426\u70ba\u5141\u8a31\u683c\u5f0f\u3002",
+                        "nullable": true,
+                        "example": "video/mp4"
+                    },
+                    "sizeBytes": {
+                        "type": "integer",
+                        "description": "\u6a94\u6848\u5927\u5c0f\uff08bytes\uff09\uff1b\u7528\u65bc\u914d\u984d\u6aa2\u67e5\u8207 presigned URL \u689d\u4ef6\u3002",
+                        "format": "int64",
+                        "example": 104857600
+                    },
+                    "fileType": {
+                        "$ref": "#/components/schemas/FileType"
+                    },
+                    "isPreview": {
+                        "type": "boolean",
+                        "description": "\u662f\u5426\u70ba\u516c\u958b\u9810\u89bd\u884d\u751f\u6a94\u3002",
+                        "example": false
+                    },
+                    "isPublic": {
+                        "type": "boolean",
+                        "description": "\u662f\u5426\u70ba\u516c\u958b\u8b80\u53d6\u7269\u4ef6\uff08\u4f8b\u5982\u5546\u5e97 Avatar/Banner\uff09\uff1btrue \u6642\u7269\u4ef6\u9375\u503c\u524d\u7db4\u70ba \"public/\"\u3002",
+                        "example": false
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u5411 StorageService \u7533\u8acb\u4e0a\u50b3\u7c3d\u7ae0 URL \u7684\u8acb\u6c42\u9ad4\u3002"
+            },
+            "RequestUploadUrlResponse": {
+                "type": "object",
+                "properties": {
+                    "fileId": {
+                        "type": "string",
+                        "description": "\u5df2\u5efa\u7acb\u7684\u6a94\u6848\u7d00\u9304 ID\uff1b\u4e0a\u50b3\u5b8c\u6210\u5f8c\u4ee5\u6b64 ID \u901a\u77e5 storage-event\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "uploadUrl": {
+                        "type": "string",
+                        "description": "\u524d\u7aef\u61c9\u4f7f\u7528\u6b64 URL \u4ee5 HTTP PUT \u76f4\u50b3\u6a94\u6848\uff0c\u4e0d\u5f97\u7d93\u904e API Server \u8f49\u50b3\u3002",
+                        "nullable": true,
+                        "example": "http://localhost:5171/v1/files/blob/creators/.../intro-video.mp4?expires=1735689600&sig=..."
+                    },
+                    "storageKey": {
+                        "type": "string",
+                        "description": "\u5728\u5132\u5b58\u5f8c\u7aef\u7684\u7269\u4ef6\u9375\u503c\u3002",
+                        "nullable": true,
+                        "example": "public/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png"
+                    },
+                    "publicUrl": {
+                        "type": "string",
+                        "description": "\u516c\u958b\u8b80\u53d6\u7db2\u5740\uff1b\u50c5 `IsPublic=true` \u6642\u63d0\u4f9b\u3002",
+                        "nullable": true,
+                        "example": "http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png"
+                    },
+                    "expiresAt": {
+                        "type": "string",
+                        "description": "\u7c3d\u7ae0 URL \u904e\u671f\u6642\u9593\uff08UTC\uff09\u3002",
+                        "format": "date-time"
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u4e0a\u50b3\u7c3d\u7ae0 URL \u56de\u61c9\u3002"
+            },
+            "TenantUsageResponse": {
+                "type": "object",
+                "properties": {
+                    "creatorId": {
+                        "type": "string",
+                        "description": "\u79df\u6236\uff08\u5275\u4f5c\u8005\uff09ID\u3002",
+                        "format": "uuid",
+                        "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    },
+                    "totalBytes": {
+                        "type": "integer",
+                        "description": "\u8a72\u79df\u6236\u5df2 Ready \u4e14\u5df2\u88ab\u4f7f\u7528\u6a94\u6848\u7684\u4f4d\u5143\u7d44\u7e3d\u548c\u3002",
+                        "format": "int64",
+                        "example": 1048576
+                    }
+                },
+                "additionalProperties": false,
+                "description": "\u79df\u6236\u5be6\u969b\u7528\u91cf\u56de\u61c9\uff08\u6bcf\u65e5\u5c0d\u5e33\u7528\uff0c\u52a0\u7e3d\u5df2 Ready \u4e14\u5df2\u88ab\u4f7f\u7528\uff08referenced\uff09\u7684\u6a94\u6848\u5927\u5c0f\uff09\u3002"
+            }
+        }
     }
-  },
-  "components": {
-    "schemas": {
-      "CreatorUsageDto": {
-        "type": "object",
-        "properties": {
-          "creatorId": { "type": "string", "format": "uuid", "description": "創作者 ID。" },
-          "fileCount": { "type": "integer", "format": "int32", "description": "已 Ready 檔案數。" },
-          "bytes": { "type": "integer", "format": "int64", "description": "已 Ready 檔案位元組總和。" }
-        },
-        "additionalProperties": false,
-        "description": "單一創作者用量明細。"
-      },
-      "PlatformUsageResponse": {
-        "type": "object",
-        "properties": {
-          "usedBytes": { "type": "integer", "format": "int64", "description": "已 Ready 檔案位元組總和（公開 + 私有）。" },
-          "fileCount": { "type": "integer", "format": "int32", "description": "已 Ready 檔案總數。" },
-          "publicBytes": { "type": "integer", "format": "int64", "description": "公開展示型資產位元組總和。" },
-          "privateBytes": { "type": "integer", "format": "int64", "description": "私有可下載資產位元組總和。" },
-          "orphanFileCount": { "type": "integer", "format": "int32", "description": "孤兒檔數量。" },
-          "orphanBytes": { "type": "integer", "format": "int64", "description": "孤兒檔位元組總和。" },
-          "byCreator": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/CreatorUsageDto" },
-            "description": "用量前幾名的創作者明細（依位元組數遞減）。",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "平台儲存用量彙總。"
-      }
-    }
-  }
 }

@@ -51,8 +51,7 @@ public class FileProcessingService(
                 file.ContentType,
                 file.FileType.ToString(),
                 file.SizeBytes,
-                file.IsPreview,
-                file.ReservationId), ct);
+                file.IsPreview), ct);
 
             logger.LogInformation("File {FileId} processed and ready", fileId);
         }

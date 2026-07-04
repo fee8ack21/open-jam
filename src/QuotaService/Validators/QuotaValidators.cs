@@ -3,14 +3,14 @@ using QuotaService.Models;
 
 namespace QuotaService.Validators;
 
-/// <summary><see cref="ReserveRequest"/> 的無狀態輸入驗證（單檔上限等需設定的檢查留在 service 層）。</summary>
-public class ReserveRequestValidator : AbstractValidator<ReserveRequest>
+/// <summary><see cref="ChargeRequest"/> 的無狀態輸入驗證（單檔上限等需設定的檢查留在 service 層）。</summary>
+public class ChargeRequestValidator : AbstractValidator<ChargeRequest>
 {
     /// <summary>建立驗證規則。</summary>
-    public ReserveRequestValidator()
+    public ChargeRequestValidator()
     {
-        RuleFor(r => r.ReservationId).NotEmpty().WithMessage("預扣 ID 不得為空。");
-        RuleFor(r => r.Size).GreaterThan(0).WithMessage("預扣大小須大於 0。");
+        RuleFor(r => r.ChargeId).NotEmpty().WithMessage("扣量 ID 不得為空。");
+        RuleFor(r => r.Size).GreaterThan(0).WithMessage("扣量大小須大於 0。");
     }
 }
 

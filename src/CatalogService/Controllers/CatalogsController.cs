@@ -173,7 +173,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
         return NoContent();
     }
 
-    /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。僅 Owner 可操作。</summary>
+    /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。簽發階段不扣配額、不建資產。僅 Owner 可操作。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="request">資產資訊。</param>
     /// <param name="ct">Cancellation token。</param>
@@ -182,6 +182,19 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     public async Task<ActionResult<CatalogAssetUploadUrlResponse>> RequestAssetUploadUrlAsync(
         Guid id, [FromBody] RequestCatalogAssetUploadUrlRequest request, CancellationToken ct) =>
         Ok(await catalogManager.RequestAssetUploadUrlAsync(id, request, ct));
+
+    /// <summary>確認展示型資產上傳完成：扣配額、建立資產並標記檔案已使用。冪等。僅 Owner 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="assetId">資產（檔案）ID。</param>
+    /// <param name="request">確認資訊（資產類型）。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/assets/{assetId:guid}/confirm")]
+    [ProducesResponseType<CatalogAssetDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<CatalogAssetDto>> ConfirmAssetAsync(
+        Guid id, Guid assetId, [FromBody] ConfirmCatalogAssetRequest request, CancellationToken ct) =>
+        Ok(await catalogManager.ConfirmAssetAsync(id, assetId, request, ct));
 
     /// <summary>刪除展示型資產。僅 Owner 可操作。</summary>
     /// <param name="id">商品 ID。</param>

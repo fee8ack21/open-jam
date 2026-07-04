@@ -33,6 +33,9 @@ public class StorageOptions
     /// <summary>軟刪除後保留天數，到期才從儲存後端永久刪除；預設 30 天。</summary>
     public int SoftDeleteRetentionDays { get; set; } = 30;
 
+    /// <summary>商品檔上傳完成後未被使用（未建立 reference）的保留天數，逾期由清理排程軟刪除；預設 7 天。</summary>
+    public int UnreferencedRetentionDays { get; set; } = 7;
+
     /// <summary>依物件鍵值前綴（`public/`）判定其所屬 bucket。</summary>
     /// <param name="key">物件鍵值，例如 "public/{creatorId}/{fileId}/avatar.png"。</param>
     public string BucketFor(string key) =>

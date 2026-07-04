@@ -2,7 +2,7 @@ using QuotaService.Services.Quotas;
 
 namespace QuotaService.Services.Background;
 
-/// <summary>背景服務，定期釋放逾時仍未 commit 的預扣，回收卡住的儲存空間預扣量。</summary>
+/// <summary>背景服務，定期釋放逾時仍未 commit 的舊制預扣（歷史資料），回收卡住的儲存空間預扣量。</summary>
 public class ReservationSweeperService(
     IServiceScopeFactory scopeFactory,
     ILogger<ReservationSweeperService> logger) : BackgroundService
