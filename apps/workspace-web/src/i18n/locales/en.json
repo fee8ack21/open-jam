@@ -643,6 +643,8 @@
     "msgCreateFailed": "Failed to create",
     "msgUpdateFailed": "Failed to update",
     "msgActivated": "Version activated",
-    "msgDeactivated": "Version deactivated"
+    "msgDeactivated": "Version deactivated",
+    "previewLabel": "Preview",
+    "previewEmpty": "Type content to see a live preview of the final layout"
   }
 }

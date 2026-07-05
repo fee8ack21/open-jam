@@ -643,6 +643,8 @@
     "msgCreateFailed": "建立失敗",
     "msgUpdateFailed": "更新失敗",
     "msgActivated": "已啟用此版本",
-    "msgDeactivated": "已停用此版本"
+    "msgDeactivated": "已停用此版本",
+    "previewLabel": "預覽",
+    "previewEmpty": "輸入內容後即時預覽最終呈現樣式"
   }
 }

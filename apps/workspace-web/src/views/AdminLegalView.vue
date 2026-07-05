@@ -99,6 +99,38 @@ const form = reactive({
   content: '',
 })
 
+// ── 即時預覽：與 Auth（LegalContentHelper）/ market-web（LegalView）同一套
+//    內容慣例——「## 」＝章節標題（自動編號）、「- 」＝列點、其餘為段落 ──
+interface PreviewSection {
+  n: string
+  h: string
+  p: string
+  list?: string[]
+}
+
+function parseSections(content: string): PreviewSection[] {
+  const sections: PreviewSection[] = []
+  let current: PreviewSection | null = null
+  for (const raw of content.replace(/\r\n/g, '\n').split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    if (line.startsWith('## ')) {
+      current = { n: String(sections.length + 1).padStart(2, '0'), h: line.slice(3).trim(), p: '' }
+      sections.push(current)
+    } else if (line.startsWith('- ') && current) {
+      (current.list ??= []).push(line.slice(2).trim())
+    } else if (current) {
+      current.p = current.p ? `${current.p}\n${line}` : line
+    } else {
+      current = { n: String(sections.length + 1).padStart(2, '0'), h: '', p: line }
+      sections.push(current)
+    }
+  }
+  return sections
+}
+
+const previewSections = computed(() => parseSections(form.content))
+
 function openCreate() {
   editing.value = null
   form.type = LegalDocumentType.TermsOfService
@@ -288,8 +320,8 @@ onMounted(load)
       </div>
     </n-spin>
 
-    <!-- 建立 / 編輯草稿 -->
-    <n-modal v-model:show="modalOpen" preset="card" :title="editing ? t('legalDocs.editTitle') : t('legalDocs.createTitle')" style="max-width:720px" to=".oj-root">
+    <!-- 建立 / 編輯草稿（左編輯、右即時預覽） -->
+    <n-modal v-model:show="modalOpen" preset="card" :title="editing ? t('legalDocs.editTitle') : t('legalDocs.createTitle')" style="max-width:1080px" to=".oj-root">
       <div style="display:grid; gap:16px;">
         <div v-if="!editing">
           <label class="field-label">{{ t('legalDocs.type') }}</label>
@@ -299,14 +331,29 @@ onMounted(load)
           <label class="field-label">{{ t('legalDocs.titleLabel') }}</label>
           <n-input v-model:value="form.title" maxlength="200" show-count :placeholder="t('legalDocs.titlePlaceholder')" />
         </div>
-        <div>
-          <label class="field-label">{{ t('legalDocs.contentLabel') }}</label>
-          <n-input
-            v-model:value="form.content"
-            type="textarea"
-            :autosize="{ minRows: 12, maxRows: 24 }"
-            :placeholder="t('legalDocs.contentPlaceholder')" />
-          <div style="font-size:12px; color:var(--text-faint); margin-top:6px;">{{ t('legalDocs.contentHint') }}</div>
+        <div class="editor-split">
+          <div>
+            <label class="field-label">{{ t('legalDocs.contentLabel') }}</label>
+            <n-input
+              v-model:value="form.content"
+              type="textarea"
+              :autosize="{ minRows: 16, maxRows: 24 }"
+              :placeholder="t('legalDocs.contentPlaceholder')" />
+            <div style="font-size:12px; color:var(--text-faint); margin-top:6px;">{{ t('legalDocs.contentHint') }}</div>
+          </div>
+          <div>
+            <label class="field-label">{{ t('legalDocs.previewLabel') }}</label>
+            <div class="legal-preview">
+              <div v-if="!previewSections.length" class="legal-preview-empty">{{ t('legalDocs.previewEmpty') }}</div>
+              <section v-for="s in previewSections" :key="s.n" class="legal-sec">
+                <h4 v-if="s.h"><span class="num">{{ s.n }}</span> {{ s.h }}</h4>
+                <p style="white-space: pre-wrap;">{{ s.p }}</p>
+                <ul v-if="s.list">
+                  <li v-for="(item, i) in s.list" :key="i">{{ item }}</li>
+                </ul>
+              </section>
+            </div>
+          </div>
         </div>
       </div>
       <template #footer>
@@ -430,5 +477,80 @@ onMounted(load)
   color: var(--text-soft);
   max-height: 60vh;
   overflow-y: auto;
+}
+
+/* 編輯 modal：左 textarea、右即時預覽，窄螢幕改上下堆疊 */
+.editor-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .editor-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 即時預覽：與 Auth dialog / market-web 條款頁相同的章節樣式 */
+.legal-preview {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  max-height: 560px;
+  overflow-y: auto;
+  background: var(--surface);
+}
+
+.legal-preview-empty {
+  color: var(--text-faint);
+  font-size: 13px;
+  text-align: center;
+  padding: 32px 0;
+}
+
+.legal-preview .legal-sec {
+  margin-bottom: 18px;
+}
+
+.legal-preview .legal-sec:last-child {
+  margin-bottom: 0;
+}
+
+.legal-preview .legal-sec h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.legal-preview .legal-sec h4 .num {
+  font-family: var(--oj-mono);
+  font-size: 12px;
+  color: var(--oj-primary);
+  font-weight: 600;
+}
+
+.legal-preview .legal-sec p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+
+.legal-preview .legal-sec ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.legal-preview .legal-sec li {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-soft);
+  margin-bottom: 4px;
 }
 </style>
