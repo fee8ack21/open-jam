@@ -2,6 +2,7 @@ using Auth.Data;
 using Auth.Options;
 using Auth.Services.Background;
 using Auth.Services.Hydra;
+using Auth.Services.Legal;
 using Auth.Services.Security;
 using Auth.Services.Users;
 using MassTransit;
@@ -81,6 +82,7 @@ builder.Services.AddMassTransit(x =>
 // Domain services
 builder.Services.AddScoped<IPasswordHasher, Argon2idHasher>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ILegalDocumentService, LegalDocumentService>();
 builder.Services.AddHostedService<OutboxRelayService>();
 
 var app = builder.Build();

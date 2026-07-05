@@ -111,12 +111,15 @@ pnpm preview
 ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 
 **核心服務**：
-- `UserService` — 註冊、登入、密碼重設、email 驗證；註冊成功經 Outbox 發 `UserRegisteredEvent`（供 StoreService / NotificationService 回填訪客 UserId）
+- `UserService` — 註冊、登入、密碼重設、email 驗證；註冊成功經 Outbox 發 `UserRegisteredEvent`（供 StoreService / NotificationService 回填訪客 UserId）；註冊交易內寫入當下啟用中條款版本的 `UserLegalConsent`
 - `HydraService` — 包裝 Hydra Admin API（accept/reject login/consent）
+- `LegalDocumentService` — 法律文件（服務條款 / 隱私權政策）版本管理與同意紀錄：每次修訂為一筆新 `LegalDocument`（同類型 `Version` 遞增，狀態 `Draft → Active → Inactive`，僅 Draft 可編輯、**永不刪除**供歷史比對；partial unique index 保證同類型僅一筆 Active，啟用時自動停用既有版本）
 - `Argon2idHasher` — 密碼雜湊
 - `OutboxRelayService` — Outbox → RabbitMQ
 
-**REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。
+**REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。`/v1/legal-documents`（`LegalDocumentsController`）——Admin 分頁列表 / 單筆 / 建草稿 / 改草稿 / activate / deactivate（無 DELETE），另 `GET /v1/legal-documents/active?type=` 匿名公開（market-web 條款頁撈取目前啟用內容），供 workspace-web 管理員「條款管理」後台。
+
+**條款同意流程**：註冊頁 dialog 內容由 DB 啟用版本渲染（`_LegalModal.cshtml` + `LegalContentHelper`，內容慣例「## 」章節 /「- 」列點），`form-ui.js` 強制兩份文件都點過「我了解了」才可勾選同意；登入（含 Hydra skip 路徑）時檢查使用者對啟用版本的 `UserLegalConsent`，缺少者導向 `LegalReconsent` 頁重新勾選同意（subject / challenge 以 time-limited Data Protection 票證保護，15 分鐘失效）後才 AcceptLogin。
 
 **錯誤處理**：使用 ASP.NET Core 內建 `app.UseExceptionHandler("/Home/Error")`（非開發環境）導頁至 Error Page。不掛載 `ExceptionMiddleware`（JSON 輸出不適用於 MVC 畫面流程）。
 
@@ -221,7 +224,7 @@ REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 
 
 ## Bootstrap（`src/Bootstrap/`）
 
-一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
+一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`LegalDocumentSeeder`（seed 服務條款 / 隱私權政策初始啟用版本，該類型已有紀錄即略過）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
 
 掛載 5 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection` / `NotificationConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
 

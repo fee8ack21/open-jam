@@ -44,6 +44,11 @@
   function toggleCheckbox(id) {
     var $input = $('#' + id);
     var newVal = !$input.prop('checked');
+    // 帶 data-requires-legal 的同意勾選框：所有條款 dialog 都「點閱過」前不可勾選
+    if (newVal && $input.is('[data-requires-legal]') && !allLegalRead()) {
+      $('[data-legal-hint]').css('display', 'block');
+      return;
+    }
     $input.prop('checked', newVal);
     $('.checkbox[data-checkbox="' + id + '"]')
       .toggleClass('on', newVal)
@@ -52,18 +57,36 @@
   }
 
   // ---- legal modal ----
+  // 條款 dialog 由 _LegalModal.cshtml 依資料庫啟用版本渲染（data-legal-card），
+  // 需點閱的 key 從頁面上的 data-legal-open 收集，全部按過「我了解了」才可勾選同意。
   var legalOpen = null;
-  var legalRead = { terms: false, privacy: false };
+  var legalRead = {};
+  function requiredLegalKeys() {
+    var keys = [];
+    $('[data-legal-open]').each(function () {
+      var k = $(this).attr('data-legal-open');
+      if (keys.indexOf(k) < 0) keys.push(k);
+    });
+    return keys;
+  }
+  function allLegalRead() {
+    var keys = requiredLegalKeys();
+    for (var i = 0; i < keys.length; i++) {
+      if (!legalRead[keys[i]]) return false;
+    }
+    return true;
+  }
   function openLegal(which) {
     legalOpen = which;
     $('#legal-scrim').css('display', '');
-    $('#legal-terms-card').toggle(which === 'terms');
-    $('#legal-privacy-card').toggle(which === 'privacy');
+    $('.modal-card[data-legal-card]').each(function () {
+      $(this).toggle($(this).attr('data-legal-card') === which);
+    });
   }
   function closeLegal() {
     legalOpen = null;
     $('#legal-scrim').hide();
-    $('#legal-terms-card, #legal-privacy-card').hide();
+    $('.modal-card[data-legal-card]').hide();
   }
   function acknowledgeLegal() {
     if (legalOpen) {
@@ -71,6 +94,7 @@
       $('.read-tick[data-tick="' + legalOpen + '"]').html(
         icon('check', { size: 13, stroke: 2.8 })
       );
+      if (allLegalRead()) $('[data-legal-hint]').hide();
     }
     closeLegal();
   }

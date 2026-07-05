@@ -21,6 +21,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
     /// <summary>Outbox 訊息資料表。</summary>
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    /// <summary>法律文件（服務條款 / 隱私權政策）版本資料表。</summary>
+    public DbSet<LegalDocument> LegalDocuments => Set<LegalDocument>();
+
+    /// <summary>使用者法律文件同意紀錄資料表。</summary>
+    public DbSet<UserLegalConsent> UserLegalConsents => Set<UserLegalConsent>();
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -49,6 +55,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserAc
             e.HasOne(t => t.User)
              .WithMany(u => u.PasswordResetTokens)
              .HasForeignKey(t => t.UserId);
+        });
+
+        model.Entity<LegalDocument>(e =>
+        {
+            e.HasKey(d => d.Id);
+            e.Property(d => d.Title).HasMaxLength(200).IsRequired();
+            e.Property(d => d.Content).IsRequired();
+            e.HasIndex(d => new { d.Type, d.Version }).IsUnique();
+            // 同一類型同時僅允許一筆 Active（partial unique index，值對應 LegalDocumentStatus.Active）
+            e.HasIndex(d => d.Type).IsUnique().HasFilter("status = 1").HasDatabaseName("ix_legal_documents_type_active");
+        });
+
+        model.Entity<UserLegalConsent>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.HasIndex(c => new { c.UserId, c.LegalDocumentId }).IsUnique();
+            e.HasOne(c => c.User)
+             .WithMany()
+             .HasForeignKey(c => c.UserId);
+            e.HasOne(c => c.LegalDocument)
+             .WithMany()
+             .HasForeignKey(c => c.LegalDocumentId);
         });
 
         model.Entity<OutboxMessage>(e =>

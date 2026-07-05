@@ -1,11 +1,22 @@
 @model RegisterViewModel
 @{
     ViewData["Title"] = T["Register.PageTitle"];
+
+    // 條款 / 隱私連結：僅在有啟用中版本時渲染為需點閱的 dialog 按鈕（form-ui.js 依
+    // data-legal-open 追蹤點閱狀態），未 seed 文件時退化為純文字、不強制點閱。
+    static string LegalLink(bool hasDocument, string key, string text) => hasDocument
+        ? "<button type=\"button\" class=\"legal-link\" data-legal-open=\"" + key + "\">" + text + "<span class=\"read-tick\" data-tick=\"" + key + "\"></span></button>"
+        : "<span class=\"legal-link\">" + text + "</span>";
+
     var agreeLabel =
         T["Register.AgreePrefix"] +
-        "<button type=\"button\" class=\"legal-link\" data-legal-open=\"terms\">" + T["Register.TermsOfService"] + "<span class=\"read-tick\" data-tick=\"terms\"></span></button>" +
+        LegalLink(Model.TermsDocument is not null, "terms", T["Register.TermsOfService"].Value) +
         T["Register.And"] +
-        "<button type=\"button\" class=\"legal-link\" data-legal-open=\"privacy\">" + T["Register.PrivacyPolicy"] + "<span class=\"read-tick\" data-tick=\"privacy\"></span></button>";
+        LegalLink(Model.PrivacyDocument is not null, "privacy", T["Register.PrivacyPolicy"].Value);
+
+    var legalDocuments = new List<LegalDocumentDto>();
+    if (Model.TermsDocument is not null) legalDocuments.Add(Model.TermsDocument);
+    if (Model.PrivacyDocument is not null) legalDocuments.Add(Model.PrivacyDocument);
 }
 
 <div class="auth-shell" data-screen="register">
@@ -72,9 +83,10 @@
                                 <span class="box">@IconHelper.Render("check", 13, 2.6)</span>
                                 <span>@Html.Raw(agreeLabel)</span>
                             </div>
-                            <input asp-for="Agree"
+                            <input asp-for="Agree" data-requires-legal="1"
                                    style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
                             <span asp-validation-for="Agree" class="field-err"></span>
+                            <span class="field-err" data-legal-hint style="display:none">@T["Register.MustReadLegal"]</span>
                         </div>
 
                         <button type="submit" class="btn-pop">
@@ -86,5 +98,5 @@
             </div>
         </div>
     </main>
-    @await Html.PartialAsync("_LegalModal")
+    @await Html.PartialAsync("_LegalModal", legalDocuments)
 </div>

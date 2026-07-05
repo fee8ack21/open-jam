@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="LegalReconsent.PageTitle" xml:space="preserve"><value>Open Jam · 條款更新</value></data>
+  <data name="LegalReconsent.BrandHeadline" xml:space="preserve"><value>條款有<br/><span class="hl hl-lime">新版本</span>了</value></data>
+  <data name="LegalReconsent.BrandSub" xml:space="preserve"><value>為了保障你的權益，請閱讀並同意最新版本後繼續使用 Open Jam。</value></data>
+  <data name="LegalReconsent.Eyebrow" xml:space="preserve"><value>條款更新</value></data>
+  <data name="LegalReconsent.Title" xml:space="preserve"><value>請確認最新條款</value></data>
+  <data name="LegalReconsent.Sub" xml:space="preserve"><value>以下條款自你上次同意後已更新，請點擊閱讀並勾選同意後繼續登入。</value></data>
+  <data name="LegalReconsent.UpdatedAt" xml:space="preserve"><value>更新於</value></data>
+  <data name="LegalReconsent.AgreeLabel" xml:space="preserve"><value>我已閱讀並同意上列最新版本的條款</value></data>
+  <data name="LegalReconsent.MustReadLegal" xml:space="preserve"><value>請先點擊閱讀上方全部條款內容</value></data>
+  <data name="LegalReconsent.Submit" xml:space="preserve"><value>同意並繼續</value></data>
+</root>

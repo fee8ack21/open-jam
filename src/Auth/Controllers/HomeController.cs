@@ -1,7 +1,11 @@
+using System.Text.Json;
+using Auth.Data.Entities;
 using Auth.Models;
 using Auth.Options;
 using Auth.Services.Hydra;
+using Auth.Services.Legal;
 using Auth.Services.Users;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -11,10 +15,18 @@ namespace Auth.Controllers;
 /// <summary>Auth service 的主要 MVC Controller，處理登入、註冊、信箱驗證、忘記密碼及重置密碼流程。</summary>
 /// <remarks>純 MVC 視圖流程，非 REST API；以 IgnoreApi 排除於 OpenAPI 文件外。</remarks>
 [ApiExplorerSettings(IgnoreApi = true)]
-public class HomeController(IHydraService hydra, IUserService userService, IOptions<AppOptions> appOptions) : Controller
+public class HomeController(
+    IHydraService hydra,
+    IUserService userService,
+    ILegalDocumentService legalDocumentService,
+    IDataProtectionProvider dataProtection,
+    IOptions<AppOptions> appOptions) : Controller
 {
     /// <summary>Hydra session / consent 的記住時長（30 天），login 與 consent 端點共用。</summary>
     private const int RememberForSeconds = 3600 * 24 * 30;
+
+    /// <summary>re-consent 登入票證有效時間；逾時須重新登入。</summary>
+    private static readonly TimeSpan ReconsentTicketLifetime = TimeSpan.FromMinutes(15);
 
     /// <summary>根路徑，導向登入頁。</summary>
     [HttpGet("/")]
@@ -37,6 +49,10 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
 
         if (info.Skip)
         {
+            // Hydra session 尚存的自動登入路徑也要檢查是否有新版條款未同意
+            if (await BuildReconsentResultAsync(info.Subject, login_challenge, remember: true) is { } reconsent)
+                return reconsent;
+
             var redirect = await hydra.AcceptLoginAsync(login_challenge,
                 new HydraAcceptLoginRequest(info.Subject, Remember: true, RememberFor: RememberForSeconds));
             return Redirect(redirect);
@@ -61,6 +77,10 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
             ModelState.AddModelError("", error!);
             return View(model);
         }
+
+        // 有新版（未同意過的）啟用條款時，先重新勾選同意才完成登入
+        if (await BuildReconsentResultAsync(subject!, model.Challenge, model.Remember) is { } reconsent)
+            return reconsent;
 
         var redirect = await hydra.AcceptLoginAsync(model.Challenge,
             new HydraAcceptLoginRequest(
@@ -105,29 +125,70 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
 
     // ── Register ──────────────────────────────────────────────────────────────
 
-    /// <summary>註冊頁 GET。</summary>
+    /// <summary>註冊頁 GET；載入目前啟用中的服務條款與隱私權政策供 dialog 呈現。</summary>
     [HttpGet("register")]
-    public IActionResult Register(string? login_challenge) =>
-        View(new RegisterViewModel { LoginChallenge = login_challenge });
+    public async Task<IActionResult> Register(string? login_challenge) =>
+        View(await WithActiveLegalDocumentsAsync(new RegisterViewModel { LoginChallenge = login_challenge }));
 
     /// <summary>
-    /// 註冊 POST；建立帳號並寄發驗證信。
+    /// 註冊 POST；建立帳號、寫入條款同意紀錄（同意當下啟用中的版本）並寄發驗證信。
     /// 若同一信箱已有 Pending 帳號（squatting）則覆蓋並重發驗證信。
     /// </summary>
     [HttpPost("register"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View(await WithActiveLegalDocumentsAsync(model));
 
         var (success, error) = await userService.RegisterAsync(model.Email, model.Password);
         if (!success)
         {
             ModelState.AddModelError(nameof(model.Email), error!);
-            return View(model);
+            return View(await WithActiveLegalDocumentsAsync(model));
         }
 
         TempData["Email"] = model.Email;
         return RedirectToAction(nameof(RegisterSent));
+    }
+
+    // ── Legal re-consent（登入時新版條款重新同意）──────────────────────────────
+
+    /// <summary>
+    /// re-consent 同意 POST；驗證登入票證後寫入同意紀錄並完成 Hydra AcceptLogin。
+    /// 票證無效或逾時（15 分鐘）導向 Workspace 重新發起登入。
+    /// </summary>
+    [HttpPost("legal-reconsent"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> LegalReconsent(LegalReconsentViewModel model)
+    {
+        ReconsentTicket? ticket;
+        try
+        {
+            ticket = JsonSerializer.Deserialize<ReconsentTicket>(ReconsentProtector().Unprotect(model.Ticket));
+        }
+        catch
+        {
+            ticket = null;
+        }
+
+        if (ticket is null || !Guid.TryParse(ticket.Subject, out var userId))
+            return Redirect(appOptions.Value.WorkspaceUrl);
+
+        var pending = await legalDocumentService.GetPendingConsentAsync(userId);
+
+        if (!ModelState.IsValid)
+        {
+            model.Documents = pending;
+            return View(model);
+        }
+
+        // 以伺服器當下重查的未同意清單為準寫入同意紀錄，不信任表單回傳的文件 ID
+        await legalDocumentService.RecordConsentsAsync(userId, pending.Select(d => d.Id).ToList());
+
+        var redirect = await hydra.AcceptLoginAsync(ticket.Challenge,
+            new HydraAcceptLoginRequest(
+                Subject:     ticket.Subject,
+                Remember:    ticket.Remember,
+                RememberFor: ticket.Remember ? RememberForSeconds : 0));
+        return Redirect(redirect);
     }
 
     /// <summary>驗證信已寄出確認頁。</summary>
@@ -242,4 +303,39 @@ public class HomeController(IHydraService hydra, IUserService userService, IOpti
             new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), HttpOnly = true, SameSite = SameSiteMode.Lax });
         return LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
     }
+
+    // ── 私有輔助方法 ───────────────────────────────────────────────────────────
+
+    /// <summary>將目前啟用中的服務條款與隱私權政策掛上註冊 ViewModel（GET 與 POST 失敗重顯共用）。</summary>
+    private async Task<RegisterViewModel> WithActiveLegalDocumentsAsync(RegisterViewModel model)
+    {
+        var docs = await legalDocumentService.GetActiveAsync(null);
+        model.TermsDocument   = docs.FirstOrDefault(d => d.Type == LegalDocumentType.TermsOfService);
+        model.PrivacyDocument = docs.FirstOrDefault(d => d.Type == LegalDocumentType.PrivacyPolicy);
+        return model;
+    }
+
+    /// <summary>
+    /// 檢查使用者是否有未同意的啟用中條款；有則回傳 re-consent 畫面（帶時效性登入票證），
+    /// 無（或 subject 非使用者 GUID）則回傳 null 表示可直接完成登入。
+    /// </summary>
+    private async Task<IActionResult?> BuildReconsentResultAsync(string subject, string challenge, bool remember)
+    {
+        if (!Guid.TryParse(subject, out var userId))
+            return null;
+
+        var pending = await legalDocumentService.GetPendingConsentAsync(userId);
+        if (pending.Count == 0)
+            return null;
+
+        var ticket = ReconsentProtector().Protect(
+            JsonSerializer.Serialize(new ReconsentTicket(subject, challenge, remember)),
+            ReconsentTicketLifetime);
+
+        return View("LegalReconsent", new LegalReconsentViewModel { Ticket = ticket, Documents = pending });
+    }
+
+    /// <summary>re-consent 登入票證的 time-limited Data Protector。</summary>
+    private ITimeLimitedDataProtector ReconsentProtector() =>
+        dataProtection.CreateProtector("Auth.LegalReconsent").ToTimeLimitedDataProtector();
 }

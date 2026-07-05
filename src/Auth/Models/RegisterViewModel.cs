@@ -32,4 +32,10 @@ public class RegisterViewModel
     /// <summary>Hydra 登入挑戰參數，從 Login 頁帶入以供返回時還原 OIDC flow。</summary>
     /// <example>abc123challenge</example>
     public string? LoginChallenge { get; set; }
+
+    /// <summary>目前啟用中的服務條款（僅供畫面渲染，POST 時由伺服器重查，不從表單回傳）。</summary>
+    public LegalDocumentDto? TermsDocument { get; set; }
+
+    /// <summary>目前啟用中的隱私權政策（僅供畫面渲染，POST 時由伺服器重查，不從表單回傳）。</summary>
+    public LegalDocumentDto? PrivacyDocument { get; set; }
 }

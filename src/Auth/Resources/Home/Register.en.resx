@@ -24,4 +24,5 @@
   <data name="Register.HasAccount" xml:space="preserve"><value>Already have an account?</value></data>
   <data name="Register.Login" xml:space="preserve"><value>Go to Log In</value></data>
   <data name="Login.ShowPassword" xml:space="preserve"><value>Show password</value></data>
+  <data name="Register.MustReadLegal" xml:space="preserve"><value>Please open and read the Terms of Service and Privacy Policy first</value></data>
 </root>

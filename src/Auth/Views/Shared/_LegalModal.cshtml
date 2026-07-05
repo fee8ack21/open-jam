@@ -1,95 +1,33 @@
+@model List<Auth.Models.LegalDocumentDto>
+@using Auth.Data.Entities
+@{
+    // 條款內容來自資料庫的啟用中版本（LegalDocument），由後台編輯；
+    // key 供 form-ui.js 追蹤「已點閱」狀態（data-legal-open / data-tick 對應）。
+    static (string Key, string Icon) MetaOf(LegalDocumentType type) =>
+        type == LegalDocumentType.TermsOfService ? ("terms", "note") : ("privacy", "shield");
+}
 <div id="legal-scrim" class="modal-scrim" style="display:none" data-legal-scrim>
 
-    <div id="legal-terms-card" class="modal-card" role="dialog" aria-modal="true" aria-label="@T["LegalTerms.AriaLabel"]" style="display:none">
-        <div class="modal-head">
-            <div class="modal-badge terms">@IconHelper.Render("note", 22)</div>
-            <h3 class="modal-title">@T["LegalTerms.Title"]</h3>
-            <p class="modal-meta">Open Jam · @T["LegalTerms.LastUpdated"] 2026-05-31</p>
-            <button class="modal-x" data-legal-close aria-label="@T["LegalTerms.CloseAria"]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="legal-sec">
-                <h4><span class="num">01</span> @T["LegalTerms.Section1.Title"]</h4>
-                <p>@T["LegalTerms.Section1.Body"]</p>
+    @foreach (var doc in Model)
+    {
+        var (key, icon) = MetaOf(doc.Type);
+        <div class="modal-card" role="dialog" aria-modal="true" aria-label="@doc.Title" style="display:none" data-legal-card="@key">
+            <div class="modal-head">
+                <div class="modal-badge @key">@IconHelper.Render(icon, 22)</div>
+                <h3 class="modal-title">@doc.Title</h3>
+                <p class="modal-meta">Open Jam · v@(doc.Version) · @T["LegalTerms.LastUpdated"] @((doc.ActivatedAt ?? doc.CreatedAt).ToString("yyyy-MM-dd"))</p>
+                <button class="modal-x" data-legal-close aria-label="@T["LegalTerms.CloseAria"]">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+                </button>
             </div>
-            <div class="legal-sec">
-                <h4><span class="num">02</span> @T["LegalTerms.Section2.Title"]</h4>
-                <p>@T["LegalTerms.Section2.Body"]</p>
+            <div class="modal-body">
+                @LegalContentHelper.Render(doc.Content)
             </div>
-            <div class="legal-sec">
-                <h4><span class="num">03</span> @T["LegalTerms.Section3.Title"]</h4>
-                <p>@T["LegalTerms.Section3.Body"]</p>
-                <ul>
-                    <li>@T["LegalTerms.Section3.Item1"]</li>
-                    <li>@T["LegalTerms.Section3.Item2"]</li>
-                    <li>@T["LegalTerms.Section3.Item3"]</li>
-                </ul>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">04</span> @T["LegalTerms.Section4.Title"]</h4>
-                <p>@T["LegalTerms.Section4.Body"]</p>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">05</span> @T["LegalTerms.Section5.Title"]</h4>
-                <p>@T["LegalTerms.Section5.Body"]</p>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">06</span> @T["LegalTerms.Section6.Title"]</h4>
-                <p>@T["LegalTerms.Section6.Body"]</p>
+            <div class="modal-foot">
+                <button class="btn-ghost" data-legal-close>@T["LegalTerms.Close"]</button>
+                <button class="btn-pop violet" data-legal-ack>@IconHelper.Render("check", 17, 2.4) @T["LegalTerms.Acknowledge"]</button>
             </div>
         </div>
-        <div class="modal-foot">
-            <button class="btn-ghost" data-legal-close>@T["LegalTerms.Close"]</button>
-            <button class="btn-pop violet" data-legal-ack>@IconHelper.Render("check", 17, 2.4) @T["LegalTerms.Acknowledge"]</button>
-        </div>
-    </div>
-
-    <div id="legal-privacy-card" class="modal-card" role="dialog" aria-modal="true" aria-label="@T["LegalPrivacy.AriaLabel"]" style="display:none">
-        <div class="modal-head">
-            <div class="modal-badge privacy">@IconHelper.Render("shield", 22)</div>
-            <h3 class="modal-title">@T["LegalPrivacy.Title"]</h3>
-            <p class="modal-meta">Open Jam · @T["LegalTerms.LastUpdated"] 2026-05-31</p>
-            <button class="modal-x" data-legal-close aria-label="@T["LegalTerms.CloseAria"]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="legal-sec">
-                <h4><span class="num">01</span> @T["LegalPrivacy.Section1.Title"]</h4>
-                <p>@T["LegalPrivacy.Section1.Body"]</p>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">02</span> @T["LegalPrivacy.Section2.Title"]</h4>
-                <p>@T["LegalPrivacy.Section2.Body"]</p>
-                <ul>
-                    <li>@T["LegalPrivacy.Section2.Item1"]</li>
-                    <li>@T["LegalPrivacy.Section2.Item2"]</li>
-                    <li>@T["LegalPrivacy.Section2.Item3"]</li>
-                </ul>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">03</span> @T["LegalPrivacy.Section3.Title"]</h4>
-                <p>@T["LegalPrivacy.Section3.Body"]</p>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">04</span> @T["LegalPrivacy.Section4.Title"]</h4>
-                <p>@T["LegalPrivacy.Section4.Body"]</p>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">05</span> @T["LegalPrivacy.Section5.Title"]</h4>
-                <p>@T["LegalPrivacy.Section5.Body"]</p>
-            </div>
-            <div class="legal-sec">
-                <h4><span class="num">06</span> @T["LegalPrivacy.Section6.Title"]</h4>
-                <p>@T["LegalPrivacy.Section6.Body"]</p>
-            </div>
-        </div>
-        <div class="modal-foot">
-            <button class="btn-ghost" data-legal-close>@T["LegalTerms.Close"]</button>
-            <button class="btn-pop violet" data-legal-ack>@IconHelper.Render("check", 17, 2.4) @T["LegalTerms.Acknowledge"]</button>
-        </div>
-    </div>
+    }
 
 </div>

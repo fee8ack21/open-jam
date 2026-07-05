@@ -1,12 +1,16 @@
 <script setup lang="ts">
 /* ============================================================
-   LegalView — 服務條款 / 隱私政策 靜態頁（/terms、/privacy）
-   文案沿用 Auth 服務的 legal dialog（src/data/legal.ts）。
+   LegalView — 服務條款 / 隱私政策頁（/terms、/privacy）
+   內容撈取 Auth 服務「目前啟用中」的法律文件版本
+   （GET /v1/legal-documents/active，後台可編輯 / 換版）；
+   撈取失敗時退回 i18n 靜態文案（src/data/legal.ts 結構）。
    ============================================================ */
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop.js';
 import { LEGAL_META, type LegalKey } from '@/data/legal.js';
+import { authApi } from '@/api';
+import { LegalDocumentType, type LegalDocumentDto } from '@/api/auth-service';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 
@@ -24,21 +28,71 @@ interface Section {
 
 const meta = computed(() => LEGAL_META[props.doc]);
 const otherKey = computed<LegalKey>(() => (props.doc === 'terms' ? 'privacy' : 'terms'));
-
-const title = computed(() => t(`legal.${props.doc}.title`));
 const otherTitle = computed(() => t(`legal.${otherKey.value}.title`));
 
-// 章節文案來自 i18n（legal.<doc>.sections）；編號 n 由索引推算
-const sections = computed<Section[]>(() =>
-  (tm(`legal.${props.doc}.sections`) as { h: string; p: string; list?: string[] }[]).map(
+// ── 啟用中版本（依 doc 類型撈取；null 表示尚未載到 / 撈取失敗）─────────
+const activeDoc = ref<LegalDocumentDto | null>(null);
+const loading = ref(false);
+
+const typeOf: Record<LegalKey, LegalDocumentType> = {
+  terms: LegalDocumentType.TermsOfService,
+  privacy: LegalDocumentType.PrivacyPolicy,
+};
+
+async function loadActive() {
+  loading.value = true;
+  activeDoc.value = null;
+  try {
+    const res = await authApi.legalDocuments.getActive({ type: typeOf[props.doc] });
+    activeDoc.value = res.data?.[0] ?? null;
+  } catch {
+    activeDoc.value = null; // 撈取失敗：退回 i18n 靜態文案
+  } finally {
+    loading.value = false;
+  }
+}
+watch(() => props.doc, loadActive, { immediate: true });
+
+const title = computed(() => activeDoc.value?.title ?? t(`legal.${props.doc}.title`));
+const updatedDate = computed(() => {
+  const at = activeDoc.value?.activatedAt;
+  return at ? at.slice(0, 10) : meta.value.updated;
+});
+
+/** 將文件純文字內容解析為章節：「## 」＝章節標題、「- 」＝列點、其餘為段落（與 Auth 渲染慣例一致）。 */
+function parseSections(content: string): Section[] {
+  const sections: Section[] = [];
+  let current: Section | null = null;
+  for (const raw of content.replace(/\r\n/g, '\n').split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('## ')) {
+      current = { n: String(sections.length + 1).padStart(2, '0'), h: line.slice(3).trim(), p: '' };
+      sections.push(current);
+    } else if (line.startsWith('- ') && current) {
+      (current.list ??= []).push(line.slice(2).trim());
+    } else if (current) {
+      current.p = current.p ? `${current.p}\n${line}` : line;
+    } else {
+      current = { n: String(sections.length + 1).padStart(2, '0'), h: '', p: line };
+      sections.push(current);
+    }
+  }
+  return sections;
+}
+
+// 章節：優先用啟用中版本內容，無則退回 i18n（legal.<doc>.sections）
+const sections = computed<Section[]>(() => {
+  if (activeDoc.value?.content) return parseSections(activeDoc.value.content);
+  return (tm(`legal.${props.doc}.sections`) as { h: string; p: string; list?: string[] }[]).map(
     (s, i) => ({
       n: String(i + 1).padStart(2, '0'),
       h: rt(s.h),
       p: rt(s.p),
       list: s.list ? s.list.map((item) => rt(item)) : undefined,
     }),
-  ),
-);
+  );
+});
 </script>
 
 <template>
@@ -59,12 +113,14 @@ const sections = computed<Section[]>(() =>
             <app-icon :name="meta.icon" :size="24" />
           </div>
           <h1 class="legal-title">{{ title }}</h1>
-          <p class="legal-meta">{{ t('legal.metaUpdated', { date: meta.updated }) }}</p>
+          <p class="legal-meta">
+            {{ t('legal.metaUpdated', { date: updatedDate }) }}<template v-if="activeDoc"> · v{{ activeDoc.version }}</template>
+          </p>
         </header>
 
         <section v-for="s in sections" :key="s.n" class="legal-sec">
-          <h2><span class="num">{{ s.n }}</span> {{ s.h }}</h2>
-          <p>{{ s.p }}</p>
+          <h2 v-if="s.h"><span class="num">{{ s.n }}</span> {{ s.h }}</h2>
+          <p style="white-space: pre-wrap;">{{ s.p }}</p>
           <ul v-if="s.list">
             <li v-for="(item, i) in s.list" :key="i">{{ item }}</li>
           </ul>

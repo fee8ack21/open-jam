@@ -49,6 +49,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<HydraClientSeeder>();
         services.AddScoped<EmailTemplateSeeder>();
         services.AddScoped<UserSeeder>();
+        services.AddScoped<LegalDocumentSeeder>();
         services.AddScoped<StoreSeeder>();
         services.AddScoped<CatalogCategorySeeder>();
         services.AddScoped<StoreFollowerRefSeeder>();
@@ -61,6 +62,7 @@ var sp = scope.ServiceProvider;
 await sp.GetRequiredService<HydraClientSeeder>().SeedAsync();
 await sp.GetRequiredService<EmailTemplateSeeder>().SeedAsync();
 await sp.GetRequiredService<UserSeeder>().SeedAsync();
+await sp.GetRequiredService<LegalDocumentSeeder>().SeedAsync();
 await sp.GetRequiredService<StoreSeeder>().SeedAsync();
 await sp.GetRequiredService<CatalogCategorySeeder>().SeedAsync();
 await sp.GetRequiredService<StoreFollowerRefSeeder>().SeedAsync();

@@ -1,0 +1,86 @@
+@model LegalReconsentViewModel
+@using Auth.Data.Entities
+@{
+    ViewData["Title"] = T["LegalReconsent.PageTitle"];
+
+    static string KeyOf(LegalDocumentType type) =>
+        type == LegalDocumentType.TermsOfService ? "terms" : "privacy";
+}
+
+<div class="auth-shell" data-screen="legal-reconsent">
+    @await Html.PartialAsync("_BrandPanel", new BrandPanelViewModel {
+        Headline = T["LegalReconsent.BrandHeadline"].Value,
+        Sub = T["LegalReconsent.BrandSub"].Value
+    })
+    <main class="form-panel">
+        <div class="mobile-brand">
+            <span class="brand-mark" style="background:linear-gradient(135deg,var(--c-violet),var(--c-pink))">
+                <span style="color:#fff;display:grid;place-items:center">@IconHelper.BrandMark(18)</span>
+            </span>
+            <span class="brand-name">Open Jam</span>
+        </div>
+        <div class="form-wrap">
+            <div class="screen">
+                <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) @T["LegalReconsent.Eyebrow"]</p>
+                <h2 class="form-title">@T["LegalReconsent.Title"]</h2>
+                <p class="form-sub">@T["LegalReconsent.Sub"]</p>
+                <form asp-action="LegalReconsent" method="post" novalidate>
+                    <input type="hidden" asp-for="Ticket">
+                    <div class="form-body">
+                        @if (ViewData.ModelState[""] is { } ms && ms.Errors.Any())
+                        {
+                            <p class="field-err" style="display:block">@ms.Errors[0].ErrorMessage</p>
+                        }
+
+                        <div class="reconsent-docs">
+                            @foreach (var doc in Model.Documents)
+                            {
+                                var key = KeyOf(doc.Type);
+                                <button type="button" class="reconsent-doc" data-legal-open="@key">
+                                    <span class="modal-badge @key">@IconHelper.Render(key == "terms" ? "note" : "shield", 20)</span>
+                                    <span class="rd-text">
+                                        <span class="rd-title">@doc.Title</span>
+                                        <span class="rd-meta">v@(doc.Version) · @T["LegalReconsent.UpdatedAt"] @((doc.ActivatedAt ?? doc.CreatedAt).ToString("yyyy-MM-dd"))</span>
+                                    </span>
+                                    <span class="read-tick" data-tick="@key"></span>
+                                </button>
+                            }
+                        </div>
+
+                        <div class="field" data-field="Agree" style="margin-top:-2px">
+                            <div class="checkbox @(Model.Agree ? "on" : "")" data-checkbox="Agree"
+                                 role="checkbox" aria-checked="@(Model.Agree ? "true" : "false")" tabindex="0">
+                                <span class="box">@IconHelper.Render("check", 13, 2.6)</span>
+                                <span>@T["LegalReconsent.AgreeLabel"]</span>
+                            </div>
+                            <input asp-for="Agree" data-requires-legal="1"
+                                   style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+                            <span asp-validation-for="Agree" class="field-err"></span>
+                            <span class="field-err" data-legal-hint style="display:none">@T["LegalReconsent.MustReadLegal"]</span>
+                        </div>
+
+                        <button type="submit" class="btn-pop violet">
+                            @IconHelper.Render("check", 18, 2.4) @T["LegalReconsent.Submit"]
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    @await Html.PartialAsync("_LegalModal", Model.Documents)
+</div>
+
+<style>
+    .reconsent-docs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .reconsent-doc {
+        display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+        background: var(--surface, #fff); border: 1.5px solid var(--border, #e5e5e5);
+        border-radius: 14px; padding: 12px 14px; cursor: pointer; font: inherit;
+    }
+    .reconsent-doc:hover { border-color: var(--c-violet, #7c5cff); }
+    .reconsent-doc .modal-badge { position: static; width: 38px; height: 38px; flex: none; }
+    .reconsent-doc .rd-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+    .reconsent-doc .rd-title { font-weight: 700; font-size: 14.5px; }
+    .reconsent-doc .rd-meta { font-size: 12px; color: var(--text-faint, #999); }
+    .reconsent-doc .read-tick { flex: none; }
+</style>

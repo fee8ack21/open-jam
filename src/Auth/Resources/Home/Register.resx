@@ -24,4 +24,5 @@
   <data name="Register.HasAccount" xml:space="preserve"><value>已經有帳號了？</value></data>
   <data name="Register.Login" xml:space="preserve"><value>前往登入</value></data>
   <data name="Login.ShowPassword" xml:space="preserve"><value>顯示密碼</value></data>
+  <data name="Register.MustReadLegal" xml:space="preserve"><value>請先點擊閱讀服務條款與隱私權政策</value></data>
 </root>

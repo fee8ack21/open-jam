@@ -87,6 +87,20 @@ public class UserService(
             db.EmailVerificationTokens.Add(token);
             db.OutboxMessages.Add(outbox);
 
+            // 同意紀錄：註冊當下啟用中的條款版本（Pending 帳號覆蓋重註冊時略過已同意者）
+            var activeDocIds = await db.LegalDocuments
+                .Where(d => d.Status == LegalDocumentStatus.Active)
+                .Select(d => d.Id)
+                .ToListAsync();
+
+            var consentedDocIds = await db.UserLegalConsents
+                .Where(c => c.UserId == user.Id && activeDocIds.Contains(c.LegalDocumentId))
+                .Select(c => c.LegalDocumentId)
+                .ToListAsync();
+
+            foreach (var docId in activeDocIds.Except(consentedDocIds))
+                db.UserLegalConsents.Add(new UserLegalConsent { UserId = user.Id, LegalDocumentId = docId });
+
             await db.SaveChangesAsync();
             await tx.CommitAsync();
 
