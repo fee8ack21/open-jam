@@ -49,17 +49,14 @@
         "creators": "creators",
         "sales": "downloads"
       },
+      "cta": {
+        "explore": "Explore now",
+        "hot": "Hot picks",
+        "free": "Free downloads",
+        "sell": "Start selling"
+      },
       "searchPlaceholder": "Search works, creators, or tags…",
-      "searchAria": "Search the marketplace",
-      "popularSearch": "Popular",
-      "keywords": [
-        "Jazz",
-        "Kyoto",
-        "Piano",
-        "Notion",
-        "Street",
-        "Free"
-      ]
+      "searchAria": "Search the marketplace"
     },
     "cats": {
       "eyebrow": "Browse by type",
@@ -67,16 +64,26 @@
       "count": "{count} works",
       "tileAria": "Browse {cat}"
     },
+    "hotBanner": {
+      "eyebrow": "This week's hottest",
+      "cta": "View work"
+    },
+    "pulse": {
+      "eyebrow": "Market pulse",
+      "title": "This week at a glance"
+    },
     "trending": {
-      "eyebrow": "This week",
       "title": "Top sellers",
       "sales": "{count} sold"
     },
+    "rated": {
+      "title": "Top rated",
+      "count": "{count} reviews"
+    },
     "creators": {
-      "eyebrow": "Creators",
-      "title": "Creators in the groove",
-      "meta": "{works} works · {sales} sold",
-      "visit": "Visit store"
+      "title": "Top creators",
+      "works": "{count} works",
+      "sold": "{count} sold"
     },
     "ctaBand": {
       "title": "Do you create too?",

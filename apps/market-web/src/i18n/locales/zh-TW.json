@@ -45,21 +45,18 @@
         "電子書"
       ],
       "stats": {
-        "works": "件作品",
-        "creators": "位創作者",
-        "sales": "次購買下載"
+        "works": "作品",
+        "creators": "創作者",
+        "sales": "次下載"
+      },
+      "cta": {
+        "explore": "立即探索",
+        "hot": "熱門作品",
+        "free": "免費下載",
+        "sell": "開始販售"
       },
       "searchPlaceholder": "搜尋作品、創作者或標籤…",
-      "searchAria": "搜尋市集",
-      "popularSearch": "熱門搜尋",
-      "keywords": [
-        "爵士",
-        "京都",
-        "鋼琴",
-        "Notion",
-        "街拍",
-        "免費"
-      ]
+      "searchAria": "搜尋市集"
     },
     "cats": {
       "eyebrow": "分類導覽",
@@ -67,16 +64,26 @@
       "count": "{count} 件作品",
       "tileAria": "瀏覽{cat}"
     },
+    "hotBanner": {
+      "eyebrow": "本週熱門",
+      "cta": "查看作品"
+    },
+    "pulse": {
+      "eyebrow": "市集脈動",
+      "title": "本週市集動態"
+    },
     "trending": {
-      "eyebrow": "本週脈動",
       "title": "熱銷排行",
       "sales": "已售 {count}"
     },
+    "rated": {
+      "title": "評分最高",
+      "count": "{count} 則評價"
+    },
     "creators": {
-      "eyebrow": "創作者",
-      "title": "活躍創作者",
-      "meta": "{works} 件作品 · 售出 {sales}",
-      "visit": "逛逛店面"
+      "title": "人氣創作者",
+      "works": "{count} 件作品",
+      "sold": "售出 {count}"
     },
     "ctaBand": {
       "title": "你也在創作嗎？",

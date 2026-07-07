@@ -16,10 +16,13 @@ import OnboardingGuide from '@/components/OnboardingGuide.vue';
 import RotatingWord from '@/components/home/RotatingWord.vue';
 import TagMarquee from '@/components/home/TagMarquee.vue';
 import CategoryShowcase from '@/components/home/CategoryShowcase.vue';
+import HotBanner from '@/components/home/HotBanner.vue';
 import TrendingChart from '@/components/home/TrendingChart.vue';
+import RatedChart from '@/components/home/RatedChart.vue';
 import CreatorSpotlight from '@/components/home/CreatorSpotlight.vue';
 import CreatorCtaBand from '@/components/home/CreatorCtaBand.vue';
 import { useScrollReveal } from '@/composables/useScrollReveal';
+import { env } from '@/environment.js';
 
 const store = useShopStore();
 const { t, rt, tm, locale } = useI18n();
@@ -28,8 +31,12 @@ const { t, rt, tm, locale } = useI18n();
 const orderMap = computed(() => new Map(store.products.map((p, i) => [p.id, i])));
 
 const cats = CATEGORIES;
-const keywords = computed(() => (tm('market.hero.keywords') as string[]).map((k) => rt(k)));
 const rotatingWords = computed(() => (tm('market.hero.rotatingWords') as string[]).map((w) => rt(w)));
+
+// 本週熱門大 banner：取銷量冠軍
+const hotProduct = computed(() =>
+  store.products.slice().sort((a, b) => b.sales - a.sales)[0],
+);
 
 // 跑馬燈標籤：取自實際商品 tags，依出現頻率排序（點擊即搜尋，保證有結果）
 const marqueeTags = computed(() => {
@@ -249,6 +256,19 @@ function scrollToBrowse() {
 }
 function pickKeyword(k: string) { search.value = k; scrollToBrowse(); }
 function pickCategory(id: string) { category.value = id; scrollToBrowse(); }
+
+// ----- hero CTA 快速入口 -----
+function scrollToHot() {
+  const el = document.getElementById('hot');
+  if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
+}
+function goFreeDownloads() { priceBand.value = 'free'; scrollToBrowse(); }
+function goSell() { window.location.href = env.WORKSPACE_PAGE_URL; }
+
+/** 統計大數字：千位以上以 K 呈現（39,200 → 39K）。 */
+function compactNum(n: number): string {
+  return n >= 1000 ? `${Math.round(n / 1000)}K` : String(n);
+}
 function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.value = 'all'; search.value = ''; }
 function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -298,18 +318,37 @@ onBeforeUnmount(() => {
             <button type="submit"><app-icon name="search" :size="17" /> {{ t('common.search') }}</button>
           </form>
 
-          <div class="kw-row">
-            <span class="kw-lab">{{ t('market.hero.popularSearch') }}</span>
-            <a v-for="k in keywords" :key="k" class="kw" href="#browse" @click.prevent="pickKeyword(k)">{{ k }}</a>
+          <div class="hero-ctas">
+            <button type="button" class="hcta hcta-main" @click="scrollToBrowse">
+              <app-icon name="search" :size="16" /> {{ t('market.hero.cta.explore') }}
+            </button>
+            <button type="button" class="hcta" @click="scrollToHot">
+              <app-icon name="star" :size="16" /> {{ t('market.hero.cta.hot') }}
+            </button>
+            <button type="button" class="hcta" @click="goFreeDownloads">
+              <app-icon name="download" :size="16" /> {{ t('market.hero.cta.free') }}
+            </button>
+            <button type="button" class="hcta hcta-sell" @click="goSell">
+              <app-icon name="bag" :size="16" /> {{ t('market.hero.cta.sell') }}
+            </button>
           </div>
 
           <div v-if="store.products.length" class="hero-stats">
-            <span class="hs"><b>{{ shownStats.works.toLocaleString() }}</b>{{ t('market.hero.stats.works') }}</span>
-            <span class="hs-dot" aria-hidden="true">·</span>
-            <span class="hs"><b>{{ shownStats.creators.toLocaleString() }}</b>{{ t('market.hero.stats.creators') }}</span>
+            <div class="hs">
+              <span class="hs-num">{{ compactNum(shownStats.works) }}+</span>
+              <span class="hs-lab">{{ t('market.hero.stats.works') }}</span>
+            </div>
+            <span class="hs-div" aria-hidden="true"></span>
+            <div class="hs">
+              <span class="hs-num">{{ compactNum(shownStats.creators) }}+</span>
+              <span class="hs-lab">{{ t('market.hero.stats.creators') }}</span>
+            </div>
             <template v-if="statTargets.sales > 0">
-              <span class="hs-dot" aria-hidden="true">·</span>
-              <span class="hs"><b>{{ shownStats.sales.toLocaleString() }}</b>{{ t('market.hero.stats.sales') }}</span>
+              <span class="hs-div" aria-hidden="true"></span>
+              <div class="hs">
+                <span class="hs-num">{{ compactNum(shownStats.sales) }}+</span>
+                <span class="hs-lab">{{ t('market.hero.stats.sales') }}</span>
+              </div>
             </template>
           </div>
         </div>
@@ -352,15 +391,24 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ============ PULSE：熱銷排行 + 活躍創作者 ============ -->
-      <section v-if="store.products.length" class="sec pulse rv">
-        <div class="pulse-grid">
-          <trending-chart :products="store.products" />
-          <creator-spotlight :products="store.products" />
-        </div>
-      </section>
+      <!-- ============ 本週熱門 banner + 市集儀表板（淡紫 band） ============ -->
+      <div v-if="store.products.length && hotProduct" class="band band-violet">
+        <hot-banner :product="hotProduct" />
+        <section class="sec pulse rv">
+          <div class="browse-head">
+            <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('market.pulse.eyebrow') }}</p>
+            <h2 class="browse-title">{{ t('market.pulse.title') }}</h2>
+          </div>
+          <div class="pulse-grid">
+            <trending-chart :products="store.products" />
+            <rated-chart :products="store.products" />
+            <creator-spotlight :products="store.products" />
+          </div>
+        </section>
+      </div>
 
-      <!-- ============ BROWSE ============ -->
+      <!-- ============ BROWSE（灰紫 band） ============ -->
+      <div class="band band-mist">
       <section class="sec browse" id="browse">
         <div class="browse-head">
           <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('market.browse.eyebrow') }}</p>
@@ -454,6 +502,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </section>
+      </div>
 
       <!-- ============ CREATOR CTA ============ -->
       <creator-cta-band />

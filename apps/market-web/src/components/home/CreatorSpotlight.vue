@@ -1,8 +1,7 @@
 <script setup lang="ts">
 /* ============================================================
-   CreatorSpotlight — 活躍創作者（呼應 Epidemic Sound 的
-   artist spotlight）。由商品資料聚合出創作者，依累計銷量
-   取前四位，整卡連到其子網域店面。
+   CreatorSpotlight — 市集儀表板「人氣創作者」板。由商品資料
+   聚合創作者，依累計銷量取前五，每列連到其子網域店面。
    ============================================================ */
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -31,7 +30,7 @@ const creators = computed<CreatorInfo[]>(() => {
     c.sales += p.sales;
     map.set(p.storeSlug, c);
   }
-  return [...map.values()].sort((a, b) => b.sales - a.sales).slice(0, 4);
+  return [...map.values()].sort((a, b) => b.sales - a.sales).slice(0, 5);
 });
 
 function initials(name: string): string {
@@ -43,21 +42,27 @@ function href(slug: string): string {
 </script>
 
 <template>
-  <div class="spotlight">
-    <div class="pulse-head">
-      <p class="browse-eyebrow"><app-icon name="user" :size="13" /> {{ t('market.creators.eyebrow') }}</p>
-      <h2 class="pulse-title">{{ t('market.creators.title') }}</h2>
+  <div class="board">
+    <div class="board-head bh-creators">
+      <span class="board-ic"><app-icon name="user" :size="15" /></span>
+      <h3 class="board-title">{{ t('market.creators.title') }}</h3>
+      <span class="board-tag">TOP 5</span>
     </div>
-    <div class="cs-list">
-      <a v-for="c in creators" :key="c.slug" class="cs-card" :href="href(c.slug)">
-        <span class="avatar cs-avatar" :style="{ background: c.avatar }">{{ initials(c.name) }}</span>
-        <span class="cs-info">
-          <span class="cs-name">{{ c.name }}</span>
-          <span class="cs-handle">{{ c.handle }}</span>
-          <span class="cs-meta">{{ t('market.creators.meta', { works: c.works, sales: c.sales.toLocaleString() }) }}</span>
-        </span>
-        <span class="cs-visit">{{ t('market.creators.visit') }}</span>
-      </a>
-    </div>
+    <ol class="brd-list">
+      <li v-for="(c, i) in creators" :key="c.slug">
+        <a class="brd-row" :href="href(c.slug)">
+          <span class="brd-rank" :class="{ 'brd-rank-1': i === 0 }">{{ i + 1 }}</span>
+          <span class="avatar brd-avatar" :style="{ background: c.avatar }">{{ initials(c.name) }}</span>
+          <span class="brd-info">
+            <span class="brd-title">{{ c.name }}</span>
+            <span class="brd-sub">{{ c.handle }}</span>
+          </span>
+          <span class="brd-side">
+            <span class="brd-main">{{ t('market.creators.works', { count: c.works }) }}</span>
+            <span class="brd-note">{{ t('market.creators.sold', { count: c.sales.toLocaleString() }) }}</span>
+          </span>
+        </a>
+      </li>
+    </ol>
   </div>
 </template>
