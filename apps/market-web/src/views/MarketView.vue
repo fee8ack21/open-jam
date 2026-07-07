@@ -22,7 +22,7 @@ import CreatorCtaBand from '@/components/home/CreatorCtaBand.vue';
 import { useScrollReveal } from '@/composables/useScrollReveal';
 
 const store = useShopStore();
-const { t, rt, tm } = useI18n();
+const { t, rt, tm, locale } = useI18n();
 
 // 後端列表已依上架時間 desc：index 越小越新
 const orderMap = computed(() => new Map(store.products.map((p, i) => [p.id, i])));
@@ -69,6 +69,21 @@ watch(statTargets, (target) => {
 // ----- scroll reveal：商品載入後新出現的區塊需重新掃描 -----
 const { scan: scanReveal } = useScrollReveal();
 watch(() => store.products.length, () => nextTick(scanReveal));
+
+// ----- hero 標題固定單行：超出容器寬度時依比例縮小字級 -----
+// 輪播字 slot 已以隱形佔位固定為最寬詞的寬度，量一次即涵蓋所有輪播狀態。
+function fitHeroTitle() {
+  const el = document.querySelector<HTMLElement>('.mkt-hero-title');
+  if (!el) return;
+  el.style.fontSize = ''; // 先還原為 CSS clamp 的字級再量測
+  const avail = el.clientWidth;
+  const need = el.scrollWidth;
+  if (need > avail) {
+    const cur = parseFloat(getComputedStyle(el).fontSize);
+    el.style.fontSize = `${Math.max(16, cur * (avail / need) * 0.97).toFixed(2)}px`;
+  }
+}
+watch(locale, () => nextTick(fitHeroTitle));
 const search = ref('');
 const category = ref('all');
 const sort = ref('popular');
@@ -239,16 +254,25 @@ function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function loadMore() { visibleCount.value += pageSize; }
 
+function onResize() {
+  updateFeatNav();
+  fitHeroTitle();
+}
+
 onMounted(() => {
   store.loadCatalog();
   window.addEventListener('scroll', onScroll);
-  window.addEventListener('resize', updateFeatNav);
+  window.addEventListener('resize', onResize);
   updateFeatNav();
+  // nextTick：等 RotatingWord 量測完 slot 寬、DOM 更新後再量整行
+  nextTick(fitHeroTitle);
+  // 顯示字型載入完成後字寬會變，需再量一次（同樣等 slot 寬更新落地）
+  document.fonts?.ready.then(() => nextTick(fitHeroTitle));
 });
 onBeforeUnmount(() => {
   cancelAnimationFrame(statRaf);
   window.removeEventListener('scroll', onScroll);
-  window.removeEventListener('resize', updateFeatNav);
+  window.removeEventListener('resize', onResize);
 });
 </script>
 

@@ -159,9 +159,10 @@
 /* not enough side room to clear the centred content — keep the hero clean */
 @media (max-width: 1280px) { .hero-collage { display: none; } }
 .mkt-hero .hero-eyebrow { margin: 0 auto 22px; }
+/* 標題強制單行：字級以 clamp 為上限，超寬時由 fitHeroTitle() 依實際寬度縮小 */
 .mkt-hero-title {
   font-family: var(--oj-display); font-size: clamp(42px, 6.4vw, 82px); font-weight: 800;
-  line-height: .98; letter-spacing: -2.4px; margin: 0; color: var(--text); text-wrap: balance;
+  line-height: .98; letter-spacing: -2.4px; margin: 0; color: var(--text); white-space: nowrap;
 }
 
 /* big search */
@@ -481,11 +482,21 @@
    ============================================================ */
 
 /* ---------- hero: rotating word ---------- */
-.rw { display: inline-grid; vertical-align: bottom; }
-.rw-word {
-  grid-area: 1 / 1; display: inline-block; white-space: nowrap;
+/* .rw 為固定寬 slot（em，由元件量測後設定）；.rw-word 只承載翻牌
+   transition 的 transform；.rw-pill 承載色塊樣式與「rotate + 填滿
+   slot 的 scale」（inline style）——兩層 transform 各自獨立不互蓋。 */
+/* grid-template-columns: 100%：track 固定為 slot 寬，避免超寬的隱形
+   佔位字把 track 撐大、導致色塊在 slot 外置中而偏移。 */
+.rw { display: inline-grid; grid-template-columns: 100%; justify-items: center; vertical-align: bottom; }
+.rw-word { grid-area: 1 / 1; display: grid; place-items: center; }
+.rw-pill {
+  display: inline-block; white-space: nowrap; transform-origin: center;
   padding: 0 .14em; border-radius: 10px; transform: rotate(-1.5deg);
   box-shadow: 3px 3px 0 rgba(26,22,38,.45);
+}
+.rw-sizer {
+  grid-area: 1 / 1; visibility: hidden; white-space: nowrap;
+  padding: 0 .14em; /* 與 .rw-pill 相同，量測寬度才含色塊留白 */
 }
 .rw-yellow { background: var(--c-yellow); color: #1a1626; }
 .rw-violet { background: var(--c-violet); color: #fff; }
@@ -493,8 +504,8 @@
 .rw-cyan   { background: var(--c-cyan); color: #08312d; }
 .rw-flip-enter-active { transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .3s ease-out; }
 .rw-flip-leave-active { transition: transform .4s cubic-bezier(.6,0,.8,.4), opacity .28s ease-in; }
-.rw-flip-enter-from { opacity: 0; transform: translateY(.55em) rotate(-1.5deg); }
-.rw-flip-leave-to { opacity: 0; transform: translateY(-.55em) rotate(-1.5deg); }
+.rw-flip-enter-from { opacity: 0; transform: translateY(.55em); }
+.rw-flip-leave-to { opacity: 0; transform: translateY(-.55em); }
 
 /* ---------- hero: live stats (count-up) ---------- */
 .hero-stats {
