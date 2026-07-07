@@ -36,10 +36,19 @@
     "toTop": "回到頂部",
     "hero": {
       "eyebrow": "OPEN JAM · 創作者數位市集",
-      "title": "發現值得{collect}的{creator}{works}",
+      "title": "發現值得{collect}的{rotating}",
       "collect": "收藏",
-      "creator": "創作者",
-      "works": "數位作品",
+      "rotatingWords": [
+        "數位作品",
+        "樂譜",
+        "攝影集",
+        "電子書"
+      ],
+      "stats": {
+        "works": "件作品",
+        "creators": "位創作者",
+        "sales": "次購買下載"
+      },
       "searchPlaceholder": "搜尋作品、創作者或標籤…",
       "searchAria": "搜尋市集",
       "popularSearch": "熱門搜尋",
@@ -51,6 +60,29 @@
         "街拍",
         "免費"
       ]
+    },
+    "cats": {
+      "eyebrow": "分類導覽",
+      "title": "你想找哪一種創作？",
+      "count": "{count} 件作品",
+      "tileAria": "瀏覽{cat}"
+    },
+    "trending": {
+      "eyebrow": "本週脈動",
+      "title": "熱銷排行",
+      "sales": "已售 {count}"
+    },
+    "creators": {
+      "eyebrow": "創作者",
+      "title": "活躍創作者",
+      "meta": "{works} 件作品 · 售出 {sales}",
+      "visit": "逛逛店面"
+    },
+    "ctaBand": {
+      "title": "你也在創作嗎？",
+      "sub": "把樂譜、攝影集與電子書帶到 Open Jam——免月費開店，成功售出才收 3% 手續費。",
+      "button": "成為創作者",
+      "more": "了解平台如何運作"
     },
     "featured": {
       "eyebrow": "精選 · 熱門",

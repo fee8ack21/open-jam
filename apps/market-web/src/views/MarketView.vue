@@ -4,7 +4,7 @@
    Search-led hero + category / sort / price browse grid.
    Cards deep-link into the storefront detail route.
    ============================================================ */
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop.js';
 import { CATEGORIES, type Product } from '@/data/products';
@@ -13,6 +13,13 @@ import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
 import FeaturedCard from '@/components/FeaturedCard.vue';
 import OnboardingGuide from '@/components/OnboardingGuide.vue';
+import RotatingWord from '@/components/home/RotatingWord.vue';
+import TagMarquee from '@/components/home/TagMarquee.vue';
+import CategoryShowcase from '@/components/home/CategoryShowcase.vue';
+import TrendingChart from '@/components/home/TrendingChart.vue';
+import CreatorSpotlight from '@/components/home/CreatorSpotlight.vue';
+import CreatorCtaBand from '@/components/home/CreatorCtaBand.vue';
+import { useScrollReveal } from '@/composables/useScrollReveal';
 
 const store = useShopStore();
 const { t, rt, tm } = useI18n();
@@ -22,6 +29,46 @@ const orderMap = computed(() => new Map(store.products.map((p, i) => [p.id, i]))
 
 const cats = CATEGORIES;
 const keywords = computed(() => (tm('market.hero.keywords') as string[]).map((k) => rt(k)));
+const rotatingWords = computed(() => (tm('market.hero.rotatingWords') as string[]).map((w) => rt(w)));
+
+// 跑馬燈標籤：取自實際商品 tags，依出現頻率排序（點擊即搜尋，保證有結果）
+const marqueeTags = computed(() => {
+  const freq = new Map<string, number>();
+  store.products.forEach((p) => p.tags.forEach((tag) => freq.set(tag, (freq.get(tag) ?? 0) + 1)));
+  return [...freq.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag).slice(0, 14);
+});
+
+// ----- hero 即時統計（count-up 動畫） -----
+const statTargets = computed(() => ({
+  works: store.products.length,
+  creators: new Set(store.products.map((p) => p.storeSlug)).size,
+  sales: store.products.reduce((sum, p) => sum + p.sales, 0),
+}));
+const shownStats = reactive({ works: 0, creators: 0, sales: 0 });
+let statRaf = 0;
+watch(statTargets, (target) => {
+  cancelAnimationFrame(statRaf);
+  if (!target.works || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    Object.assign(shownStats, target);
+    return;
+  }
+  const from = { ...shownStats };
+  const start = performance.now();
+  const dur = 1200;
+  const step = (now: number) => {
+    const k = Math.min(1, (now - start) / dur);
+    const e = 1 - Math.pow(1 - k, 3); // ease-out cubic
+    shownStats.works = Math.round(from.works + (target.works - from.works) * e);
+    shownStats.creators = Math.round(from.creators + (target.creators - from.creators) * e);
+    shownStats.sales = Math.round(from.sales + (target.sales - from.sales) * e);
+    if (k < 1) statRaf = requestAnimationFrame(step);
+  };
+  statRaf = requestAnimationFrame(step);
+}, { immediate: true });
+
+// ----- scroll reveal：商品載入後新出現的區塊需重新掃描 -----
+const { scan: scanReveal } = useScrollReveal();
+watch(() => store.products.length, () => nextTick(scanReveal));
 const search = ref('');
 const category = ref('all');
 const sort = ref('popular');
@@ -186,6 +233,7 @@ function scrollToBrowse() {
   if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
 }
 function pickKeyword(k: string) { search.value = k; scrollToBrowse(); }
+function pickCategory(id: string) { category.value = id; scrollToBrowse(); }
 function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.value = 'all'; search.value = ''; }
 function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -198,6 +246,7 @@ onMounted(() => {
   updateFeatNav();
 });
 onBeforeUnmount(() => {
+  cancelAnimationFrame(statRaf);
   window.removeEventListener('scroll', onScroll);
   window.removeEventListener('resize', updateFeatNav);
 });
@@ -216,8 +265,7 @@ onBeforeUnmount(() => {
           <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('market.hero.eyebrow') }}</p>
           <i18n-t keypath="market.hero.title" tag="h1" class="mkt-hero-title" scope="global">
             <template #collect><span class="hl hl-lime">{{ t('market.hero.collect') }}</span></template>
-            <template #creator>{{ t('market.hero.creator') }}</template>
-            <template #works><span class="hl hl-pink">{{ t('market.hero.works') }}</span></template>
+            <template #rotating><rotating-word :words="rotatingWords" /></template>
           </i18n-t>
 
           <form class="mkt-search" @submit.prevent="scrollToBrowse">
@@ -230,11 +278,27 @@ onBeforeUnmount(() => {
             <span class="kw-lab">{{ t('market.hero.popularSearch') }}</span>
             <a v-for="k in keywords" :key="k" class="kw" href="#browse" @click.prevent="pickKeyword(k)">{{ k }}</a>
           </div>
+
+          <div v-if="store.products.length" class="hero-stats">
+            <span class="hs"><b>{{ shownStats.works.toLocaleString() }}</b>{{ t('market.hero.stats.works') }}</span>
+            <span class="hs-dot" aria-hidden="true">·</span>
+            <span class="hs"><b>{{ shownStats.creators.toLocaleString() }}</b>{{ t('market.hero.stats.creators') }}</span>
+            <template v-if="statTargets.sales > 0">
+              <span class="hs-dot" aria-hidden="true">·</span>
+              <span class="hs"><b>{{ shownStats.sales.toLocaleString() }}</b>{{ t('market.hero.stats.sales') }}</span>
+            </template>
+          </div>
         </div>
       </section>
 
+      <!-- ============ TAG MARQUEE ============ -->
+      <tag-marquee :items="marqueeTags" @pick="pickKeyword" />
+
+      <!-- ============ CATEGORY SHOWCASE ============ -->
+      <category-showcase v-if="store.products.length" :products="store.products" @pick="pickCategory" />
+
       <!-- ============ FEATURED ============ -->
-      <section v-if="featured.length" class="sec featured" id="featured">
+      <section v-if="featured.length" class="sec featured rv" id="featured">
         <div class="feat-head">
           <div class="feat-head-text">
             <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('market.featured.eyebrow') }}</p>
@@ -261,6 +325,14 @@ onBeforeUnmount(() => {
           @dragstart.prevent
         >
           <featured-card v-for="p in featured" :key="p.id" :product="p" />
+        </div>
+      </section>
+
+      <!-- ============ PULSE：熱銷排行 + 活躍創作者 ============ -->
+      <section v-if="store.products.length" class="sec pulse rv">
+        <div class="pulse-grid">
+          <trending-chart :products="store.products" />
+          <creator-spotlight :products="store.products" />
         </div>
       </section>
 
@@ -358,6 +430,9 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </section>
+
+      <!-- ============ CREATOR CTA ============ -->
+      <creator-cta-band />
 
       <!-- ============ FOOTER ============ -->
       <app-footer />

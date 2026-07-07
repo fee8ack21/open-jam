@@ -36,10 +36,19 @@
     "toTop": "Back to top",
     "hero": {
       "eyebrow": "OPEN JAM · A marketplace for creators",
-      "title": "Discover {creator} {works} worth {collect}",
+      "title": "Discover {rotating} worth {collect}",
       "collect": "collecting",
-      "creator": "creators’",
-      "works": "digital works",
+      "rotatingWords": [
+        "digital works",
+        "sheet music",
+        "photo packs",
+        "e-books"
+      ],
+      "stats": {
+        "works": "works",
+        "creators": "creators",
+        "sales": "downloads"
+      },
       "searchPlaceholder": "Search works, creators, or tags…",
       "searchAria": "Search the marketplace",
       "popularSearch": "Popular",
@@ -51,6 +60,29 @@
         "Street",
         "Free"
       ]
+    },
+    "cats": {
+      "eyebrow": "Browse by type",
+      "title": "What kind of work are you after?",
+      "count": "{count} works",
+      "tileAria": "Browse {cat}"
+    },
+    "trending": {
+      "eyebrow": "This week",
+      "title": "Top sellers",
+      "sales": "{count} sold"
+    },
+    "creators": {
+      "eyebrow": "Creators",
+      "title": "Creators in the groove",
+      "meta": "{works} works · {sales} sold",
+      "visit": "Visit store"
+    },
+    "ctaBand": {
+      "title": "Do you create too?",
+      "sub": "Bring your sheet music, photography, and e-books to Open Jam — no monthly fee, just a 3% cut when a work sells.",
+      "button": "Become a creator",
+      "more": "See how the platform works"
     },
     "featured": {
       "eyebrow": "Featured · Popular",
