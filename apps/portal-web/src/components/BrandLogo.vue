@@ -1,29 +1,32 @@
 <script setup lang="ts">
 /* ============================================================
    BrandLogo — Open Jam 品牌標誌（AppNav / AppFooter 共用）
-   mark 為音波 equalizer 小動畫：常態緩慢律動，hover 加速並讓
-   字母依序如節拍彈跳；「Jam」上品牌漸層。樣式在 base.css。
+   mark 為音符 SVG，hover 時輕微旋轉放大（樣式在 base.css）。
    ============================================================ */
-// 空白以 NBSP 呈現，避免 inline-block 字母 span 之間的空白被摺疊
-const LETTERS = 'Open Jam'.split('').map((ch) => (ch === ' ' ? '\u00A0' : ch));
 </script>
 
 <template>
   <router-link class="brand" to="/" aria-label="Open Jam">
     <span class="brand-mark" aria-hidden="true">
-      <span class="brand-eq">
-        <span v-for="i in 5" :key="i" class="brand-eq-bar"></span>
-      </span>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8"
+          stroke="#fff"
+          stroke-width="2.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"
+        ></path>
+        <ellipse
+          cx="10.4"
+          cy="16.8"
+          rx="4.7"
+          ry="3.5"
+          fill="#fff"
+          transform="rotate(-22 10.4 16.8)"
+        ></ellipse>
+      </svg>
     </span>
-    <span class="brand-name" aria-hidden="true">
-      <span
-        v-for="(ch, i) in LETTERS"
-        :key="i"
-        class="brand-ch"
-        :class="{ 'brand-ch-jam': i >= 5 }"
-        :style="{ '--ch-i': i }"
-        >{{ ch }}</span
-      >
-    </span>
+    <span class="brand-name">Open Jam</span>
   </router-link>
 </template>
