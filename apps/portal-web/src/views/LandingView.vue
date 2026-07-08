@@ -50,8 +50,6 @@ function chipsFor(id: string): string[] {
   return (tm(`landing.story.${id}.chips`) as string[]).map((c) => rt(c));
 }
 
-// hero 漂浮商品卡（mock 縮圖，非 i18n 內容）
-const heroFloats = [imgSilver, imgAutumn, imgDragon];
 // 攝影章：照片格與 before-after 底圖
 const photoGrid = [imgSurf, imgColorful, imgInterior];
 // 區塊四 collage：市集精選格 / 收藏縮圖
@@ -113,10 +111,10 @@ function goChapter(i: number) {
 
 /**
  * hero 互動層（僅 prefers-reduced-motion: no-preference 時啟用）：
- * 漂浮商品卡 / 裝飾隨游標位置反向微漂（深度正負交錯營造空間感）。
+ * 裝飾隨游標位置反向微漂（深度正負交錯營造空間感）。
  */
 function setupHeroInteraction(hero: HTMLElement): () => void {
-  const layers = gsap.utils.toArray<HTMLElement>('.lh-float, .lh-deco').map((el, i) => ({
+  const layers = gsap.utils.toArray<HTMLElement>('.lh-deco').map((el, i) => ({
     qx: gsap.quickTo(el, 'x', { duration: 0.9, ease: 'power3' }),
     qy: gsap.quickTo(el, 'y', { duration: 0.9, ease: 'power3' }),
     depth: [30, -22, 18, -14, 24][i] ?? 16,
@@ -157,11 +155,11 @@ onMounted(() => {
         .from('.lh-title', { y: 54, autoAlpha: 0, duration: 0.8 }, '-=0.25')
         .from('.lh-hl', { scale: 0, rotation: -8, duration: 0.45, stagger: 0.18, ease: 'back.out(2.2)' }, '-=0.35')
         .from('.lh-slogan', { y: 26, autoAlpha: 0, duration: 0.55 }, '-=0.2')
-        .from('.lh-float', { autoAlpha: 0, duration: 0.7, stagger: 0.08 }, '-=0.4')
+        .from('.lh-deco', { autoAlpha: 0, duration: 0.7, stagger: 0.08 }, '-=0.4')
         .from('.lh-hint', { autoAlpha: 0, duration: 0.5 }, '-=0.2');
 
-      // 漂浮卡 / 裝飾隨捲動視差（外層走 GSAP，內層 CSS float 動畫避免 transform 打架）
-      gsap.utils.toArray<HTMLElement>('.lh-float, .lh-deco').forEach((el, i) => {
+      // 裝飾隨捲動視差
+      gsap.utils.toArray<HTMLElement>('.lh-deco').forEach((el, i) => {
         gsap.to(el, {
           yPercent: (i % 2 ? -1 : 1) * (14 + i * 7),
           ease: 'none',
@@ -289,21 +287,12 @@ onBeforeUnmount(() => ctx?.revert());
       <!-- ============ 區塊一：Hero / 品牌宣言 ============ -->
       <section class="l-hero">
         <span class="l-bigword lh-bigword" data-drift aria-hidden="true">OPEN JAM</span>
-        <!-- 漂浮商品卡 + 裝飾（情緒背景，非資訊） -->
-        <span v-for="(src, i) in heroFloats" :key="i" class="lh-float" :class="'lh-float-' + (i + 1)" aria-hidden="true">
-          <img :src="src" alt="" />
-        </span>
+        <!-- 裝飾（情緒背景，非資訊） -->
         <span class="lh-deco lh-deco-ring" aria-hidden="true"></span>
         <span class="lh-deco lh-deco-star" aria-hidden="true"><app-icon name="sparkle" :size="42" :stroke="1.8" /></span>
 
         <div class="lh-inner">
           <p class="lh-eyebrow">
-            <span class="lh-brand-mark">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-                <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-              </svg>
-            </span>
             {{ t('landing.hero.eyebrow') }}
           </p>
           <i18n-t keypath="landing.hero.title" tag="h1" class="lh-title" scope="global">
@@ -593,11 +582,7 @@ onBeforeUnmount(() => ctx?.revert());
   display: inline-flex; align-items: center; gap: 9px; margin: 0 0 24px;
   font-family: var(--oj-mono); font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--text); border: 1.5px solid var(--border-strong); border-radius: 999px;
-  background: var(--surface); box-shadow: var(--pop-1); padding: 8px 16px 8px 9px;
-}
-.lh-brand-mark {
-  width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center;
-  background: linear-gradient(135deg, var(--c-violet), var(--c-pink));
+  background: var(--surface); box-shadow: var(--pop-1); padding: 8px 16px;
 }
 .lh-title {
   margin: 0; font-family: var(--oj-display); font-weight: 800;
@@ -612,20 +597,6 @@ onBeforeUnmount(() => ctx?.revert());
 .lh-hl-cyan { background: var(--c-cyan); transform: rotate(1.2deg); }
 .lh-hl-pink { background: var(--c-pink); color: #fff; transform: rotate(-1deg); }
 .lh-slogan { max-width: 560px; margin: 24px auto 0; font-size: 16.5px; line-height: 1.85; color: var(--text-soft); }
-
-/* 漂浮商品卡：外層吃 GSAP 視差，內層 img 跑 CSS float */
-.lh-float { position: absolute; pointer-events: none; z-index: 0; }
-.lh-float img {
-  display: block; width: 132px; aspect-ratio: 1; object-fit: cover;
-  border: 1.5px solid var(--text); border-radius: var(--r-md); box-shadow: 5px 5px 0 var(--text);
-  animation: lh-drift 5.2s ease-in-out infinite;
-}
-.lh-float-1 { top: 15%; left: 6%; transform: rotate(-7deg); }
-.lh-float-2 { top: 58%; right: 6%; transform: rotate(5deg); }
-.lh-float-2 img { width: 116px; animation-delay: 1.2s; }
-.lh-float-3 { bottom: 20%; left: 12%; transform: rotate(4deg); }
-.lh-float-3 img { width: 96px; animation-delay: 2.3s; }
-@keyframes lh-drift { 50% { translate: 0 -12px; } }
 
 .lh-deco { position: absolute; pointer-events: none; z-index: 0; }
 .lh-deco-ring {
@@ -1020,7 +991,7 @@ onBeforeUnmount(() => ctx?.revert());
   .why-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .lh-float, .lh-deco { display: none; }
+  .lh-deco { display: none; }
   .fl-steps { grid-template-columns: 1fr; }
   .ls-chapter { padding-bottom: 128px; }
   .ls-chips li { font-size: 12.5px; padding: 6px 11px; }
@@ -1028,6 +999,6 @@ onBeforeUnmount(() => ctx?.revert());
 
 /* reduced-motion：停用裝飾動畫（pin / 轉場由 matchMedia 控制不啟用） */
 @media (prefers-reduced-motion: reduce) {
-  .lh-hint :deep(svg), .mv-wave span, .lh-float img, .l-marquee-track { animation: none; }
+  .lh-hint :deep(svg), .mv-wave span, .l-marquee-track { animation: none; }
 }
 </style>
