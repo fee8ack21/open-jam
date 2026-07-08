@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /* ============================================================
-   ProductCard — storefront catalogue card (.mc, market-web style).
+   ProductCard — storefront catalogue card (.mc, portal-web style).
    Routes to the product detail page; corner badge surfaces
    熱賣 / 新上架. Favouriting lives on the detail page.
    ============================================================ */

@@ -13,7 +13,7 @@
 
 | 站點 | 用途 | 前端 |
 |------|------|------|
-| `openjam.co` | 平台探索頁 | market-web |
+| `openjam.co` | 平台探索頁 | portal-web |
 | `auth.openjam.co` | 登入 / 登出 | （[[Auth]]）|
 | `workspace.openjam.co` | 用戶後台 | workspace-web |
 | `<creator>.openjam.co` | 創作者商品空間 | creator-web |

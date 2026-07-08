@@ -1,27 +1,27 @@
-{{- if .Values.marketWeb.enabled }}
+{{- if .Values.portalWeb.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "open-jam.fullname" . }}-market-web
+  name: {{ include "open-jam.fullname" . }}-portal-web
   labels:
     {{- include "open-jam.labels" . | nindent 4 }}
-    app.kubernetes.io/component: market-web
+    app.kubernetes.io/component: portal-web
 spec:
-  replicas: {{ .Values.marketWeb.replicaCount }}
+  replicas: {{ .Values.portalWeb.replicaCount }}
   selector:
     matchLabels:
       {{- include "open-jam.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: market-web
+      app.kubernetes.io/component: portal-web
   template:
     metadata:
       labels:
         {{- include "open-jam.labels" . | nindent 8 }}
-        app.kubernetes.io/component: market-web
+        app.kubernetes.io/component: portal-web
     spec:
       containers:
-        - name: market-web
-          image: {{ printf "%s:%s" .Values.marketWeb.image.repository .Values.marketWeb.image.tag | quote }}
-          imagePullPolicy: {{ .Values.marketWeb.image.pullPolicy }}
+        - name: portal-web
+          image: {{ printf "%s:%s" .Values.portalWeb.image.repository .Values.portalWeb.image.tag | quote }}
+          imagePullPolicy: {{ .Values.portalWeb.image.pullPolicy }}
           ports:
             - containerPort: 80
               name: http
@@ -44,7 +44,7 @@ spec:
               value: {{ .Values.config.catalogApiUrl | quote }}
             - name: STORE_API_URL
               value: {{ .Values.config.storeApiUrl | quote }}
-          {{- with .Values.marketWeb.resources }}
+          {{- with .Values.portalWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}

@@ -43,7 +43,7 @@ docker build -f Auth/Dockerfile -t open-jam-auth .
 
 | App | 用途 | 認證 |
 |-----|------|------|
-| market-web | 市集首頁 / landing | OIDC（oidc-client-ts） |
+| portal-web | 市集首頁 / landing | OIDC（oidc-client-ts） |
 | creator-web | 創作者店面：商品列表 / 詳情 / 結帳（Stripe Checkout 導轉）/ 訂單下載頁（`/orders/:orderId`，訪客憑訂單 ID 下載） | 無（消費者免註冊） |
 | workspace-web | 創作者後台（開店、商品 / 訂單 / 公告管理、上架、設定、購買紀錄與下載）+ 管理員後台（會員 / 商店 / 商品 / 訂單 / 資源用量 / 稽核） | OIDC（oidc-client-ts） |
 
@@ -117,7 +117,7 @@ ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 - `Argon2idHasher` — 密碼雜湊
 - `OutboxRelayService` — Outbox → RabbitMQ
 
-**REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。`/v1/legal-documents`（`LegalDocumentsController`）——Admin 分頁列表 / 單筆 / 建草稿 / 改草稿 / activate / deactivate（無 DELETE），另 `GET /v1/legal-documents/active?type=` 匿名公開（market-web 條款頁撈取目前啟用內容），供 workspace-web 管理員「條款管理」後台。
+**REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。`/v1/legal-documents`（`LegalDocumentsController`）——Admin 分頁列表 / 單筆 / 建草稿 / 改草稿 / activate / deactivate（無 DELETE），另 `GET /v1/legal-documents/active?type=` 匿名公開（portal-web 條款頁撈取目前啟用內容），供 workspace-web 管理員「條款管理」後台。
 
 **條款同意流程**：註冊頁 dialog 內容由 DB 啟用版本渲染（`_LegalModal.cshtml` + `LegalContentHelper`，內容慣例「## 」章節 /「- 」列點），`form-ui.js` 強制兩份文件都點過「我了解了」才可勾選同意；登入（含 Hydra skip 路徑）時檢查使用者對啟用版本的 `UserLegalConsent`，缺少者導向 `LegalReconsent` 頁重新勾選同意（subject / challenge 以 time-limited Data Protection 票證保護，15 分鐘失效）後才 AcceptLogin。
 

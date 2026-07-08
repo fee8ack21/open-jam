@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Shared.Web;
 
 /// <summary>
-/// 提供平台共用的 CORS 設定，允許前端 SPA（market-web / creator-web / workspace-web）
+/// 提供平台共用的 CORS 設定，允許前端 SPA（portal-web / creator-web / workspace-web）
 /// 以瀏覽器 fetch 帶 JWT Bearer token 跨來源呼叫 REST API。
 /// </summary>
 public static class CorsExtensions

@@ -1,5 +1,5 @@
 /* ============================================================
-   i18n — vue-i18n bootstrap for market-web.
+   i18n — vue-i18n bootstrap for portal-web.
 
    Messages are NOT hand-edited here: each locale JSON under
    ./locales/ is generated from i18n.xlsx (app root) by

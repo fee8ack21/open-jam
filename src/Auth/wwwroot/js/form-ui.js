@@ -118,7 +118,7 @@
     }, 1000);
   }
 
-  // ---- brand collage pointer parallax (mirrors market-web hero) ----
+  // ---- brand collage pointer parallax (mirrors portal-web hero) ----
   // Cards/shapes drift toward the cursor at per-element --depth (set in
   // _BrandPanel.cshtml), smoothed with a rAF lerp. We only write --mx/--my
   // on .collage; the compose-with-rotation transform lives in site.css.

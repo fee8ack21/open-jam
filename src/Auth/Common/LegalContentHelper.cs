@@ -7,7 +7,7 @@ namespace Auth.Common;
 /// <summary>
 /// 將法律文件純文字內容渲染為條款畫面的章節 HTML。
 /// 慣例：「## 」開頭為章節標題（自動編號 01、02…）、「- 」開頭為列點、其餘行為段落；
-/// 文字一律經 HTML encode，市集前端（market-web）以相同慣例解析。
+/// 文字一律經 HTML encode，市集前端（portal-web）以相同慣例解析。
 /// </summary>
 public static class LegalContentHelper
 {

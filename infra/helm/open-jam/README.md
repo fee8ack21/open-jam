@@ -19,7 +19,7 @@ docker build -f src/LogService/Dockerfile  -t open-jam/log-service:latest src/
 docker build -f src/EmailService/Dockerfile -t open-jam/email-service:latest src/
 docker build -f src/Bootstrap/Dockerfile   -t open-jam/bootstrap:latest   src/
 docker build -f apps/creator-web/Dockerfile   -t open-jam/creator-web:latest   apps/creator-web/
-docker build -f apps/market-web/Dockerfile    -t open-jam/market-web:latest    apps/market-web/
+docker build -f apps/portal-web/Dockerfile    -t open-jam/portal-web:latest    apps/portal-web/
 docker build -f apps/workspace-web/Dockerfile -t open-jam/workspace-web:latest apps/workspace-web/
 docker build -f docs/Dockerfile               -t open-jam/docs:latest          docs/
 ```
@@ -78,7 +78,7 @@ helm uninstall open-jam --namespace open-jam
 | storage-service | Deployment | 8080 | 檔案上傳 / 下載 URL 簽發 REST API |
 | store-service | Deployment | 8080 | 開店申請 / 店家 / 追蹤 REST API |
 | creator-web | Deployment | 80 | 創作者前台（Vite + nginx） |
-| market-web | Deployment | 80 | 消費者市集（Vite + nginx） |
+| portal-web | Deployment | 80 | 消費者市集（Vite + nginx） |
 | workspace-web | Deployment | 80 | 工作台（Vite + nginx） |
 | docs | Deployment | 80 | VitePress 文件站 |
 
@@ -111,7 +111,7 @@ infra/helm/open-jam/
     ├── storage-service/  deployment.yaml · service.yaml
     ├── store-service/    deployment.yaml · service.yaml
     ├── creator-web/      deployment.yaml · service.yaml
-    ├── market-web/       deployment.yaml · service.yaml
+    ├── portal-web/       deployment.yaml · service.yaml
     ├── workspace-web/    deployment.yaml · service.yaml
     ├── docs/             deployment.yaml · service.yaml
     └── bootstrap/        job.yaml
@@ -217,7 +217,7 @@ infra/helm/open-jam/
 | `storage.local.baseUrl` | `""` | 本服務對外 base URL，用於組合 blob URL（`Provider: Local` 時必填） |
 | `secrets.storage.localSigningKey` | `changeme-…` | 本地 blob HMAC 簽章密鑰（`Provider: Local` 時使用） |
 
-### 應用服務（auth / logService / emailService / storageService / storeService / creatorWeb / marketWeb / workspaceWeb / docs）
+### 應用服務（auth / logService / emailService / storageService / storeService / creatorWeb / portalWeb / workspaceWeb / docs）
 
 各服務共用相同參數結構：
 

@@ -99,7 +99,7 @@ const form = reactive({
   content: '',
 })
 
-// ── 即時預覽：與 Auth（LegalContentHelper）/ market-web（LegalView）同一套
+// ── 即時預覽：與 Auth（LegalContentHelper）/ portal-web（LegalView）同一套
 //    內容慣例——「## 」＝章節標題（自動編號）、「- 」＝列點、其餘為段落 ──
 interface PreviewSection {
   n: string
@@ -493,7 +493,7 @@ onMounted(load)
   }
 }
 
-/* 即時預覽：與 Auth dialog / market-web 條款頁相同的章節樣式 */
+/* 即時預覽：與 Auth dialog / portal-web 條款頁相同的章節樣式 */
 .legal-preview {
   border: 1.5px solid var(--border);
   border-radius: 10px;

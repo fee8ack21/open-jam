@@ -3,7 +3,7 @@
    creator-web 為消費者店面，消費者免註冊，無主動登入 UI。此 store 僅在
    使用者已於其他 .openjam.co 子網域登入時，靜默讀取既有 Hydra SSO session，
    取得登入信箱供「追蹤創作者」表單預填（仍可手動改動）。
-   作法比照 market-web / workspace-web。
+   作法比照 portal-web / workspace-web。
    ============================================================ */
 import { ref, computed, watch } from 'vue';
 import { defineStore } from 'pinia';

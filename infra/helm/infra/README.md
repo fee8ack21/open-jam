@@ -15,7 +15,7 @@
 
 | Host | 對應前端 / 服務 |
 |------|----------------|
-| `openjam.co` | market-web |
+| `openjam.co` | portal-web |
 | `auth.openjam.co` | Auth |
 | `workspace.openjam.co` | workspace-web |
 | `api.openjam.co` | 功能 API |

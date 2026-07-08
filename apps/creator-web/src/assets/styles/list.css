@@ -1,6 +1,6 @@
 /* ============================================================
    Open Jam — storefront catalogue browse area (ListView)
-   Ports market-web's explore chrome onto the single-creator
+   Ports portal-web's explore chrome onto the single-creator
    storefront: sticky side-card filter rail, sort pill-tabs,
    active filter chips, .mc product cards + corner badges.
    The storefront hero (.hero / .cat-pill) stays in base.css.

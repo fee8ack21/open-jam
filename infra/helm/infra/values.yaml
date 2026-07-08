@@ -28,7 +28,7 @@ ingress:
     secretName: open-jam-tls
   hosts:
     - host: openjam.co
-      serviceName: open-jam-market-web
+      serviceName: open-jam-portal-web
     - host: auth.openjam.co
       serviceName: open-jam-auth
     - host: hydra.openjam.co

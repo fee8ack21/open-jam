@@ -25,7 +25,7 @@ src/
 apps/
   workspace-web/    # 用戶後台
   creator-web/      # 創作者商品空間
-  market-web/       # 平台首頁，探索各產品與創作者
+  portal-web/       # 平台首頁，探索各產品與創作者
 scripts/
   publish/
 infra/
@@ -101,7 +101,7 @@ chore(release): 發佈新版本
 - log-service@0.0.2
 - storage-service@0.0.2
 - creator-web@0.0.2
-- market-web@0.0.2
+- portal-web@0.0.2
 - workspace-web@0.0.2
 - docs@0.0.2
 ```
@@ -136,7 +136,7 @@ chore(release): 發佈新版本
 
 ## 前端注意事項
 
-- **Composition API**：前端專案（market-web / creator-web / workspace-web）一律使用 Vue 3 Composition API（`<script setup>`），不使用 Options API。
+- **Composition API**：前端專案（portal-web / creator-web / workspace-web）一律使用 Vue 3 Composition API（`<script setup>`），不使用 Options API。
 - **Pinia setup store**：store 一律採 setup 函式寫法（`defineStore('id', () => { ... })`），與 Composition API 一致；不使用 `state` / `getters` / `actions` options 物件寫法。state 以 `ref`、getter 以 `computed`、action 為一般函式，最後在 `return` 中明確匯出要對外公開的 state / getter / action。需傳參數的 getter 以 `computed(() => (arg) => ...)` 回傳函式。
 - **API promise singleton**：同一請求進行中時共用同一個 promise，避免重複發送；搭配 with-pending 狀態機制。
 - **lodash debounce**：搜尋 / 輸入等場景去抖。

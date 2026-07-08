@@ -1,9 +1,9 @@
 // ============================================================
-// API service 進入點（market-web）
+// API service 進入點（portal-web）
 //
 // 後端 client 一律由 swagger-typescript-api 從各服務的 OpenAPI
 // 自動產生（見 package.json 的 `gen:api`），此處只負責設定 baseUrl。
-// market-web 的市集瀏覽走公開（匿名）端點，不需注入 token；
+// portal-web 的市集瀏覽走公開（匿名）端點，不需注入 token；
 // in-app 通知（notificationApi）需登入身分，以 customFetch 注入 OIDC Bearer token。
 // 業務程式碼一律 import 這裡匯出的實例，不直接 new 產生出來的 class。
 // ============================================================

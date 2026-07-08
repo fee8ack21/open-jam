@@ -19,7 +19,7 @@
   --oj-primary-wash: rgba(108, 76, 241, 0.10);
   --oj-wash: rgba(108, 76, 241, 0.10);
 
-  /* unified pop hard-shadow scale (mirrors market-web) — resting → hover
+  /* unified pop hard-shadow scale (mirrors portal-web) — resting → hover
      always grows by +2px toward the shadow source. uses --text so it tracks
      the active theme (dark shadow on light, light shadow on dark). */
   --pop-1: 2px 2px 0 var(--text);

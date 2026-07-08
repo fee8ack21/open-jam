@@ -6,7 +6,7 @@ Open Jam 已部署至 namespace: {{ .Release.Namespace }}
   storage-service :8080  → {{ include "open-jam.fullname" . }}-storage-service:8080
   store-service   :8080  → {{ include "open-jam.fullname" . }}-store-service:8080
   creator-web     :80    → {{ include "open-jam.fullname" . }}-creator-web:80
-  market-web      :80    → {{ include "open-jam.fullname" . }}-market-web:80
+  portal-web      :80    → {{ include "open-jam.fullname" . }}-portal-web:80
   workspace-web   :80    → {{ include "open-jam.fullname" . }}-workspace-web:80
   docs            :80    → {{ include "open-jam.fullname" . }}-docs:80
 {{- if .Values.hydra.enabled }}

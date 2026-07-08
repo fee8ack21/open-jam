@@ -1,11 +1,11 @@
-{{- if .Values.marketWeb.enabled }}
+{{- if .Values.portalWeb.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "open-jam.fullname" . }}-market-web
+  name: {{ include "open-jam.fullname" . }}-portal-web
   labels:
     {{- include "open-jam.labels" . | nindent 4 }}
-    app.kubernetes.io/component: market-web
+    app.kubernetes.io/component: portal-web
 spec:
   ports:
     - port: 80
@@ -13,5 +13,5 @@ spec:
       name: http
   selector:
     {{- include "open-jam.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: market-web
+    app.kubernetes.io/component: portal-web
 {{- end }}

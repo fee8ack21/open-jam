@@ -34,7 +34,7 @@ src/
   Bootstrap/            # 一次性 seed：Hydra client、Email template、分類、管理員
   Shared/               # 共用 DbContext、Auth、Exception、Events、Outbox model
 apps/
-  market-web/           # 市集首頁 / landing SPA，OIDC
+  portal-web/           # 市集首頁 / landing SPA，OIDC
   creator-web/          # 創作者店面 SPA，消費者免註冊，含結帳
   workspace-web/        # 創作者後台 + 管理員後台 SPA，OIDC
 docs/                   # VitePress 文件站
@@ -70,7 +70,7 @@ docker compose --profile seed run --rm bootstrap
 | storage-service | 5171 | 檔案簽發與 blob API |
 | store-service | 5172 | 開店、店家、追蹤 API |
 | creator-web | 5173 | 創作者店面 |
-| market-web | 5174 | 市集首頁 |
+| portal-web | 5174 | 市集首頁 |
 | workspace-web | 5175 | 創作者後台 |
 | docs | 5176 | VitePress 文件站 |
 | quota-service | 5177 | 資源配額 API |
@@ -130,7 +130,7 @@ pnpm type-check
 
 | App | 用途 | 認證 |
 |-----|------|------|
-| market-web | 市集首頁 / landing、通知鈴鐺 | OIDC (`oidc-client-ts`) |
+| portal-web | 市集首頁 / landing、通知鈴鐺 | OIDC (`oidc-client-ts`) |
 | creator-web | 創作者店面、商品列表 / 詳情、結帳（Stripe Checkout 導轉） | 無，消費者免註冊 |
 | workspace-web | 創作者後台（開店、商品 / 訂單 / 公告管理、購買紀錄與下載、設定）+ 管理員後台（會員 / 商店 / 商品 / 訂單 / 資源用量 / 稽核） | OIDC (`oidc-client-ts`) |
 

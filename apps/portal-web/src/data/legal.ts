@@ -2,7 +2,7 @@
    Open Jam — 法律文件結構（meta）
    服務條款 / 隱私政策的「文案」改由 i18n 提供（key：`legal.<doc>.*`，
    見 src/i18n/locales/）。此處僅保留與語系無關的結構資訊：圖示與
-   最後更新日期，供 market-web 的 /terms、/privacy 頁面渲染。
+   最後更新日期，供 portal-web 的 /terms、/privacy 頁面渲染。
    ============================================================ */
 
 export type LegalKey = 'terms' | 'privacy';

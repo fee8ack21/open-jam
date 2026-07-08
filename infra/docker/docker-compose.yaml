@@ -374,10 +374,10 @@ services:
     ports:
       - "5173:80"
 
-  market-web:
-    container_name: ${PROJECT_NAME}-market-web
+  portal-web:
+    container_name: ${PROJECT_NAME}-portal-web
     build:
-      context: ../../apps/market-web
+      context: ../../apps/portal-web
     restart: unless-stopped
     environment:
       WORKSPACE_PAGE_URL: ${WORKSPACE_URL}
