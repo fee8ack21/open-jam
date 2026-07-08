@@ -415,6 +415,13 @@
         "text": "No sign-up needed — buy with just an email and start exploring now.",
         "button": "Explore creators"
       }
-    }
+    },
+    "marquee": [
+      "Collect",
+      "Support",
+      "Remember",
+      "Work finds its people",
+      "A shop at your own address"
+    ]
   }
 }

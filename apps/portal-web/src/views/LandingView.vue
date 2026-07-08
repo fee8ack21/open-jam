@@ -74,6 +74,7 @@ const flowSteps = computed(() =>
     text: rt(s.text),
   })),
 );
+const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) => rt(w)));
 const whyIcons = ['shield', 'heart', 'sparkle', 'note'];
 const whyItems = computed(() =>
   (tm('landing.why.items') as { title: string; text: string }[]).map((s, i) => ({
@@ -202,6 +203,15 @@ onMounted(() => {
         scrollTrigger: { trigger: '.dc-collage', start: 'top 78%', once: true },
       });
 
+      // ---- 巨型出血字：隨捲動水平飄移（Begonia 式大字） ----
+      gsap.utils.toArray<HTMLElement>('.l-bigword[data-drift]').forEach((el, i) => {
+        gsap.fromTo(el, { xPercent: i % 2 ? -8 : 4 }, {
+          xPercent: i % 2 ? 6 : -10,
+          ease: 'none',
+          scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },
+        });
+      });
+
       // ---- 其餘區塊：進場 reveal ----
       gsap.utils.toArray<HTMLElement>('.lrv').forEach((el) => {
         gsap.from(el, {
@@ -229,8 +239,13 @@ onBeforeUnmount(() => ctx?.revert());
     <app-nav />
 
     <main class="landing">
+      <!-- 紙質顆粒 + 貫穿格線（全頁氛圍層） -->
+      <div class="l-grain" aria-hidden="true"></div>
+      <div class="l-gridlines" aria-hidden="true"><i v-for="i in 4" :key="i"></i></div>
+
       <!-- ============ 區塊一：Hero / 品牌宣言 ============ -->
       <section class="l-hero">
+        <span class="l-bigword lh-bigword" data-drift aria-hidden="true">OPEN JAM</span>
         <!-- 漂浮商品卡 + 裝飾（情緒背景，非資訊） -->
         <span v-for="(src, i) in heroFloats" :key="i" class="lh-float" :class="'lh-float-' + (i + 1)" aria-hidden="true">
           <img :src="src" alt="" />
@@ -296,6 +311,7 @@ onBeforeUnmount(() => ctx?.revert());
               class="ls-chapter"
               :style="{ '--accent': c.accent }"
             >
+              <span class="l-bigword ls-bigword" aria-hidden="true">{{ c.id === 'ebook' ? 'E-BOOK' : c.id.toUpperCase() }}</span>
               <div class="ls-text">
                 <p class="ls-num">{{ String(i + 1).padStart(2, '0') }}</p>
                 <h3 class="ls-ch-title">{{ t(`landing.story.${c.id}.title`) }}</h3>
@@ -377,8 +393,20 @@ onBeforeUnmount(() => ctx?.revert());
         </div>
       </section>
 
+      <!-- ============ 品牌跑馬燈帶 ============ -->
+      <div class="l-marquee" aria-hidden="true">
+        <div class="l-marquee-track">
+          <template v-for="n in 2" :key="n">
+            <span v-for="(w, i) in marqueeWords" :key="n + '-' + i" class="l-marquee-item">
+              {{ w }} <app-icon name="sparkle" :size="20" />
+            </span>
+          </template>
+        </div>
+      </div>
+
       <!-- ============ 區塊三：Creator Workflow ============ -->
       <section class="l-flow">
+        <span class="l-bigword lf-bigword" data-drift aria-hidden="true">WORKFLOW</span>
         <div class="lsec-head lrv">
           <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.flow.eyebrow') }}</p>
           <h2 class="lsec-title">{{ t('landing.flow.title') }}</h2>
@@ -399,6 +427,7 @@ onBeforeUnmount(() => ctx?.revert());
 
       <!-- ============ 區塊四：Consumer Experience ============ -->
       <section class="l-discover">
+        <span class="l-bigword ld-bigword" data-drift aria-hidden="true">DISCOVER</span>
         <div class="dc-inner">
           <div class="dc-copy lrv">
             <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.discover.eyebrow') }}</p>
@@ -437,6 +466,7 @@ onBeforeUnmount(() => ctx?.revert());
 
       <!-- ============ 區塊五：Why Open Jam ============ -->
       <section class="l-why">
+        <span class="l-bigword lw-bigword" data-drift aria-hidden="true">BELIEVE</span>
         <div class="lsec-head lrv">
           <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.why.eyebrow') }}</p>
           <h2 class="lsec-title">{{ t('landing.why.title') }}</h2>
@@ -452,6 +482,7 @@ onBeforeUnmount(() => ctx?.revert());
 
       <!-- ============ 最後區塊：CTA ============ -->
       <section class="l-cta lrv">
+        <span class="l-bigword lc-bigword" data-drift aria-hidden="true">JAM ON!</span>
         <p class="lc-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('landing.cta.eyebrow') }}</p>
         <div class="lc-grid">
           <div class="lc-card lc-creator">
@@ -483,8 +514,26 @@ onBeforeUnmount(() => ctx?.revert());
 
 <style scoped>
 /* 不在容器設左右 padding：區塊二 pin 時需滿版，改由各區塊自帶 */
-.landing { padding: 0; }
+.landing { padding: 0; position: relative; }
 .l-footwrap { padding: 0 clamp(20px, 3.5vw, 56px); }
+
+/* ---------- 全頁氛圍：紙質顆粒 + 貫穿細格線（Begonia 式 frame） ---------- */
+.l-grain {
+  position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+}
+.l-gridlines { position: fixed; inset: 0; z-index: 60; pointer-events: none; display: flex; }
+.l-gridlines i { flex: 1; border-right: 1px solid rgba(26,22,38,.05); }
+.l-gridlines i:last-child { border-right: none; }
+
+/* ---------- 巨型出血標題字（描邊空心，隨捲動飄移） ---------- */
+.l-bigword {
+  position: absolute; z-index: 0; pointer-events: none; user-select: none;
+  font-family: var(--oj-display); font-weight: 800; line-height: 1; white-space: nowrap;
+  letter-spacing: -0.02em; color: transparent;
+  -webkit-text-stroke: 2px rgba(26,22,38,.13);
+}
 
 /* 共用區塊標頭 */
 .lsec-head { text-align: center; max-width: 760px; margin: 0 auto 44px; }
@@ -520,8 +569,9 @@ onBeforeUnmount(() => ctx?.revert());
 }
 .lh-title {
   margin: 0; font-family: var(--oj-display); font-weight: 800;
-  font-size: clamp(34px, 5.6vw, 66px); line-height: 1.22; letter-spacing: -1.8px; color: var(--text);
+  font-size: clamp(38px, 6.6vw, 84px); line-height: 1.16; letter-spacing: -2.2px; color: var(--text);
 }
+.lh-bigword { bottom: -0.12em; left: -2%; font-size: clamp(110px, 17vw, 260px); }
 .lh-hl {
   display: inline-block; padding: 1px 12px; border-radius: 12px;
   border: 1.5px solid var(--text); box-shadow: var(--pop-1);
@@ -583,13 +633,15 @@ onBeforeUnmount(() => ctx?.revert());
 /* GSAP 啟用時鎖滿版高、章節絕對堆疊（預設一般文流退場） */
 .ls-anim { height: calc(100vh - var(--nav-h)); overflow: hidden; }
 
+/* 每章整屏飽和色塊（Begonia 式色塊節奏），文字反白 */
 .ls-bg {
   display: none;
   position: absolute; inset: 0; z-index: 0;
   background:
-    radial-gradient(rgba(26,22,38,.05) 1.3px, transparent 1.5px),
-    color-mix(in srgb, var(--accent) 9%, var(--bg));
-  background-size: 22px 22px, auto;
+    radial-gradient(rgba(255,255,255,.09) 1.3px, transparent 1.5px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+    color-mix(in srgb, var(--accent) 62%, #221a38);
+  background-size: 22px 22px, 25% 100%, auto;
 }
 .ls-anim .ls-bg { display: block; }
 
@@ -597,11 +649,12 @@ onBeforeUnmount(() => ctx?.revert());
 .ls-eyebrow {
   display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px;
   font-family: var(--oj-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text-soft);
+  color: rgba(255,255,255,.72);
 }
 .ls-title {
   margin: 0; font-family: var(--oj-display); font-weight: 800;
-  font-size: clamp(26px, 3.6vw, 40px); letter-spacing: -1px; color: var(--text);
+  font-size: clamp(28px, 4vw, 46px); letter-spacing: -1.2px; color: #fff;
+  text-shadow: 3px 3px 0 rgba(26,22,38,.35);
 }
 
 .ls-chapters { position: relative; z-index: 1; flex: 1; }
@@ -612,21 +665,26 @@ onBeforeUnmount(() => ctx?.revert());
   padding: 40px clamp(20px, 3.5vw, 56px) 90px;
 }
 /* 非動畫模式：每章自帶背景與間隔 */
+.ls-chapter { position: relative; }
 .ls-stage:not(.ls-anim) .ls-chapter {
   background:
-    radial-gradient(rgba(26,22,38,.05) 1.3px, transparent 1.5px),
-    color-mix(in srgb, var(--accent) 9%, var(--bg));
-  background-size: 22px 22px, auto;
+    radial-gradient(rgba(255,255,255,.09) 1.3px, transparent 1.5px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+    color-mix(in srgb, var(--accent) 62%, #221a38);
+  background-size: 22px 22px, 25% 100%, auto;
   max-width: none;
 }
 .ls-anim .ls-chapter { position: absolute; inset: 0; height: 100%; will-change: transform, opacity; }
 
-.ls-num { margin: 0 0 6px; font-family: var(--oj-mono); font-size: 14px; font-weight: 600; color: color-mix(in srgb, var(--accent) 80%, var(--text)); }
+.ls-bigword { top: 0.02em; right: -3%; font-size: clamp(96px, 15vw, 230px); -webkit-text-stroke: 2px rgba(255,255,255,.16); }
+
+.ls-num { margin: 0 0 6px; font-family: var(--oj-mono); font-size: 14px; font-weight: 600; color: rgba(255,255,255,.65); }
 .ls-ch-title {
   margin: 0; font-family: var(--oj-display); font-weight: 800;
-  font-size: clamp(26px, 3.6vw, 42px); letter-spacing: -1.2px; color: var(--text);
+  font-size: clamp(30px, 4.2vw, 50px); letter-spacing: -1.4px; color: #fff;
+  text-shadow: 3px 3px 0 rgba(26,22,38,.35);
 }
-.ls-desc { margin: 16px 0 0; max-width: 440px; font-size: 15.5px; line-height: 1.85; color: var(--text-soft); }
+.ls-desc { margin: 16px 0 0; max-width: 440px; font-size: 15.5px; line-height: 1.85; color: rgba(255,255,255,.85); }
 .ls-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; padding: 0; }
 .ls-chips li {
   padding: 7px 13px; border: 1.5px solid var(--text); border-radius: 999px;
@@ -666,7 +724,7 @@ onBeforeUnmount(() => ctx?.revert());
 .mv-wave { display: flex; align-items: flex-end; gap: 5px; height: 72px; width: min(380px, 100%); }
 .mv-wave span {
   flex: 1; border-radius: 3px 3px 0 0; transform-origin: bottom;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 85%, #fff), var(--accent));
+  background: linear-gradient(180deg, #fff, rgba(255,255,255,.5));
   animation: lh-eq 1.6s ease-in-out infinite;
 }
 
@@ -754,24 +812,56 @@ onBeforeUnmount(() => ctx?.revert());
   transition: background .2s, color .2s, transform .2s;
 }
 .ls-rail-item.on { background: var(--accent); color: #fff; transform: translateY(-2px); box-shadow: var(--pop-1); }
-.ls-rail-hint { margin-left: 6px; font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint); }
+.ls-rail-hint { margin-left: 6px; font-family: var(--oj-mono); font-size: 12px; color: rgba(255,255,255,.72); }
 
-/* ---------- 區塊三：Creator Workflow ---------- */
-.l-flow { padding: 88px clamp(20px, 3.5vw, 56px) 72px; max-width: 1200px; margin: 0 auto; box-sizing: content-box; }
-.fl-steps { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+/* ---------- 品牌跑馬燈帶 ---------- */
+.l-marquee {
+  position: relative; z-index: 1; overflow: hidden;
+  width: 104%; margin-left: -2%; transform: rotate(-1.2deg);
+  background: var(--text); color: #fff;
+  border-top: 1.5px solid var(--text); border-bottom: 1.5px solid var(--text);
+  padding: 15px 0;
+}
+.l-marquee-track {
+  display: inline-flex; align-items: center; gap: 34px; width: max-content;
+  animation: l-marquee-run 22s linear infinite;
+}
+.l-marquee-item {
+  display: inline-flex; align-items: center; gap: 34px; white-space: nowrap;
+  font-family: var(--oj-display); font-weight: 700; font-size: 19px; letter-spacing: .5px;
+}
+.l-marquee-item :deep(svg) { color: var(--c-lime); flex: none; }
+@keyframes l-marquee-run { to { transform: translateX(-50%); } }
+
+/* ---------- 區塊三：Creator Workflow（深色滿版 band） ---------- */
+.l-flow {
+  position: relative; overflow: hidden;
+  margin-top: -24px; padding: 110px clamp(20px, 3.5vw, 56px) 96px;
+  background:
+    radial-gradient(rgba(255,255,255,.07) 1.3px, transparent 1.5px),
+    linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px),
+    var(--text);
+  background-size: 22px 22px, 25% 100%, auto;
+}
+.lf-bigword { top: .08em; left: -2%; font-size: clamp(90px, 14vw, 210px); -webkit-text-stroke: 2px rgba(255,255,255,.12); }
+.l-flow .lsec-head { position: relative; z-index: 1; }
+.l-flow .lsec-eyebrow { color: var(--c-lime); }
+.l-flow .lsec-title { color: #fff; text-shadow: 3px 3px 0 rgba(0,0,0,.4); }
+.l-flow .lsec-sub { color: rgba(255,255,255,.7); }
+.fl-steps { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; max-width: 1200px; margin: 0 auto; }
 .fl-line {
   position: absolute; top: 26px; left: 6%; right: 6%; height: 3px; z-index: 0;
-  background: repeating-linear-gradient(90deg, var(--border-strong) 0 8px, transparent 8px 16px);
-  opacity: .25;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 8px, transparent 8px 16px);
+  opacity: .35;
 }
 .fl-line-fill {
   position: absolute; inset: 0; display: block;
-  background: linear-gradient(90deg, var(--c-violet), var(--c-pink), var(--c-orange));
+  background: linear-gradient(90deg, var(--c-lime), var(--c-cyan), var(--c-pink));
 }
 .fl-step { position: relative; z-index: 1; text-align: center; padding: 0 6px; }
 .fl-ic {
   display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 15px;
-  border: 1.5px solid var(--text); box-shadow: var(--pop-2); background: var(--surface); color: var(--text);
+  border: 1.5px solid #fff; box-shadow: 4px 4px 0 rgba(255,255,255,.25); background: var(--surface); color: var(--text);
   margin-bottom: 12px;
 }
 .fl-ic-1 { background: var(--c-lime); }
@@ -779,19 +869,20 @@ onBeforeUnmount(() => ctx?.revert());
 .fl-ic-3 { background: var(--c-cyan); }
 .fl-ic-4 { background: var(--c-pink); color: #fff; }
 .fl-ic-5 { background: var(--c-violet); color: #fff; }
-.fl-num { margin: 0 0 4px; font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint); }
-.fl-step h3 { margin: 0 0 6px; font-family: var(--oj-display); font-weight: 700; font-size: 16px; color: var(--text); }
-.fl-text { margin: 0; font-size: 13px; line-height: 1.7; color: var(--text-soft); }
+.fl-num { margin: 0 0 4px; font-family: var(--oj-mono); font-size: 12px; color: rgba(255,255,255,.55); }
+.fl-step h3 { margin: 0 0 6px; font-family: var(--oj-display); font-weight: 700; font-size: 16px; color: #fff; }
+.fl-text { margin: 0; font-size: 13px; line-height: 1.7; color: rgba(255,255,255,.68); }
 
 /* ---------- 區塊四：Consumer Experience ---------- */
 .l-discover {
-  padding: 88px clamp(20px, 3.5vw, 56px);
+  position: relative; overflow: hidden;
+  padding: 96px clamp(20px, 3.5vw, 56px);
   background:
     radial-gradient(rgba(26,22,38,.05) 1.3px, transparent 1.5px),
-    color-mix(in srgb, var(--c-violet) 7%, var(--bg));
+    color-mix(in srgb, var(--c-violet) 10%, var(--bg));
   background-size: 22px 22px, auto;
-  border-top: 1.5px solid var(--border); border-bottom: 1.5px solid var(--border);
 }
+.ld-bigword { top: .06em; left: -3%; font-size: clamp(90px, 14vw, 210px); }
 .dc-inner {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
   align-items: center; gap: clamp(30px, 5vw, 76px);
@@ -845,12 +936,24 @@ onBeforeUnmount(() => ctx?.revert());
   border: 1.5px solid var(--text); border-radius: 50%; background: var(--c-pink); color: #fff; box-shadow: var(--pop-1);
 }
 
-/* ---------- 區塊五：Why Open Jam ---------- */
-.l-why { padding: 88px clamp(20px, 3.5vw, 56px) 72px; max-width: 1120px; margin: 0 auto; box-sizing: content-box; }
-.why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+/* ---------- 區塊五：Why Open Jam（滿版黃 band） ---------- */
+.l-why {
+  position: relative; overflow: hidden;
+  padding: 100px clamp(20px, 3.5vw, 56px) 88px;
+  background:
+    radial-gradient(rgba(26,22,38,.07) 1.3px, transparent 1.5px),
+    linear-gradient(90deg, rgba(26,22,38,.05) 1px, transparent 1px),
+    var(--c-yellow);
+  background-size: 22px 22px, 25% 100%, auto;
+  border-top: 1.5px solid var(--text); border-bottom: 1.5px solid var(--text);
+}
+.lw-bigword { top: .06em; right: -3%; -webkit-text-stroke: 2px rgba(26,22,38,.15); font-size: clamp(90px, 14vw, 210px); }
+.l-why .lsec-head { position: relative; z-index: 1; }
+.l-why .lsec-eyebrow { color: var(--text); }
+.why-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 1120px; margin: 0 auto; }
 .why-card {
-  padding: 24px 24px 26px; border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
-  background: var(--surface); box-shadow: 5px 5px 0 var(--border);
+  padding: 24px 24px 26px; border: 1.5px solid var(--text); border-radius: var(--r-lg);
+  background: var(--surface); box-shadow: 6px 6px 0 var(--text);
 }
 .why-ic {
   display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px;
@@ -864,12 +967,15 @@ onBeforeUnmount(() => ctx?.revert());
 .why-card p { margin: 0; font-size: 14px; line-height: 1.75; color: var(--text-soft); }
 
 /* ---------- 最後區塊：CTA ---------- */
-.l-cta { padding: 24px clamp(20px, 3.5vw, 56px) 96px; max-width: 1080px; margin: 0 auto; box-sizing: content-box; }
+.l-cta { position: relative; overflow: hidden; padding: 88px clamp(20px, 3.5vw, 56px) 110px; max-width: 1080px; margin: 0 auto; box-sizing: content-box; }
+.lc-bigword { top: -0.05em; left: 4%; font-size: clamp(100px, 15vw, 230px); }
 .lc-eyebrow {
-  display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 28px;
-  font-family: var(--oj-display); font-weight: 800; font-size: clamp(24px, 3.4vw, 38px);
-  letter-spacing: -1px; color: var(--text); text-align: center;
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 34px;
+  font-family: var(--oj-display); font-weight: 800; font-size: clamp(28px, 4.4vw, 52px);
+  letter-spacing: -1.4px; color: var(--text); text-align: center;
 }
+.lc-grid { position: relative; z-index: 1; }
 .lc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .lc-card {
   padding: 32px 30px; border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
@@ -918,6 +1024,6 @@ onBeforeUnmount(() => ctx?.revert());
 
 /* reduced-motion：停用裝飾動畫（pin / 轉場由 matchMedia 控制不啟用） */
 @media (prefers-reduced-motion: reduce) {
-  .lh-hint :deep(svg), .lh-wave span, .mv-wave span, .lh-float img { animation: none; }
+  .lh-hint :deep(svg), .lh-wave span, .mv-wave span, .lh-float img, .l-marquee-track { animation: none; }
 }
 </style>
