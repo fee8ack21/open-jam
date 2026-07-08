@@ -23,6 +23,7 @@ import { useShopStore } from '@/stores/shop.js';
 import { env } from '@/environment.js';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
+import LandingArt from '@/components/LandingArt.vue';
 
 import imgSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
 import imgAutumn from '@/assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
@@ -66,19 +67,20 @@ const rootEl = ref<HTMLElement | null>(null);
 const activeChapter = ref(0);
 const activeAccent = computed(() => CHAPTERS[activeChapter.value].accent);
 
-const flowIcons = ['download', 'card', 'bag', 'globe', 'heart'];
+// 各步驟 / 卡片對應的手繪插畫（LandingArt name），取代原本的單色線 icon
+const flowArt = ['upload', 'price', 'storefront', 'share', 'support'];
 const flowSteps = computed(() =>
   (tm('landing.flow.steps') as { title: string; text: string }[]).map((s, i) => ({
-    icon: flowIcons[i],
+    art: flowArt[i],
     title: rt(s.title),
     text: rt(s.text),
   })),
 );
 const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) => rt(w)));
-const whyIcons = ['shield', 'heart', 'sparkle', 'note'];
+const whyArt = ['no-algo', 'focus', 'fast', 'all-crafts'];
 const whyItems = computed(() =>
   (tm('landing.why.items') as { title: string; text: string }[]).map((s, i) => ({
-    icon: whyIcons[i],
+    art: whyArt[i],
     title: rt(s.title),
     text: rt(s.text),
   })),
@@ -447,9 +449,7 @@ onBeforeUnmount(() => ctx?.revert());
         <div class="fl-steps">
           <div class="fl-line" aria-hidden="true"><span class="fl-line-fill"></span></div>
           <div v-for="(s, i) in flowSteps" :key="s.title" class="fl-step">
-            <span class="fl-ic" :class="'fl-ic-' + (i + 1)">
-              <app-icon :name="s.icon" :size="20" :style="i === 0 ? 'transform: rotate(180deg)' : ''" />
-            </span>
+            <span class="fl-art"><landing-art :name="s.art" /></span>
             <p class="fl-num">{{ i + 1 }}</p>
             <h3>{{ s.title }}</h3>
             <p class="fl-text">{{ s.text }}</p>
@@ -505,7 +505,7 @@ onBeforeUnmount(() => ctx?.revert());
         </div>
         <div class="why-grid">
           <div v-for="(w, i) in whyItems" :key="w.title" class="why-card lrv" :class="'why-card-' + (i + 1)">
-            <span class="why-ic"><app-icon :name="w.icon" :size="20" /></span>
+            <span class="why-art"><landing-art :name="w.art" /></span>
             <h3>{{ w.title }}</h3>
             <p>{{ w.text }}</p>
           </div>
@@ -518,7 +518,7 @@ onBeforeUnmount(() => ctx?.revert());
         <p class="lc-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('landing.cta.eyebrow') }}</p>
         <div class="lc-grid">
           <div class="lc-card lc-creator">
-            <span class="lc-ic"><app-icon name="bag" :size="24" /></span>
+            <span class="lc-art"><landing-art name="sell" /></span>
             <h3>{{ t('landing.cta.creator.title') }}</h3>
             <p>{{ t('landing.cta.creator.text') }}</p>
             <button type="button" class="lc-btn lc-btn-main" @click="goWorkspace">
@@ -526,7 +526,7 @@ onBeforeUnmount(() => ctx?.revert());
             </button>
           </div>
           <div class="lc-card lc-buyer">
-            <span class="lc-ic"><app-icon name="search" :size="24" /></span>
+            <span class="lc-art"><landing-art name="explore" /></span>
             <h3>{{ t('landing.cta.buyer.title') }}</h3>
             <p>{{ t('landing.cta.buyer.text') }}</p>
             <button type="button" class="lc-btn" @click="goMarket">
@@ -880,16 +880,9 @@ onBeforeUnmount(() => ctx?.revert());
   background: linear-gradient(90deg, var(--c-lime), var(--c-cyan), var(--c-pink));
 }
 .fl-step { position: relative; z-index: 1; text-align: center; padding: 0 6px; }
-.fl-ic {
-  display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 15px;
-  border: 1.5px solid #fff; box-shadow: 4px 4px 0 rgba(255,255,255,.25); background: var(--surface); color: var(--text);
-  margin-bottom: 12px;
-}
-.fl-ic-1 { background: var(--c-lime); }
-.fl-ic-2 { background: var(--c-yellow); }
-.fl-ic-3 { background: var(--c-cyan); }
-.fl-ic-4 { background: var(--c-pink); color: #fff; }
-.fl-ic-5 { background: var(--c-violet); color: #fff; }
+/* 插畫在深色 band 上——以淺色 hard shadow 補立體（呼應原 .fl-ic 手法） */
+.fl-art { display: block; width: 84px; margin: 0 auto 14px; }
+.fl-art :deep(.lart) { filter: drop-shadow(4px 5px 0 rgba(255,255,255,.26)); }
 .fl-num { margin: 0 0 4px; font-family: var(--oj-mono); font-size: 12px; color: rgba(255,255,255,.55); }
 .fl-step h3 { margin: 0 0 6px; font-family: var(--oj-display); font-weight: 700; font-size: 16px; color: #fff; }
 .fl-text { margin: 0; font-size: 13px; line-height: 1.7; color: rgba(255,255,255,.68); }
@@ -976,14 +969,8 @@ onBeforeUnmount(() => ctx?.revert());
   padding: 24px 24px 26px; border: 1.5px solid var(--text); border-radius: var(--r-lg);
   background: var(--surface); box-shadow: 6px 6px 0 var(--text);
 }
-.why-ic {
-  display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px;
-  border: 1.5px solid var(--text); box-shadow: var(--pop-1); color: var(--text); margin-bottom: 14px;
-}
-.why-card-1 .why-ic { background: var(--c-lime); }
-.why-card-2 .why-ic { background: var(--c-pink); color: #fff; }
-.why-card-3 .why-ic { background: var(--c-yellow); }
-.why-card-4 .why-ic { background: var(--c-cyan); }
+.why-art { display: block; width: 88px; margin: 0 0 16px; }
+.why-art :deep(.lart) { filter: drop-shadow(5px 6px 0 var(--text)); }
 .why-card h3 { margin: 0 0 8px; font-family: var(--oj-display); font-weight: 800; font-size: 18px; color: var(--text); }
 .why-card p { margin: 0; font-size: 14px; line-height: 1.75; color: var(--text-soft); }
 
@@ -1004,12 +991,8 @@ onBeforeUnmount(() => ctx?.revert());
 }
 .lc-creator { background: linear-gradient(150deg, var(--surface), color-mix(in srgb, var(--c-violet) 10%, var(--surface))); }
 .lc-buyer { background: linear-gradient(150deg, var(--surface), color-mix(in srgb, var(--c-cyan) 10%, var(--surface))); }
-.lc-ic {
-  display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; color: #fff;
-  border: 1.5px solid var(--text); box-shadow: var(--pop-1); margin-bottom: 16px;
-  background: linear-gradient(135deg, var(--c-violet), var(--c-pink));
-}
-.lc-buyer .lc-ic { background: linear-gradient(135deg, var(--c-cyan), var(--c-violet)); }
+.lc-art { display: block; width: 94px; margin: 0 0 18px; }
+.lc-art :deep(.lart) { filter: drop-shadow(5px 6px 0 var(--text)); }
 .lc-card h3 { margin: 0; font-family: var(--oj-display); font-weight: 800; font-size: 22px; color: var(--text); }
 .lc-card p { margin: 8px 0 22px; font-size: 14.5px; line-height: 1.75; color: var(--text-soft); }
 .lc-btn {
