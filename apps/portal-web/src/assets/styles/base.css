@@ -102,6 +102,47 @@ body {
 }
 .brand:hover .brand-mark { transform: rotate(-8deg) scale(1.05); }
 .brand-name { font-family: var(--oj-display); font-weight: 800; font-size: 23px; letter-spacing: -.6px; color: var(--text); white-space: nowrap; }
+
+/* ---------- brand 音波 equalizer（BrandLogo.vue） ---------- */
+/* 常態緩慢律動；hover 時整組加速如正在 jam。每根 bar 錯開
+   duration / delay 讓律動不同步，較像真實音訊而非機械節拍。 */
+.brand-eq { display: flex; align-items: center; gap: 2.5px; height: 18px; }
+.brand-eq-bar {
+  width: 3px; border-radius: 99px; background: #fff;
+  animation: brand-eq var(--eq-dur, 1.6s) ease-in-out var(--eq-delay, 0s) infinite;
+}
+.brand-eq-bar:nth-child(1) { height: 9px;  --eq-dur: 1.5s; --eq-delay: -.35s; }
+.brand-eq-bar:nth-child(2) { height: 15px; --eq-dur: 1.9s; --eq-delay: -.9s; }
+.brand-eq-bar:nth-child(3) { height: 18px; --eq-dur: 1.4s; --eq-delay: -.2s; }
+.brand-eq-bar:nth-child(4) { height: 12px; --eq-dur: 2.1s; --eq-delay: -1.2s; }
+.brand-eq-bar:nth-child(5) { height: 15px; --eq-dur: 1.7s; --eq-delay: -.6s; }
+@keyframes brand-eq { 0%, 100% { transform: scaleY(.4); } 50% { transform: scaleY(1); } }
+.brand:hover .brand-eq-bar { animation-duration: calc(var(--eq-dur, 1.6s) / 3); }
+/* landing eyebrow 等小尺寸 mark 用 */
+.brand-eq-sm { gap: 2px; height: 13px; }
+.brand-eq-sm .brand-eq-bar { width: 2px; }
+.brand-eq-sm .brand-eq-bar:nth-child(1) { height: 6px; }
+.brand-eq-sm .brand-eq-bar:nth-child(2) { height: 11px; }
+.brand-eq-sm .brand-eq-bar:nth-child(3) { height: 13px; }
+.brand-eq-sm .brand-eq-bar:nth-child(4) { height: 8px; }
+.brand-eq-sm .brand-eq-bar:nth-child(5) { height: 11px; }
+
+/* 字標：Jam 上品牌漸層；hover 時字母依序如節拍彈跳一輪 */
+.brand-ch { display: inline-block; }
+.brand-ch-jam {
+  background: linear-gradient(120deg, var(--c-violet), var(--c-pink));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.brand:hover .brand-ch { animation: brand-ch-bounce .55s ease-in-out calc(var(--ch-i, 0) * 50ms) 1; }
+@keyframes brand-ch-bounce {
+  35% { transform: translateY(-4px); }
+  70% { transform: translateY(1.5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* bars 保留各自靜態高度，仍呈現靜止波形 */
+  .brand-eq-bar, .brand:hover .brand-ch { animation: none; }
+}
 .nav-search { flex: 1; max-width: 420px; }
 .search-box {
   display: flex; align-items: center; gap: 8px;

@@ -256,10 +256,9 @@ onBeforeUnmount(() => ctx?.revert());
         <div class="lh-inner">
           <p class="lh-eyebrow">
             <span class="lh-brand-mark">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-                <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-              </svg>
+              <span class="brand-eq brand-eq-sm">
+                <span v-for="i in 5" :key="'eq' + i" class="brand-eq-bar"></span>
+              </span>
             </span>
             {{ t('landing.hero.eyebrow') }}
           </p>
