@@ -298,67 +298,122 @@
     "screenLabel": "Brand story",
     "hero": {
       "eyebrow": "OPEN JAM · A marketplace for creators",
-      "title1": "Put your creations",
-      "title2": "into {hl} hands",
-      "hl": "the right",
-      "lede": "Open Jam is a digital goods platform for creators in Taiwan. Open a shop on your own subdomain and sell music, photography and e-books — buyers need no account, just an email to take your work home.",
+      "title": "Turn your creative work into something people can {collect}, {support} and {remember}.",
+      "collect": "collect",
+      "support": "support",
+      "remember": "remember",
+      "slogan": "A home for independent work — where what you make finds its people.",
       "scrollHint": "Scroll down to start the story"
     },
-    "types": {
+    "story": {
       "eyebrow": "Three crafts · One stage",
-      "browse": "Browse the market",
-      "hint": "Keep scrolling to turn the page",
-      "pageAria": "Go to page {n}",
+      "title": "What can creators sell here?",
+      "hint": "Keep scrolling — the story goes on",
+      "pageAria": "Go to chapter {n}",
       "music": {
-        "title": "Sheet music & audio",
-        "tagline": "Let the melody leave your room",
-        "desc": "Original tracks, arrangements, sample packs and score licensing — whether you write piano sheets or lo-fi beats, ears willing to press play are waiting here.",
+        "label": "Music",
+        "title": "From rough demos to finished records",
+        "desc": "A demo, a sample pack, a set of tabs — turn the sound in your practice room into the starting point of someone else's craft.",
         "chips": [
-          "Original tracks",
-          "Arrangements",
+          "Demos",
           "Sample packs",
-          "Score licensing"
+          "Tabs",
+          "Backing tracks",
+          "Lessons"
         ]
       },
       "photo": {
-        "title": "Photography & photo packs",
-        "tagline": "After the shutter, the story goes on",
-        "desc": "Landscape series, portrait projects, street collections and hi-res stock packs. Turn the work sleeping on your hard drive into photo packs that echo back.",
+        "label": "Photography",
+        "title": "After the shutter, a second life",
+        "desc": "Presets, photo packs, prints for the wall and wallpapers — the work sleeping on your drive is something people will take home.",
         "chips": [
-          "Landscape",
-          "Portrait projects",
-          "Street series",
-          "Stock packs"
+          "Presets",
+          "Prints",
+          "Photo packs",
+          "Wallpapers"
         ]
       },
       "ebook": {
-        "title": "E-books & documents",
-        "tagline": "Words are the lightest luggage",
-        "desc": "Novels, essays, tutorials and indie zines. From the first page to the last, it is all yours — finish it, publish it, and readers start reading with just an email.",
+        "label": "E-book",
+        "title": "Words, delivered straight to readers",
+        "desc": "A zine, a guide, a long-form story written chapter by chapter — no publisher's nod needed, publish the day you finish.",
         "chips": [
-          "Novels & essays",
-          "Tutorials",
-          "Indie zines",
-          "Templates"
+          "Guides",
+          "Zines",
+          "PDFs",
+          "Tutorials"
         ]
       }
     },
-    "planned": {
-      "badge": "Coming soon",
-      "title": "More of the story is on its way",
-      "text": "This section is still in the works — stay tuned."
+    "flow": {
+      "eyebrow": "The creator journey",
+      "title": "From upload to storefront in minutes.",
+      "sub": "Not just a showcase — this is where support actually reaches you.",
+      "steps": [
+        {
+          "title": "Upload your work",
+          "text": "Audio, photos, PDFs — just drag them in."
+        },
+        {
+          "title": "Set your price",
+          "text": "Fixed price or pay-what-you-want — your call."
+        },
+        {
+          "title": "Build your storefront",
+          "text": "Your own subdomain shop, open in a minute."
+        },
+        {
+          "title": "Share the link",
+          "text": "Drop it in your bio, video descriptions, anywhere."
+        },
+        {
+          "title": "Get supported",
+          "text": "Buyers pay and download with just an email."
+        }
+      ]
+    },
+    "discover": {
+      "eyebrow": "For explorers",
+      "title": "Discover independent works before they become mainstream.",
+      "text": "Every purchase directly supports a creator. Browse the market, follow the shops you love, and keep every find in your library — ready to download anytime.",
+      "gridLabel": "Marketplace picks",
+      "profileLabel": "Creator profile",
+      "favLabel": "My library",
+      "follow": "Follow"
+    },
+    "why": {
+      "eyebrow": "Why Open Jam",
+      "title": "What we believe in",
+      "items": [
+        {
+          "title": "No algorithm hostage",
+          "text": "Your work doesn't have to please a feed. The people following you actually want to see you."
+        },
+        {
+          "title": "Creators and works first",
+          "text": "Clean storefronts and direct support — no ads, no noise."
+        },
+        {
+          "title": "Built for small creators",
+          "text": "No contracts, no gatekeeping — publish today, sell today."
+        },
+        {
+          "title": "Musician-friendly, not music-only",
+          "text": "From waveforms to photos to words, every craft is a first-class citizen."
+        }
+      ]
     },
     "cta": {
       "eyebrow": "The next page of the story is yours to turn",
       "creator": {
         "title": "I'm a creator",
         "text": "Open your own shop in three minutes and turn your work into income.",
-        "button": "Start selling for free"
+        "button": "Start selling your work"
       },
       "buyer": {
         "title": "I'm looking for inspiration",
         "text": "No sign-up needed — buy with just an email and start exploring now.",
-        "button": "Browse the market"
+        "button": "Explore creators"
       }
     }
   }

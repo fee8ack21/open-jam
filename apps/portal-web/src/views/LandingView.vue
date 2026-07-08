@@ -1,15 +1,18 @@
 <script setup lang="ts">
 /* ============================================================
-   LandingView — 品牌 landing（/landing）
+   LandingView — 品牌 landing（/）
    Interactive storytelling experience，以 GSAP ScrollTrigger 驅動：
-   - 區塊一：平台 / 品牌介紹（進場 timeline + 裝飾視差）
-   - 區塊二：三大商品類型（pin 住整個視窗，滾動「換頁」而非下滑，
-             音樂 → 攝影 → 電子書 三頁翻完才放行往下）
-   - 區塊四 / 五：待補充（佔位）
-   - 最後區塊：創作者上架 / 消費者瀏覽雙 CTA
-   - Footer
+   - 區塊一：Hero / 品牌宣言（情緒訴求 manifesto + 漂浮商品卡 / 波形）
+   - 區塊二：Pinned Product Story——pin 住同一個舞台，滾動推進
+             音樂 → 攝影 → 電子書三章（內容轉場而非整頁換頁），
+             每章回答「創作者能在這裡賣什麼？」並附具象視覺
+             （播放器 / 波形、preset before-after、翻頁書）
+   - 區塊三：Creator Workflow（上傳 → 定價 → 開店 → 分享 → 收到支持）
+   - 區塊四：Consumer Experience（探索 / 追蹤 / 收藏庫 collage）
+   - 區塊五：Why Open Jam（平台精神四卡）
+   - 最後區塊：創作者 / 消費者雙 CTA + Footer
    prefers-reduced-motion: reduce 時不做 pin 與動畫，
-   三個類型面板退化為一般直向排列。
+   三章退化為一般直向排列。
    ============================================================ */
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -21,34 +24,76 @@ import { env } from '@/environment.js';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 
+import imgSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
+import imgAutumn from '@/assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
+import imgSurf from '@/assets/images/mock/products/6u49mdf7jaizziz1ts6u9smeymsi.webp';
+import imgColorful from '@/assets/images/mock/products/misi5oskyotvume2a5869wcca0f0.webp';
+import imgInterior from '@/assets/images/mock/products/ccbnhspiu9ljrv2mrf0q051xbts9.webp';
+import imgDragon from '@/assets/images/mock/products/9egb3vtgm6w1cbt814ua9modb43d.webp';
+
 gsap.registerPlugin(ScrollTrigger);
 
 const store = useShopStore();
 const router = useRouter();
 const { t, tm, rt } = useI18n();
 
-// 區塊二三大類型 — 圖示 / 主色留在程式碼，文案由 i18n（landing.types.<id>）提供
-const TYPE_PANELS = [
+// ----- 區塊二三章 — 圖示 / 主色留在程式碼，文案由 i18n（landing.story.<id>）提供 -----
+const CHAPTERS = [
   { id: 'music', icon: 'note', accent: 'var(--c-violet)' },
   { id: 'photo', icon: 'image', accent: 'var(--c-pink)' },
   { id: 'ebook', icon: 'book', accent: 'var(--c-cyan)' },
 ] as const;
+const chapterCount = CHAPTERS.length;
 
 function chipsFor(id: string): string[] {
-  return (tm(`landing.types.${id}.chips`) as string[]).map((c) => rt(c));
+  return (tm(`landing.story.${id}.chips`) as string[]).map((c) => rt(c));
 }
 
+// hero 漂浮商品卡（mock 縮圖，非 i18n 內容）
+const heroFloats = [imgSilver, imgAutumn, imgDragon];
+// 攝影章：照片格與 before-after 底圖
+const photoGrid = [imgSurf, imgColorful, imgInterior];
+// 區塊四 collage：市集精選格 / 收藏縮圖
+const discoverGrid = [imgSilver, imgColorful, imgDragon, imgSurf];
+const favThumbs = [imgAutumn, imgInterior];
+
+// 波形條高度 — 決定性偽隨機，避免每次 render 抖動
+const WAVE_BARS = Array.from({ length: 30 }, (_, i) =>
+  Math.round(24 + 62 * Math.abs(Math.sin(i * 0.9) + 0.35 * Math.sin(i * 2.3)) / 1.35),
+);
+
 const rootEl = ref<HTMLElement | null>(null);
-const activeType = ref(0);
-const typeCount = TYPE_PANELS.length;
-const activeAccent = computed(() => TYPE_PANELS[activeType.value].accent);
+const activeChapter = ref(0);
+const activeAccent = computed(() => CHAPTERS[activeChapter.value].accent);
+
+const flowIcons = ['download', 'card', 'bag', 'globe', 'heart'];
+const flowSteps = computed(() =>
+  (tm('landing.flow.steps') as { title: string; text: string }[]).map((s, i) => ({
+    icon: flowIcons[i],
+    title: rt(s.title),
+    text: rt(s.text),
+  })),
+);
+const whyIcons = ['shield', 'heart', 'sparkle', 'note'];
+const whyItems = computed(() =>
+  (tm('landing.why.items') as { title: string; text: string }[]).map((s, i) => ({
+    icon: whyIcons[i],
+    title: rt(s.title),
+    text: rt(s.text),
+  })),
+);
 
 function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 function goMarket() { router.push({ name: 'discover' }); }
 
 // ----- GSAP：全部動畫收在 context 內，離開頁面 revert 還原 -----
 let ctx: gsap.Context | undefined;
-let typesST: ScrollTrigger | undefined;
+let storyST: ScrollTrigger | undefined;
+
+// 區塊二 timeline 節奏：每章停留 HOLD、章間轉場 TRANS（單位為 timeline 秒）
+const HOLD = 1;
+const TRANS = 0.6;
+const STORY_TOTAL = chapterCount * HOLD + (chapterCount - 1) * TRANS; // 4.2
 
 /** 讀取 nav 高度，pin 的起點須避開 sticky nav。 */
 function navH(): number {
@@ -56,67 +101,109 @@ function navH(): number {
   return Number.isFinite(v) ? v : 72;
 }
 
-/** 進度點點擊：捲動到 pin 區間內對應頁的位置。 */
-function goPage(i: number) {
-  if (!typesST) return;
-  const top = typesST.start + ((typesST.end - typesST.start) * i) / (typeCount - 1);
-  window.scrollTo({ top, behavior: 'smooth' });
+/** 章節導覽點擊：捲動到 pin 區間內對應章的位置。 */
+function goChapter(i: number) {
+  if (!storyST) return;
+  const p = [0, 0.5, 1][i];
+  window.scrollTo({ top: storyST.start + (storyST.end - storyST.start) * p, behavior: 'smooth' });
 }
 
 onMounted(() => {
   ctx = gsap.context(() => {
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      // ---- 區塊一：品牌進場 timeline ----
+      // ---- 區塊一：manifesto 進場 ----
       gsap.timeline({ defaults: { ease: 'power3.out' } })
         .from('.lh-eyebrow', { y: 26, autoAlpha: 0, duration: 0.55 })
-        .from('.lh-line', { y: 64, autoAlpha: 0, duration: 0.8, stagger: 0.14 }, '-=0.25')
-        .from('.lh-lede', { y: 30, autoAlpha: 0, duration: 0.6 }, '-=0.35')
-        .from('.lh-hint', { autoAlpha: 0, duration: 0.5 }, '-=0.1');
+        .from('.lh-title', { y: 54, autoAlpha: 0, duration: 0.8 }, '-=0.25')
+        .from('.lh-hl', { scale: 0, rotation: -8, duration: 0.45, stagger: 0.18, ease: 'back.out(2.2)' }, '-=0.35')
+        .from('.lh-slogan', { y: 26, autoAlpha: 0, duration: 0.55 }, '-=0.2')
+        .from('.lh-float, .lh-wave', { autoAlpha: 0, duration: 0.7, stagger: 0.08 }, '-=0.4')
+        .from('.lh-hint', { autoAlpha: 0, duration: 0.5 }, '-=0.2');
 
-      // 裝飾形狀隨捲動視差
-      gsap.utils.toArray<HTMLElement>('.lh-deco').forEach((el, i) => {
+      // 漂浮卡 / 裝飾隨捲動視差（外層走 GSAP，內層 CSS float 動畫避免 transform 打架）
+      gsap.utils.toArray<HTMLElement>('.lh-float, .lh-deco').forEach((el, i) => {
         gsap.to(el, {
-          yPercent: (i % 2 ? -1 : 1) * (16 + i * 8),
-          rotation: i % 2 ? -16 : 12,
+          yPercent: (i % 2 ? -1 : 1) * (14 + i * 7),
           ease: 'none',
           scrollTrigger: { trigger: '.l-hero', start: 'top top', end: 'bottom top', scrub: true },
         });
       });
 
-      // ---- 區塊二：pin + 換頁 ----
-      // 啟用絕對定位堆疊（CSS 預設為一般文流，供 reduced-motion / 無 JS 退場）
-      const stage = document.querySelector<HTMLElement>('.lt-stage');
-      stage?.classList.add('lt-anim');
+      // ---- 區塊二：pinned product story（同一舞台推進三章） ----
+      const stage = document.querySelector<HTMLElement>('.ls-stage');
+      stage?.classList.add('ls-anim');
 
-      const panels = gsap.utils.toArray<HTMLElement>('.lt-panel');
+      const chapters = gsap.utils.toArray<HTMLElement>('.ls-chapter');
+      const bgs = gsap.utils.toArray<HTMLElement>('.ls-bg');
+      gsap.set(chapters.slice(1), { autoAlpha: 0, y: 60 });
+      gsap.set(bgs.slice(1), { autoAlpha: 0 });
+
       const tl = gsap.timeline({
-        defaults: { ease: 'none' },
+        defaults: { ease: 'power2.inOut' },
         scrollTrigger: {
-          trigger: '.l-types',
+          trigger: '.l-story',
           start: () => `top ${navH()}px`,
-          end: () => `+=${panels.length * 100}%`,
+          end: '+=350%',
           pin: true,
-          scrub: 0.55,
+          scrub: 0.6,
           snap: {
-            snapTo: 1 / (panels.length - 1),
-            duration: { min: 0.25, max: 0.6 },
+            snapTo: [0, 0.5, 1],
+            directional: false, // 就近吸附：大步捲動 / rail 點擊不會被方向拉回上一章
+            inertia: false, // 不做慣性投影：rail 點擊抵達時的速度不會把進度甩過頭
+            duration: { min: 0.25, max: 0.7 },
             delay: 0.05,
             ease: 'power1.inOut',
           },
-          onUpdate(st) { activeType.value = Math.round(st.progress * (panels.length - 1)); },
+          onUpdate(st) {
+            const tt = st.progress * STORY_TOTAL;
+            activeChapter.value = tt < 1.3 ? 0 : tt < 2.9 ? 1 : 2;
+          },
         },
       });
-      typesST = tl.scrollTrigger;
-      panels.forEach((panel, i) => {
-        if (i === 0) return;
-        // 下一頁由下方整頁蓋上，上一頁縮小淡出 — 「換頁」而非捲動
-        tl.fromTo(panel, { yPercent: 103 }, { yPercent: 0, duration: 1 }, i - 1)
-          .to(panels[i - 1], { yPercent: -8, scale: 0.95, autoAlpha: 0.3, duration: 1 }, i - 1);
+      storyST = tl.scrollTrigger;
+
+      for (let i = 1; i < chapterCount; i++) {
+        const at = HOLD * i + TRANS * (i - 1); // 1.0, 2.6
+        tl.to(chapters[i - 1], { autoAlpha: 0, y: -46, duration: TRANS }, at)
+          .fromTo(chapters[i], { autoAlpha: 0, y: 60 }, { autoAlpha: 1, y: 0, duration: TRANS }, at + TRANS * 0.3)
+          .to(bgs[i - 1], { autoAlpha: 0, duration: TRANS, ease: 'none' }, at)
+          .to(bgs[i], { autoAlpha: 1, duration: TRANS, ease: 'none' }, at);
+      }
+      // 章內小劇場：攝影章拉 before/after 分割線、電子書章翻頁
+      tl.fromTo('.pv-ba', { '--split': '68%' }, { '--split': '26%', duration: 0.8, ease: 'power1.inOut' }, 1.85)
+        .fromTo('.ev-page', { rotationY: 0 }, { rotationY: -132, duration: 0.7, ease: 'power1.inOut', transformOrigin: 'left center' }, 3.35)
+        .to({}, { duration: 0.001 }, STORY_TOTAL); // 補滿總長，讓最後一章有停留
+
+      // ---- 區塊三：workflow 連接線隨捲動長出、步驟進場 ----
+      gsap.fromTo('.fl-line-fill', { scaleX: 0 }, {
+        scaleX: 1,
+        ease: 'none',
+        transformOrigin: 'left center',
+        scrollTrigger: { trigger: '.fl-steps', start: 'top 78%', end: 'bottom 55%', scrub: true },
+      });
+      gsap.from('.fl-step', {
+        y: 44,
+        autoAlpha: 0,
+        duration: 0.6,
+        stagger: 0.12,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: '.fl-steps', start: 'top 80%', once: true },
+      });
+
+      // ---- 區塊四：collage 卡片錯落進場 ----
+      gsap.from('.dc-card', {
+        y: 54,
+        autoAlpha: 0,
+        rotation: (i) => [-4, 5, -3][i] ?? 0,
+        duration: 0.7,
+        stagger: 0.15,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: '.dc-collage', start: 'top 78%', once: true },
       });
 
       // ---- 其餘區塊：進場 reveal ----
-      gsap.utils.toArray<HTMLElement>('.ls-rv').forEach((el) => {
+      gsap.utils.toArray<HTMLElement>('.lrv').forEach((el) => {
         gsap.from(el, {
           y: 48,
           autoAlpha: 0,
@@ -127,8 +214,8 @@ onMounted(() => {
       });
 
       return () => {
-        stage?.classList.remove('lt-anim');
-        typesST = undefined;
+        stage?.classList.remove('ls-anim');
+        storyST = undefined;
       };
     });
   }, rootEl.value!);
@@ -142,22 +229,40 @@ onBeforeUnmount(() => ctx?.revert());
     <app-nav />
 
     <main class="landing">
-      <!-- ============ 區塊一：平台 / 品牌介紹 ============ -->
+      <!-- ============ 區塊一：Hero / 品牌宣言 ============ -->
       <section class="l-hero">
+        <!-- 漂浮商品卡 + 裝飾（情緒背景，非資訊） -->
+        <span v-for="(src, i) in heroFloats" :key="i" class="lh-float" :class="'lh-float-' + (i + 1)" aria-hidden="true">
+          <img :src="src" alt="" />
+        </span>
         <span class="lh-deco lh-deco-ring" aria-hidden="true"></span>
-        <span class="lh-deco lh-deco-star" aria-hidden="true"><app-icon name="sparkle" :size="46" :stroke="1.8" /></span>
-        <span class="lh-deco lh-deco-note" aria-hidden="true"><app-icon name="note" :size="38" :stroke="1.8" /></span>
-        <span class="lh-deco lh-deco-blob" aria-hidden="true"></span>
+        <span class="lh-deco lh-deco-star" aria-hidden="true"><app-icon name="sparkle" :size="42" :stroke="1.8" /></span>
 
         <div class="lh-inner">
-          <p class="lh-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('landing.hero.eyebrow') }}</p>
-          <h1 class="lh-title">
-            <span class="lh-line">{{ t('landing.hero.title1') }}</span>
-            <i18n-t keypath="landing.hero.title2" tag="span" class="lh-line" scope="global">
-              <template #hl><span class="lh-hl">{{ t('landing.hero.hl') }}</span></template>
-            </i18n-t>
-          </h1>
-          <p class="lh-lede">{{ t('landing.hero.lede') }}</p>
+          <p class="lh-eyebrow">
+            <span class="lh-brand-mark">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
+              </svg>
+            </span>
+            {{ t('landing.hero.eyebrow') }}
+          </p>
+          <i18n-t keypath="landing.hero.title" tag="h1" class="lh-title" scope="global">
+            <template #collect><span class="lh-hl lh-hl-lime">{{ t('landing.hero.collect') }}</span></template>
+            <template #support><span class="lh-hl lh-hl-cyan">{{ t('landing.hero.support') }}</span></template>
+            <template #remember><span class="lh-hl lh-hl-pink">{{ t('landing.hero.remember') }}</span></template>
+          </i18n-t>
+          <p class="lh-slogan">{{ t('landing.hero.slogan') }}</p>
+        </div>
+
+        <!-- 底部波形（品牌來自音樂的暗示） -->
+        <div class="lh-wave" aria-hidden="true">
+          <span
+            v-for="(h, i) in WAVE_BARS"
+            :key="i"
+            :style="{ height: h + '%', animationDelay: (i % 7) * 0.14 + 's' }"
+          ></span>
         </div>
 
         <div class="lh-hint" aria-hidden="true">
@@ -166,75 +271,187 @@ onBeforeUnmount(() => ctx?.revert());
         </div>
       </section>
 
-      <!-- ============ 區塊二：三大商品類型（pin 換頁） ============ -->
-      <section class="l-types">
-        <div class="lt-stage">
-          <article
-            v-for="(p, i) in TYPE_PANELS"
-            :key="p.id"
-            class="lt-panel"
-            :style="{ '--accent': p.accent }"
-          >
-            <div class="lt-panel-inner">
-              <div class="lt-text">
-                <p class="lt-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.types.eyebrow') }}</p>
-                <p class="lt-num">{{ String(i + 1).padStart(2, '0') }} / {{ String(typeCount).padStart(2, '0') }}</p>
-                <h2 class="lt-title">{{ t(`landing.types.${p.id}.title`) }}</h2>
-                <p class="lt-tagline">{{ t(`landing.types.${p.id}.tagline`) }}</p>
-                <p class="lt-desc">{{ t(`landing.types.${p.id}.desc`) }}</p>
-                <ul class="lt-chips">
-                  <li v-for="c in chipsFor(p.id)" :key="c">{{ c }}</li>
-                </ul>
-                <button type="button" class="lt-browse" @click="goMarket">
-                  {{ t('landing.types.browse') }} <app-icon name="chevron" :size="15" />
-                </button>
-              </div>
-              <div class="lt-art" aria-hidden="true">
-                <div class="lt-art-tile"><app-icon :name="p.icon" :size="96" :stroke="1.5" /></div>
-                <span class="lt-art-dot d1"></span>
-                <span class="lt-art-dot d2"></span>
-              </div>
-            </div>
-          </article>
+      <!-- ============ 區塊二：Pinned Product Story ============ -->
+      <section class="l-story">
+        <div class="ls-stage">
+          <!-- 章節背景層（隨章節 crossfade） -->
+          <div
+            v-for="c in CHAPTERS"
+            :key="'bg-' + c.id"
+            class="ls-bg"
+            :style="{ '--accent': c.accent }"
+            aria-hidden="true"
+          ></div>
 
-          <!-- pin 期間的進度指示（僅動畫模式顯示） -->
-          <div class="lt-progress" :style="{ '--accent': activeAccent }">
+          <!-- 常駐標題：整段故事回答同一個問題 -->
+          <header class="ls-head">
+            <p class="ls-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.story.eyebrow') }}</p>
+            <h2 class="ls-title">{{ t('landing.story.title') }}</h2>
+          </header>
+
+          <div class="ls-chapters">
+            <article
+              v-for="(c, i) in CHAPTERS"
+              :key="c.id"
+              class="ls-chapter"
+              :style="{ '--accent': c.accent }"
+            >
+              <div class="ls-text">
+                <p class="ls-num">{{ String(i + 1).padStart(2, '0') }}</p>
+                <h3 class="ls-ch-title">{{ t(`landing.story.${c.id}.title`) }}</h3>
+                <p class="ls-desc">{{ t(`landing.story.${c.id}.desc`) }}</p>
+                <ul class="ls-chips">
+                  <li v-for="chip in chipsFor(c.id)" :key="chip">{{ chip }}</li>
+                </ul>
+              </div>
+
+              <!-- 音樂章：播放器卡 + 波形 -->
+              <div v-if="c.id === 'music'" class="ls-visual vis-music" aria-hidden="true">
+                <div class="mv-player">
+                  <div class="mv-art"><app-icon name="note" :size="40" :stroke="1.8" /></div>
+                  <div class="mv-meta">
+                    <span class="mv-line w1"></span>
+                    <span class="mv-line w2"></span>
+                    <div class="mv-progress"><span class="mv-ph"></span></div>
+                  </div>
+                  <span class="mv-play"><span class="mv-tri"></span></span>
+                </div>
+                <div class="mv-wave">
+                  <span
+                    v-for="(h, j) in WAVE_BARS"
+                    :key="j"
+                    :style="{ height: h + '%', animationDelay: (j % 5) * 0.12 + 's' }"
+                  ></span>
+                </div>
+              </div>
+
+              <!-- 攝影章：before/after 分割 + 照片格 -->
+              <div v-else-if="c.id === 'photo'" class="ls-visual vis-photo" aria-hidden="true">
+                <div class="pv-ba">
+                  <img class="pv-after" :src="imgAutumn" alt="" />
+                  <div class="pv-before" :style="{ backgroundImage: `url(${imgAutumn})` }"></div>
+                  <span class="pv-handle"></span>
+                  <span class="pv-tag pv-tag-b">Before</span>
+                  <span class="pv-tag pv-tag-a">After</span>
+                </div>
+                <div class="pv-grid">
+                  <img v-for="(src, j) in photoGrid" :key="j" :src="src" alt="" />
+                </div>
+              </div>
+
+              <!-- 電子書章：書封 + 翻頁 + 章節 preview -->
+              <div v-else class="ls-visual vis-ebook" aria-hidden="true">
+                <div class="ev-book">
+                  <div class="ev-cover">
+                    <app-icon name="book" :size="34" :stroke="1.8" />
+                    <span class="ev-line w1"></span>
+                    <span class="ev-line w2"></span>
+                  </div>
+                  <div class="ev-page"></div>
+                </div>
+                <div class="ev-toc">
+                  <span v-for="j in 4" :key="j" class="ev-toc-row">
+                    <b>{{ String(j).padStart(2, '0') }}</b><i :class="'w' + j"></i>
+                  </span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- 章節導覽（僅動畫模式顯示） -->
+          <div class="ls-rail" :style="{ '--accent': activeAccent }">
             <button
-              v-for="(p, i) in TYPE_PANELS"
-              :key="p.id"
+              v-for="(c, i) in CHAPTERS"
+              :key="'rail-' + c.id"
               type="button"
-              class="lt-dot"
-              :class="{ on: activeType === i }"
-              :aria-label="t('landing.types.pageAria', { n: i + 1 })"
-              @click="goPage(i)"
-            ></button>
-            <span class="lt-progress-hint">{{ t('landing.types.hint') }}</span>
+              class="ls-rail-item"
+              :class="{ on: activeChapter === i }"
+              :aria-label="t('landing.story.pageAria', { n: i + 1 })"
+              @click="goChapter(i)"
+            >
+              <app-icon :name="c.icon" :size="15" />
+              <span>{{ t(`landing.story.${c.id}.label`) }}</span>
+            </button>
+            <span class="ls-rail-hint">{{ t('landing.story.hint') }}</span>
           </div>
         </div>
       </section>
 
-      <!-- ============ 區塊四（待補充） ============ -->
-      <!-- TODO: 區塊四內容規劃中，佔位樣式，確定文案後替換 -->
-      <section class="l-plan ls-rv">
-        <div class="lp-card">
-          <span class="lp-badge">{{ t('landing.planned.badge') }}</span>
-          <h2>{{ t('landing.planned.title') }}</h2>
-          <p>{{ t('landing.planned.text') }}</p>
+      <!-- ============ 區塊三：Creator Workflow ============ -->
+      <section class="l-flow">
+        <div class="lsec-head lrv">
+          <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.flow.eyebrow') }}</p>
+          <h2 class="lsec-title">{{ t('landing.flow.title') }}</h2>
+          <p class="lsec-sub">{{ t('landing.flow.sub') }}</p>
+        </div>
+        <div class="fl-steps">
+          <div class="fl-line" aria-hidden="true"><span class="fl-line-fill"></span></div>
+          <div v-for="(s, i) in flowSteps" :key="s.title" class="fl-step">
+            <span class="fl-ic" :class="'fl-ic-' + (i + 1)">
+              <app-icon :name="s.icon" :size="20" :style="i === 0 ? 'transform: rotate(180deg)' : ''" />
+            </span>
+            <p class="fl-num">{{ i + 1 }}</p>
+            <h3>{{ s.title }}</h3>
+            <p class="fl-text">{{ s.text }}</p>
+          </div>
         </div>
       </section>
 
-      <!-- ============ 區塊五（待補充） ============ -->
-      <!-- TODO: 區塊五內容規劃中，佔位樣式，確定文案後替換 -->
-      <section class="l-plan ls-rv">
-        <div class="lp-card">
-          <span class="lp-badge">{{ t('landing.planned.badge') }}</span>
-          <h2>{{ t('landing.planned.title') }}</h2>
-          <p>{{ t('landing.planned.text') }}</p>
+      <!-- ============ 區塊四：Consumer Experience ============ -->
+      <section class="l-discover">
+        <div class="dc-inner">
+          <div class="dc-copy lrv">
+            <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.discover.eyebrow') }}</p>
+            <h2 class="lsec-title">{{ t('landing.discover.title') }}</h2>
+            <p class="dc-text">{{ t('landing.discover.text') }}</p>
+            <button type="button" class="dc-btn" @click="goMarket">
+              {{ t('landing.cta.buyer.button') }} <app-icon name="chevron" :size="15" />
+            </button>
+          </div>
+          <div class="dc-collage" aria-hidden="true">
+            <div class="dc-card dc-grid">
+              <p class="dc-label"><app-icon name="search" :size="13" /> {{ t('landing.discover.gridLabel') }}</p>
+              <div class="dc-grid-imgs">
+                <img v-for="(src, i) in discoverGrid" :key="i" :src="src" alt="" />
+              </div>
+            </div>
+            <div class="dc-card dc-profile">
+              <p class="dc-label"><app-icon name="user" :size="13" /> {{ t('landing.discover.profileLabel') }}</p>
+              <div class="dc-profile-row">
+                <span class="dc-avatar"><app-icon name="note" :size="18" /></span>
+                <span class="dc-pl w1"></span>
+                <span class="dc-follow">{{ t('landing.discover.follow') }}</span>
+              </div>
+              <span class="dc-pl w2"></span>
+            </div>
+            <div class="dc-card dc-fav">
+              <p class="dc-label"><app-icon name="heart" :size="13" /> {{ t('landing.discover.favLabel') }}</p>
+              <div class="dc-fav-row">
+                <img v-for="(src, i) in favThumbs" :key="i" :src="src" alt="" />
+                <span class="dc-fav-heart"><app-icon name="heart" :size="16" /></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 區塊五：Why Open Jam ============ -->
+      <section class="l-why">
+        <div class="lsec-head lrv">
+          <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.why.eyebrow') }}</p>
+          <h2 class="lsec-title">{{ t('landing.why.title') }}</h2>
+        </div>
+        <div class="why-grid">
+          <div v-for="(w, i) in whyItems" :key="w.title" class="why-card lrv" :class="'why-card-' + (i + 1)">
+            <span class="why-ic"><app-icon :name="w.icon" :size="20" /></span>
+            <h3>{{ w.title }}</h3>
+            <p>{{ w.text }}</p>
+          </div>
         </div>
       </section>
 
       <!-- ============ 最後區塊：CTA ============ -->
-      <section class="l-cta ls-rv">
+      <section class="l-cta lrv">
         <p class="lc-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('landing.cta.eyebrow') }}</p>
         <div class="lc-grid">
           <div class="lc-card lc-creator">
@@ -269,147 +486,385 @@ onBeforeUnmount(() => ctx?.revert());
 .landing { padding: 0; }
 .l-footwrap { padding: 0 clamp(20px, 3.5vw, 56px); }
 
-/* ---------- 區塊一：hero ---------- */
+/* 共用區塊標頭 */
+.lsec-head { text-align: center; max-width: 760px; margin: 0 auto 44px; }
+.lsec-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 12px;
+  font-family: var(--oj-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--oj-primary);
+}
+.lsec-title {
+  margin: 0; font-family: var(--oj-display); font-weight: 800;
+  font-size: clamp(28px, 4vw, 44px); letter-spacing: -1.2px; color: var(--text);
+}
+.lsec-sub { margin: 14px 0 0; font-size: 15.5px; line-height: 1.8; color: var(--text-soft); }
+
+/* ---------- 區塊一：Hero / 品牌宣言 ---------- */
 .l-hero {
   position: relative;
   min-height: calc(100vh - var(--nav-h));
   display: flex; align-items: center; justify-content: center;
   padding: 0 clamp(20px, 3.5vw, 56px);
+  overflow: hidden;
 }
-.lh-inner { max-width: 880px; text-align: center; padding: 40px 0 80px; }
+.lh-inner { position: relative; z-index: 1; max-width: 940px; text-align: center; padding: 40px 0 120px; }
 .lh-eyebrow {
-  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 22px;
+  display: inline-flex; align-items: center; gap: 9px; margin: 0 0 24px;
   font-family: var(--oj-mono); font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--oj-primary); border: 1.5px solid var(--border-strong); border-radius: 999px;
-  background: var(--surface); box-shadow: var(--pop-1); padding: 8px 16px;
+  color: var(--text); border: 1.5px solid var(--border-strong); border-radius: 999px;
+  background: var(--surface); box-shadow: var(--pop-1); padding: 8px 16px 8px 9px;
+}
+.lh-brand-mark {
+  width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--c-violet), var(--c-pink));
 }
 .lh-title {
   margin: 0; font-family: var(--oj-display); font-weight: 800;
-  font-size: clamp(38px, 6.4vw, 76px); line-height: 1.12; letter-spacing: -2px; color: var(--text);
+  font-size: clamp(34px, 5.6vw, 66px); line-height: 1.22; letter-spacing: -1.8px; color: var(--text);
 }
-.lh-line { display: block; }
 .lh-hl {
-  display: inline-block; padding: 0 10px; border-radius: 12px; transform: rotate(-1.5deg);
-  background: var(--c-lime); border: 1.5px solid var(--text); box-shadow: var(--pop-1);
+  display: inline-block; padding: 1px 12px; border-radius: 12px;
+  border: 1.5px solid var(--text); box-shadow: var(--pop-1);
 }
-.lh-lede { max-width: 620px; margin: 26px auto 0; font-size: 17px; line-height: 1.9; color: var(--text-soft); }
+.lh-hl-lime { background: var(--c-lime); transform: rotate(-1.5deg); }
+.lh-hl-cyan { background: var(--c-cyan); transform: rotate(1.2deg); }
+.lh-hl-pink { background: var(--c-pink); color: #fff; transform: rotate(-1deg); }
+.lh-slogan { max-width: 560px; margin: 24px auto 0; font-size: 16.5px; line-height: 1.85; color: var(--text-soft); }
+
+/* 漂浮商品卡：外層吃 GSAP 視差，內層 img 跑 CSS float */
+.lh-float { position: absolute; pointer-events: none; z-index: 0; }
+.lh-float img {
+  display: block; width: 132px; aspect-ratio: 1; object-fit: cover;
+  border: 1.5px solid var(--text); border-radius: var(--r-md); box-shadow: 5px 5px 0 var(--text);
+  animation: lh-drift 5.2s ease-in-out infinite;
+}
+.lh-float-1 { top: 15%; left: 6%; transform: rotate(-7deg); }
+.lh-float-2 { top: 58%; right: 6%; transform: rotate(5deg); }
+.lh-float-2 img { width: 116px; animation-delay: 1.2s; }
+.lh-float-3 { bottom: 20%; left: 12%; transform: rotate(4deg); }
+.lh-float-3 img { width: 96px; animation-delay: 2.3s; }
+@keyframes lh-drift { 50% { translate: 0 -12px; } }
+
+.lh-deco { position: absolute; pointer-events: none; z-index: 0; }
+.lh-deco-ring {
+  top: 20%; right: 13%; width: 64px; height: 64px; border-radius: 50%;
+  border: 9px solid var(--c-yellow); box-shadow: var(--pop-1);
+}
+.lh-deco-star { top: 66%; left: 22%; color: var(--c-pink); }
+
+/* 底部波形 */
+.lh-wave {
+  position: absolute; left: 0; right: 0; bottom: 74px; height: 64px; z-index: 0;
+  display: flex; align-items: flex-end; justify-content: center; gap: 6px;
+  opacity: .5; pointer-events: none;
+}
+.lh-wave span {
+  width: 7px; border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--c-violet), var(--c-pink));
+  animation: lh-eq 1.8s ease-in-out infinite;
+  transform-origin: bottom;
+}
+@keyframes lh-eq { 50% { transform: scaleY(.45); } }
 
 .lh-hint {
-  position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint);
 }
 .lh-hint :deep(svg) { animation: lh-bob 1.6s ease-in-out infinite; }
 @keyframes lh-bob { 50% { translate: 0 6px; } }
 
-.lh-deco { position: absolute; pointer-events: none; }
-.lh-deco-ring {
-  top: 16%; left: 8%; width: 74px; height: 74px; border-radius: 50%;
-  border: 10px solid var(--c-yellow); box-shadow: var(--pop-1);
+/* ---------- 區塊二：Pinned Product Story ---------- */
+.ls-stage {
+  position: relative;
+  display: flex; flex-direction: column;
+  border-top: 1.5px solid var(--border);
 }
-.lh-deco-star { top: 22%; right: 10%; color: var(--c-pink); }
-.lh-deco-note { bottom: 24%; left: 13%; color: var(--c-cyan); }
-.lh-deco-blob {
-  bottom: 18%; right: 7%; width: 58px; height: 58px; border-radius: 40% 60% 55% 45%;
-  background: var(--c-violet); border: 1.5px solid var(--text); box-shadow: var(--pop-2);
-}
+/* GSAP 啟用時鎖滿版高、章節絕對堆疊（預設一般文流退場） */
+.ls-anim { height: calc(100vh - var(--nav-h)); overflow: hidden; }
 
-/* ---------- 區塊二：類型換頁 ---------- */
-.l-types { margin: 0; }
-.lt-stage { position: relative; }
-.lt-panel {
-  min-height: calc(100vh - var(--nav-h));
-  display: flex; align-items: center; justify-content: center;
-  padding: 48px clamp(20px, 3.5vw, 56px);
+.ls-bg {
+  display: none;
+  position: absolute; inset: 0; z-index: 0;
   background:
     radial-gradient(rgba(26,22,38,.05) 1.3px, transparent 1.5px),
     color-mix(in srgb, var(--accent) 9%, var(--bg));
   background-size: 22px 22px, auto;
-  border-top: 1.5px solid var(--border);
 }
-/* GSAP 啟用時：面板絕對定位堆疊，供 timeline 換頁（預設一般文流退場） */
-.lt-anim { height: calc(100vh - var(--nav-h)); overflow: hidden; }
-.lt-anim .lt-panel { position: absolute; inset: 0; min-height: 0; will-change: transform; }
+.ls-anim .ls-bg { display: block; }
 
-.lt-panel-inner {
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  align-items: center; gap: clamp(28px, 5vw, 80px);
-  width: 100%; max-width: 1080px;
-}
-.lt-eyebrow {
-  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 18px;
+.ls-head { position: relative; z-index: 2; text-align: center; padding: clamp(24px, 4vh, 44px) 20px 0; }
+.ls-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px;
   font-family: var(--oj-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+  color: var(--text-soft);
 }
-.lt-num { margin: 0 0 8px; font-family: var(--oj-mono); font-size: 14px; font-weight: 600; color: var(--text-faint); }
-.lt-title {
+.ls-title {
   margin: 0; font-family: var(--oj-display); font-weight: 800;
-  font-size: clamp(32px, 4.6vw, 54px); letter-spacing: -1.5px; color: var(--text);
+  font-size: clamp(26px, 3.6vw, 40px); letter-spacing: -1px; color: var(--text);
 }
-.lt-tagline {
-  display: inline-block; margin: 14px 0 0; padding: 6px 14px;
-  font-family: var(--oj-display); font-weight: 700; font-size: 15px; color: var(--text);
-  background: var(--surface); border: 1.5px solid var(--text); border-radius: 999px; box-shadow: var(--pop-1);
-  transform: rotate(-1deg);
+
+.ls-chapters { position: relative; z-index: 1; flex: 1; }
+.ls-chapter {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center; gap: clamp(28px, 5vw, 76px);
+  max-width: 1080px; margin: 0 auto;
+  padding: 40px clamp(20px, 3.5vw, 56px) 90px;
 }
-.lt-desc { margin: 18px 0 0; max-width: 460px; font-size: 15.5px; line-height: 1.85; color: var(--text-soft); }
-.lt-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; }
-.lt-chips li {
-  padding: 6px 12px; border: 1.5px solid var(--border-strong); border-radius: 999px;
-  background: var(--surface); font-size: 13px; font-weight: 600; color: var(--text);
+/* 非動畫模式：每章自帶背景與間隔 */
+.ls-stage:not(.ls-anim) .ls-chapter {
+  background:
+    radial-gradient(rgba(26,22,38,.05) 1.3px, transparent 1.5px),
+    color-mix(in srgb, var(--accent) 9%, var(--bg));
+  background-size: 22px 22px, auto;
+  max-width: none;
 }
-.lt-browse {
-  display: inline-flex; align-items: center; gap: 7px; margin-top: 26px; cursor: pointer;
+.ls-anim .ls-chapter { position: absolute; inset: 0; height: 100%; will-change: transform, opacity; }
+
+.ls-num { margin: 0 0 6px; font-family: var(--oj-mono); font-size: 14px; font-weight: 600; color: color-mix(in srgb, var(--accent) 80%, var(--text)); }
+.ls-ch-title {
+  margin: 0; font-family: var(--oj-display); font-weight: 800;
+  font-size: clamp(26px, 3.6vw, 42px); letter-spacing: -1.2px; color: var(--text);
+}
+.ls-desc { margin: 16px 0 0; max-width: 440px; font-size: 15.5px; line-height: 1.85; color: var(--text-soft); }
+.ls-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; padding: 0; }
+.ls-chips li {
+  padding: 7px 13px; border: 1.5px solid var(--text); border-radius: 999px;
+  background: var(--surface); box-shadow: var(--pop-1);
+  font-family: var(--oj-display); font-weight: 600; font-size: 13.5px; color: var(--text);
+}
+
+/* flex column（非 grid auto track）：避免子元素原始尺寸撐開軌道把內容推出畫面 */
+.ls-visual { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; min-width: 0; }
+
+/* 音樂章視覺 */
+.vis-music { width: 100%; }
+.mv-player {
+  display: flex; align-items: center; gap: 14px; width: min(380px, 100%);
+  background: var(--surface); border: 1.5px solid var(--text); border-radius: var(--r-md);
+  box-shadow: 6px 6px 0 var(--text); padding: 14px 16px; transform: rotate(-1.5deg);
+}
+.mv-art {
+  width: 64px; height: 64px; flex: none; display: grid; place-items: center; color: #fff;
+  border: 1.5px solid var(--text); border-radius: 12px;
+  background: linear-gradient(140deg, var(--c-violet), var(--c-pink));
+}
+.mv-meta { flex: 1; min-width: 0; }
+.mv-line { display: block; height: 9px; border-radius: 5px; background: var(--border); }
+.mv-line.w1 { width: 72%; background: var(--text); opacity: .82; }
+.mv-line.w2 { width: 46%; margin-top: 7px; }
+.mv-progress { position: relative; height: 5px; border-radius: 3px; background: var(--border); margin-top: 12px; }
+.mv-ph { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; border-radius: 3px; background: var(--c-violet); }
+.mv-play {
+  width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  border: 1.5px solid var(--text); border-radius: 50%; background: var(--c-lime); box-shadow: var(--pop-1);
+}
+.mv-tri {
+  width: 0; height: 0; margin-left: 3px;
+  border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 13px solid var(--text);
+}
+.mv-wave { display: flex; align-items: flex-end; gap: 5px; height: 72px; width: min(380px, 100%); }
+.mv-wave span {
+  flex: 1; border-radius: 3px 3px 0 0; transform-origin: bottom;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 85%, #fff), var(--accent));
+  animation: lh-eq 1.6s ease-in-out infinite;
+}
+
+/* 攝影章視覺 */
+.vis-photo { width: 100%; }
+.pv-ba {
+  --split: 50%;
+  position: relative; width: min(400px, 100%); aspect-ratio: 16 / 10; overflow: hidden;
+  border: 1.5px solid var(--text); border-radius: var(--r-md); box-shadow: 6px 6px 0 var(--text);
+  transform: rotate(1.5deg);
+}
+.pv-after { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pv-before {
+  position: absolute; top: 0; bottom: 0; left: 0; width: var(--split);
+  background-size: cover; background-position: left center;
+  filter: grayscale(.92) contrast(.82) brightness(1.05);
+  border-right: 2px solid #fff;
+}
+.pv-handle {
+  position: absolute; top: 50%; left: var(--split); transform: translate(-50%, -50%);
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--surface); border: 1.5px solid var(--text); box-shadow: var(--pop-1);
+}
+.pv-handle::before { content: '‹›'; display: grid; place-items: center; height: 100%; font-size: 14px; font-weight: 700; color: var(--text); }
+.pv-tag {
+  position: absolute; bottom: 8px; padding: 3px 9px; border-radius: 999px;
+  border: 1.5px solid var(--text); font-family: var(--oj-mono); font-size: 10.5px; font-weight: 600;
+}
+.pv-tag-b { left: 8px; background: var(--surface); color: var(--text); }
+.pv-tag-a { right: 8px; background: var(--c-lime); color: var(--text); }
+.pv-grid { display: flex; gap: 10px; width: min(400px, 100%); }
+.pv-grid img {
+  flex: 1 1 0; width: 0; min-width: 0; aspect-ratio: 1; object-fit: cover;
+  border: 1.5px solid var(--text); border-radius: 12px; box-shadow: var(--pop-1);
+}
+
+/* 電子書章視覺 */
+.vis-ebook { width: 100%; }
+.ev-book { position: relative; width: min(240px, 52%); aspect-ratio: 3 / 4; perspective: 900px; }
+.ev-cover {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  color: #fff; border: 1.5px solid var(--text); border-radius: 6px 14px 14px 6px;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.18) 0, transparent 14px),
+    linear-gradient(150deg, color-mix(in srgb, var(--accent) 85%, #fff), var(--accent));
+  box-shadow: 7px 7px 0 var(--text);
+  transform: rotate(-2deg);
+}
+.ev-line { display: block; height: 8px; border-radius: 4px; background: rgba(255,255,255,.85); }
+.ev-line.w1 { width: 56%; }
+.ev-line.w2 { width: 34%; opacity: .7; }
+.ev-page {
+  position: absolute; inset: 4% 2% 4% 50%;
+  background: var(--surface); border: 1.5px solid var(--text); border-radius: 0 10px 10px 0;
+  transform-origin: left center; will-change: transform;
+  background-image: repeating-linear-gradient(var(--surface) 0 14px, var(--border) 14px 16px);
+  background-clip: content-box; padding: 12px 10px;
+}
+.ev-toc {
+  width: min(230px, 44%); display: flex; flex-direction: column; gap: 10px;
+  background: var(--surface); border: 1.5px solid var(--text); border-radius: var(--r-md);
+  box-shadow: var(--pop-2); padding: 16px; transform: rotate(2deg);
+}
+.ev-toc-row { display: flex; align-items: center; gap: 10px; }
+.ev-toc-row b { font-family: var(--oj-mono); font-size: 11px; color: var(--oj-primary); }
+.ev-toc-row i { display: block; height: 8px; border-radius: 4px; background: var(--border); }
+.ev-toc-row i.w1 { width: 78%; }
+.ev-toc-row i.w2 { width: 62%; }
+.ev-toc-row i.w3 { width: 70%; }
+.ev-toc-row i.w4 { width: 48%; }
+@media (min-width: 861px) {
+  .vis-ebook { flex-direction: row; justify-content: center; gap: 26px; }
+}
+
+/* 章節導覽 rail */
+.ls-rail {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 2;
+  display: none; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
+}
+.ls-anim .ls-rail { display: flex; }
+.ls-rail-item {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 7px 13px; border: 1.5px solid var(--text); border-radius: 999px;
+  background: var(--surface); font-family: var(--oj-display); font-weight: 600; font-size: 13px; color: var(--text);
+  transition: background .2s, color .2s, transform .2s;
+}
+.ls-rail-item.on { background: var(--accent); color: #fff; transform: translateY(-2px); box-shadow: var(--pop-1); }
+.ls-rail-hint { margin-left: 6px; font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint); }
+
+/* ---------- 區塊三：Creator Workflow ---------- */
+.l-flow { padding: 88px clamp(20px, 3.5vw, 56px) 72px; max-width: 1200px; margin: 0 auto; box-sizing: content-box; }
+.fl-steps { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+.fl-line {
+  position: absolute; top: 26px; left: 6%; right: 6%; height: 3px; z-index: 0;
+  background: repeating-linear-gradient(90deg, var(--border-strong) 0 8px, transparent 8px 16px);
+  opacity: .25;
+}
+.fl-line-fill {
+  position: absolute; inset: 0; display: block;
+  background: linear-gradient(90deg, var(--c-violet), var(--c-pink), var(--c-orange));
+}
+.fl-step { position: relative; z-index: 1; text-align: center; padding: 0 6px; }
+.fl-ic {
+  display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 15px;
+  border: 1.5px solid var(--text); box-shadow: var(--pop-2); background: var(--surface); color: var(--text);
+  margin-bottom: 12px;
+}
+.fl-ic-1 { background: var(--c-lime); }
+.fl-ic-2 { background: var(--c-yellow); }
+.fl-ic-3 { background: var(--c-cyan); }
+.fl-ic-4 { background: var(--c-pink); color: #fff; }
+.fl-ic-5 { background: var(--c-violet); color: #fff; }
+.fl-num { margin: 0 0 4px; font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint); }
+.fl-step h3 { margin: 0 0 6px; font-family: var(--oj-display); font-weight: 700; font-size: 16px; color: var(--text); }
+.fl-text { margin: 0; font-size: 13px; line-height: 1.7; color: var(--text-soft); }
+
+/* ---------- 區塊四：Consumer Experience ---------- */
+.l-discover {
+  padding: 88px clamp(20px, 3.5vw, 56px);
+  background:
+    radial-gradient(rgba(26,22,38,.05) 1.3px, transparent 1.5px),
+    color-mix(in srgb, var(--c-violet) 7%, var(--bg));
+  background-size: 22px 22px, auto;
+  border-top: 1.5px solid var(--border); border-bottom: 1.5px solid var(--border);
+}
+.dc-inner {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center; gap: clamp(30px, 5vw, 76px);
+  max-width: 1120px; margin: 0 auto;
+}
+.dc-copy .lsec-eyebrow { color: var(--c-violet); }
+.dc-copy .lsec-title { text-align: left; }
+.dc-copy { text-align: left; }
+.dc-text { margin: 16px 0 0; font-size: 15.5px; line-height: 1.85; color: var(--text-soft); }
+.dc-btn {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 24px; cursor: pointer;
   font-family: var(--oj-display); font-weight: 700; font-size: 14.5px; color: var(--text);
   background: var(--surface); border: 1.5px solid var(--text); border-radius: var(--r-sm);
   box-shadow: var(--pop-2); padding: 10px 16px; transition: transform .12s, box-shadow .12s;
 }
-.lt-browse:hover { transform: translate(-1px, -1px); box-shadow: var(--pop-2-h); }
-.lt-browse:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--text); }
+.dc-btn:hover { transform: translate(-1px, -1px); box-shadow: var(--pop-2-h); }
+.dc-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--text); }
 
-.lt-art { position: relative; display: grid; place-items: center; }
-.lt-art-tile {
-  width: min(320px, 34vw); aspect-ratio: 1; display: grid; place-items: center; color: #fff;
-  background:
-    radial-gradient(rgba(255,255,255,.35) 1.4px, transparent 1.7px),
-    linear-gradient(140deg, color-mix(in srgb, var(--accent) 88%, #fff), var(--accent));
-  background-size: 18px 18px, auto;
-  border: 2px solid var(--text); border-radius: var(--r-lg); box-shadow: 8px 8px 0 var(--text);
-  transform: rotate(2.5deg);
+.dc-collage { position: relative; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+.dc-card {
+  background: var(--surface); border: 1.5px solid var(--text); border-radius: var(--r-md);
+  box-shadow: 5px 5px 0 var(--text); padding: 14px 16px;
 }
-.lt-art-dot { position: absolute; border-radius: 50%; border: 1.5px solid var(--text); }
-.lt-art-dot.d1 { top: 6%; left: 4%; width: 26px; height: 26px; background: var(--c-yellow); box-shadow: var(--pop-1); }
-.lt-art-dot.d2 { bottom: 8%; right: 2%; width: 18px; height: 18px; background: var(--c-lime); box-shadow: var(--pop-1); }
+.dc-label {
+  display: flex; align-items: center; gap: 6px; margin: 0 0 10px;
+  font-family: var(--oj-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-soft);
+}
+.dc-grid { width: min(360px, 100%); transform: rotate(-2deg); }
+.dc-grid-imgs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.dc-grid-imgs img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1.5px solid var(--text); border-radius: 9px; }
+.dc-profile { width: min(320px, 100%); transform: rotate(1.6deg) translateX(8%); }
+.dc-profile-row { display: flex; align-items: center; gap: 10px; }
+.dc-avatar {
+  width: 38px; height: 38px; flex: none; display: grid; place-items: center; color: #fff;
+  border: 1.5px solid var(--text); border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-violet), var(--c-pink));
+}
+.dc-pl { display: block; height: 9px; border-radius: 5px; background: var(--border); }
+.dc-pl.w1 { flex: 1; background: var(--text); opacity: .8; }
+.dc-pl.w2 { width: 62%; margin-top: 10px; }
+.dc-follow {
+  padding: 5px 12px; border: 1.5px solid var(--text); border-radius: 999px;
+  background: var(--c-lime); box-shadow: var(--pop-1);
+  font-family: var(--oj-display); font-weight: 700; font-size: 12.5px; color: var(--text);
+}
+.dc-fav { width: min(300px, 100%); transform: rotate(-1.4deg) translateX(-6%); }
+.dc-fav-row { display: flex; align-items: center; gap: 8px; }
+.dc-fav-row img { width: 54px; aspect-ratio: 1; object-fit: cover; border: 1.5px solid var(--text); border-radius: 9px; }
+.dc-fav-heart {
+  width: 34px; height: 34px; display: grid; place-items: center; margin-left: auto;
+  border: 1.5px solid var(--text); border-radius: 50%; background: var(--c-pink); color: #fff; box-shadow: var(--pop-1);
+}
 
-.lt-progress {
-  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
-  display: none; align-items: center; gap: 10px;
+/* ---------- 區塊五：Why Open Jam ---------- */
+.l-why { padding: 88px clamp(20px, 3.5vw, 56px) 72px; max-width: 1120px; margin: 0 auto; box-sizing: content-box; }
+.why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.why-card {
+  padding: 24px 24px 26px; border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
+  background: var(--surface); box-shadow: 5px 5px 0 var(--border);
 }
-.lt-anim .lt-progress { display: flex; }
-.lt-dot {
-  width: 12px; height: 12px; border-radius: 50%; cursor: pointer; padding: 0;
-  border: 1.5px solid var(--text); background: var(--surface); transition: background .2s, transform .2s;
+.why-ic {
+  display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px;
+  border: 1.5px solid var(--text); box-shadow: var(--pop-1); color: var(--text); margin-bottom: 14px;
 }
-.lt-dot.on { background: var(--accent); transform: scale(1.25); }
-.lt-progress-hint { margin-left: 6px; font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint); }
-
-/* ---------- 區塊四 / 五：待補充佔位 ---------- */
-.l-plan { padding: 56px clamp(20px, 3.5vw, 56px); display: flex; justify-content: center; }
-.lp-card {
-  width: 100%; max-width: 820px; text-align: center; padding: 56px 32px;
-  border: 2px dashed var(--border-strong); border-radius: var(--r-lg);
-  background: color-mix(in srgb, var(--surface) 60%, transparent);
-}
-.lp-badge {
-  display: inline-block; margin-bottom: 14px; padding: 6px 14px;
-  font-family: var(--oj-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--oj-primary); background: var(--oj-wash); border-radius: 999px;
-}
-.lp-card h2 { margin: 0; font-family: var(--oj-display); font-weight: 800; font-size: 26px; letter-spacing: -0.5px; color: var(--text); }
-.lp-card p { margin: 10px 0 0; font-size: 14.5px; color: var(--text-soft); }
+.why-card-1 .why-ic { background: var(--c-lime); }
+.why-card-2 .why-ic { background: var(--c-pink); color: #fff; }
+.why-card-3 .why-ic { background: var(--c-yellow); }
+.why-card-4 .why-ic { background: var(--c-cyan); }
+.why-card h3 { margin: 0 0 8px; font-family: var(--oj-display); font-weight: 800; font-size: 18px; color: var(--text); }
+.why-card p { margin: 0; font-size: 14px; line-height: 1.75; color: var(--text-soft); }
 
 /* ---------- 最後區塊：CTA ---------- */
-.l-cta { padding: 64px clamp(20px, 3.5vw, 56px) 96px; max-width: 1080px; margin: 0 auto; box-sizing: content-box; }
+.l-cta { padding: 24px clamp(20px, 3.5vw, 56px) 96px; max-width: 1080px; margin: 0 auto; box-sizing: content-box; }
 .lc-eyebrow {
   display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 28px;
   font-family: var(--oj-display); font-weight: 800; font-size: clamp(24px, 3.4vw, 38px);
@@ -441,20 +896,28 @@ onBeforeUnmount(() => ctx?.revert());
 .lc-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--text); }
 
 /* ---------- RWD ---------- */
+@media (max-width: 980px) {
+  .fl-steps { grid-template-columns: repeat(2, 1fr); gap: 26px 18px; }
+  .fl-line { display: none; }
+}
 @media (max-width: 860px) {
-  .lt-panel-inner { grid-template-columns: 1fr; gap: 26px; }
-  .lt-art { order: -1; }
-  .lt-art-tile { width: min(200px, 46vw); box-shadow: 6px 6px 0 var(--text); }
-  .lt-desc { max-width: none; }
+  .ls-chapter { grid-template-columns: 1fr; gap: 22px; padding-bottom: 110px; align-content: center; }
+  .ls-visual { order: -1; }
+  .mv-player, .mv-wave, .pv-ba, .pv-grid { width: min(340px, 100%); }
+  .ev-book { width: min(170px, 40%); }
+  .dc-inner { grid-template-columns: 1fr; }
   .lc-grid { grid-template-columns: 1fr; }
+  .why-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .lh-deco { display: none; }
-  .lt-panel { padding: 32px 20px 84px; }
+  .lh-float, .lh-deco { display: none; }
+  .fl-steps { grid-template-columns: 1fr; }
+  .ls-chapter { padding-bottom: 128px; }
+  .ls-chips li { font-size: 12.5px; padding: 6px 11px; }
 }
 
-/* reduced-motion：無換頁動畫，面板一般直向排列（.lt-anim 不會被加上） */
+/* reduced-motion：停用裝飾動畫（pin / 轉場由 matchMedia 控制不啟用） */
 @media (prefers-reduced-motion: reduce) {
-  .lh-hint :deep(svg) { animation: none; }
+  .lh-hint :deep(svg), .lh-wave span, .mv-wave span, .lh-float img { animation: none; }
 }
 </style>
