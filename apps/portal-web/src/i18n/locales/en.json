@@ -293,5 +293,73 @@
     "daysAgo": "{n} days ago",
     "catalogPublished": "{storeName} released a new product \"{catalogName}\"",
     "storeAnnouncement": "{storeName}: {title}"
+  },
+  "landing": {
+    "screenLabel": "Brand story",
+    "hero": {
+      "eyebrow": "OPEN JAM · A marketplace for creators",
+      "title1": "Put your creations",
+      "title2": "into {hl} hands",
+      "hl": "the right",
+      "lede": "Open Jam is a digital goods platform for creators in Taiwan. Open a shop on your own subdomain and sell music, photography and e-books — buyers need no account, just an email to take your work home.",
+      "scrollHint": "Scroll down to start the story"
+    },
+    "types": {
+      "eyebrow": "Three crafts · One stage",
+      "browse": "Browse the market",
+      "hint": "Keep scrolling to turn the page",
+      "pageAria": "Go to page {n}",
+      "music": {
+        "title": "Sheet music & audio",
+        "tagline": "Let the melody leave your room",
+        "desc": "Original tracks, arrangements, sample packs and score licensing — whether you write piano sheets or lo-fi beats, ears willing to press play are waiting here.",
+        "chips": [
+          "Original tracks",
+          "Arrangements",
+          "Sample packs",
+          "Score licensing"
+        ]
+      },
+      "photo": {
+        "title": "Photography & photo packs",
+        "tagline": "After the shutter, the story goes on",
+        "desc": "Landscape series, portrait projects, street collections and hi-res stock packs. Turn the work sleeping on your hard drive into photo packs that echo back.",
+        "chips": [
+          "Landscape",
+          "Portrait projects",
+          "Street series",
+          "Stock packs"
+        ]
+      },
+      "ebook": {
+        "title": "E-books & documents",
+        "tagline": "Words are the lightest luggage",
+        "desc": "Novels, essays, tutorials and indie zines. From the first page to the last, it is all yours — finish it, publish it, and readers start reading with just an email.",
+        "chips": [
+          "Novels & essays",
+          "Tutorials",
+          "Indie zines",
+          "Templates"
+        ]
+      }
+    },
+    "planned": {
+      "badge": "Coming soon",
+      "title": "More of the story is on its way",
+      "text": "This section is still in the works — stay tuned."
+    },
+    "cta": {
+      "eyebrow": "The next page of the story is yours to turn",
+      "creator": {
+        "title": "I'm a creator",
+        "text": "Open your own shop in three minutes and turn your work into income.",
+        "button": "Start selling for free"
+      },
+      "buyer": {
+        "title": "I'm looking for inspiration",
+        "text": "No sign-up needed — buy with just an email and start exploring now.",
+        "button": "Browse the market"
+      }
+    }
   }
 }

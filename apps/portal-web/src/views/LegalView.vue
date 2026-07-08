@@ -102,7 +102,7 @@ const sections = computed<Section[]>(() => {
 
     <main class="page legal-page">
       <nav class="breadcrumb" :aria-label="t('common.breadcrumb')">
-        <router-link to="/">{{ t('common.marketplace') }}</router-link>
+        <router-link to="/discover">{{ t('common.marketplace') }}</router-link>
         <app-icon name="chevron" :size="14" />
         <span>{{ title }}</span>
       </nav>

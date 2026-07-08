@@ -37,7 +37,7 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 
     <main class="page about-page">
       <nav class="breadcrumb" :aria-label="t('common.breadcrumb')">
-        <router-link to="/">{{ t('common.marketplace') }}</router-link>
+        <router-link to="/discover">{{ t('common.marketplace') }}</router-link>
         <app-icon name="chevron" :size="14" />
         <span>{{ t('about.breadcrumb') }}</span>
       </nav>

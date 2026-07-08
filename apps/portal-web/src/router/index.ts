@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
-import MarketView from '@/views/MarketView.vue';
+import DiscoverView from '@/views/DiscoverView.vue';
 import LegalView from '@/views/LegalView.vue';
 import AboutView from '@/views/AboutView.vue';
+import LandingView from '@/views/LandingView.vue';
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'market', component: MarketView },
+  { path: '/', name: 'landing', component: LandingView },
+  { path: '/discover', name: 'discover', component: DiscoverView },
   { path: '/about', name: 'about', component: AboutView },
   { path: '/terms', name: 'terms', component: LegalView, props: { doc: 'terms' } },
   { path: '/privacy', name: 'privacy', component: LegalView, props: { doc: 'privacy' } },

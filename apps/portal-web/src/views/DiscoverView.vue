@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /* ============================================================
-   MarketView — 市場集 hub (home route "/")
+   DiscoverView — 市集探索 hub（/discover）
    Search-led hero + category / sort / price browse grid.
    Cards deep-link into the storefront detail route.
    ============================================================ */
