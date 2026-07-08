@@ -110,7 +110,10 @@ body {
 .brand-eq-bar {
   width: 3px; border-radius: 99px; background: #fff;
   animation: brand-eq var(--eq-dur, 1.6s) ease-in-out var(--eq-delay, 0s) infinite;
+  /* 待機停格為靜態波形（負 delay 讓各 bar 停在不同高度），hover 才開始律動 */
+  animation-play-state: paused;
 }
+.brand:hover .brand-eq-bar, .lh-eyebrow:hover .brand-eq-bar { animation-play-state: running; }
 .brand-eq-bar:nth-child(1) { height: 9px;  --eq-dur: 1.5s; --eq-delay: -.35s; }
 .brand-eq-bar:nth-child(2) { height: 15px; --eq-dur: 1.9s; --eq-delay: -.9s; }
 .brand-eq-bar:nth-child(3) { height: 18px; --eq-dur: 1.4s; --eq-delay: -.2s; }
@@ -143,6 +146,46 @@ body {
   /* bars 保留各自靜態高度，仍呈現靜止波形 */
   .brand-eq-bar, .brand:hover .brand-ch { animation: none; }
 }
+
+/* ---------- 情境式自訂游標（AppCursor.vue） ---------- */
+/* 啟用時隱藏原生游標；文字輸入還原原生 I-beam（自訂游標同步隱藏） */
+html.oj-cursor-on, html.oj-cursor-on * { cursor: none !important; }
+html.oj-cursor-on input, html.oj-cursor-on textarea,
+html.oj-cursor-on [contenteditable="true"] { cursor: auto !important; }
+
+.oj-cursor {
+  position: fixed; inset: 0; z-index: 9000; pointer-events: none;
+  opacity: 0; transition: opacity .25s;
+}
+.oj-cursor.is-visible { opacity: 1; }
+.oj-cursor.is-text { opacity: 0; }
+.oj-cursor-move { position: absolute; top: 0; left: 0; will-change: transform; }
+.oj-cursor-dot {
+  position: absolute; top: -3.5px; left: -3.5px; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c-pink);
+  transition: transform .18s ease;
+}
+.oj-cursor-ring {
+  position: absolute; top: -19px; left: -19px; width: 38px; height: 38px; border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--c-violet) 75%, transparent);
+  display: grid; place-items: center;
+  transition: transform .3s cubic-bezier(.3, 1.4, .4, 1), background-color .25s, border-color .25s;
+}
+.oj-cursor-tri {
+  width: 0; height: 0; border-style: solid; border-width: 5.5px 0 5.5px 9px;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 2px;
+  transform: scale(0); opacity: 0;
+  transition: transform .25s cubic-bezier(.3, 1.4, .4, 1), opacity .2s;
+}
+.oj-cursor.is-link .oj-cursor-ring { transform: scale(1.55); background: color-mix(in srgb, var(--c-violet) 14%, transparent); }
+.oj-cursor.is-link .oj-cursor-dot { transform: scale(.6); }
+.oj-cursor.is-play .oj-cursor-ring { transform: scale(1.9); background: var(--c-violet); border-color: var(--c-violet); }
+.oj-cursor.is-play .oj-cursor-tri { transform: scale(1); opacity: 1; }
+.oj-cursor.is-play .oj-cursor-dot { transform: scale(0); }
+.oj-cursor.is-down .oj-cursor-ring { transform: scale(.85); }
+.oj-cursor.is-down.is-link .oj-cursor-ring { transform: scale(1.3); }
+.oj-cursor.is-down.is-play .oj-cursor-ring { transform: scale(1.65); }
 .nav-search { flex: 1; max-width: 420px; }
 .search-box {
   display: flex; align-items: center; gap: 8px;

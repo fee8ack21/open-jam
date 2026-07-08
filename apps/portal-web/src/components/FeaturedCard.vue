@@ -23,7 +23,7 @@ const tag = computed(() =>
 </script>
 
 <template>
-  <a class="feat-card" :href="href">
+  <a class="feat-card" :href="href" data-cursor="play">
     <div class="feat-media">
       <product-thumb :product="product" hide-label />
     </div>

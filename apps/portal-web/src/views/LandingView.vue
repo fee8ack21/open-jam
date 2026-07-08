@@ -109,6 +109,42 @@ function goChapter(i: number) {
   window.scrollTo({ top: storyST.start + (storyST.end - storyST.start) * p, behavior: 'smooth' });
 }
 
+/**
+ * hero 互動層（僅 prefers-reduced-motion: no-preference 時啟用）：
+ * 漂浮商品卡 / 裝飾隨游標位置反向微漂（深度正負交錯營造空間感）。
+ */
+function setupHeroInteraction(hero: HTMLElement): () => void {
+  const layers = gsap.utils.toArray<HTMLElement>('.lh-float, .lh-deco').map((el, i) => ({
+    qx: gsap.quickTo(el, 'x', { duration: 0.9, ease: 'power3' }),
+    qy: gsap.quickTo(el, 'y', { duration: 0.9, ease: 'power3' }),
+    depth: [30, -22, 18, -14, 24][i] ?? 16,
+  }));
+
+  const onMove = (e: PointerEvent) => {
+    const rect = hero.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    for (const l of layers) {
+      l.qx(nx * l.depth * 2.2);
+      l.qy(ny * l.depth);
+    }
+  };
+  const onLeave = () => {
+    for (const l of layers) {
+      l.qx(0);
+      l.qy(0);
+    }
+  };
+
+  hero.addEventListener('pointermove', onMove, { passive: true });
+  hero.addEventListener('pointerleave', onLeave);
+
+  return () => {
+    hero.removeEventListener('pointermove', onMove);
+    hero.removeEventListener('pointerleave', onLeave);
+  };
+}
+
 onMounted(() => {
   ctx = gsap.context(() => {
     const mm = gsap.matchMedia();
@@ -119,7 +155,7 @@ onMounted(() => {
         .from('.lh-title', { y: 54, autoAlpha: 0, duration: 0.8 }, '-=0.25')
         .from('.lh-hl', { scale: 0, rotation: -8, duration: 0.45, stagger: 0.18, ease: 'back.out(2.2)' }, '-=0.35')
         .from('.lh-slogan', { y: 26, autoAlpha: 0, duration: 0.55 }, '-=0.2')
-        .from('.lh-float, .lh-wave', { autoAlpha: 0, duration: 0.7, stagger: 0.08 }, '-=0.4')
+        .from('.lh-float', { autoAlpha: 0, duration: 0.7, stagger: 0.08 }, '-=0.4')
         .from('.lh-hint', { autoAlpha: 0, duration: 0.5 }, '-=0.2');
 
       // 漂浮卡 / 裝飾隨捲動視差（外層走 GSAP，內層 CSS float 動畫避免 transform 打架）
@@ -130,6 +166,10 @@ onMounted(() => {
           scrollTrigger: { trigger: '.l-hero', start: 'top top', end: 'bottom top', scrub: true },
         });
       });
+
+      // ---- hero 互動層：漂浮物件游標視差 ----
+      const hero = document.querySelector<HTMLElement>('.l-hero');
+      const heroCleanup = hero ? setupHeroInteraction(hero) : undefined;
 
       // ---- 區塊二：pinned product story（同一舞台推進三章） ----
       const stage = document.querySelector<HTMLElement>('.ls-stage');
@@ -224,6 +264,7 @@ onMounted(() => {
       });
 
       return () => {
+        heroCleanup?.();
         stage?.classList.remove('ls-anim');
         storyST = undefined;
       };
@@ -268,15 +309,6 @@ onBeforeUnmount(() => ctx?.revert());
             <template #remember><span class="lh-hl lh-hl-pink">{{ t('landing.hero.remember') }}</span></template>
           </i18n-t>
           <p class="lh-slogan">{{ t('landing.hero.slogan') }}</p>
-        </div>
-
-        <!-- 底部波形（品牌來自音樂的暗示） -->
-        <div class="lh-wave" aria-hidden="true">
-          <span
-            v-for="(h, i) in WAVE_BARS"
-            :key="i"
-            :style="{ height: h + '%', animationDelay: (i % 7) * 0.14 + 's' }"
-          ></span>
         </div>
 
         <div class="lh-hint" aria-hidden="true">
@@ -601,18 +633,7 @@ onBeforeUnmount(() => ctx?.revert());
 }
 .lh-deco-star { top: 66%; left: 22%; color: var(--c-pink); }
 
-/* 底部波形 */
-.lh-wave {
-  position: absolute; left: 0; right: 0; bottom: 74px; height: 64px; z-index: 0;
-  display: flex; align-items: flex-end; justify-content: center; gap: 6px;
-  opacity: .5; pointer-events: none;
-}
-.lh-wave span {
-  width: 7px; border-radius: 4px 4px 0 0;
-  background: linear-gradient(180deg, var(--c-violet), var(--c-pink));
-  animation: lh-eq 1.8s ease-in-out infinite;
-  transform-origin: bottom;
-}
+/* lh-eq keyframes 供區塊二音樂章 .mv-wave 使用 */
 @keyframes lh-eq { 50% { transform: scaleY(.45); } }
 
 .lh-hint {
@@ -1023,6 +1044,6 @@ onBeforeUnmount(() => ctx?.revert());
 
 /* reduced-motion：停用裝飾動畫（pin / 轉場由 matchMedia 控制不啟用） */
 @media (prefers-reduced-motion: reduce) {
-  .lh-hint :deep(svg), .lh-wave span, .mv-wave span, .lh-float img, .l-marquee-track { animation: none; }
+  .lh-hint :deep(svg), .mv-wave span, .lh-float img, .l-marquee-track { animation: none; }
 }
 </style>
