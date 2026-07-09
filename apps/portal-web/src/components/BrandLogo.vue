@@ -1,8 +1,11 @@
 <script setup lang="ts">
 /* ============================================================
    BrandLogo — Open Jam 品牌標誌（AppNav / AppFooter 共用）
-   mark 為音符 SVG，hover 時輕微旋轉放大（樣式在 base.css）。
+   mark 為音符 SVG；hover 時「Open Jam」逐字彈跳（皮克斯風，樣式在 base.css）。
    ============================================================ */
+
+// 逐字拆解以套用交錯的彈跳動畫；空白換成 nbsp 保留字距（inline-block 下一般空白會塌陷）
+const brandLetters = [...'Open Jam'].map((ch) => (ch === ' ' ? ' ' : ch))
 </script>
 
 <template>
@@ -27,6 +30,14 @@
         ></ellipse>
       </svg>
     </span>
-    <span class="brand-name">Open Jam</span>
+    <span class="brand-name" aria-hidden="true">
+      <span
+        v-for="(ch, i) in brandLetters"
+        :key="i"
+        class="brand-letter"
+        :style="{ '--i': i }"
+        >{{ ch }}</span
+      >
+    </span>
   </router-link>
 </template>
