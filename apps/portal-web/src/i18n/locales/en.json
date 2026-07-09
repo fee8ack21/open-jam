@@ -20,6 +20,7 @@
   "footer": {
     "links": "Footer links",
     "becomeCreator": "Become a creator",
+    "about": "About",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "copyright": "© 2026 Open Jam · A marketplace for creators",
@@ -260,6 +261,16 @@
   },
   "landing": {
     "screenLabel": "Brand story",
+    "intro": {
+      "eyebrow": "About Open Jam",
+      "title": "Open Jam is a digital marketplace for creators.",
+      "lead": "Built in Taiwan for independent creators — turn your music, photography and e-books into products people can collect and buy. Shoppers don't even need an account; one email is all it takes.",
+      "facts": [
+        { "title": "No sign-up to buy", "text": "Check out and download with just an email — no account required." },
+        { "title": "Your own storefront", "text": "Every creator gets a shop at name.openjam.co." },
+        { "title": "Support creators directly", "text": "Every purchase goes straight to the maker behind the work." }
+      ]
+    },
     "hero": {
       "eyebrow": "OPEN JAM · A marketplace for creators",
       "title": "Turn your creative work into something people can {collect}, {support} and {remember}.",

@@ -20,6 +20,7 @@
   "footer": {
     "links": "頁尾連結",
     "becomeCreator": "成為創作者",
+    "about": "關於",
     "privacy": "隱私權政策",
     "terms": "服務條款",
     "copyright": "© 2026 Open Jam · 創作者數位市集",
@@ -260,6 +261,16 @@
   },
   "landing": {
     "screenLabel": "品牌故事",
+    "intro": {
+      "eyebrow": "關於 Open Jam",
+      "title": "Open Jam 是給創作者的數位市集。",
+      "lead": "在台灣，為獨立創作者打造。把音樂、攝影、電子書等數位作品，變成能被收藏、被購買的商品；消費者免註冊，憑一個信箱就能帶走喜歡的作品。",
+      "facts": [
+        { "title": "免註冊購買", "text": "憑一個信箱就能付款、下載，消費者不必開帳號。" },
+        { "title": "子網域開店", "text": "每位創作者都有 name.openjam.co 的專屬店面。" },
+        { "title": "直接支持創作", "text": "每一筆消費都回到創作者，作品找得到它的人。" }
+      ]
+    },
     "hero": {
       "eyebrow": "OPEN JAM · 創作者數位市集",
       "title": "把你的創作，變成有人{collect}、{support}、{remember}的存在。",

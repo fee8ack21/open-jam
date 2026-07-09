@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import DiscoverView from '@/views/DiscoverView.vue';
 import LegalView from '@/views/LegalView.vue';
-import LandingView from '@/views/LandingView.vue';
+import AboutView from '@/views/AboutView.vue';
 import FaqView from '@/views/FaqView.vue';
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'landing', component: LandingView },
-  { path: '/discover', name: 'discover', component: DiscoverView },
+  { path: '/', name: 'home', component: DiscoverView },
+  { path: '/discover', redirect: '/' }, // 舊市集網址導回首頁（外部書籤相容）
+  { path: '/about', name: 'about', component: AboutView },
   { path: '/faq', name: 'faq', component: FaqView },
   { path: '/terms', name: 'terms', component: LegalView, props: { doc: 'terms' } },
   { path: '/privacy', name: 'privacy', component: LegalView, props: { doc: 'privacy' } },

@@ -17,6 +17,7 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
     <BrandLogo />
     <nav class="mkt-foot-links" :aria-label="t('footer.links')">
       <a href="#" @click.prevent="goWorkspace">{{ t('footer.becomeCreator') }}</a>
+      <router-link to="/about">{{ t('footer.about') }}</router-link>
       <router-link to="/faq">{{ t('footer.faq') }}</router-link>
       <router-link to="/privacy">{{ t('footer.privacy') }}</router-link>
       <router-link to="/terms">{{ t('footer.terms') }}</router-link>

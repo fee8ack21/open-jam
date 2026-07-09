@@ -1,16 +1,13 @@
 <script setup lang="ts">
 /* ============================================================
-   LandingView — 品牌 landing（/）
-   Interactive storytelling experience，以 GSAP ScrollTrigger 驅動：
-   - 區塊一：Hero / 品牌宣言（情緒訴求 manifesto + 漂浮商品卡 / 波形）
-   - 區塊二：Pinned Product Story——pin 住同一個舞台，滾動推進
-             音樂 → 攝影 → 電子書三章（內容轉場而非整頁換頁），
-             每章回答「創作者能在這裡賣什麼？」並附具象視覺
-             （播放器 / 波形、preset before-after、翻頁書）
-   - 區塊三：Creator Workflow（上傳 → 定價 → 開店 → 分享 → 收到支持）
-   - 區塊四：Consumer Experience（探索 / 追蹤 / 收藏庫 collage）
-   - 區塊五：Why Open Jam（平台精神四卡）
-   - 最後區塊：創作者 / 消費者雙 CTA + Footer
+   AboutView — 品牌故事頁（/about）
+   自 LandingView 遷移的敘事區塊，以 GSAP ScrollTrigger 驅動：
+   - Pinned Product Story（創作者能在這裡賣什麼？——音樂 / 攝影 / 電子書
+     三章，pin 住同一舞台，滾動推進，內容轉場而非整頁換頁）
+   - Creator Workflow（上傳 → 定價 → 開店 → 分享 → 收到支持）
+   - Consumer Experience（探索 / 追蹤 / 收藏庫 collage）
+   - Why Open Jam（平台精神四卡）
+   - 雙 CTA + Footer
    prefers-reduced-motion: reduce 時不做 pin 與動畫，
    三章退化為一般直向排列。
    ============================================================ */
@@ -24,7 +21,6 @@ import { env } from '@/environment.js';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import LandingArt from '@/components/LandingArt.vue';
-import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
 
 import imgSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
 import imgAutumn from '@/assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
@@ -39,7 +35,7 @@ const store = useShopStore();
 const router = useRouter();
 const { t, tm, rt } = useI18n();
 
-// ----- 區塊二三章 — 圖示 / 主色留在程式碼，文案由 i18n（landing.story.<id>）提供 -----
+// ----- 三章 — 圖示 / 主色留在程式碼，文案由 i18n（landing.story.<id>）提供 -----
 const CHAPTERS = [
   { id: 'music', icon: 'note', accent: 'var(--c-violet)' },
   { id: 'photo', icon: 'image', accent: 'var(--c-pink)' },
@@ -51,9 +47,21 @@ function chipsFor(id: string): string[] {
   return (tm(`landing.story.${id}.chips`) as string[]).map((c) => rt(c));
 }
 
+// ----- 開場介紹三特色（圖示 / 主色留在程式碼，文案由 i18n 提供） -----
+const introIcons = ['download', 'bag', 'heart'];
+const introAccents = ['var(--c-violet)', 'var(--c-pink)', 'var(--c-cyan)'];
+const introFacts = computed(() =>
+  (tm('landing.intro.facts') as { title: string; text: string }[]).map((f, i) => ({
+    icon: introIcons[i],
+    accent: introAccents[i],
+    title: rt(f.title),
+    text: rt(f.text),
+  })),
+);
+
 // 攝影章：照片格與 before-after 底圖
 const photoGrid = [imgSurf, imgColorful, imgInterior];
-// 區塊四 collage：市集精選格 / 收藏縮圖
+// Consumer collage：市集精選格 / 收藏縮圖
 const discoverGrid = [imgSilver, imgColorful, imgDragon, imgSurf];
 const favThumbs = [imgAutumn, imgInterior];
 
@@ -66,7 +74,7 @@ const rootEl = ref<HTMLElement | null>(null);
 const activeChapter = ref(0);
 const activeAccent = computed(() => CHAPTERS[activeChapter.value].accent);
 
-// 各步驟 / 卡片對應的手繪插畫（LandingArt name），取代原本的單色線 icon
+// 各步驟 / 卡片對應的手繪插畫（LandingArt name）
 const flowArt = ['upload', 'price', 'storefront', 'share', 'support'];
 const flowSteps = computed(() =>
   (tm('landing.flow.steps') as { title: string; text: string }[]).map((s, i) => ({
@@ -86,13 +94,13 @@ const whyItems = computed(() =>
 );
 
 function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
-function goMarket() { router.push({ name: 'discover' }); }
+function goMarket() { router.push('/'); }
 
 // ----- GSAP：全部動畫收在 context 內，離開頁面 revert 還原 -----
 let ctx: gsap.Context | undefined;
 let storyST: ScrollTrigger | undefined;
 
-// 區塊二 timeline 節奏：每章停留 HOLD、章間轉場 TRANS（單位為 timeline 秒）
+// pinned story timeline 節奏：每章停留 HOLD、章間轉場 TRANS（單位為 timeline 秒）
 const HOLD = 1;
 const TRANS = 0.6;
 const STORY_TOTAL = chapterCount * HOLD + (chapterCount - 1) * TRANS; // 4.2
@@ -114,14 +122,7 @@ onMounted(() => {
   ctx = gsap.context(() => {
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      // ---- 區塊一：manifesto 進場 ----
-      gsap.timeline({ defaults: { ease: 'power3.out' } })
-        .from('.lh-title', { y: 54, autoAlpha: 0, duration: 0.8 })
-        .from('.lh-hl', { scale: 0, rotation: -8, duration: 0.45, stagger: 0.18, ease: 'back.out(2.2)' }, '-=0.35')
-        .from('.lh-slogan', { y: 26, autoAlpha: 0, duration: 0.55 }, '-=0.2')
-        .from('.lh-hint', { autoAlpha: 0, duration: 0.5 }, '-=0.2');
-
-      // ---- 區塊二：pinned product story（同一舞台推進三章） ----
+      // ---- Pinned product story（同一舞台推進三章） ----
       const stage = document.querySelector<HTMLElement>('.ls-stage');
       stage?.classList.add('ls-anim');
 
@@ -166,7 +167,7 @@ onMounted(() => {
         .fromTo('.ev-page', { rotationY: 0 }, { rotationY: -132, duration: 0.7, ease: 'power1.inOut', transformOrigin: 'left center' }, 3.35)
         .to({}, { duration: 0.001 }, STORY_TOTAL); // 補滿總長，讓最後一章有停留
 
-      // ---- 區塊三：workflow 連接線隨捲動長出、步驟進場 ----
+      // ---- workflow 連接線隨捲動長出、步驟進場 ----
       gsap.fromTo('.fl-line-fill', { scaleX: 0 }, {
         scaleX: 1,
         ease: 'none',
@@ -182,7 +183,7 @@ onMounted(() => {
         scrollTrigger: { trigger: '.fl-steps', start: 'top 80%', once: true },
       });
 
-      // ---- 區塊四：collage 卡片錯落進場 ----
+      // ---- collage 卡片錯落進場 ----
       gsap.from('.dc-card', {
         y: 54,
         autoAlpha: 0,
@@ -233,37 +234,22 @@ onBeforeUnmount(() => ctx?.revert());
       <div class="l-grain" aria-hidden="true"></div>
       <div class="l-gridlines" aria-hidden="true"><i v-for="i in 4" :key="i"></i></div>
 
-      <!-- ============ 區塊一：Hero / 品牌宣言 ============ -->
-      <section class="l-hero">
-        <span class="l-bigword lh-bigword" data-drift aria-hidden="true">OPEN JAM</span>
-
-        <!-- 背景：市集同款漂浮作品卡 collage（HeroCollage，自帶游標 / 捲動視差，
-             ≥1280px 才顯示；與 MarketView hero 一致的品牌表現） -->
-        <hero-collage />
-
-        <!-- 散落碎點 confetti（靜態小點 / 菱形 / 三角，補畫面呼吸感） -->
-        <span class="lh-confetti cf-1" aria-hidden="true"></span>
-        <span class="lh-confetti cf-2" aria-hidden="true"></span>
-        <span class="lh-confetti cf-3" aria-hidden="true"></span>
-        <span class="lh-confetti cf-4" aria-hidden="true"></span>
-        <span class="lh-confetti cf-5" aria-hidden="true"></span>
-
-        <div class="lh-inner">
-          <i18n-t keypath="landing.hero.title" tag="h1" class="lh-title" scope="global">
-            <template #collect><span class="lh-hl lh-hl-lime">{{ t('landing.hero.collect') }}</span></template>
-            <template #support><span class="lh-hl lh-hl-cyan">{{ t('landing.hero.support') }}</span></template>
-            <template #remember><span class="lh-hl lh-hl-pink">{{ t('landing.hero.remember') }}</span></template>
-          </i18n-t>
-          <p class="lh-slogan">{{ t('landing.hero.slogan') }}</p>
-        </div>
-
-        <div class="lh-hint" aria-hidden="true">
-          <span>{{ t('landing.hero.scrollHint') }}</span>
-          <app-icon name="chevronU" :size="18" style="transform: rotate(180deg)" />
-        </div>
+      <!-- ============ 開場：關於 Open Jam ============ -->
+      <section class="l-intro">
+        <span class="l-bigword li-bigword" data-drift aria-hidden="true">OPEN JAM</span>
+        <p class="lsec-eyebrow li-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.intro.eyebrow') }}</p>
+        <h1 class="li-title">{{ t('landing.intro.title') }}</h1>
+        <p class="li-lead">{{ t('landing.intro.lead') }}</p>
+        <ul class="li-facts">
+          <li v-for="f in introFacts" :key="f.title" class="li-fact" :style="{ '--accent': f.accent }">
+            <span class="li-fact-ic"><app-icon :name="f.icon" :size="22" :stroke="1.9" /></span>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.text }}</p>
+          </li>
+        </ul>
       </section>
 
-      <!-- ============ 區塊二：Pinned Product Story ============ -->
+      <!-- ============ Pinned Product Story（創作者能在這裡賣什麼？） ============ -->
       <section class="l-story">
         <div class="ls-stage">
           <!-- 章節背景層（隨章節 crossfade） -->
@@ -289,6 +275,7 @@ onBeforeUnmount(() => ctx?.revert());
               :style="{ '--accent': c.accent }"
             >
               <span class="l-bigword ls-bigword" aria-hidden="true">{{ c.id === 'ebook' ? 'E-BOOK' : c.id.toUpperCase() }}</span>
+              <div class="ls-inner">
               <div class="ls-text">
                 <p class="ls-num">{{ String(i + 1).padStart(2, '0') }}</p>
                 <h3 class="ls-ch-title">{{ t(`landing.story.${c.id}.title`) }}</h3>
@@ -348,6 +335,7 @@ onBeforeUnmount(() => ctx?.revert());
                   </span>
                 </div>
               </div>
+              </div>
             </article>
           </div>
 
@@ -381,7 +369,7 @@ onBeforeUnmount(() => ctx?.revert());
         </div>
       </div>
 
-      <!-- ============ 區塊三：Creator Workflow ============ -->
+      <!-- ============ Creator Workflow ============ -->
       <section class="l-flow">
         <span class="l-bigword lf-bigword" data-drift aria-hidden="true">WORKFLOW</span>
         <div class="lsec-head lrv">
@@ -400,7 +388,7 @@ onBeforeUnmount(() => ctx?.revert());
         </div>
       </section>
 
-      <!-- ============ 區塊四：Consumer Experience ============ -->
+      <!-- ============ Consumer Experience ============ -->
       <section class="l-discover">
         <span class="l-bigword ld-bigword" data-drift aria-hidden="true">DISCOVER</span>
         <div class="dc-inner">
@@ -439,7 +427,7 @@ onBeforeUnmount(() => ctx?.revert());
         </div>
       </section>
 
-      <!-- ============ 區塊五：Why Open Jam ============ -->
+      <!-- ============ Why Open Jam ============ -->
       <section class="l-why">
         <span class="l-bigword lw-bigword" data-drift aria-hidden="true">BELIEVE</span>
         <div class="lsec-head lrv">
@@ -488,7 +476,7 @@ onBeforeUnmount(() => ctx?.revert());
 </template>
 
 <style scoped>
-/* 不在容器設左右 padding：區塊二 pin 時需滿版，改由各區塊自帶 */
+/* 不在容器設左右 padding：Pinned story 需滿版，改由各區塊自帶 */
 .landing { padding: 0; position: relative; }
 .l-footwrap { padding: 0 clamp(20px, 3.5vw, 56px); }
 
@@ -523,47 +511,44 @@ onBeforeUnmount(() => ctx?.revert());
 }
 .lsec-sub { margin: 14px 0 0; font-size: 15.5px; line-height: 1.8; color: var(--text-soft); }
 
-/* ---------- 區塊一：Hero / 品牌宣言 ---------- */
-.l-hero {
+/* ---------- 開場：關於 Open Jam ---------- */
+.l-intro {
   position: relative;
-  min-height: calc(100vh - var(--nav-h));
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 clamp(20px, 3.5vw, 56px);
-  overflow: hidden;
+  padding: clamp(52px, 8vh, 96px) clamp(20px, 3.5vw, 56px) clamp(44px, 6vh, 76px);
+  text-align: center;
 }
-.lh-inner { position: relative; z-index: 2; max-width: 940px; text-align: center; padding: 40px 0 120px; }
-.lh-title {
-  margin: 0; font-family: var(--oj-display); font-weight: 800;
-  font-size: clamp(38px, 6.6vw, 84px); line-height: 1.16; letter-spacing: -2.2px; color: var(--text);
+/* 背景縷空大字：內容抬到 z-index 1 之上，字落在後方 */
+.li-bigword { top: .08em; left: 6%; font-size: clamp(90px, 14vw, 210px); }
+.li-eyebrow, .li-title, .li-lead, .li-facts { position: relative; z-index: 1; }
+.li-eyebrow { justify-content: center; }
+.li-title {
+  margin: 0 auto;
+  font-family: var(--oj-display); font-weight: 800;
+  font-size: clamp(18px, 4.6vw, 46px); line-height: 1.15; letter-spacing: -1.4px; color: var(--text);
+  white-space: nowrap;
 }
-.lh-bigword { bottom: -0.12em; left: 6%; font-size: clamp(110px, 17vw, 260px); }
-.lh-hl {
-  display: inline-block; padding: 1px 12px; border-radius: 12px;
-  border: 1.5px solid var(--text); box-shadow: var(--pop-1);
+.li-lead {
+  margin: 20px auto 0; max-width: 52ch;
+  font-size: 16.5px; line-height: 1.85; color: var(--text-soft);
 }
-.lh-hl-lime { background: var(--c-lime); transform: rotate(-1.5deg); }
-.lh-hl-cyan { background: var(--c-cyan); transform: rotate(1.2deg); }
-.lh-hl-pink { background: var(--c-pink); color: #fff; transform: rotate(-1deg); }
-.lh-slogan { max-width: 560px; margin: 24px auto 0; font-size: 16.5px; line-height: 1.85; color: var(--text-soft); }
-
-/* 散落碎點 confetti（多形狀，避免只有正圓） */
-.lh-confetti { position: absolute; z-index: 0; pointer-events: none; }
-.cf-1 { top: 25%; left: 30%; width: 8px; height: 8px; border-radius: 50%; background: var(--c-cyan); box-shadow: 2px 2px 0 var(--text); }
-.cf-2 { top: 43%; left: 19%; width: 9px; height: 9px; background: var(--c-pink); transform: rotate(45deg); box-shadow: 2px 2px 0 var(--text); }
-.cf-3 { top: 72%; right: 30%; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 11px solid var(--c-violet); }
-.cf-4 { top: 40%; right: 33%; width: 7px; height: 7px; border-radius: 50%; background: var(--c-orange); box-shadow: 2px 2px 0 var(--text); }
-.cf-5 { top: 78%; left: 40%; width: 9px; height: 9px; background: var(--c-lime); transform: rotate(45deg); box-shadow: 2px 2px 0 var(--text); }
-
-/* lh-eq keyframes 供區塊二音樂章 .mv-wave 使用 */
-@keyframes lh-eq { 50% { transform: scaleY(.45); } }
-
-.lh-hint {
-  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint);
+.li-facts {
+  list-style: none; margin: 40px auto 0; padding: 0; max-width: 940px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
 }
-.lh-hint :deep(svg) { animation: lh-bob 1.6s ease-in-out infinite; }
-@keyframes lh-bob { 50% { translate: 0 6px; } }
+.li-fact {
+  text-align: left; padding: 22px 22px 24px;
+  background: var(--surface); border: 1.5px solid var(--text); border-radius: var(--r-lg);
+  box-shadow: 5px 5px 0 var(--text);
+}
+.li-fact-ic {
+  display: grid; place-items: center; width: 46px; height: 46px; margin: 0 0 14px;
+  color: #fff; background: var(--accent);
+  border: 1.5px solid var(--text); border-radius: 13px; box-shadow: var(--pop-1);
+}
+/* cyan tile 底色偏亮，icon 改深色維持對比 */
+.li-fact:nth-child(3) .li-fact-ic { color: #08312d; }
+.li-fact h3 { margin: 0 0 6px; font-family: var(--oj-display); font-weight: 800; font-size: 17px; color: var(--text); }
+.li-fact p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text-soft); }
 
 /* ---------- 區塊二：Pinned Product Story ---------- */
 .ls-stage {
@@ -600,24 +585,26 @@ onBeforeUnmount(() => ctx?.revert());
 
 .ls-chapters { position: relative; z-index: 1; flex: 1; }
 .ls-chapter {
-  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  align-items: center; gap: clamp(28px, 5vw, 76px);
-  max-width: 1080px; margin: 0 auto;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
   padding: 40px clamp(20px, 3.5vw, 56px) 90px;
 }
-/* 非動畫模式：每章自帶背景與間隔 */
-.ls-chapter { position: relative; }
+/* 兩欄內容維持 1080 置中；大字則相對滿版章節定位以貼齊右上角 */
+.ls-inner {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center; gap: clamp(28px, 5vw, 76px);
+  width: 100%; max-width: 1080px;
+}
 .ls-stage:not(.ls-anim) .ls-chapter {
   background:
     radial-gradient(rgba(255,255,255,.09) 1.3px, transparent 1.5px),
     linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
     color-mix(in srgb, var(--accent) 62%, #221a38);
   background-size: 22px 22px, 25% 100%, auto;
-  max-width: none;
 }
 .ls-anim .ls-chapter { position: absolute; inset: 0; height: 100%; will-change: transform, opacity; }
 
-.ls-bigword { top: 0.02em; right: -3%; font-size: clamp(96px, 15vw, 230px); -webkit-text-stroke: 2px rgba(255,255,255,.16); }
+.ls-bigword { top: .06em; right: 3%; font-size: clamp(96px, 15vw, 230px); -webkit-text-stroke: 2px rgba(255,255,255,.16); }
 
 .ls-num { margin: 0 0 6px; font-family: var(--oj-mono); font-size: 14px; font-weight: 600; color: rgba(255,255,255,.65); }
 .ls-ch-title {
@@ -668,6 +655,8 @@ onBeforeUnmount(() => ctx?.revert());
   background: linear-gradient(180deg, #fff, rgba(255,255,255,.5));
   animation: lh-eq 1.6s ease-in-out infinite;
 }
+/* lh-eq keyframes 供音樂章 .mv-wave 使用 */
+@keyframes lh-eq { 50% { transform: scaleY(.45); } }
 
 /* 攝影章視覺 */
 .vis-photo { width: 100%; }
@@ -816,7 +805,7 @@ onBeforeUnmount(() => ctx?.revert());
     color-mix(in srgb, var(--c-violet) 10%, var(--bg));
   background-size: 22px 22px, auto;
 }
-.ld-bigword { top: .06em; left: 5%; font-size: clamp(90px, 14vw, 210px); }
+.ld-bigword { top: .08em; left: 6%; font-size: clamp(90px, 14vw, 210px); }
 .dc-inner {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
   align-items: center; gap: clamp(30px, 5vw, 76px);
@@ -895,8 +884,8 @@ onBeforeUnmount(() => ctx?.revert());
 .why-card p { margin: 0; font-size: 14px; line-height: 1.75; color: var(--text-soft); }
 
 /* ---------- 最後區塊：CTA ---------- */
-.l-cta { position: relative; overflow: hidden; padding: 88px clamp(20px, 3.5vw, 56px) 110px; max-width: 1080px; margin: 0 auto; box-sizing: content-box; }
-.lc-bigword { top: -0.05em; left: 4%; font-size: clamp(100px, 15vw, 230px); }
+.l-cta { position: relative; overflow: hidden; padding: 88px clamp(20px, 3.5vw, 56px) 110px; }
+.lc-bigword { top: .08em; left: 6%; font-size: clamp(100px, 15vw, 230px); }
 .lc-eyebrow {
   position: relative; z-index: 1;
   display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 34px;
@@ -904,7 +893,7 @@ onBeforeUnmount(() => ctx?.revert());
   letter-spacing: -1.4px; color: var(--text); text-align: center;
 }
 .lc-grid { position: relative; z-index: 1; }
-.lc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.lc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; max-width: 1040px; margin: 0 auto; }
 .lc-card {
   padding: 32px 30px; border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
   background: var(--surface); box-shadow: 6px 6px 0 var(--border);
@@ -931,7 +920,9 @@ onBeforeUnmount(() => ctx?.revert());
   .fl-line { display: none; }
 }
 @media (max-width: 860px) {
-  .ls-chapter { grid-template-columns: 1fr; gap: 22px; padding-bottom: 110px; align-content: center; }
+  .li-facts { grid-template-columns: 1fr; }
+  .ls-inner { grid-template-columns: 1fr; gap: 22px; }
+  .ls-chapter { padding-bottom: 110px; }
   .ls-visual { order: -1; }
   .mv-player, .mv-wave, .pv-ba, .pv-grid { width: min(340px, 100%); }
   .ev-book { width: min(170px, 40%); }
@@ -940,7 +931,6 @@ onBeforeUnmount(() => ctx?.revert());
   .why-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .lh-confetti { display: none; }
   .fl-steps { grid-template-columns: 1fr; }
   .ls-chapter { padding-bottom: 128px; }
   .ls-chips li { font-size: 12.5px; padding: 6px 11px; }
@@ -948,6 +938,6 @@ onBeforeUnmount(() => ctx?.revert());
 
 /* reduced-motion：停用裝飾動畫（pin / 轉場由 matchMedia 控制不啟用） */
 @media (prefers-reduced-motion: reduce) {
-  .lh-hint :deep(svg), .mv-wave span, .l-marquee-track { animation: none; }
+  .mv-wave span, .l-marquee-track { animation: none; }
 }
 </style>
