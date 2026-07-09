@@ -24,7 +24,7 @@ import { env } from '@/environment.js';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import LandingArt from '@/components/LandingArt.vue';
-import HeroSticker from '@/components/HeroSticker.vue';
+import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
 
 import imgSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
 import imgAutumn from '@/assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
@@ -110,42 +110,6 @@ function goChapter(i: number) {
   window.scrollTo({ top: storyST.start + (storyST.end - storyST.start) * p, behavior: 'smooth' });
 }
 
-/**
- * hero 互動層（僅 prefers-reduced-motion: no-preference 時啟用）：
- * 裝飾隨游標位置反向微漂（深度正負交錯營造空間感）。
- */
-function setupHeroInteraction(hero: HTMLElement): () => void {
-  const layers = gsap.utils.toArray<HTMLElement>('.lh-deco').map((el) => ({
-    qx: gsap.quickTo(el, 'x', { duration: 0.9, ease: 'power3' }),
-    qy: gsap.quickTo(el, 'y', { duration: 0.9, ease: 'power3' }),
-    depth: parseFloat(el.dataset.depth ?? '16'), // 各裝飾自帶 data-depth：正負決定漂移方向、大小決定幅度
-  }));
-
-  const onMove = (e: PointerEvent) => {
-    const rect = hero.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / rect.width - 0.5;
-    const ny = (e.clientY - rect.top) / rect.height - 0.5;
-    for (const l of layers) {
-      l.qx(nx * l.depth * 2.2);
-      l.qy(ny * l.depth);
-    }
-  };
-  const onLeave = () => {
-    for (const l of layers) {
-      l.qx(0);
-      l.qy(0);
-    }
-  };
-
-  hero.addEventListener('pointermove', onMove, { passive: true });
-  hero.addEventListener('pointerleave', onLeave);
-
-  return () => {
-    hero.removeEventListener('pointermove', onMove);
-    hero.removeEventListener('pointerleave', onLeave);
-  };
-}
-
 onMounted(() => {
   ctx = gsap.context(() => {
     const mm = gsap.matchMedia();
@@ -155,21 +119,7 @@ onMounted(() => {
         .from('.lh-title', { y: 54, autoAlpha: 0, duration: 0.8 })
         .from('.lh-hl', { scale: 0, rotation: -8, duration: 0.45, stagger: 0.18, ease: 'back.out(2.2)' }, '-=0.35')
         .from('.lh-slogan', { y: 26, autoAlpha: 0, duration: 0.55 }, '-=0.2')
-        .from('.lh-deco', { autoAlpha: 0, duration: 0.7, stagger: 0.08 }, '-=0.4')
         .from('.lh-hint', { autoAlpha: 0, duration: 0.5 }, '-=0.2');
-
-      // 裝飾隨捲動視差
-      gsap.utils.toArray<HTMLElement>('.lh-deco').forEach((el, i) => {
-        gsap.to(el, {
-          yPercent: (i % 2 ? -1 : 1) * (14 + i * 7),
-          ease: 'none',
-          scrollTrigger: { trigger: '.l-hero', start: 'top top', end: 'bottom top', scrub: true },
-        });
-      });
-
-      // ---- hero 互動層：漂浮物件游標視差 ----
-      const hero = document.querySelector<HTMLElement>('.l-hero');
-      const heroCleanup = hero ? setupHeroInteraction(hero) : undefined;
 
       // ---- 區塊二：pinned product story（同一舞台推進三章） ----
       const stage = document.querySelector<HTMLElement>('.ls-stage');
@@ -264,7 +214,6 @@ onMounted(() => {
       });
 
       return () => {
-        heroCleanup?.();
         stage?.classList.remove('ls-anim');
         storyST = undefined;
       };
@@ -288,16 +237,9 @@ onBeforeUnmount(() => ctx?.revert());
       <section class="l-hero">
         <span class="l-bigword lh-bigword" data-drift aria-hidden="true">OPEN JAM</span>
 
-        <!-- 背景插畫層：散落的手繪創作者小角色，堆出一個 jam session 創作社群
-             （音樂 / 繪畫 / 攝影 / 寫作各一角色；情緒背景，非資訊；
-             靜態，只隨游標 / 捲動位移） -->
-        <span class="lh-deco lh-st st-painter" data-depth="-20" aria-hidden="true"><hero-sticker name="painter" /></span>
-        <span class="lh-deco lh-st st-camera" data-depth="22" aria-hidden="true"><hero-sticker name="camera" /></span>
-        <span class="lh-deco lh-st st-writer" data-depth="-14" aria-hidden="true"><hero-sticker name="writer" /></span>
-        <span class="lh-deco lh-st st-notes" data-depth="16" aria-hidden="true"><hero-sticker name="notes" /></span>
-        <span class="lh-deco lh-st st-singer" data-depth="28" aria-hidden="true"><hero-sticker name="singer" /></span>
-        <span class="lh-deco lh-st st-headphones" data-depth="24" aria-hidden="true"><hero-sticker name="headphones" /></span>
-        <span class="lh-deco lh-st st-burst" data-depth="-12" aria-hidden="true"><hero-sticker name="burst" /></span>
+        <!-- 背景：市集同款漂浮作品卡 collage（HeroCollage，自帶游標 / 捲動視差，
+             ≥1280px 才顯示；與 MarketView hero 一致的品牌表現） -->
+        <hero-collage />
 
         <!-- 散落碎點 confetti（靜態小點 / 菱形 / 三角，補畫面呼吸感） -->
         <span class="lh-confetti cf-1" aria-hidden="true"></span>
@@ -589,7 +531,7 @@ onBeforeUnmount(() => ctx?.revert());
   padding: 0 clamp(20px, 3.5vw, 56px);
   overflow: hidden;
 }
-.lh-inner { position: relative; z-index: 1; max-width: 940px; text-align: center; padding: 40px 0 120px; }
+.lh-inner { position: relative; z-index: 2; max-width: 940px; text-align: center; padding: 40px 0 120px; }
 .lh-title {
   margin: 0; font-family: var(--oj-display); font-weight: 800;
   font-size: clamp(38px, 6.6vw, 84px); line-height: 1.16; letter-spacing: -2.2px; color: var(--text);
@@ -603,17 +545,6 @@ onBeforeUnmount(() => ctx?.revert());
 .lh-hl-cyan { background: var(--c-cyan); transform: rotate(1.2deg); }
 .lh-hl-pink { background: var(--c-pink); color: #fff; transform: rotate(-1deg); }
 .lh-slogan { max-width: 560px; margin: 24px auto 0; font-size: 16.5px; line-height: 1.85; color: var(--text-soft); }
-
-.lh-deco { position: absolute; pointer-events: none; z-index: 0; will-change: transform; }
-.lh-st { display: block; }
-/* 各貼紙位置 / 大小 / 微傾（沿四角與左右外緣環繞，避開中央標題文字） */
-.st-painter    { top: 10%; left: 4%;  width: clamp(66px, 7.5vw, 94px);  transform: rotate(-8deg); }
-.st-camera     { top: 10%; right: 4%; width: clamp(66px, 7.5vw, 94px);  transform: rotate(7deg); }
-.st-writer     { top: 41%; left: 1%;  width: clamp(60px, 6.8vw, 86px);  transform: rotate(-5deg); }
-.st-notes      { top: 39%; right: 1%; width: clamp(56px, 6.4vw, 82px);  transform: rotate(6deg); }
-.st-singer     { top: 56%; left: 6%;  width: clamp(78px, 9.5vw, 122px); transform: rotate(-7deg); }
-.st-headphones { top: 53%; right: 6%; width: clamp(82px, 10vw, 132px);  transform: rotate(6deg); }
-.st-burst      { top: 68%; left: 41%; width: clamp(30px, 3.4vw, 46px);  transform: rotate(-4deg); }
 
 /* 散落碎點 confetti（多形狀，避免只有正圓） */
 .lh-confetti { position: absolute; z-index: 0; pointer-events: none; }
@@ -1009,7 +940,7 @@ onBeforeUnmount(() => ctx?.revert());
   .why-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .lh-deco, .lh-confetti { display: none; }
+  .lh-confetti { display: none; }
   .fl-steps { grid-template-columns: 1fr; }
   .ls-chapter { padding-bottom: 128px; }
   .ls-chips li { font-size: 12.5px; padding: 6px 11px; }
