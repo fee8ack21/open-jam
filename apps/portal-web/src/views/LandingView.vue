@@ -245,8 +245,8 @@ onMounted(() => {
 
       // ---- 巨型出血字：隨捲動水平飄移（Begonia 式大字） ----
       gsap.utils.toArray<HTMLElement>('.l-bigword[data-drift]').forEach((el, i) => {
-        gsap.fromTo(el, { xPercent: i % 2 ? -8 : 4 }, {
-          xPercent: i % 2 ? 6 : -10,
+        gsap.fromTo(el, { xPercent: i % 2 ? -3 : 2 }, {
+          xPercent: i % 2 ? 2 : -4,
           ease: 'none',
           scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },
         });
@@ -594,7 +594,7 @@ onBeforeUnmount(() => ctx?.revert());
   margin: 0; font-family: var(--oj-display); font-weight: 800;
   font-size: clamp(38px, 6.6vw, 84px); line-height: 1.16; letter-spacing: -2.2px; color: var(--text);
 }
-.lh-bigword { bottom: -0.12em; left: -2%; font-size: clamp(110px, 17vw, 260px); }
+.lh-bigword { bottom: -0.12em; left: 6%; font-size: clamp(110px, 17vw, 260px); }
 .lh-hl {
   display: inline-block; padding: 1px 12px; border-radius: 12px;
   border: 1.5px solid var(--text); box-shadow: var(--pop-1);
@@ -853,7 +853,7 @@ onBeforeUnmount(() => ctx?.revert());
     var(--text);
   background-size: 22px 22px, 25% 100%, auto;
 }
-.lf-bigword { top: .08em; left: -2%; font-size: clamp(90px, 14vw, 210px); -webkit-text-stroke: 2px rgba(255,255,255,.12); }
+.lf-bigword { top: .08em; left: 6%; font-size: clamp(90px, 14vw, 210px); -webkit-text-stroke: 2px rgba(255,255,255,.12); }
 .l-flow .lsec-head { position: relative; z-index: 1; }
 .l-flow .lsec-eyebrow { color: var(--c-lime); }
 .l-flow .lsec-title { color: #fff; text-shadow: 3px 3px 0 rgba(0,0,0,.4); }
@@ -885,7 +885,7 @@ onBeforeUnmount(() => ctx?.revert());
     color-mix(in srgb, var(--c-violet) 10%, var(--bg));
   background-size: 22px 22px, auto;
 }
-.ld-bigword { top: .06em; left: -3%; font-size: clamp(90px, 14vw, 210px); }
+.ld-bigword { top: .06em; left: 5%; font-size: clamp(90px, 14vw, 210px); }
 .dc-inner {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
   align-items: center; gap: clamp(30px, 5vw, 76px);
@@ -950,7 +950,7 @@ onBeforeUnmount(() => ctx?.revert());
   background-size: 22px 22px, 25% 100%, auto;
   border-top: 1.5px solid var(--text); border-bottom: 1.5px solid var(--text);
 }
-.lw-bigword { top: .06em; right: -3%; -webkit-text-stroke: 2px rgba(26,22,38,.15); font-size: clamp(90px, 14vw, 210px); }
+.lw-bigword { top: .06em; right: 3%; -webkit-text-stroke: 2px rgba(26,22,38,.15); font-size: clamp(90px, 14vw, 210px); }
 .l-why .lsec-head { position: relative; z-index: 1; }
 .l-why .lsec-eyebrow { color: var(--text); }
 .why-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 1120px; margin: 0 auto; }
