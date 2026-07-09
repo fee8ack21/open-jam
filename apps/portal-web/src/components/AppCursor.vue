@@ -3,8 +3,6 @@
    AppCursor — 情境式自訂游標（參考 Begonia Design 手法）
    小圓點即時跟隨、外圈延遲跟隨營造慣性；依 hover 對象變形：
    - 可點擊元素：外圈放大聚焦
-   - 作品卡 [data-cursor="play"]：外圈填滿品牌色並亮出 ▶
-     （「播放這件作品」的音樂隱喻）
    - 文字輸入：隱藏自訂游標，還原原生 I-beam
    僅在 hover + fine pointer 且未要求減少動態的裝置啟用；
    啟用時以 html.oj-cursor-on 隱藏原生游標（樣式在 base.css）。
@@ -12,7 +10,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import gsap from 'gsap';
 
-type CursorMode = 'default' | 'link' | 'play' | 'text';
+type CursorMode = 'default' | 'link' | 'text';
 
 const visible = ref(false);
 const down = ref(false);
@@ -28,7 +26,6 @@ const TEXTY =
 
 function resolveMode(target: EventTarget | null): CursorMode {
   if (!(target instanceof Element)) return 'default';
-  if (target.closest('[data-cursor="play"]')) return 'play';
   if (target.closest(TEXTY)) return 'text';
   if (target.closest(INTERACTIVE)) return 'link';
   return 'default';
@@ -112,7 +109,7 @@ onBeforeUnmount(() => {
     aria-hidden="true"
   >
     <div ref="ringEl" class="oj-cursor-move">
-      <span class="oj-cursor-ring"><span class="oj-cursor-tri"></span></span>
+      <span class="oj-cursor-ring"></span>
     </div>
     <div ref="dotEl" class="oj-cursor-move">
       <span class="oj-cursor-dot"></span>

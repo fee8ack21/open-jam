@@ -20,7 +20,7 @@ const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]
 </script>
 
 <template>
-  <a class="mc" :href="href" data-cursor="play">
+  <a class="mc" :href="href">
     <product-thumb :product="product" />
     <span v-if="badge" class="mc-badge" :class="'b-' + badge.tone">{{ badge.label }}</span>
     <div class="mc-body">
