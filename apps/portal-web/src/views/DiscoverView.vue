@@ -12,7 +12,6 @@ import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
 import FeaturedCard from '@/components/FeaturedCard.vue';
-import OnboardingGuide from '@/components/OnboardingGuide.vue';
 import RotatingWord from '@/components/home/RotatingWord.vue';
 import TagMarquee from '@/components/home/TagMarquee.vue';
 import CategoryShowcase from '@/components/home/CategoryShowcase.vue';
@@ -516,7 +515,5 @@ onBeforeUnmount(() => {
         <app-icon name="chevronU" :size="22" />
       </button>
     </Transition>
-
-    <onboarding-guide />
   </div>
 </template>
