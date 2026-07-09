@@ -1,9 +1,7 @@
 {
   "common": {
     "search": "搜尋",
-    "free": "免費",
-    "breadcrumb": "麵包屑",
-    "marketplace": "市集"
+    "free": "免費"
   },
   "language": {
     "label": "語言",
@@ -163,6 +161,9 @@
     "metaUpdated": "Open Jam · 最後更新 {date}",
     "switchTo": "前往閱讀「{title}」",
     "tabsLabel": "法律文件",
+    "eyebrow": "法律與隱私",
+    "heroTitle": "Open Jam 背後的規範與承諾。",
+    "lede": "這裡說明你使用 Open Jam 的權利與義務，以及我們如何蒐集、使用與保護你的資料。有任何疑問，歡迎與我們聯繫。",
     "terms": {
       "title": "服務條款",
       "sections": [
@@ -412,7 +413,7 @@
   },
   "faq": {
     "screenLabel": "常見問題",
-    "breadcrumb": "常見問題",
+    "eyebrow": "支援中心",
     "title": "常見問題",
     "lede": "關於 Open Jam 的購買、開店與金流，這裡整理了最常被問到的問題。找不到答案的話，歡迎與我們聯繫。",
     "tabs": {

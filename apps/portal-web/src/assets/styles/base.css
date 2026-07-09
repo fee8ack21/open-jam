@@ -423,10 +423,6 @@ html.oj-cursor-on [contenteditable="true"] { cursor: auto !important; }
 .success-wrap { max-width: 540px; margin: 36px auto; text-align: center; }
 .success-ring { width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 24px; display: grid; place-items: center; background: var(--c-lime); color: #14321a; box-shadow: 4px 4px 0 var(--text); }
 
-.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-faint); margin-bottom: 22px; font-family: var(--oj-font); flex-wrap: wrap; }
-.breadcrumb a { color: var(--text-soft); cursor: pointer; text-decoration: none; }
-.breadcrumb a:hover { color: var(--oj-primary); }
-
 .empty { text-align: center; padding: 80px 20px; color: var(--text-faint); }
 .trust { display: flex; align-items: center; gap: 8px; color: var(--text-faint); font-size: 12.5px; margin-top: 14px; justify-content: center; }
 

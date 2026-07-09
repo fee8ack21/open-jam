@@ -104,11 +104,16 @@ function tabCount(k: TabKey): number {
     <app-nav />
 
     <main class="page faq-page">
-      <nav class="breadcrumb" :aria-label="t('common.breadcrumb')">
-        <router-link to="/">{{ t('common.marketplace') }}</router-link>
-        <app-icon name="chevron" :size="14" />
-        <span>{{ t('faq.breadcrumb') }}</span>
-      </nav>
+      <!-- 背景貫穿細格線 + 縷空大字（全頁氛圍層，比照 AboutView 第一個區塊） -->
+      <div class="faq-gridlines" aria-hidden="true"><i v-for="i in 4" :key="i"></i></div>
+      <span class="faq-bigword" aria-hidden="true">FAQ</span>
+
+      <!-- ============ 頁首：區塊主標題 ============ -->
+      <header class="faq-head">
+        <p class="faq-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('faq.eyebrow') }}</p>
+        <h1 class="faq-title">{{ t('faq.title') }}</h1>
+        <p class="faq-lede">{{ t('faq.lede') }}</p>
+      </header>
 
       <div class="faq-body">
         <!-- ── 手機板：以下拉選單取代頁籤 ── -->
@@ -174,7 +179,48 @@ function tabCount(k: TabKey): number {
 </template>
 
 <style scoped>
-.faq-page { max-width: 960px; margin: 0 auto; padding-top: 30px; padding-bottom: 80px; }
+/* 整個頁面視為 AboutView 的第一個區塊：滿版（不困在 960 container），
+   大字與頁首隨頁面滿版定位，僅內文區塊自行收斂寬度 —— 水平位置比照 About 第一區塊。
+   （.page 已提供 max-width:none + padding: 0 clamp(20px,3.5vw,56px)） */
+.faq-page { position: relative; padding-top: 30px; padding-bottom: 80px; }
+
+/* 背景貫穿細格線（Begonia 式 frame）：整頁氛圍層，固定滿版 */
+.faq-gridlines { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: flex; }
+.faq-gridlines i { flex: 1; border-right: 1px solid rgba(26, 22, 38, .05); }
+.faq-gridlines i:last-child { border-right: none; }
+
+/* 縷空大字（描邊空心）：比照 About 第一區塊，滿版左偏 6% */
+.faq-bigword {
+  position: absolute; z-index: 0; top: 40px; left: 6%;
+  pointer-events: none; user-select: none;
+  font-family: var(--oj-display); font-weight: 800; line-height: 1; white-space: nowrap;
+  letter-spacing: -0.02em; color: transparent;
+  -webkit-text-stroke: 2px rgba(26, 22, 38, .13);
+  font-size: clamp(90px, 14vw, 210px);
+}
+
+/* ── 頁首：區塊主標題（抬到大字 / 格線之上） ── */
+.faq-head {
+  position: relative; z-index: 1; text-align: center;
+  padding: clamp(28px, 5vh, 56px) 20px clamp(30px, 5vh, 48px);
+  margin-bottom: 38px;
+}
+/* 麵包屑與內文主體：收斂置中欄（比照 AboutView Discover 區塊內容寬 1120）；頁首則隨頁面滿版置中文字 */
+.faq-page .breadcrumb,
+.faq-body { position: relative; z-index: 1; max-width: 1120px; margin-left: auto; margin-right: auto; }
+.faq-eyebrow {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin: 0 0 12px;
+  font-family: var(--oj-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--oj-primary);
+}
+.faq-title {
+  margin: 0; font-family: var(--oj-display); font-weight: 800;
+  font-size: clamp(28px, 4vw, 44px); letter-spacing: -1.2px; color: var(--text);
+}
+.faq-lede {
+  margin: 16px auto 0; max-width: 54ch;
+  font-size: 15.5px; line-height: 1.8; color: var(--text-soft);
+}
 
 /* ── 一本便條本：左側彩色便條籤 + 右側紙頁，同屬一個區塊 ────
    便條籤（tab）為彩色便利貼，掛在紙頁左緣；翻開的那張攤平成
@@ -185,12 +231,15 @@ function tabCount(k: TabKey): number {
 .faq-body {
   --paper: #ffffff;                    /* 紙頁白底 */
   --paper-line: rgba(60, 50, 90, .11); /* 問答間橫格線 */
-  position: relative;                  /* 頁籤絕對定位掛在主內容左側外緣（溢出 container）*/
+  position: relative;
+  /* 頁籤欄 + 紙頁並列於同一 grid，整體收在 container 內（不再溢出）；
+     頁籤右緣仍以負 margin 塞入紙頁邊線下，維持便條本相連視覺 */
+  display: grid; grid-template-columns: 148px minmax(0, 1fr); align-items: start;
 }
 
-/* 左側頁籤欄：絕對定位貼在主內容左緣外側（超出 container），只顯示彩色頁籤；首個頁籤對齊上緣 */
+/* 左側頁籤欄：grid 第一欄，只顯示彩色頁籤；首個頁籤對齊上緣 */
 .faq-rail {
-  position: absolute; top: 0; right: 100%; width: 148px;
+  grid-column: 1;
   display: flex; flex-direction: column; gap: 9px;
 }
 
@@ -283,9 +332,10 @@ function tabCount(k: TabKey): number {
   .faq-a-enter-active, .faq-a-leave-active { transition: none; }
 }
 
-/* 側邊頁籤放不下（無法溢出到左側外）時：直接改為最上方下拉選單——
-   頁籤永不呈現在區塊上方。主區塊無頁籤相接，左上角恢復圓角。 */
-@media (max-width: 1280px) {
+/* 窄螢幕：側邊頁籤欄收起，改為最上方下拉選單（單欄堆疊）。
+   主區塊無頁籤相接，左上角恢復圓角。 */
+@media (max-width: 860px) {
+  .faq-body { grid-template-columns: 1fr; }
   .faq-rail { display: none; }
   .faq-select { display: block; }
   .faq-list { border-top-left-radius: var(--r-lg); }

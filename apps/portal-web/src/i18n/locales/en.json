@@ -1,9 +1,7 @@
 {
   "common": {
     "search": "Search",
-    "free": "Free",
-    "breadcrumb": "Breadcrumb",
-    "marketplace": "Marketplace"
+    "free": "Free"
   },
   "language": {
     "label": "Language",
@@ -163,6 +161,9 @@
     "metaUpdated": "Open Jam · Last updated {date}",
     "switchTo": "Read the “{title}”",
     "tabsLabel": "Legal documents",
+    "eyebrow": "Legal & privacy",
+    "heroTitle": "The rules and promises behind Open Jam.",
+    "lede": "Your rights and responsibilities on Open Jam, and how we collect, use, and protect your data. Have a question? Get in touch.",
     "terms": {
       "title": "Terms of Service",
       "sections": [
@@ -412,7 +413,7 @@
   },
   "faq": {
     "screenLabel": "FAQ",
-    "breadcrumb": "FAQ",
+    "eyebrow": "Help & support",
     "title": "Frequently asked questions",
     "lede": "The questions we get asked most about buying, selling, and payments on Open Jam. Can't find your answer? Get in touch.",
     "tabs": {

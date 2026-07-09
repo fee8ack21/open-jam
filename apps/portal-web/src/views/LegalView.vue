@@ -112,45 +112,54 @@ const sections = computed<Section[]>(() => {
     <app-nav />
 
     <main class="page legal-page">
-      <nav class="breadcrumb" :aria-label="t('common.breadcrumb')">
-        <router-link to="/">{{ t('common.marketplace') }}</router-link>
-        <app-icon name="chevron" :size="14" />
-        <span>{{ title }}</span>
-      </nav>
+      <!-- 全頁氛圍：紙質顆粒 + 貫穿格線（比照 AboutView 開場區塊） -->
+      <div class="l-grain" aria-hidden="true"></div>
+      <div class="l-gridlines" aria-hidden="true"><i v-for="i in 4" :key="i"></i></div>
 
-      <!-- ── 分頁：服務條款 / 隱私政策 ── -->
-      <div class="legal-tabs" role="tablist" :aria-label="t('legal.tabsLabel')">
-        <button
-          v-for="k in TABS"
-          :key="k"
-          type="button"
-          role="tab"
-          class="legal-tab"
-          :class="[k, { on: doc === k }]"
-          :aria-selected="doc === k"
-          @click="selectTab(k)"
-        >
-          <span class="lt-badge"><app-icon :name="LEGAL_META[k].icon" :size="17" /></span>
-          <span class="lt-label">{{ tabTitle(k) }}</span>
-        </button>
+      <!-- ── 開場：縷空大字 + 區塊主標題（比照 AboutView 開場區塊） ── -->
+      <section class="l-intro legal-intro">
+        <span class="l-bigword li-bigword" aria-hidden="true">LEGAL</span>
+        <p class="lsec-eyebrow li-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('legal.eyebrow') }}</p>
+        <h1 class="li-title">{{ t('legal.heroTitle') }}</h1>
+        <p class="li-lede">{{ t('legal.lede') }}</p>
+      </section>
+
+      <!-- 內文置中容器（比照 AboutView：hero 滿版、內文限寬置中） -->
+      <div class="legal-body">
+        <!-- ── 分頁：服務條款 / 隱私政策 ── -->
+        <div class="legal-tabs" role="tablist" :aria-label="t('legal.tabsLabel')">
+          <button
+            v-for="k in TABS"
+            :key="k"
+            type="button"
+            role="tab"
+            class="legal-tab"
+            :class="[k, { on: doc === k }]"
+            :aria-selected="doc === k"
+            @click="selectTab(k)"
+          >
+            <span class="lt-badge"><app-icon :name="LEGAL_META[k].icon" :size="17" /></span>
+            <span class="lt-label">{{ tabTitle(k) }}</span>
+          </button>
+        </div>
+
+        <article class="legal-card">
+          <header class="legal-head">
+            <h2 class="legal-title">{{ title }}</h2>
+            <p class="legal-meta">
+              {{ t('legal.metaUpdated', { date: updatedDate }) }}<template v-if="activeDoc"> · v{{ activeDoc.version }}</template>
+            </p>
+          </header>
+
+          <section v-for="s in sections" :key="s.n" class="legal-sec">
+            <h3 v-if="s.h"><span class="num">{{ s.n }}</span> {{ s.h }}</h3>
+            <p style="white-space: pre-wrap;">{{ s.p }}</p>
+            <ul v-if="s.list">
+              <li v-for="(item, i) in s.list" :key="i">{{ item }}</li>
+            </ul>
+          </section>
+        </article>
       </div>
-
-      <article class="legal-card">
-        <header class="legal-head">
-          <h1 class="legal-title">{{ title }}</h1>
-          <p class="legal-meta">
-            {{ t('legal.metaUpdated', { date: updatedDate }) }}<template v-if="activeDoc"> · v{{ activeDoc.version }}</template>
-          </p>
-        </header>
-
-        <section v-for="s in sections" :key="s.n" class="legal-sec">
-          <h2 v-if="s.h"><span class="num">{{ s.n }}</span> {{ s.h }}</h2>
-          <p style="white-space: pre-wrap;">{{ s.p }}</p>
-          <ul v-if="s.list">
-            <li v-for="(item, i) in s.list" :key="i">{{ item }}</li>
-          </ul>
-        </section>
-      </article>
     </main>
 
     <!-- ============ FOOTER ============ -->
@@ -159,7 +168,53 @@ const sections = computed<Section[]>(() => {
 </template>
 
 <style scoped>
-.legal-page { max-width: 960px; margin: 0 auto; padding-top: 30px; padding-bottom: 80px; }
+/* 頁面滿版（覆蓋 .page 左右 gutter）：hero 與縷空大字得以貼齊 viewport，比照 AboutView */
+.legal-page { position: relative; max-width: none; padding: 0 0 80px; }
+.legal-intro,
+.legal-tabs,
+.legal-card { position: relative; z-index: 1; }
+
+/* 內文限寬置中（分頁 + 內容卡），比照 AboutView Workflow 區塊內容寬 1200 */
+.legal-body { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 3.5vw, 56px); }
+
+/* ---------- 全頁氛圍：紙質顆粒 + 貫穿細格線（比照 AboutView） ---------- */
+.l-grain {
+  position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+}
+.l-gridlines { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: flex; }
+.l-gridlines i { flex: 1; border-right: 1px solid rgba(26,22,38,.05); }
+.l-gridlines i:last-child { border-right: none; }
+
+/* ---------- 開場：縷空大字 + 區塊主標題（比照 AboutView 開場區塊） ---------- */
+.legal-intro {
+  position: relative; text-align: center;
+  padding: clamp(44px, 7vh, 88px) clamp(20px, 3.5vw, 56px) clamp(36px, 5vh, 64px);
+}
+.l-bigword {
+  position: absolute; z-index: 0; pointer-events: none; user-select: none;
+  font-family: var(--oj-display); font-weight: 800; line-height: 1; white-space: nowrap;
+  letter-spacing: -0.02em; color: transparent;
+  -webkit-text-stroke: 2px rgba(26,22,38,.13);
+}
+.li-bigword { top: .08em; left: 6%; font-size: clamp(90px, 14vw, 210px); }
+.lsec-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 12px;
+  font-family: var(--oj-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--oj-primary);
+}
+.li-eyebrow, .li-title, .li-lede { position: relative; z-index: 1; }
+.li-eyebrow { justify-content: center; }
+.li-title {
+  margin: 0 auto; white-space: nowrap;
+  font-family: var(--oj-display); font-weight: 800;
+  font-size: clamp(26px, 4.6vw, 46px); line-height: 1.15; letter-spacing: -1.4px; color: var(--text);
+}
+.li-lede {
+  margin: 16px auto 0; max-width: 54ch;
+  font-size: 15.5px; line-height: 1.8; color: var(--text-soft);
+}
 
 /* ── 分頁列：兩份文件並列，選中者向下貼合內容卡 ─────────── */
 .legal-tabs { display: flex; gap: 8px; position: relative; z-index: 1; }
@@ -196,8 +251,8 @@ const sections = computed<Section[]>(() => {
 .legal-meta { font-family: var(--oj-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); margin: 9px 0 0; }
 
 .legal-sec { margin-bottom: 26px; }
-.legal-sec h2 { font-family: var(--oj-display); font-weight: 700; font-size: 18px; color: var(--text); margin: 0 0 9px; display: flex; align-items: baseline; gap: 10px; }
-.legal-sec h2 .num { font-family: var(--oj-mono); font-size: 13px; color: var(--oj-primary); font-weight: 600; }
+.legal-sec h3 { font-family: var(--oj-display); font-weight: 700; font-size: 18px; color: var(--text); margin: 0 0 9px; display: flex; align-items: baseline; gap: 10px; }
+.legal-sec h3 .num { font-family: var(--oj-mono); font-size: 13px; color: var(--oj-primary); font-weight: 600; }
 .legal-sec p { margin: 0; font-size: 15px; line-height: 1.78; color: var(--text-soft); }
 .legal-sec ul { margin: 10px 0 0; padding-left: 22px; }
 .legal-sec li { font-size: 14.5px; line-height: 1.75; color: var(--text-soft); margin-bottom: 5px; }
