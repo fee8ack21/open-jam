@@ -22,7 +22,8 @@
     "becomeCreator": "Become a creator",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "copyright": "© 2026 Open Jam · A marketplace for creators"
+    "copyright": "© 2026 Open Jam · A marketplace for creators",
+    "faq": "FAQ"
   },
   "category": {
     "music": "Sheet music / Audio",
@@ -385,6 +386,136 @@
       "Remember",
       "Work finds its people",
       "A shop at your own address"
+    ]
+  },
+  "faq": {
+    "screenLabel": "FAQ",
+    "breadcrumb": "FAQ",
+    "title": "Frequently asked questions",
+    "lede": "The questions we get asked most about buying, selling, and payments on Open Jam. Can't find your answer? Get in touch.",
+    "tabs": {
+      "all": "All",
+      "platform": "About the platform",
+      "buying": "Buying & downloads",
+      "selling": "Selling & listing",
+      "payments": "Payments & payouts"
+    },
+    "items": [
+      {
+        "cat": "platform",
+        "q": "What is Open Jam?",
+        "a": "Open Jam is a marketplace for digital goods. Creators open a shop on their own subdomain to sell sheet music and audio, photography, e-books, and more; shoppers don't need an account — an email is all it takes to buy and download."
+      },
+      {
+        "cat": "platform",
+        "q": "Do I need an account to browse or buy?",
+        "a": "Browsing and buying need no account — just leave an email at checkout to receive your download link. If you later want to manage your purchases in one place, sign up with the same email and your earlier guest orders are linked automatically."
+      },
+      {
+        "cat": "platform",
+        "q": "What kinds of works can I buy?",
+        "a": "We currently support three categories — sheet music / audio, photography, and e-books / documents — and keep adding more."
+      },
+      {
+        "cat": "platform",
+        "q": "Is my data and payment secure?",
+        "a": "Sign-in uses the standard OIDC flow, and payments are handled end-to-end by Stripe — we never touch or store your card number. Paid files are private and are always delivered through short-lived signed URLs."
+      },
+      {
+        "cat": "platform",
+        "q": "How do I get in touch?",
+        "a": "Reach us via the details in the footer or our support email, and we'll help as soon as we can."
+      },
+      {
+        "cat": "buying",
+        "q": "How do I buy a work?",
+        "a": "On the work's page, start checkout and enter your email — you'll be taken to Stripe to complete payment. Once it succeeds, you'll receive an order confirmation email with your personal download page link."
+      },
+      {
+        "cat": "buying",
+        "q": "Buying without an account — where do I download later?",
+        "a": "Your confirmation email contains a personal download page link (tied to your order number) you can return to any time to download again. Keep that email or link somewhere safe."
+      },
+      {
+        "cat": "buying",
+        "q": "Do download links expire?",
+        "a": "The download page itself stays valid long-term via your order number; the actual file is served through a short-lived signed URL — if it expires, just reopen the download page to generate a fresh one."
+      },
+      {
+        "cat": "buying",
+        "q": "Can I get a refund?",
+        "a": "As digital goods, works generally aren't refundable once downloaded. If a file is corrupted or clearly doesn't match its description, contact us and we'll help."
+      },
+      {
+        "cat": "buying",
+        "q": "Do free works also go through checkout?",
+        "a": "Yes — free works still go through checkout (for a total of $0). Leave your email and you'll get the download link."
+      },
+      {
+        "cat": "buying",
+        "q": "I didn't receive the confirmation email — what now?",
+        "a": "First check your spam folder and confirm the email you entered at checkout is correct. If it still hasn't arrived, contact support and we can help using your order number."
+      },
+      {
+        "cat": "buying",
+        "q": "Can I review works I've bought?",
+        "a": "After a completed purchase you can leave one rating and review on that work to help other shoppers."
+      },
+      {
+        "cat": "selling",
+        "q": "How do I become a creator and open a shop?",
+        "a": "Submit a shop application in the creator workspace. Once approved, you'll get your own subdomain (<your-shop>.openjam.co) and can start listing works."
+      },
+      {
+        "cat": "selling",
+        "q": "Is there a fee to open a shop or list works?",
+        "a": "There's no monthly fee to open a shop or list works. The platform only takes a small transaction fee (3%) when a work actually sells."
+      },
+      {
+        "cat": "selling",
+        "q": "How do I list a work?",
+        "a": "In the workspace, create a product, fill in its details and price, upload the downloadable file and display images, create a version, and publish — your work is now listed."
+      },
+      {
+        "cat": "selling",
+        "q": "Is there a file size limit?",
+        "a": "Yes. There are caps on total account storage, per-file and per-product size, and on the number of published products; you can check your current usage on the resources page in the workspace."
+      },
+      {
+        "cat": "selling",
+        "q": "Can I make a work free?",
+        "a": "Yes — set the price to 0 and it becomes a free work that can still be browsed and \"purchased\" for download."
+      },
+      {
+        "cat": "selling",
+        "q": "Can I edit or unlist a work after publishing?",
+        "a": "You can edit, temporarily unlist (archive), or re-publish at any time; completed orders are unaffected and buyers can still download normally."
+      },
+      {
+        "cat": "payments",
+        "q": "Which payment methods are supported?",
+        "a": "Checkout runs through Stripe Checkout, supporting credit cards and other methods Stripe offers."
+      },
+      {
+        "cat": "payments",
+        "q": "How much does the platform take?",
+        "a": "No monthly fee — the platform only takes a 3% transaction fee when a work sells."
+      },
+      {
+        "cat": "payments",
+        "q": "How are my earnings settled?",
+        "a": "Proceeds from sales are paid out to your linked payout account on the settlement cycle."
+      },
+      {
+        "cat": "payments",
+        "q": "Is payment secure? Will you store my card number?",
+        "a": "Payments are handled entirely by Stripe — the platform never touches or stores your card details."
+      },
+      {
+        "cat": "payments",
+        "q": "What if a payment fails or I'm worried about double charges?",
+        "a": "Payment status always follows Stripe; if the same order re-enters checkout, the system reuses the same payment rather than charging twice. If in doubt, contact support and we can look it up by order number."
+      }
     ]
   }
 }
