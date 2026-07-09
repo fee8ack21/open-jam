@@ -13,6 +13,7 @@ config:
   storeApiUrl: "https://api.openjam.co/store-service"
   catalogApiUrl: "https://api.openjam.co/catalog-service"
   logApiUrl: "https://api.openjam.co/log-service"
+  contentApiUrl: "https://api.openjam.co/content-service"
   githubRepoUrl: "https://github.com/fee8ack21/open-jam"
   docsUrl: "https://docs.openjam.co"
   oidcClientId: "open-jam-web"
@@ -341,6 +342,21 @@ notificationService:
   replicaCount: 1
   # 通知信商品連結樣板，佔位符 {storeSlug} / {catalogId}
   catalogUrlPattern: "https://{storeSlug}.openjam.co/product/{catalogId}"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+contentService:
+  enabled: true
+  image:
+    repository: open-jam/content-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
   resources:
     requests:
       cpu: 100m

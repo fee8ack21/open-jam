@@ -143,6 +143,16 @@
     "editorPick": "編輯精選",
     "hot": "熱門"
   },
+  "quickView": {
+    "close": "關閉",
+    "previewAria": "預覽圖 {n}",
+    "sales": "已售 {count}",
+    "formats": "檔案格式",
+    "totalSize": "總大小",
+    "includes": "包含內容",
+    "cta": "前往商店購買",
+    "ctaFree": "前往商店下載"
+  },
   "collage": {
     "card1": "午夜爵士鋼琴",
     "card2": "插畫家手冊",
@@ -152,6 +162,7 @@
   "legal": {
     "metaUpdated": "Open Jam · 最後更新 {date}",
     "switchTo": "前往閱讀「{title}」",
+    "tabsLabel": "法律文件",
     "terms": {
       "title": "服務條款",
       "sections": [

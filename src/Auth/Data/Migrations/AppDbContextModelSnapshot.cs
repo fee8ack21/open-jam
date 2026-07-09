@@ -60,67 +60,6 @@ namespace Auth.Data.Migrations
                     b.ToTable("email_verification_tokens", (string)null);
                 });
 
-            modelBuilder.Entity("Auth.Data.Entities.LegalDocument", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("ActivatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("activated_at");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("title");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasColumnName("type");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("updated_by");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("integer")
-                        .HasColumnName("version");
-
-                    b.HasKey("Id")
-                        .HasName("pk_legal_documents");
-
-                    b.HasIndex("Type")
-                        .IsUnique()
-                        .HasDatabaseName("ix_legal_documents_type_active")
-                        .HasFilter("status = 1");
-
-                    b.HasIndex("Type", "Version")
-                        .IsUnique()
-                        .HasDatabaseName("ix_legal_documents_type_version");
-
-                    b.ToTable("legal_documents", (string)null);
-                });
-
             modelBuilder.Entity("Auth.Data.Entities.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -257,9 +196,6 @@ namespace Auth.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_user_legal_consents");
 
-                    b.HasIndex("LegalDocumentId")
-                        .HasDatabaseName("ix_user_legal_consents_legal_document_id");
-
                     b.HasIndex("UserId", "LegalDocumentId")
                         .IsUnique()
                         .HasDatabaseName("ix_user_legal_consents_user_id_legal_document_id");
@@ -293,21 +229,12 @@ namespace Auth.Data.Migrations
 
             modelBuilder.Entity("Auth.Data.Entities.UserLegalConsent", b =>
                 {
-                    b.HasOne("Auth.Data.Entities.LegalDocument", "LegalDocument")
-                        .WithMany()
-                        .HasForeignKey("LegalDocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_legal_consents_legal_documents_legal_document_id");
-
                     b.HasOne("Auth.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_legal_consents_users_user_id");
-
-                    b.Navigation("LegalDocument");
 
                     b.Navigation("User");
                 });

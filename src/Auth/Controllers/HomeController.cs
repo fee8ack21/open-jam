@@ -18,7 +18,7 @@ namespace Auth.Controllers;
 public class HomeController(
     IHydraService hydra,
     IUserService userService,
-    ILegalDocumentService legalDocumentService,
+    ILegalConsentService legalConsentService,
     IDataProtectionProvider dataProtection,
     IOptions<AppOptions> appOptions) : Controller
 {
@@ -172,7 +172,7 @@ public class HomeController(
         if (ticket is null || !Guid.TryParse(ticket.Subject, out var userId))
             return Redirect(appOptions.Value.WorkspaceUrl);
 
-        var pending = await legalDocumentService.GetPendingConsentAsync(userId);
+        var pending = await legalConsentService.GetPendingConsentAsync(userId);
 
         if (!ModelState.IsValid)
         {
@@ -181,7 +181,7 @@ public class HomeController(
         }
 
         // 以伺服器當下重查的未同意清單為準寫入同意紀錄，不信任表單回傳的文件 ID
-        await legalDocumentService.RecordConsentsAsync(userId, pending.Select(d => d.Id).ToList());
+        await legalConsentService.RecordConsentsAsync(userId, pending.Select(d => d.Id).ToList());
 
         var redirect = await hydra.AcceptLoginAsync(ticket.Challenge,
             new HydraAcceptLoginRequest(
@@ -309,7 +309,7 @@ public class HomeController(
     /// <summary>將目前啟用中的服務條款與隱私權政策掛上註冊 ViewModel（GET 與 POST 失敗重顯共用）。</summary>
     private async Task<RegisterViewModel> WithActiveLegalDocumentsAsync(RegisterViewModel model)
     {
-        var docs = await legalDocumentService.GetActiveAsync(null);
+        var docs = await legalConsentService.GetActiveAsync(null);
         model.TermsDocument   = docs.FirstOrDefault(d => d.Type == LegalDocumentType.TermsOfService);
         model.PrivacyDocument = docs.FirstOrDefault(d => d.Type == LegalDocumentType.PrivacyPolicy);
         return model;
@@ -324,7 +324,7 @@ public class HomeController(
         if (!Guid.TryParse(subject, out var userId))
             return null;
 
-        var pending = await legalDocumentService.GetPendingConsentAsync(userId);
+        var pending = await legalConsentService.GetPendingConsentAsync(userId);
         if (pending.Count == 0)
             return null;
 

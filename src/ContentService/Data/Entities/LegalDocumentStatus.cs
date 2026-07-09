@@ -1,4 +1,4 @@
-namespace Auth.Data.Entities;
+namespace ContentService.Data.Entities;
 
 /// <summary>法律文件狀態。文件不可刪除，停用後仍保留於資料庫供歷史比對。</summary>
 public enum LegalDocumentStatus

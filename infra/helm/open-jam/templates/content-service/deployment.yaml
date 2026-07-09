@@ -1,0 +1,95 @@
+{{- if .Values.contentService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-content-service
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: content-service
+spec:
+  replicas: {{ .Values.contentService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: content-service
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: content-service
+    spec:
+      containers:
+        - name: content-service
+          image: {{ printf "%s:%s" .Values.contentService.image.repository .Values.contentService.image.tag | quote }}
+          imagePullPolicy: {{ .Values.contentService.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: PathBase
+              value: "/content-service"
+            - name: Logging__LogLevel__Default
+              value: "Warning"
+            - name: Logging__LogLevel__Microsoft
+              value: "Warning"
+            - name: Logging__LogLevel__Microsoft.Hosting.Lifetime
+              value: "Warning"
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: content-service-connection-string
+            - name: RabbitMQ__Host
+              value: {{ include "open-jam.rabbitmqHost" . | quote }}
+            - name: RabbitMQ__Username
+              value: {{ .Values.rabbitmq.user | quote }}
+            - name: RabbitMQ__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: rabbitmq-password
+            - name: Hydra__Issuer
+              value: {{ include "open-jam.hydraPublicUrl" . | quote }}
+            - name: Hydra__MetadataAddress
+              value: {{ include "open-jam.hydraMetadataAddress" . | quote }}
+          {{- with .Values.contentService.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - >
+              /wait-for-it.sh {{ include "open-jam.postgresHost" . }}:5432 --timeout=60 --strict &&
+              /wait-for-it.sh {{ include "open-jam.rabbitmqHost" . }}:5672 --timeout=60 --strict &&
+              dotnet ContentService.dll
+          volumeMounts:
+            - name: wait-for-it
+              mountPath: /wait-for-it.sh
+              subPath: wait-for-it.sh
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 3
+      volumes:
+        - name: wait-for-it
+          configMap:
+            name: {{ include "open-jam.fullname" . }}-wait-for-it
+            defaultMode: 0755
+{{- end }}

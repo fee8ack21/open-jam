@@ -6,3 +6,4 @@ CREATE DATABASE open_jam_storage;
 CREATE DATABASE open_jam_store;
 CREATE DATABASE open_jam_payment;
 CREATE DATABASE open_jam_order;
+CREATE DATABASE open_jam_content;

@@ -14,6 +14,7 @@ import { Api as OrderApi, HttpClient as OrderHttpClient } from '@/api/order-serv
 import { Api as AuthApi, HttpClient as AuthHttpClient } from '@/api/auth-service';
 import { Api as StorageApi, HttpClient as StorageHttpClient } from '@/api/storage-service';
 import { Api as NotificationApi, HttpClient as NotificationHttpClient } from '@/api/notification-service';
+import { Api as ContentApi, HttpClient as ContentHttpClient } from '@/api/content-service';
 import { env } from '@/environment';
 import { userManager } from '@/oidc/auth';
 
@@ -65,6 +66,11 @@ const notificationHttp = new NotificationHttpClient({
   customFetch: authFetch,
 });
 
+const contentHttp = new ContentHttpClient({
+  baseUrl: env.CONTENT_API_URL,
+  customFetch: authFetch,
+});
+
 /** StoreService API client（store-applications / stores / followers）。 */
 export const storeApi = new StoreApi(storeHttp);
 
@@ -85,3 +91,6 @@ export const storageApi = new StorageApi(storageHttp);
 
 /** NotificationService API client（notifications in-app 通知 / notification-requests 公告排程）。 */
 export const notificationApi = new NotificationApi(notificationHttp);
+
+/** ContentService API client（legal-documents 條款管理 / faqs 常見問題管理，管理員專屬）。 */
+export const contentApi = new ContentApi(contentHttp);

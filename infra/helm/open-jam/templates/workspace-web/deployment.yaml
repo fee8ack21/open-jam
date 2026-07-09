@@ -44,6 +44,8 @@ spec:
               value: {{ .Values.config.catalogApiUrl | quote }}
             - name: LOG_API_URL
               value: {{ .Values.config.logApiUrl | quote }}
+            - name: CONTENT_API_URL
+              value: {{ .Values.config.contentApiUrl | quote }}
           {{- with .Values.workspaceWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

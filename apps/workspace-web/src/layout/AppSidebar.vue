@@ -134,6 +134,10 @@ function isActive(view: string) { return route.name === view }
             <span class="nav-ic"><app-icon name="file" :size="19" /></span>
             <span>{{ t('route.legalDocs') }}</span>
           </div>
+          <div class="nav-item" :class="{ on: isActive('faqs') }" @click="nav('faqs')">
+            <span class="nav-ic"><app-icon name="book" :size="19" /></span>
+            <span>{{ t('route.faqs') }}</span>
+          </div>
           <div class="nav-item" :class="{ on: isActive('audit-log') }" @click="nav('audit-log')">
             <span class="nav-ic"><app-icon name="note" :size="19" /></span>
             <span>{{ t('route.auditLog') }}</span>

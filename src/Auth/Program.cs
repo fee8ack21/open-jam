@@ -1,6 +1,7 @@
 using Auth.Data;
 using Auth.Options;
 using Auth.Services.Background;
+using Auth.Services.Content;
 using Auth.Services.Hydra;
 using Auth.Services.Legal;
 using Auth.Services.Security;
@@ -57,6 +58,12 @@ builder.Services.AddScoped<IHydraService, HydraService>();
 
 // App options
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("App"));
+builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
+
+// ContentService API client（取得啟用中法律文件供註冊 / re-consent 同意流程）
+var contentBaseUrl = (builder.Configuration["Services:ContentService:BaseUrl"] ?? "http://localhost:5181").TrimEnd('/') + "/";
+builder.Services.AddHttpClient("content", client => client.BaseAddress = new Uri(contentBaseUrl));
+builder.Services.AddScoped<ContentServiceClient>();
 
 // HttpContext accessor（ICurrentUserAccessor 依賴）
 builder.Services.AddHttpContextAccessor();
@@ -82,7 +89,7 @@ builder.Services.AddMassTransit(x =>
 // Domain services
 builder.Services.AddScoped<IPasswordHasher, Argon2idHasher>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ILegalDocumentService, LegalDocumentService>();
+builder.Services.AddScoped<ILegalConsentService, LegalConsentService>();
 builder.Services.AddHostedService<OutboxRelayService>();
 
 var app = builder.Build();

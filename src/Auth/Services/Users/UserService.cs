@@ -6,6 +6,7 @@ using Auth.Data;
 using Auth.Data.Entities;
 using Auth.Models;
 using Auth.Options;
+using Auth.Services.Legal;
 using Auth.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,7 @@ public class UserService(
     AppDbContext db,
     IPasswordHasher passwordHasher,
     IMapper mapper,
+    ILegalConsentService legalConsentService,
     IOptions<AppOptions> appOptions) : IUserService
 {
     /// <inheritdoc/>
@@ -59,6 +61,10 @@ public class UserService(
         if (existing is not null && existing.Status != UserStatus.Pending)
             return (false, "此電子信箱已被使用");
 
+        // 同意紀錄依據：註冊當下啟用中的條款版本，向 ContentService 即時取得（交易外，
+        // 服務不可用時擲出例外中止註冊，不建立帳號）。
+        var activeDocIds = (await legalConsentService.GetActiveAsync()).Select(d => d.Id).ToList();
+
         // 啟用 EnableRetryOnFailure 後，顯式交易須包進 execution strategy 才能在 transient 失敗時整體重放。
         return await db.Database.ExecuteInTransactionAsync<(bool, string?)>(async tx =>
         {
@@ -88,11 +94,6 @@ public class UserService(
             db.OutboxMessages.Add(outbox);
 
             // 同意紀錄：註冊當下啟用中的條款版本（Pending 帳號覆蓋重註冊時略過已同意者）
-            var activeDocIds = await db.LegalDocuments
-                .Where(d => d.Status == LegalDocumentStatus.Active)
-                .Select(d => d.Id)
-                .ToListAsync();
-
             var consentedDocIds = await db.UserLegalConsents
                 .Where(c => c.UserId == user.Id && activeDocIds.Contains(c.LegalDocumentId))
                 .Select(c => c.LegalDocumentId)

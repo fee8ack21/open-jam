@@ -64,6 +64,9 @@ spec:
               value: {{ .Values.config.workspaceUrl | quote }}
             - name: App__MarketUrl
               value: {{ .Values.config.marketPageUrl | quote }}
+            # 取得啟用中法律文件供註冊 / 登入 re-consent 同意流程
+            - name: Services__ContentService__BaseUrl
+              value: {{ include "open-jam.contentServiceUrl" . | quote }}
           {{- with .Values.auth.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

@@ -155,6 +155,44 @@ defineProps<{ name: string }>();
         <circle cx="63" cy="60" r="16" fill="none" class="sw4" />
         <path class="st-violet" style="stroke-width:6" d="M74 71 L87 84" />
       </template>
+
+      <!-- ===== 分類・音樂：黑膠唱片 + 音符 + 星火 ===== -->
+      <template v-else-if="name === 'cat-music'">
+        <g transform="rotate(-8 47 62)">
+          <circle class="fc-violet" cx="47" cy="62" r="26" />
+          <circle class="st-white sw2" cx="47" cy="62" r="19" fill="none" />
+          <circle class="st-white sw2" cx="47" cy="62" r="12.5" fill="none" />
+          <circle class="fc-yellow" cx="47" cy="62" r="7.5" />
+          <circle class="fc-text st-none" cx="47" cy="62" r="2.2" />
+        </g>
+        <path class="sw4" d="M73 27 L73 51" />
+        <path class="sw4" fill="none" d="M73 27 Q85 25 84 33" />
+        <ellipse class="fc-pink" cx="68" cy="51" rx="8" ry="6.2" transform="rotate(-18 68 51)" />
+        <path class="fc-lime" d="M28 34 l1.9 4.4 4.4 1.9-4.4 1.9L28 48.6l-1.9-4.4-4.4-1.9 4.4-1.9Z" />
+      </template>
+
+      <!-- ===== 分類・攝影：相機 + 閃光星 ===== -->
+      <template v-else-if="name === 'cat-photo'">
+        <g transform="rotate(-4 53 62)">
+          <path class="fc-pink" d="M41 46 L45 39 L61 39 L65 46 Z" />
+          <rect class="fc-pink" x="26" y="46" width="54" height="36" rx="7" />
+          <circle class="fc-surf" cx="53" cy="65" r="12.5" />
+          <circle class="fc-cyan" cx="53" cy="65" r="7.5" />
+          <circle class="fc-white st-none" cx="49" cy="61" r="2.6" />
+          <rect class="fc-yellow" x="67" y="51" width="8" height="6" rx="2" />
+        </g>
+        <path class="fc-lime" d="M82 33 l1.9 4.4 4.4 1.9-4.4 1.9L82 47.6l-1.9-4.4-4.4-1.9 4.4-1.9Z" />
+      </template>
+
+      <!-- ===== 分類・電子書：打開的書 + 書頁 + 星火 ===== -->
+      <template v-else-if="name === 'cat-ebook'">
+        <path class="fc-cyan" d="M52 44 C44 38 33 38 24 41 L24 78 C33 75 44 75 52 80 Z" />
+        <path class="fc-cyan" d="M52 44 C60 38 71 38 80 41 L80 78 C71 75 60 75 52 80 Z" />
+        <path class="sw3" d="M52 44 L52 80" fill="none" />
+        <path class="st-white sw2" d="M31 49 L45 52 M31 57 L45 60 M31 65 L44 67" />
+        <path class="st-white sw2" d="M59 52 L73 49 M59 60 L73 57 M60 67 L73 65" />
+        <path class="fc-lime" d="M70 26 l1.8 4 4 1.8-4 1.8L70 39l-1.8-4-4-1.8 4-1.8Z" />
+      </template>
     </g>
 
     <!-- 面板描邊（畫在場景之上，避免場景蓋掉框） -->

@@ -1,0 +1,1231 @@
+﻿{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "ContentService",
+    "version": "v1"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "ContentService"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/faqs": {
+      "get": {
+        "tags": [
+          "Faqs"
+        ],
+        "summary": "查詢常見問題（分頁，支援分類 / 發布狀態篩選）。",
+        "operationId": "List",
+        "parameters": [
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "description": "過濾主題分類；null 表示不限。",
+            "schema": {
+              "$ref": "#/components/schemas/FaqCategory"
+            },
+            "example": "Platform"
+          },
+          {
+            "name": "IsPublished",
+            "in": "query",
+            "description": "過濾發布狀態；null 表示不限。",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListFaqItemsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListFaqItemsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListFaqItemsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Faqs"
+        ],
+        "summary": "建立常見問題項目。",
+        "operationId": "Create",
+        "requestBody": {
+          "description": "分類、問題、解答、排序與發布狀態。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFaqItemRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFaqItemRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFaqItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/faqs/published": {
+      "get": {
+        "tags": [
+          "Faqs"
+        ],
+        "summary": "取得已發布的常見問題（匿名公開，依分類與排序）。",
+        "operationId": "GetPublished",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "主題分類；不帶時回傳所有分類。",
+            "schema": {
+              "$ref": "#/components/schemas/FaqCategory"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FaqItemDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FaqItemDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FaqItemDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/faqs/{id}": {
+      "get": {
+        "tags": [
+          "Faqs"
+        ],
+        "summary": "取得單筆常見問題。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "項目 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Faqs"
+        ],
+        "summary": "更新常見問題項目。",
+        "operationId": "Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "項目 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "更新後的內容。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFaqItemRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFaqItemRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFaqItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Faqs"
+        ],
+        "summary": "刪除常見問題項目。",
+        "operationId": "Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "項目 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/legal-documents": {
+      "get": {
+        "tags": [
+          "LegalDocuments"
+        ],
+        "summary": "查詢法律文件（分頁，支援類型 / 狀態篩選）。",
+        "operationId": "List",
+        "parameters": [
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "description": "過濾文件類型；null 表示不限。",
+            "schema": {
+              "$ref": "#/components/schemas/LegalDocumentType"
+            },
+            "example": "TermsOfService"
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "description": "過濾文件狀態；null 表示不限。",
+            "schema": {
+              "$ref": "#/components/schemas/LegalDocumentStatus"
+            },
+            "example": "Active"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListLegalDocumentsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListLegalDocumentsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListLegalDocumentsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "LegalDocuments"
+        ],
+        "summary": "建立法律文件草稿；版本序號由伺服器依同類型現有最大版本 +1 產生。",
+        "operationId": "Create",
+        "requestBody": {
+          "description": "文件類型、標題與內容。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLegalDocumentRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLegalDocumentRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLegalDocumentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/legal-documents/active": {
+      "get": {
+        "tags": [
+          "LegalDocuments"
+        ],
+        "summary": "取得目前啟用中的法律文件內容（匿名公開）。",
+        "operationId": "GetActive",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "文件類型；不帶時回傳所有類型的啟用版本。",
+            "schema": {
+              "$ref": "#/components/schemas/LegalDocumentType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LegalDocumentDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LegalDocumentDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LegalDocumentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/legal-documents/{id}": {
+      "get": {
+        "tags": [
+          "LegalDocuments"
+        ],
+        "summary": "取得單筆法律文件完整內容。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "文件 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "LegalDocuments"
+        ],
+        "summary": "更新法律文件草稿的標題與內容；僅 Draft 狀態可更新。",
+        "operationId": "Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "文件 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "更新後的標題與內容。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLegalDocumentRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLegalDocumentRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLegalDocumentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/legal-documents/{id}/activate": {
+      "post": {
+        "tags": [
+          "LegalDocuments"
+        ],
+        "summary": "啟用文件（Draft / Inactive → Active）；同類型既有啟用版本自動轉為 Inactive。",
+        "operationId": "Activate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "文件 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/legal-documents/{id}/deactivate": {
+      "post": {
+        "tags": [
+          "LegalDocuments"
+        ],
+        "summary": "停用啟用中的文件（Active → Inactive）。",
+        "operationId": "Deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "文件 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateFaqItemRequest": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/FaqCategory"
+          },
+          "question": {
+            "type": "string",
+            "description": "問題。",
+            "nullable": true,
+            "example": "Open Jam 是什麼？"
+          },
+          "answer": {
+            "type": "string",
+            "description": "解答。",
+            "nullable": true,
+            "example": "Open Jam 是台灣的數位商品平台。"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "同分類內的顯示排序（升冪）。",
+            "format": "int32",
+            "example": 0
+          },
+          "isPublished": {
+            "type": "boolean",
+            "description": "是否已發布（對外公開）；預設為 true。",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "建立常見問題項目請求。"
+      },
+      "CreateLegalDocumentRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/LegalDocumentType"
+          },
+          "title": {
+            "type": "string",
+            "description": "文件標題。",
+            "nullable": true,
+            "example": "服務條款"
+          },
+          "content": {
+            "type": "string",
+            "description": "文件內容（純文字；「## 」開頭為章節標題、「- 」開頭為列點）。",
+            "nullable": true,
+            "example": "## 歡迎加入 Open Jam"
+          }
+        },
+        "additionalProperties": false,
+        "description": "建立法律文件草稿請求；版本序號由伺服器依同類型現有最大版本 +1 產生。"
+      },
+      "FaqCategory": {
+        "enum": [
+          "Platform",
+          "Buying",
+          "Selling",
+          "Payments"
+        ],
+        "type": "string",
+        "description": "常見問題主題分類（對應 portal-web FAQ 頁的主題分頁）。"
+      },
+      "FaqItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "項目唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "category": {
+            "$ref": "#/components/schemas/FaqCategory"
+          },
+          "question": {
+            "type": "string",
+            "description": "問題。",
+            "nullable": true,
+            "example": "Open Jam 是什麼？"
+          },
+          "answer": {
+            "type": "string",
+            "description": "解答。",
+            "nullable": true,
+            "example": "Open Jam 是台灣的數位商品平台。"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "同分類內的顯示排序（升冪）。",
+            "format": "int32",
+            "example": 0
+          },
+          "isPublished": {
+            "type": "boolean",
+            "description": "是否已發布（對外公開）。",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間（UTC）。",
+            "format": "date-time",
+            "example": "2026-06-30T08:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "最後更新時間（UTC）；null 表示自建立後未變更。",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-07-01T00:00:00Z"
+          }
+        },
+        "additionalProperties": false,
+        "description": "常見問題項目。"
+      },
+      "LegalDocumentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "文件唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "type": {
+            "$ref": "#/components/schemas/LegalDocumentType"
+          },
+          "version": {
+            "type": "integer",
+            "description": "版本序號（同類型內遞增）。",
+            "format": "int32",
+            "example": 2
+          },
+          "title": {
+            "type": "string",
+            "description": "文件標題。",
+            "nullable": true,
+            "example": "服務條款"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LegalDocumentStatus"
+          },
+          "activatedAt": {
+            "type": "string",
+            "description": "最近一次啟用時間（UTC）；null 表示從未啟用。",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-07-01T00:00:00Z"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間（UTC）。",
+            "format": "date-time",
+            "example": "2026-06-30T08:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "最後更新時間（UTC）；null 表示自建立後未變更。",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-07-01T00:00:00Z"
+          },
+          "content": {
+            "type": "string",
+            "description": "文件內容（純文字；「## 」開頭為章節標題、「- 」開頭為列點）。",
+            "nullable": true,
+            "example": "## 歡迎加入 Open Jam"
+          }
+        },
+        "additionalProperties": false,
+        "description": "法律文件完整內容（單筆查詢 / 公開撈取用）。"
+      },
+      "LegalDocumentStatus": {
+        "enum": [
+          "Draft",
+          "Active",
+          "Inactive"
+        ],
+        "type": "string",
+        "description": "法律文件狀態。文件不可刪除，停用後仍保留於資料庫供歷史比對。"
+      },
+      "LegalDocumentSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "文件唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "type": {
+            "$ref": "#/components/schemas/LegalDocumentType"
+          },
+          "version": {
+            "type": "integer",
+            "description": "版本序號（同類型內遞增）。",
+            "format": "int32",
+            "example": 2
+          },
+          "title": {
+            "type": "string",
+            "description": "文件標題。",
+            "nullable": true,
+            "example": "服務條款"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LegalDocumentStatus"
+          },
+          "activatedAt": {
+            "type": "string",
+            "description": "最近一次啟用時間（UTC）；null 表示從未啟用。",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-07-01T00:00:00Z"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "建立時間（UTC）。",
+            "format": "date-time",
+            "example": "2026-06-30T08:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "最後更新時間（UTC）；null 表示自建立後未變更。",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-07-01T00:00:00Z"
+          }
+        },
+        "additionalProperties": false,
+        "description": "法律文件摘要（列表用，不含完整內容）。"
+      },
+      "LegalDocumentType": {
+        "enum": [
+          "TermsOfService",
+          "PrivacyPolicy"
+        ],
+        "type": "string",
+        "description": "法律文件類型。"
+      },
+      "ListFaqItemsResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 12
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FaqItemDto"
+            },
+            "description": "本頁項目清單。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "常見問題分頁查詢回應。"
+      },
+      "ListLegalDocumentsResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 6
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegalDocumentSummaryDto"
+            },
+            "description": "本頁文件清單。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "法律文件分頁查詢回應。"
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "UpdateFaqItemRequest": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/FaqCategory"
+          },
+          "question": {
+            "type": "string",
+            "description": "問題。",
+            "nullable": true,
+            "example": "Open Jam 是什麼？"
+          },
+          "answer": {
+            "type": "string",
+            "description": "解答。",
+            "nullable": true,
+            "example": "Open Jam 是台灣的數位商品平台。"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "同分類內的顯示排序（升冪）。",
+            "format": "int32",
+            "example": 0
+          },
+          "isPublished": {
+            "type": "boolean",
+            "description": "是否已發布（對外公開）。",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "更新常見問題項目請求。"
+      },
+      "UpdateLegalDocumentRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "文件標題。",
+            "nullable": true,
+            "example": "服務條款"
+          },
+          "content": {
+            "type": "string",
+            "description": "文件內容（純文字；「## 」開頭為章節標題、「- 」開頭為列點）。",
+            "nullable": true,
+            "example": "## 歡迎加入 Open Jam"
+          }
+        },
+        "additionalProperties": false,
+        "description": "更新法律文件草稿請求；僅 Draft 狀態可更新。"
+      }
+    }
+  }
+}

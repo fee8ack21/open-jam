@@ -129,6 +129,13 @@ PaymentService Service URL (cluster-internal).
 {{- end }}
 
 {{/*
+ContentService Service URL (cluster-internal).
+*/}}
+{{- define "open-jam.contentServiceUrl" -}}
+{{- printf "http://%s-content-service:8080" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
 Secret name.
 */}}
 {{- define "open-jam.secretName" -}}

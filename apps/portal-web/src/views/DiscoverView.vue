@@ -12,6 +12,7 @@ import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
 import FeaturedCard from '@/components/FeaturedCard.vue';
+import ProductQuickView from '@/components/ProductQuickView.vue';
 import RotatingWord from '@/components/home/RotatingWord.vue';
 import TagMarquee from '@/components/home/TagMarquee.vue';
 import CategoryShowcase from '@/components/home/CategoryShowcase.vue';
@@ -21,7 +22,6 @@ import RatedChart from '@/components/home/RatedChart.vue';
 import CreatorSpotlight from '@/components/home/CreatorSpotlight.vue';
 import CreatorCtaBand from '@/components/home/CreatorCtaBand.vue';
 import { useScrollReveal } from '@/composables/useScrollReveal';
-import { env } from '@/environment.js';
 
 const store = useShopStore();
 const { t, rt, tm, locale } = useI18n();
@@ -244,6 +244,13 @@ function badgeFor(p: Product): { label: string; tone: 'hot' | 'new' | 'feat' } |
   return null;
 }
 
+// ----- quick-view lightbox -----
+// Cards open an in-page preview instead of navigating away; the dialog carries
+// the same corner badge and deep-links out to the storefront to buy.
+const quickView = ref<Product | null>(null);
+const quickViewBadge = computed(() => (quickView.value ? badgeFor(quickView.value) : null));
+function openQuickView(p: Product) { quickView.value = p; }
+
 function catColor(id: string): string {
   const map: Record<string, string> = { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' };
   return map[id] ?? '';
@@ -262,7 +269,6 @@ function scrollToHot() {
   if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
 }
 function goFreeDownloads() { priceBand.value = 'free'; scrollToBrowse(); }
-function goSell() { window.location.href = env.WORKSPACE_PAGE_URL; }
 
 /** 統計大數字：千位以上以 K 呈現（39,200 → 39K）。 */
 function compactNum(n: number): string {
@@ -318,17 +324,11 @@ onBeforeUnmount(() => {
           </form>
 
           <div class="hero-ctas">
-            <button type="button" class="hcta hcta-main" @click="scrollToBrowse">
-              <app-icon name="search" :size="16" /> {{ t('market.hero.cta.explore') }}
-            </button>
-            <button type="button" class="hcta" @click="scrollToHot">
+            <button type="button" class="hcta hcta-main" @click="scrollToHot">
               <app-icon name="star" :size="16" /> {{ t('market.hero.cta.hot') }}
             </button>
             <button type="button" class="hcta" @click="goFreeDownloads">
               <app-icon name="download" :size="16" /> {{ t('market.hero.cta.free') }}
-            </button>
-            <button type="button" class="hcta hcta-sell" @click="goSell">
-              <app-icon name="bag" :size="16" /> {{ t('market.hero.cta.sell') }}
             </button>
           </div>
 
@@ -386,7 +386,7 @@ onBeforeUnmount(() => {
           @click.capture="onFeatClick"
           @dragstart.prevent
         >
-          <featured-card v-for="p in featured" :key="p.id" :product="p" />
+          <featured-card v-for="p in featured" :key="p.id" :product="p" @select="openQuickView" />
         </div>
       </section>
 
@@ -484,7 +484,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="results.length" class="grid">
-              <product-card v-for="p in visibleResults" :key="p.id" :product="p" :badge="badgeFor(p)" />
+              <product-card v-for="p in visibleResults" :key="p.id" :product="p" :badge="badgeFor(p)" @select="openQuickView" />
             </div>
             <div v-if="hasMore" class="load-more-wrap">
               <button class="load-more-btn" @click="loadMore">
@@ -515,5 +515,8 @@ onBeforeUnmount(() => {
         <app-icon name="chevronU" :size="22" />
       </button>
     </Transition>
+
+    <!-- ============ QUICK-VIEW LIGHTBOX ============ -->
+    <product-quick-view :product="quickView" :badge="quickViewBadge" @close="quickView = null" />
   </div>
 </template>

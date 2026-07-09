@@ -143,6 +143,16 @@
     "editorPick": "Editor’s pick",
     "hot": "Popular"
   },
+  "quickView": {
+    "close": "Close",
+    "previewAria": "Preview {n}",
+    "sales": "{count} sold",
+    "formats": "Formats",
+    "totalSize": "Total size",
+    "includes": "What’s included",
+    "cta": "Buy on the storefront",
+    "ctaFree": "Get it on the storefront"
+  },
   "collage": {
     "card1": "Midnight Jazz Piano",
     "card2": "Illustrator’s Handbook",
@@ -152,6 +162,7 @@
   "legal": {
     "metaUpdated": "Open Jam · Last updated {date}",
     "switchTo": "Read the “{title}”",
+    "tabsLabel": "Legal documents",
     "terms": {
       "title": "Terms of Service",
       "sections": [

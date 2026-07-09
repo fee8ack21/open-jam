@@ -225,7 +225,7 @@
    shrinks to fit only when the viewport is narrower than one card */
 .feat-track {
   display: grid; grid-auto-flow: column; grid-auto-columns: min(453px, 88%); gap: 22px;
-  overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 6px; scrollbar-width: none;
+  overflow-x: auto; scroll-snap-type: x proximity; padding: 10px 0 12px; scrollbar-width: none;
   cursor: grab;
 }
 .feat-track::-webkit-scrollbar { display: none; }
@@ -436,6 +436,10 @@
   /* sort tabs → native select */
   .sort-lab, .sort-tabs .sort-tab { display: none; }
   .sort-select { display: block; width: auto; min-width: 160px; height: 40px; }
+
+  /* footer：Logo 一行、連結一行，皆水平置中（避免寬版列布局貼視窗邊） */
+  .mkt-foot { flex-direction: column; gap: 20px; }
+  .mkt-foot-links { justify-content: center; }
 }
 
 @media (max-width: 600px) {
@@ -563,14 +567,9 @@
 .ct-music { --tile-c: var(--c-violet); --tile-wash: rgba(108,76,241,.16); }
 .ct-photo { --tile-c: var(--c-pink);   --tile-wash: rgba(255,77,157,.15); }
 .ct-ebook { --tile-c: var(--c-cyan);   --tile-wash: rgba(31,214,198,.16); }
-.ct-glyph {
-  position: relative; width: 54px; height: 54px; border-radius: 16px;
-  display: grid; place-items: center; color: #fff; background: var(--tile-c);
-  border: 1.5px solid var(--text); box-shadow: var(--pop-1);
-  transition: transform .18s;
-}
-.ct-ebook .ct-glyph { color: #08312d; }
-.cat-tile:hover .ct-glyph { transform: rotate(-8deg) scale(1.06); }
+.ct-art { position: relative; width: 66px; }
+.ct-art .lart { filter: drop-shadow(4px 5px 0 var(--text)); transition: transform .18s; }
+.cat-tile:hover .ct-art .lart { transform: rotate(-6deg) scale(1.06); }
 .ct-text { display: contents; }
 .ct-name { position: relative; font-family: var(--oj-display); font-weight: 800; font-size: 20px; letter-spacing: -.4px; color: var(--text); margin-top: 14px; }
 .ct-count { position: relative; font-family: var(--oj-mono); font-size: 12px; color: var(--text-soft); margin-top: 4px; }
@@ -593,6 +592,8 @@
 /* 以負 margin 撐滿視窗寬、再以 padding 退回原內容位置 */
 .band { margin: 76px calc(50% - 50vw) 0; padding: 64px calc(50vw - 50%) 84px; }
 .band > .sec:first-child { margin-top: 0; }
+/* 相鄰 band 直接相接：收掉中間 76px 留白與重複邊框，避免兩色塊間露出頁面底色 */
+.band + .band { margin-top: 0; border-top: 0; }
 .band-violet {
   background:
     radial-gradient(rgba(108,76,241,.10) 1.2px, transparent 1.4px) 0 0 / 20px 20px,
@@ -767,7 +768,7 @@
 @media (max-width: 900px) {
   .cat-tiles { grid-template-columns: 1fr; gap: 14px; }
   .cat-tile { flex-direction: row; align-items: center; gap: 16px; padding: 16px 18px; }
-  .ct-glyph { width: 46px; height: 46px; border-radius: 14px; }
+  .ct-art { width: 54px; }
   .ct-text { display: flex; flex-direction: column; position: relative; }
   .ct-name { margin-top: 0; font-size: 17px; }
   .ct-count { margin-top: 2px; }

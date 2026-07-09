@@ -1,16 +1,16 @@
 using Asp.Versioning;
-using Auth.Data.Entities;
-using Auth.Models;
-using Auth.Services.Legal;
+using ContentService.Data.Entities;
+using ContentService.Models;
+using ContentService.Services.Legal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Auth.Controllers;
+namespace ContentService.Controllers;
 
 /// <summary>
 /// 法律文件（服務條款 / 隱私權政策）版本管理 REST API。
 /// 管理端點僅具 "Admin" 角色的 Hydra access token 可存取；
-/// 「目前啟用版本」查詢為匿名公開（portal-web 條款頁與註冊頁呈現用）。
+/// 「目前啟用版本」查詢為匿名公開（portal-web 條款頁與 Auth 註冊 / 登入同意流程呈現用）。
 /// 文件不可刪除（無 DELETE 端點），停用後仍保留供歷史比對。
 /// </summary>
 [ApiController]

@@ -69,7 +69,8 @@ function onSelectLang(key: string) {
         </template>
         <template v-else>
           <a class="nav-admin" href="#" :title="t('nav.login')" @click.prevent="auth.login()">
-            <app-icon name="user" :size="18" /> {{ t('nav.login') }}
+            <app-icon name="user" :size="18" />
+            <span class="nav-admin-label">{{ t('nav.login') }}</span>
           </a>
         </template>
       </div>

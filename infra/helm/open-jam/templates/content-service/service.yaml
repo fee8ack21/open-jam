@@ -1,0 +1,17 @@
+{{- if .Values.contentService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "open-jam.fullname" . }}-content-service
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: content-service
+spec:
+  ports:
+    - port: 8080
+      targetPort: http
+      name: http
+  selector:
+    {{- include "open-jam.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: content-service
+{{- end }}

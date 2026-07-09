@@ -1,6 +1,6 @@
-using Auth.Data.Entities;
+using ContentService.Data.Entities;
 
-namespace Auth.Models;
+namespace ContentService.Models;
 
 /// <summary>法律文件列表查詢請求（分頁採 offset / limit）。</summary>
 public class ListLegalDocumentsRequest

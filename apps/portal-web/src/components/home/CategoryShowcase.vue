@@ -6,6 +6,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CATEGORIES, type Product } from '@/data/products';
+import LandingArt from '@/components/LandingArt.vue';
 
 const props = defineProps<{ products: Product[] }>();
 const emit = defineEmits<{ pick: [catId: string] }>();
@@ -13,7 +14,7 @@ const { t } = useI18n();
 
 interface Tile {
   id: string;
-  glyph: string;
+  art: string;
   count: number;
   tops: Product[];
 }
@@ -23,7 +24,7 @@ const tiles = computed<Tile[]>(() =>
     const inCat = props.products.filter((p) => p.cat === c.id);
     return {
       id: c.id,
-      glyph: c.glyph,
+      art: 'cat-' + c.id,
       count: inCat.length,
       tops: inCat.slice().sort((a, b) => b.sales - a.sales).slice(0, 3),
     };
@@ -47,7 +48,7 @@ const tiles = computed<Tile[]>(() =>
         :aria-label="t('market.cats.tileAria', { cat: t('category.' + tile.id) })"
         @click="emit('pick', tile.id)"
       >
-        <span class="ct-glyph"><app-icon :name="tile.glyph" :size="26" :stroke="1.8" /></span>
+        <span class="ct-art"><landing-art :name="tile.art" /></span>
         <span class="ct-text">
           <span class="ct-name">{{ t('category.' + tile.id) }}</span>
           <span class="ct-count">{{ t('market.cats.count', { count: tile.count }) }}</span>

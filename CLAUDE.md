@@ -28,6 +28,7 @@ dotnet ef migrations add <Name>   # 新增 EF Core Migration（需 dotnet-ef too
 | PaymentService | Stripe Checkout 金流 REST API | http://localhost:5178，Swagger: `/swagger` |
 | OrderService | 訂單 / 結帳 / 狀態歷程 REST API | http://localhost:5179，Swagger: `/swagger` |
 | NotificationService | 通知（追蹤者上架 / 公告，Email + in-app）REST API | http://localhost:5180，Swagger: `/swagger` |
+| ContentService | 法律文件（服務條款 / 隱私權政策）版本 + 常見問題（FAQ）REST API | http://localhost:5181，Swagger: `/swagger` |
 | EmailService | RabbitMQ Worker（無 HTTP port） | — |
 | Bootstrap | Seed，一次性執行後結束 | — |
 
@@ -111,15 +112,15 @@ pnpm preview
 ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 
 **核心服務**：
-- `UserService` — 註冊、登入、密碼重設、email 驗證；註冊成功經 Outbox 發 `UserRegisteredEvent`（供 StoreService / NotificationService 回填訪客 UserId）；註冊交易內寫入當下啟用中條款版本的 `UserLegalConsent`
+- `UserService` — 註冊、登入、密碼重設、email 驗證；註冊成功經 Outbox 發 `UserRegisteredEvent`（供 StoreService / NotificationService 回填訪客 UserId）；註冊交易內寫入當下啟用中條款版本的 `UserLegalConsent`（啟用文件清單於交易前向 ContentService 即時取得）
 - `HydraService` — 包裝 Hydra Admin API（accept/reject login/consent）
-- `LegalDocumentService` — 法律文件（服務條款 / 隱私權政策）版本管理與同意紀錄：每次修訂為一筆新 `LegalDocument`（同類型 `Version` 遞增，狀態 `Draft → Active → Inactive`，僅 Draft 可編輯、**永不刪除**供歷史比對；partial unique index 保證同類型僅一筆 Active，啟用時自動停用既有版本）
+- `ContentServiceClient` + `LegalConsentService` — 法律文件本身由 **ContentService** 管理，Auth 僅保留**同意紀錄**（`UserLegalConsent`，`LegalDocumentId` 為跨服務參照、無外鍵）。`ContentServiceClient`（named HttpClient `"content"`）呼叫 ContentService 匿名端點 `GET /v1/legal-documents/active` 取啟用版本；`LegalConsentService` 以此比對本地同意紀錄算出「未同意清單」（`GetPendingConsentAsync`）、寫入同意（`RecordConsentsAsync`）。註冊時 ContentService 不可用則中止註冊（fail-closed，不建帳號）。
 - `Argon2idHasher` — 密碼雜湊
 - `OutboxRelayService` — Outbox → RabbitMQ
 
-**REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。`/v1/legal-documents`（`LegalDocumentsController`）——Admin 分頁列表 / 單筆 / 建草稿 / 改草稿 / activate / deactivate（無 DELETE），另 `GET /v1/legal-documents/active?type=` 匿名公開（portal-web 條款頁撈取目前啟用內容），供 workspace-web 管理員「條款管理」後台。
+**REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。（法律文件管理 API 已移至 ContentService。）
 
-**條款同意流程**：註冊頁 dialog 內容由 DB 啟用版本渲染（`_LegalModal.cshtml` + `LegalContentHelper`，內容慣例「## 」章節 /「- 」列點），`form-ui.js` 強制兩份文件都點過「我了解了」才可勾選同意；登入（含 Hydra skip 路徑）時檢查使用者對啟用版本的 `UserLegalConsent`，缺少者導向 `LegalReconsent` 頁重新勾選同意（subject / challenge 以 time-limited Data Protection 票證保護，15 分鐘失效）後才 AcceptLogin。
+**條款同意流程**：註冊頁 dialog 內容由 ContentService 啟用版本渲染（`_LegalModal.cshtml` + `LegalContentHelper`，內容慣例「## 」章節 /「- 」列點），`form-ui.js` 強制兩份文件都點過「我了解了」才可勾選同意；登入（含 Hydra skip 路徑）時檢查使用者對啟用版本的 `UserLegalConsent`，缺少者導向 `LegalReconsent` 頁重新勾選同意（subject / challenge 以 time-limited Data Protection 票證保護，15 分鐘失效）後才 AcceptLogin。
 
 **錯誤處理**：使用 ASP.NET Core 內建 `app.UseExceptionHandler("/Home/Error")`（非開發環境）導頁至 Error Page。不掛載 `ExceptionMiddleware`（JSON 輸出不適用於 MVC 畫面流程）。
 
@@ -222,11 +223,19 @@ REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 
 - **`StoreServiceClient`**（named `"store"`）：Owner 驗證（轉發 Bearer token 至 `GET /v1/stores/me`）+ dispatch 時匿名查商店公開資訊（`GET /v1/stores/{id}`，取店名 / slug 渲染通知，不建 store ref 表）。
 - **Consumer 冪等**：`CatalogPublishedConsumer` 以 `ProcessedEvent`（`OutboxMessageId` 唯一）+ `NotificationRequest.SourceEventId` 唯一索引去重；追蹤同步與 UserId 回填為天然冪等 upsert / delete / update。
 
+## ContentService（`src/ContentService/`）
+
+REST API，管理平台內容——法律文件（`LegalDocument`，服務條款 / 隱私權政策）與常見問題（`FaqItem`）。Controller（`LegalDocuments` / `Faqs`）僅轉接，業務在 `Services/<Feature>/` 的 `ILegalDocumentService` / `IFaqService`。純 REST API 服務，無事件訂閱；僅經 Outbox 發 `AuditLogRequestedEvent`（`OutboxRelayService` + `AuditLogPublisher`）。
+
+- **法律文件**（原屬 Auth，已抽離）：每次修訂為一筆新 `LegalDocument`（同類型 `Version` 遞增，狀態 `Draft → Active → Inactive`，僅 Draft 可編輯、**永不刪除**供歷史比對；partial unique index 保證同類型僅一筆 Active，啟用時自動停用既有版本）。`/v1/legal-documents`（Admin）——分頁列表 / 單筆 / 建草稿 / 改草稿 / activate / deactivate（無 DELETE），另 `GET /v1/legal-documents/active?type=` 匿名公開（portal-web 條款頁 + Auth 註冊 / 登入 re-consent 同意流程撈取）。供 workspace-web 管理員「條款管理」後台。**同意紀錄（`UserLegalConsent`）留在 Auth，本服務不涉及。**
+- **常見問題（FAQ）**：`FaqItem`（`Category` 主題分類列舉 Platform / Buying / Selling / Payments、`Question` / `Answer`、`SortOrder` 同分類排序、`IsPublished` 發布旗標）。`/v1/faqs`（Admin）——分頁列表 / 單筆 / CRUD（含 DELETE），另 `GET /v1/faqs/published?category=` 匿名公開（portal-web FAQ 頁撈取已發布項目，依分類 + 排序）。供 workspace-web 管理員「常見問題」後台；取代 portal-web 原前端寫死的 FAQ 內容。
+- **DB**：`open_jam_content`；開發 URL http://localhost:5181，Swagger `/swagger`。
+
 ## Bootstrap（`src/Bootstrap/`）
 
-一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`LegalDocumentSeeder`（seed 服務條款 / 隱私權政策初始啟用版本，該類型已有紀錄即略過）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
+一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`LegalDocumentSeeder`（seed 服務條款 / 隱私權政策初始啟用版本至 **ContentService** DB，該類型已有紀錄即略過）、`FaqSeeder`（seed 常見問題初始內容至 ContentService DB，取自 portal-web 原前端 FAQ；FAQ 表已有資料即略過）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
 
-掛載 5 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection` / `NotificationConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
+掛載 6 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection` / `NotificationConnection` / `ContentConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
 
 ## 環境設定
 
@@ -241,17 +250,20 @@ REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 
 // Auth 額外需要
 {
   "Hydra": { "AdminUrl": "http://localhost:4445" },
-  "App": { "BaseUrl": "https://localhost:7280" }
+  "App": { "BaseUrl": "https://localhost:7280" },
+  // 取得啟用中法律文件供註冊 / 登入 re-consent 同意流程
+  "Services": { "ContentService": { "BaseUrl": "http://localhost:5181" } }
 }
 // EmailService 額外需要（地端開發用 SMTP catcher；正式以 SendGrid API Key 替換）
 {
   "Smtp": { "Host": "localhost", "Port": 1025, "SecureSocket": "Auto", "FromAddress": "noreply@openjam.co" },
   "SendGrid": { "ApiKey": "<prod-only，由 GCP Secret Manager 注入>" }
 }
-// 各 REST API 服務（StorageService / StoreService / CatalogService / QuotaService / PaymentService / OrderService / NotificationService）額外需要（驗 Hydra 簽發的 JWT）
+// 各 REST API 服務（StorageService / StoreService / CatalogService / QuotaService / PaymentService / OrderService / NotificationService / ContentService）額外需要（驗 Hydra 簽發的 JWT）
 {
   "Hydra": { "Issuer": "http://localhost:4444/" }
 }
+// ContentService 僅需上述共用結構（ConnectionStrings / RabbitMQ / Hydra:Issuer），無額外設定；DB 為 open_jam_content
 // StorageService 額外需要（地端本地檔案儲存；正式切 Provider: "Gcs"）
 {
   "Storage": {

@@ -21,6 +21,7 @@
     <ProjectReference Include="..\CatalogService\CatalogService.csproj" />
     <ProjectReference Include="..\StoreService\StoreService.csproj" />
     <ProjectReference Include="..\NotificationService\NotificationService.csproj" />
+    <ProjectReference Include="..\ContentService\ContentService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +33,7 @@
        與彼此及本專案的 appsettings.json 路徑衝突（NETSDK1152），故排除之 -->
   <Target Name="ExcludeReferencedAppSettingsFromPublish" AfterTargets="ComputeResolvedFilesToPublishList" BeforeTargets="_HandleFileConflictsForPublish">
     <ItemGroup>
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="('%(FileName)%(Extension)' == 'appsettings.json' or '%(FileName)%(Extension)' == 'appsettings.Development.json') and ($([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('Auth')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('EmailService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('CatalogService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('StoreService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('NotificationService')))" />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="('%(FileName)%(Extension)' == 'appsettings.json' or '%(FileName)%(Extension)' == 'appsettings.Development.json') and ($([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('Auth')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('EmailService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('CatalogService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('StoreService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('NotificationService')) or $([System.String]::Copy('%(ResolvedFileToPublish.Identity)').Contains('ContentService')))" />
     </ItemGroup>
   </Target>
 

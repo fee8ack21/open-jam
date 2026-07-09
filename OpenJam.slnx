@@ -9,5 +9,6 @@
     <Project Path="src/StoreService/StoreService.csproj" />
     <Project Path="src/PaymentService/PaymentService.csproj" />
     <Project Path="src/NotificationService/NotificationService.csproj" />
+    <Project Path="src/ContentService/ContentService.csproj" />
   </Folder>
 </Solution>

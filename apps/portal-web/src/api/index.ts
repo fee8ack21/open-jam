@@ -13,7 +13,7 @@ import {
   Api as NotificationApi,
   HttpClient as NotificationHttpClient,
 } from '@/api/notification-service';
-import { Api as AuthApi, HttpClient as AuthHttpClient } from '@/api/auth-service';
+import { Api as ContentApi, HttpClient as ContentHttpClient } from '@/api/content-service';
 import { env } from '@/environment';
 import { userManager } from '@/oidc/auth';
 
@@ -46,7 +46,7 @@ export const storeApi = new StoreApi(storeHttp);
 /** NotificationService API client（in-app 通知列表 / 未讀數 / 已讀，需登入）。 */
 export const notificationApi = new NotificationApi(notificationHttp);
 
-const authHttp = new AuthHttpClient({ baseUrl: env.AUTH_API_URL });
+const contentHttp = new ContentHttpClient({ baseUrl: env.CONTENT_API_URL });
 
-/** Auth service REST API client（legal-documents 目前啟用中的條款 / 隱私權政策，匿名公開）。 */
-export const authApi = new AuthApi(authHttp);
+/** ContentService REST API client（目前啟用中的條款 / 隱私權政策、已發布 FAQ，皆匿名公開）。 */
+export const contentApi = new ContentApi(contentHttp);

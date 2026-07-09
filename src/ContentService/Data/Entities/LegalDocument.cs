@@ -1,6 +1,6 @@
 using Shared.Audit;
 
-namespace Auth.Data.Entities;
+namespace ContentService.Data.Entities;
 
 /// <summary>
 /// 法律文件（服務條款 / 隱私權政策）版本。

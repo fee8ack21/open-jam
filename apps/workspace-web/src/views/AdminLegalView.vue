@@ -2,13 +2,13 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { authApi } from '@/api'
+import { contentApi } from '@/api'
 import {
   LegalDocumentStatus,
   LegalDocumentType,
   type LegalDocumentDto,
   type LegalDocumentSummaryDto,
-} from '@/api/auth-service'
+} from '@/api/content-service'
 
 const { t, locale } = useI18n()
 const message = useMessage()
@@ -65,7 +65,7 @@ const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_
 async function load() {
   loading.value = true
   try {
-    const res = await authApi.legalDocuments.list({
+    const res = await contentApi.legalDocuments.list({
       Offset: (page.value - 1) * PAGE_SIZE,
       Limit: PAGE_SIZE,
       Type: typeFilter.value === 'all' ? undefined : typeFilter.value,
@@ -142,7 +142,7 @@ function openCreate() {
 async function openEdit(row: LegalDocumentSummaryDto) {
   if (!row.id) return
   try {
-    const res = await authApi.legalDocuments.get(row.id)
+    const res = await contentApi.legalDocuments.get(row.id)
     editing.value = res.data
     form.type = res.data.type ?? LegalDocumentType.TermsOfService
     form.title = res.data.title ?? ''
@@ -161,10 +161,10 @@ async function save() {
   saving.value = true
   try {
     if (editing.value?.id) {
-      await authApi.legalDocuments.update(editing.value.id, { title, content: form.content })
+      await contentApi.legalDocuments.update(editing.value.id, { title, content: form.content })
       message.success(t('legalDocs.msgUpdated'))
     } else {
-      await authApi.legalDocuments.create({ type: form.type, title, content: form.content })
+      await contentApi.legalDocuments.create({ type: form.type, title, content: form.content })
       message.success(t('legalDocs.msgCreated'))
     }
     modalOpen.value = false
@@ -183,7 +183,7 @@ const viewing = ref<LegalDocumentDto | null>(null)
 async function openView(row: LegalDocumentSummaryDto) {
   if (!row.id) return
   try {
-    const res = await authApi.legalDocuments.get(row.id)
+    const res = await contentApi.legalDocuments.get(row.id)
     viewing.value = res.data
     viewOpen.value = true
   } catch (err) {
@@ -198,7 +198,7 @@ async function activate(row: LegalDocumentSummaryDto) {
   if (!row.id) return
   actingId.value = row.id
   try {
-    await authApi.legalDocuments.activate(row.id)
+    await contentApi.legalDocuments.activate(row.id)
     message.success(t('legalDocs.msgActivated'))
     await load()
   } catch (err) {
@@ -212,7 +212,7 @@ async function deactivate(row: LegalDocumentSummaryDto) {
   if (!row.id) return
   actingId.value = row.id
   try {
-    await authApi.legalDocuments.deactivate(row.id)
+    await contentApi.legalDocuments.deactivate(row.id)
     message.success(t('legalDocs.msgDeactivated'))
     await load()
   } catch (err) {

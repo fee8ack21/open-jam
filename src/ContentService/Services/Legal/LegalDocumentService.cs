@@ -1,16 +1,21 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Auth.Data;
-using Auth.Data.Entities;
-using Auth.Models;
+using ContentService.Data;
+using ContentService.Data.Entities;
+using ContentService.Models;
 using Microsoft.EntityFrameworkCore;
+using Shared.Auth;
 using Shared.Data;
 using Shared.Exceptions;
 
-namespace Auth.Services.Legal;
+namespace ContentService.Services.Legal;
 
-/// <summary>法律文件版本管理與使用者同意紀錄的具體實作。文件永不刪除，僅以狀態控制生效與否。</summary>
-public class LegalDocumentService(AppDbContext db, IMapper mapper) : ILegalDocumentService
+/// <summary>法律文件版本管理的具體實作。文件永不刪除，僅以狀態控制生效與否。</summary>
+public class LegalDocumentService(
+    ContentDbContext db,
+    IMapper mapper,
+    AuditLogPublisher audit,
+    ICurrentUserAccessor currentUser) : ILegalDocumentService
 {
     /// <inheritdoc/>
     public async Task<ListLegalDocumentsResponse> ListAsync(ListLegalDocumentsRequest request, CancellationToken ct = default)
@@ -75,6 +80,7 @@ public class LegalDocumentService(AppDbContext db, IMapper mapper) : ILegalDocum
         };
 
         db.LegalDocuments.Add(doc);
+        audit.Add(currentUser.UserId, "legal.create", "LegalDocument", doc.Id);
         await db.SaveChangesAsync(ct);
 
         return mapper.Map<LegalDocumentDto>(doc);
@@ -91,6 +97,7 @@ public class LegalDocumentService(AppDbContext db, IMapper mapper) : ILegalDocum
 
         doc.Title   = request.Title.Trim();
         doc.Content = request.Content;
+        audit.Add(currentUser.UserId, "legal.update", "LegalDocument", doc.Id);
         await db.SaveChangesAsync(ct);
 
         return mapper.Map<LegalDocumentDto>(doc);
@@ -120,6 +127,7 @@ public class LegalDocumentService(AppDbContext db, IMapper mapper) : ILegalDocum
 
             doc.Status      = LegalDocumentStatus.Active;
             doc.ActivatedAt = DateTimeOffset.UtcNow;
+            audit.Add(currentUser.UserId, "legal.activate", "LegalDocument", doc.Id);
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
 
@@ -137,45 +145,9 @@ public class LegalDocumentService(AppDbContext db, IMapper mapper) : ILegalDocum
             throw new ConflictException("僅啟用中的文件可停用");
 
         doc.Status = LegalDocumentStatus.Inactive;
+        audit.Add(currentUser.UserId, "legal.deactivate", "LegalDocument", doc.Id);
         await db.SaveChangesAsync(ct);
 
         return mapper.Map<LegalDocumentDto>(doc);
-    }
-
-    /// <inheritdoc/>
-    public async Task<List<LegalDocumentDto>> GetPendingConsentAsync(Guid userId, CancellationToken ct = default)
-    {
-        return await db.LegalDocuments.AsNoTracking()
-            .Where(d => d.Status == LegalDocumentStatus.Active)
-            .Where(d => !db.UserLegalConsents.Any(c => c.UserId == userId && c.LegalDocumentId == d.Id))
-            .OrderBy(d => d.Type)
-            .ProjectTo<LegalDocumentDto>(mapper.ConfigurationProvider)
-            .ToListAsync(ct);
-    }
-
-    /// <inheritdoc/>
-    public async Task RecordConsentsAsync(Guid userId, IReadOnlyCollection<Guid> documentIds, CancellationToken ct = default)
-    {
-        if (documentIds.Count == 0) return;
-
-        var existing = await db.UserLegalConsents
-            .Where(c => c.UserId == userId && documentIds.Contains(c.LegalDocumentId))
-            .Select(c => c.LegalDocumentId)
-            .ToListAsync(ct);
-
-        var missing = documentIds.Except(existing).ToList();
-        if (missing.Count == 0) return;
-
-        foreach (var docId in missing)
-            db.UserLegalConsents.Add(new UserLegalConsent { UserId = userId, LegalDocumentId = docId });
-
-        try
-        {
-            await db.SaveChangesAsync(ct);
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
-        {
-            // 並發重複同意（重複送出）視為已成功，同意紀錄以 (UserId, LegalDocumentId) 唯一
-        }
     }
 }

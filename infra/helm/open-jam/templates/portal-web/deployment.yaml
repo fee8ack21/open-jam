@@ -44,6 +44,8 @@ spec:
               value: {{ .Values.config.catalogApiUrl | quote }}
             - name: STORE_API_URL
               value: {{ .Values.config.storeApiUrl | quote }}
+            - name: CONTENT_API_URL
+              value: {{ .Values.config.contentApiUrl | quote }}
           {{- with .Values.portalWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

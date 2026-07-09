@@ -1,15 +1,15 @@
-using Auth.Data;
-using Auth.Data.Entities;
+using ContentService.Data;
+using ContentService.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Bootstrap.Seeders;
 
 /// <summary>
-/// Seed 服務條款與隱私權政策的初始啟用版本（v1、Active）。
+/// Seed 服務條款與隱私權政策的初始啟用版本（v1、Active）至 ContentService 資料庫。
 /// 冪等：該類型已有任何版本（不論狀態）即略過，避免覆蓋後台維護的內容。
 /// </summary>
-public class LegalDocumentSeeder(AppDbContext db, ILogger<LegalDocumentSeeder> logger)
+public class LegalDocumentSeeder(ContentDbContext db, ILogger<LegalDocumentSeeder> logger)
 {
     private static readonly string ResourcesDir =
         Path.Combine(AppContext.BaseDirectory, "Resources", "legal-documents");

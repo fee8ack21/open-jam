@@ -1,8 +1,8 @@
 using AutoMapper;
-using Auth.Data.Entities;
-using Auth.Models;
+using ContentService.Data.Entities;
+using ContentService.Models;
 
-namespace Auth.Mapping;
+namespace ContentService.Mapping;
 
 /// <summary>法律文件 Entity → DTO 對應設定。</summary>
 public class LegalDocumentMappingProfile : Profile

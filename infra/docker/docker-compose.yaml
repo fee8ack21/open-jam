@@ -121,6 +121,7 @@ services:
       App__BaseUrl: ${AUTH_PAGE_URL}
       App__WorkspaceUrl: ${WORKSPACE_URL}
       App__MarketUrl: ${MARKET_PAGE_URL}
+      Services__ContentService__BaseUrl: http://${PROJECT_NAME}-content-service:8080
     ports:
       - "5169:8080"
     depends_on:
@@ -129,6 +130,8 @@ services:
       rabbitmq:
         condition: service_healthy
       hydra:
+        condition: service_started
+      content-service:
         condition: service_started
 
   log-service:
@@ -329,6 +332,31 @@ services:
       payment-service:
         condition: service_started
 
+  content-service:
+    container_name: ${PROJECT_NAME}-content-service
+    build:
+      context: ../../src
+      dockerfile: ContentService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_content;Username=${DB_USER};Password=${DB_PASSWORD}
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Hydra__Issuer: ${HYDRA_PUBLIC_URL}
+      Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
+    ports:
+      - "5181:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      hydra:
+        condition: service_started
+
   notification-service:
     container_name: ${PROJECT_NAME}-notification-service
     build:
@@ -389,6 +417,7 @@ services:
       DOCS_URL: ${DOCS_URL}
       CATALOG_API_URL: ${CATALOG_API_URL}
       STORE_API_URL: ${STORE_API_URL}
+      CONTENT_API_URL: ${CONTENT_API_URL}
     ports:
       - "5174:80"
 
@@ -406,6 +435,7 @@ services:
       STORE_API_URL: ${STORE_API_URL}
       CATALOG_API_URL: ${CATALOG_API_URL}
       LOG_API_URL: ${LOG_API_URL}
+      CONTENT_API_URL: ${CONTENT_API_URL}
     ports:
       - "5175:80"
 

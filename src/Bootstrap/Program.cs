@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Shared.Auth;
 using CatalogService.Data;
+using ContentService.Data;
 using NotificationService.Data;
 using StoreService.Data;
 using AuthDbContext = Auth.Data.AppDbContext;
@@ -41,6 +42,11 @@ var host = Host.CreateDefaultBuilder(args)
                     o => o.MigrationsHistoryTable("__ef_migrations_history"))
                 .UseSnakeCaseNamingConvention());
 
+        services.AddDbContext<ContentDbContext>(opts =>
+            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:ContentConnection"],
+                    o => o.MigrationsHistoryTable("__ef_migrations_history"))
+                .UseSnakeCaseNamingConvention());
+
         services.AddScoped<IPasswordHasher, Argon2idHasher>();
 
         var hydraUrl = (ctx.Configuration["Hydra:AdminUrl"] ?? "http://localhost:4445").TrimEnd('/') + "/";
@@ -50,6 +56,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<EmailTemplateSeeder>();
         services.AddScoped<UserSeeder>();
         services.AddScoped<LegalDocumentSeeder>();
+        services.AddScoped<FaqSeeder>();
         services.AddScoped<StoreSeeder>();
         services.AddScoped<CatalogCategorySeeder>();
         services.AddScoped<StoreFollowerRefSeeder>();
@@ -63,6 +70,7 @@ await sp.GetRequiredService<HydraClientSeeder>().SeedAsync();
 await sp.GetRequiredService<EmailTemplateSeeder>().SeedAsync();
 await sp.GetRequiredService<UserSeeder>().SeedAsync();
 await sp.GetRequiredService<LegalDocumentSeeder>().SeedAsync();
+await sp.GetRequiredService<FaqSeeder>().SeedAsync();
 await sp.GetRequiredService<StoreSeeder>().SeedAsync();
 await sp.GetRequiredService<CatalogCategorySeeder>().SeedAsync();
 await sp.GetRequiredService<StoreFollowerRefSeeder>().SeedAsync();
