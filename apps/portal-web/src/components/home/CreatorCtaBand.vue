@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* ============================================================
    CreatorCtaBand — 頁尾前的「成為創作者」招募帶。
-   主按鈕導向 workspace（開店入口）、次連結導向 /about。
+   主按鈕導向 workspace（開店入口）。
    ============================================================ */
 import { useI18n } from 'vue-i18n';
 import { env } from '@/environment.js';
@@ -24,7 +24,6 @@ function goWorkspace() {
         <button type="button" class="cta-main" @click="goWorkspace">
           <app-icon name="sparkle" :size="17" /> {{ t('market.ctaBand.button') }}
         </button>
-        <router-link class="cta-alt" to="/about">{{ t('market.ctaBand.more') }}</router-link>
       </div>
     </div>
   </section>

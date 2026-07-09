@@ -19,7 +19,6 @@
   },
   "footer": {
     "links": "Footer links",
-    "about": "About Open Jam",
     "becomeCreator": "Become a creator",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
@@ -88,8 +87,7 @@
     "ctaBand": {
       "title": "Do you create too?",
       "sub": "Bring your sheet music, photography, and e-books to Open Jam — no monthly fee, just a 3% cut when a work sells.",
-      "button": "Become a creator",
-      "more": "See how the platform works"
+      "button": "Become a creator"
     },
     "featured": {
       "eyebrow": "Featured · Popular",
@@ -148,41 +146,6 @@
     "card2": "Illustrator’s Handbook",
     "card3": "Neon City Nights",
     "card4": "Lo-Fi Beat Pack"
-  },
-  "about": {
-    "screenLabel": "About Open Jam",
-    "breadcrumb": "About Open Jam",
-    "title": "About Open Jam",
-    "lede": "Open Jam is Taiwan’s marketplace for creators’ digital goods. We let creators sell their sheet music, photography, and e-books directly to supporters, and let every shopper buy collectible digital works in just a few steps.",
-    "sec1": {
-      "title": "What the platform does",
-      "body": "Open Jam is built in the spirit of Gumroad: creators focus on creating while the platform handles storefronts, payments, and file delivery. Creators open a shop on their own subdomain and list their works; shoppers browse the marketplace and buy what they love — all without tedious sign-ups or app downloads."
-    },
-    "sec2": {
-      "title": "How it works"
-    },
-    "sec3": {
-      "title": "What you can buy",
-      "body": "The marketplace currently supports the following digital product categories, and keeps expanding:"
-    },
-    "features": [
-      {
-        "title": "One-click storefront",
-        "text": "Once approved, creators can open a shop on a dedicated subdomain <creator>.openjam.co and list sheet music, photo collections, or e-books."
-      },
-      {
-        "title": "Buy without signing up",
-        "text": "Shoppers don’t need an account — just an email at checkout to complete a purchase, and the download link is sent straight to their inbox."
-      },
-      {
-        "title": "Secure downloads",
-        "text": "After purchase the platform issues a time-limited download link, opened only after the file is processed and verified, protecting creators’ work."
-      }
-    ],
-    "cta": {
-      "text": "Are you a creator? Bring your work to Open Jam.",
-      "button": "Become a creator"
-    }
   },
   "legal": {
     "metaUpdated": "Open Jam · Last updated {date}",
