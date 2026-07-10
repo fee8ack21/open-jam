@@ -8,6 +8,10 @@ metadata:
     app.kubernetes.io/component: storage-service
 spec:
   replicas: {{ .Values.storageService.replicaCount }}
+  # 單節點 CPU 近滿載且僅單一 replica：改用 Recreate（先停舊再起新），
+  # 避免預設 RollingUpdate 的 surge 需同時容納兩份 pod 而卡在 Pending。
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "open-jam.selectorLabels" . | nindent 6 }}
