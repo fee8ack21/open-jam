@@ -33,7 +33,8 @@ if (storageOpts.Provider == StorageProvider.Gcs)
     // 服務帳戶金鑰可簽章 signed URL；留空則用 ADC（GKE Workload Identity，透過 IAM SignBlob 簽章）
     var credential = string.IsNullOrWhiteSpace(storageOpts.Gcs.CredentialsPath)
         ? GoogleCredential.GetApplicationDefault()
-        : CredentialFactory.FromFile<GoogleCredential>(storageOpts.Gcs.CredentialsPath);
+        : CredentialFactory.FromFile<ServiceAccountCredential>(storageOpts.Gcs.CredentialsPath)
+            .ToGoogleCredential();
 
     builder.Services.AddSingleton(StorageClient.Create(credential));
     builder.Services.AddSingleton(UrlSigner.FromCredential(credential));
