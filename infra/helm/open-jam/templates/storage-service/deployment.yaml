@@ -131,6 +131,9 @@ spec:
         - name: gcs-sa-key
           secret:
             secretName: {{ .Values.storage.gcs.credentialsSecretName | quote }}
-            defaultMode: 0400
+            # 容器以非 root 使用者（Dockerfile 的 $APP_UID，UID 1654）執行，
+            # secret 檔案 owner 為 root；0400 只有 owner 可讀會導致 Permission denied。
+            # secret volume 僅掛載於本 pod，pod 內全域可讀（0444）不構成外洩。
+            defaultMode: 0444
         {{- end }}
 {{- end }}
