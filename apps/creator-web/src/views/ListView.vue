@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { useMessage } from 'naive-ui';
 import { useShopStore } from '@/stores/shop';
-import { useAuthStore } from '@/stores/auth';
 import { CATEGORIES, TAGS, type Product } from '@/data/products';
 import ProductCard from '@/components/ProductCard.vue';
 import ProductThumb from '@/components/ProductThumb.vue';
@@ -12,8 +10,6 @@ import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const s = store;
-const auth = useAuthStore();
-const message = useMessage();
 const router = useRouter();
 const { t } = useI18n();
 
@@ -39,38 +35,6 @@ const spotlight = computed<Product | null>(() => {
 });
 const goSpotlight = () => {
   if (spotlight.value) router.push({ name: 'product', params: { id: spotlight.value.id } });
-};
-
-// ----- hero: follow form（與 AppNav 同一 following 狀態，成功後兩處同步收合）-----
-const followEmail = ref('');
-const emailEdited = ref(false);      // 使用者是否手動改過信箱欄位
-const followSubmitting = ref(false);
-
-// 已登入則以登入信箱預填（仍可手動改動）；使用者一旦動過欄位就不再覆蓋。
-watch(
-  () => auth.userEmail,
-  (email) => {
-    if (email && !emailEdited.value) followEmail.value = email;
-  },
-  { immediate: true },
-);
-
-const subscribe = async () => {
-  if (followSubmitting.value) return;
-  const v = followEmail.value.trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
-    message.warning(t('nav.msgInvalidEmail'));
-    return;
-  }
-  followSubmitting.value = true;
-  try {
-    await store.followStore(v);
-    message.success(t('nav.msgFollowSuccess'));
-  } catch {
-    message.error(t('nav.msgFollowError'));
-  } finally {
-    followSubmitting.value = false;
-  }
 };
 
 type SortKey = 'popular' | 'newest' | 'rating' | 'price-asc' | 'price-desc';
@@ -152,28 +116,6 @@ const activeChips = computed(() => {
             <span class="hero-stat"><b>{{ store.followerCount.toLocaleString() }}</b> {{ t('list.statFollowers') }}</span>
           </div>
         </div>
-
-        <!-- 追蹤卡：緊貼創作者身旁 -->
-        <aside class="follow-card">
-          <template v-if="!store.following">
-            <p class="fc-title">{{ t('follow.title') }}</p>
-            <p class="fc-desc">{{ t('follow.desc') }}</p>
-            <form class="fc-form" @submit.prevent="subscribe">
-              <input class="fc-input" type="email" v-model="followEmail" @input="emailEdited = true"
-                     :placeholder="t('follow.placeholder')" :aria-label="t('nav.followEmailAria')" :disabled="followSubmitting" />
-              <button class="fc-btn" type="submit" :disabled="followSubmitting">
-                {{ followSubmitting ? t('follow.submitting') : t('follow.cta') }}
-              </button>
-            </form>
-          </template>
-          <div v-else class="fc-done">
-            <span class="fc-done-ring"><app-icon name="check" :size="18" :stroke="2.6" /></span>
-            <div>
-              <p class="fc-title">{{ t('follow.doneTitle') }}</p>
-              <p class="fc-desc">{{ t('follow.doneDesc') }}</p>
-            </div>
-          </div>
-        </aside>
       </div>
     </section>
 

@@ -72,15 +72,6 @@
       "new": "New"
     }
   },
-  "follow": {
-    "title": "Follow this creator",
-    "desc": "Get notified when new work drops — no account needed.",
-    "placeholder": "Your email",
-    "cta": "Follow",
-    "submitting": "Following…",
-    "doneTitle": "You're following",
-    "doneDesc": "New work will land in your inbox."
-  },
   "spotlight": {
     "badge": "Creator's pick",
     "sold": "{count} sold",

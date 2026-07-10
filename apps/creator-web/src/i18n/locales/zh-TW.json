@@ -72,15 +72,6 @@
       "new": "新上架"
     }
   },
-  "follow": {
-    "title": "追蹤這位創作者",
-    "desc": "新作品上架時通知你，免註冊。",
-    "placeholder": "輸入信箱",
-    "cta": "追蹤",
-    "submitting": "追蹤中…",
-    "doneTitle": "已追蹤",
-    "doneDesc": "新作品會寄到你的信箱。"
-  },
   "spotlight": {
     "badge": "店長精選",
     "sold": "已售 {count}",
