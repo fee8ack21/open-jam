@@ -313,9 +313,10 @@ function toggle(i: number) {
   background-size: 18px 18px; opacity: .15; mix-blend-mode: soft-light;
 }
 
-/* 色帶內的縷空大字（白色微透，置中沉在內容後） */
+/* 色帶內的縷空大字（白色微透，靠左與 nav logo 切齊、沉在置中內容後；
+   top 為距 header 固定間距，三頁一致，以 LegalView 為準） */
 .fh-word {
-  position: absolute; z-index: 1; top: -0.1em; left: 50%; transform: translateX(-50%);
+  position: absolute; z-index: 1; top: 88px; left: clamp(20px, 3.5vw, 56px);
   font-family: var(--oj-display); font-weight: 800; line-height: 1;
   font-size: clamp(140px, 22vw, 250px); letter-spacing: .05em;
   color: rgba(255, 255, 255, .09); pointer-events: none; user-select: none;

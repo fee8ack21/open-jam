@@ -488,7 +488,8 @@ onBeforeUnmount(() => ctx?.revert());
 .lsec-sub { margin: 14px 0 0; font-size: 15.5px; line-height: 1.8; color: var(--text-soft); }
 
 /* ── Hero 漸層色帶：滿版飽和漸層帶 + 半調網點（同 .mkt-hero 配方）────── */
-.about-hero { position: relative; padding: clamp(52px, 8vh, 76px) clamp(20px, 3.5vw, 56px) clamp(84px, 11vh, 108px); text-align: center; }
+/* padding 與 LegalView 同組 clamp，搭配 .ah-inner min-height 讓色帶高度與隱私權頁一致 */
+.about-hero { position: relative; padding: clamp(48px, 7vh, 64px) clamp(20px, 3.5vw, 56px) clamp(76px, 10vh, 96px); text-align: center; }
 .about-hero::before, .about-hero::after {
   content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
   width: 100vw; transform: translateX(-50%); z-index: 0; pointer-events: none;
@@ -507,9 +508,10 @@ onBeforeUnmount(() => ctx?.revert());
   background-size: 18px 18px; opacity: .15; mix-blend-mode: soft-light;
 }
 
-/* 色帶內的縷空大字（白色微透，置中沉在內容後） */
+/* 色帶內的縷空大字（白色微透，靠左與 nav logo 切齊、沉在置中內容後；
+   top 為距 header 固定間距，三頁一致，以 LegalView 為準） */
 .ah-word {
-  position: absolute; z-index: 1; top: -0.08em; left: 50%; transform: translateX(-50%);
+  position: absolute; z-index: 1; top: 88px; left: clamp(20px, 3.5vw, 56px);
   font-family: var(--oj-display); font-weight: 800; line-height: 1;
   font-size: clamp(120px, 19vw, 230px); letter-spacing: .04em;
   color: rgba(255, 255, 255, .09); pointer-events: none; user-select: none;
@@ -517,7 +519,8 @@ onBeforeUnmount(() => ctx?.revert());
 
 .ah-inner {
   position: relative; z-index: 2; max-width: 780px; margin: 0 auto;
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  min-height: 232px; /* = LegalView hero 內容高，內容較少仍撐出同高色帶 */
 }
 .ah-badge {
   display: inline-flex; align-items: center; gap: 7px; margin: 0; padding: 6px 14px;
