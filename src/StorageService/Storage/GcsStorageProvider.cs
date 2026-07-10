@@ -76,23 +76,20 @@ public class GcsStorageProvider(
     /// <inheritdoc/>
     public async Task EnsurePublicReadPolicyAsync(CancellationToken ct = default)
     {
-        // 以 IAM 條件式繫結讓 public/ 前綴物件匿名可讀（需 bucket 啟用 uniform bucket-level access）。
-        // 僅作用於公開 bucket；私有 bucket 不開放匿名讀取。
+        // 公開 bucket 內物件皆為 public/ 前綴（BucketFor 保證非 public/ 鍵一律進私有 bucket），
+        // 故對整個公開 bucket 無條件開放匿名讀取即可，曝光範圍與「限 public/ 前綴」等價。
+        // 注意：GCP IAM 禁止對 allUsers/allAuthenticatedUsers 使用條件式繫結
+        //（"Conditions are not allowed on public resources"），因此不可加 Condition。
         var bucket = _opts.PublicBucket;
         const string role = "roles/storage.objectViewer";
-        var expression = $"resource.name.startsWith(\"projects/_/buckets/{bucket}/objects/public/\")";
 
-        var policy = await storage.GetBucketIamPolicyAsync(bucket,
-            new GetBucketIamPolicyOptions { RequestedPolicyVersion = 3 }, ct);
-
-        // IAM 條件式繫結需 policy version 3。
-        policy.Version = 3;
+        var policy = await storage.GetBucketIamPolicyAsync(bucket, cancellationToken: ct);
         policy.Bindings ??= [];
 
         var alreadyBound = policy.Bindings.Any(b =>
             b.Role == role &&
-            b.Members?.Contains("allUsers") == true &&
-            b.Condition?.Expression == expression);
+            b.Condition == null &&
+            b.Members?.Contains("allUsers") == true);
 
         if (alreadyBound)
             return;
@@ -101,12 +98,6 @@ public class GcsStorageProvider(
         {
             Role = role,
             Members = ["allUsers"],
-            Condition = new Expr
-            {
-                Title = "public-prefix-read",
-                Description = "Anonymous read for objects under the public/ prefix",
-                Expression = expression,
-            },
         });
 
         await storage.SetBucketIamPolicyAsync(bucket, policy, cancellationToken: ct);
