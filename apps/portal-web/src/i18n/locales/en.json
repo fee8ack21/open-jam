@@ -162,10 +162,24 @@
     "switchTo": "Read the “{title}”",
     "tabsLabel": "Legal documents",
     "eyebrow": "Legal & privacy",
-    "heroTitle": "The rules and promises behind Open Jam.",
+    "heroTitle": "The {mark} and promises behind Open Jam",
     "lede": "Your rights and responsibilities on Open Jam, and how we collect, use, and protect your data. Have a question? Get in touch.",
     "terms": {
       "title": "Terms of Service",
+      "tldr": [
+        {
+          "t": "Your work stays yours",
+          "d": "Listing never transfers copyright — you only license us to display and sell it."
+        },
+        {
+          "t": "No monthly fee, 3% cut",
+          "d": "Opening a shop and listing are free; we take a 3% fee only when a work sells."
+        },
+        {
+          "t": "Original or licensed only",
+          "d": "Infringing content is strictly prohibited; violations can suspend or end your account."
+        }
+      ],
       "sections": [
         {
           "h": "Welcome to Open Jam",
@@ -200,6 +214,20 @@
     },
     "privacy": {
       "title": "Privacy Policy",
+      "tldr": [
+        {
+          "t": "Only what's needed",
+          "d": "Email, orders, and usage records — used to run the platform, process transactions, and support you."
+        },
+        {
+          "t": "We never see your card",
+          "d": "Payments are handled entirely by Stripe; we never touch or store card data."
+        },
+        {
+          "t": "Your data, your call",
+          "d": "Access, correct, or delete your personal data any time, and opt out of marketing."
+        }
+      ],
       "sections": [
         {
           "h": "We value your privacy",
@@ -231,6 +259,15 @@
           "p": "You have the right to access, correct, or delete your personal data, and you may unsubscribe from marketing notices at any time. You can handle these requests via the settings page or by contacting support."
         }
       ]
+    },
+    "heroTitleMark": "rules",
+    "tldrLabel": "The gist — a 30-second read",
+    "tocLabel": "Contents",
+    "cta": {
+      "title": "Questions about our terms or privacy?",
+      "text": "Email us, or check the FAQ first — most questions already have answers there.",
+      "contact": "Contact us",
+      "faq": "Browse the FAQ"
     }
   },
   "onboarding": {

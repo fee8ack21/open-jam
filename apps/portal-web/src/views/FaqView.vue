@@ -276,7 +276,7 @@ function toggle(i: number) {
             <a class="fc-btn fc-btn-light" href="mailto:admin@openjam.co">
               <app-icon name="mail" :size="16" /> {{ t('faq.cta.contact') }}
             </a>
-            <a class="fc-btn fc-btn-dark" :href="env.GITHUB_REPO_URL + '/issues'" target="_blank" rel="noopener">
+            <a class="fc-btn fc-btn-light" :href="env.GITHUB_REPO_URL + '/issues'" target="_blank" rel="noopener">
               <app-icon name="github" :size="16" /> {{ t('faq.cta.github') }}
             </a>
           </div>
@@ -389,7 +389,7 @@ function toggle(i: number) {
 
 /* ── 問題列表：主題 pills + 分組編號手風琴 ────── */
 .faq-list {
-  position: relative; z-index: 1; max-width: 880px; margin: 0 auto;
+  position: relative; z-index: 1; max-width: 1080px; margin: 0 auto;
   padding: 40px clamp(20px, 3.5vw, 56px) 24px;
   scroll-margin-top: calc(var(--nav-h) + 14px);
 }
@@ -495,8 +495,6 @@ function toggle(i: number) {
 .fc-btn:hover { transform: translate(-1px, -1px); text-decoration: none; }
 .fc-btn-light { background: var(--surface); color: var(--text); box-shadow: 3px 3px 0 rgba(26,22,38,.45); }
 .fc-btn-light:hover { color: var(--text); box-shadow: 4px 4px 0 rgba(26,22,38,.45); }
-.fc-btn-dark { background: var(--text); color: #fff; box-shadow: 3px 3px 0 rgba(26,22,38,.45); }
-.fc-btn-dark:hover { color: #fff; box-shadow: 4px 4px 0 rgba(26,22,38,.45); }
 
 @media (prefers-reduced-motion: reduce) {
   .fh-search, .fh-clear, .faq-topic, .faq-pill, .fe-clear, .fs-q, .fs-mark, .fc-btn { transition: none; }
