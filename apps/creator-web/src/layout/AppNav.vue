@@ -71,6 +71,10 @@ const onSearch = (v: string) => {
   store.search = v;
   if (route.name !== 'list') router.push({ name: 'list' });
 };
+const submitSearch = () => {
+  mobileSearchOpen.value = false;
+  if (route.name !== 'list') router.push({ name: 'list' });
+};
 </script>
 
 <template>
@@ -95,14 +99,15 @@ const onSearch = (v: string) => {
       </div>
 
       <div v-if="!minimal" class="nav-search" :class="{ 'is-open': mobileSearchOpen }">
-        <div class="search-box">
+        <form class="search-box" @submit.prevent="submitSearch">
           <span class="follow-icon"><app-icon name="search" :size="17" /></span>
           <input class="search-input" type="text" :value="store.search"
                  @input="onSearch(($event.target as HTMLInputElement).value)"
                  :placeholder="t('nav.searchPlaceholder')" :aria-label="t('common.search')" />
           <button v-if="store.search" class="search-clear" type="button"
                   @click="onSearch('')" :aria-label="t('common.clear')"><app-icon name="close" :size="15" /></button>
-        </div>
+          <button class="search-btn" type="submit">{{ t('nav.search') }}</button>
+        </form>
       </div>
 
       <div class="nav-spacer"></div>

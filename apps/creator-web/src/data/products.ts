@@ -57,6 +57,8 @@ export interface Product {
   formats: string[];
   contents: ProductContent[];
   previews: number;
+  /** 店長精選旗標（Admin isFeatured）；店面首頁 spotlight 優先展示。 */
+  featured?: boolean;
   /** 實際商品縮圖（webp import URL）；未設定時退回程式產生的佔位縮圖。 */
   image?: string;
   /** 目前版本 ID（下單必填，來自 CatalogService 商品詳情的 currentVersion）。 */

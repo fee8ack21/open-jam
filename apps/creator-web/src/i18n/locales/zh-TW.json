@@ -18,6 +18,7 @@
   "nav": {
     "searchPlaceholder": "搜尋作品或標籤…",
     "searchTitle": "搜尋",
+    "search": "搜尋",
     "cartTitle": "購物車",
     "followTitle": "追蹤創作者",
     "followPlaceholder": "輸入信箱，追蹤創作者",
@@ -40,7 +41,6 @@
   },
   "list": {
     "screenLabel": "產品列表頁",
-    "heroEyebrow": "創作者商店",
     "heroSub": "樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。",
     "statWorks": "件作品",
     "statRating": "平均評分",
@@ -74,13 +74,17 @@
   },
   "follow": {
     "title": "追蹤這位創作者",
-    "desc": "新作上架與商店公告會寄到你的信箱，不需註冊帳號。",
-    "placeholder": "you@example.com",
+    "desc": "新作品上架時通知你，免註冊。",
+    "placeholder": "輸入信箱",
     "cta": "追蹤",
     "submitting": "追蹤中…",
-    "note": "隨時可以取消訂閱",
     "doneTitle": "已追蹤",
-    "doneDesc": "之後有新作上架，會第一時間通知你。"
+    "doneDesc": "新作品會寄到你的信箱。"
+  },
+  "spotlight": {
+    "badge": "店長精選",
+    "sold": "已售 {count}",
+    "cta": "查看作品 →"
   },
   "detail": {
     "screenLabel": "產品詳細頁",

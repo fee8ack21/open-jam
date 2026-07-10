@@ -18,6 +18,7 @@
   "nav": {
     "searchPlaceholder": "Search works or tags…",
     "searchTitle": "Search",
+    "search": "Search",
     "cartTitle": "Cart",
     "followTitle": "Follow creator",
     "followPlaceholder": "Enter your email to follow",
@@ -40,11 +41,10 @@
   },
   "list": {
     "screenLabel": "Product list",
-    "heroEyebrow": "Creator store",
     "heroSub": "Sheet music, photo collections, e-books — buy directly from the creator and download instantly after payment.",
-    "statWorks": "Works",
-    "statRating": "Avg rating",
-    "statFollowers": "Followers",
+    "statWorks": "works",
+    "statRating": "avg rating",
+    "statFollowers": "followers",
     "allWorks": "All works",
     "sortLabel": "Sort",
     "sortAria": "Sort by",
@@ -74,13 +74,17 @@
   },
   "follow": {
     "title": "Follow this creator",
-    "desc": "New releases and store announcements land in your inbox — no account needed.",
-    "placeholder": "you@example.com",
+    "desc": "Get notified when new work drops — no account needed.",
+    "placeholder": "Your email",
     "cta": "Follow",
     "submitting": "Following…",
-    "note": "Unsubscribe any time",
     "doneTitle": "You're following",
-    "doneDesc": "You'll be the first to know when new work drops."
+    "doneDesc": "New work will land in your inbox."
+  },
+  "spotlight": {
+    "badge": "Creator's pick",
+    "sold": "{count} sold",
+    "cta": "View work →"
   },
   "detail": {
     "screenLabel": "Product detail",

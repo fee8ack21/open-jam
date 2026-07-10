@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMessage } from 'naive-ui';
 import { useShopStore } from '@/stores/shop';
 import { useAuthStore } from '@/stores/auth';
 import { CATEGORIES, TAGS, type Product } from '@/data/products';
 import ProductCard from '@/components/ProductCard.vue';
+import ProductThumb from '@/components/ProductThumb.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const s = store;
 const auth = useAuthStore();
 const message = useMessage();
+const router = useRouter();
 const { t } = useI18n();
 
 onMounted(store.loadCatalog);
@@ -27,6 +30,16 @@ const avgRating = computed(() => {
   if (!n) return null;
   return (rated.reduce((sum, p) => sum + p.rating * p.ratingCount, 0) / n).toFixed(1);
 });
+
+// ----- 店長精選 spotlight：Admin 精選（isFeatured）優先，否則以最熱賣作品補位 -----
+const spotlight = computed<Product | null>(() => {
+  const list = store.products;
+  if (!list.length) return null;
+  return list.find((p) => p.featured) ?? [...list].sort((a, b) => b.sales - a.sales)[0];
+});
+const goSpotlight = () => {
+  if (spotlight.value) router.push({ name: 'product', params: { id: spotlight.value.id } });
+};
 
 // ----- hero: follow form（與 AppNav 同一 following 狀態，成功後兩處同步收合）-----
 const followEmail = ref('');
@@ -114,6 +127,7 @@ const activeChips = computed(() => {
 
 <template>
   <div class="page page-pad" :data-screen-label="t('list.screenLabel')">
+    <!-- 創作者 Hero：主角是創作者，不是平台 -->
     <section class="hero">
       <div class="hero-shapes">
         <span class="shape s1"></span>
@@ -121,67 +135,72 @@ const activeChips = computed(() => {
         <span class="shape s3"></span>
       </div>
 
-      <div class="hero-grid">
-        <!-- 左：創作者資訊 -->
-        <div class="hero-left">
-          <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> OPEN JAM · {{ t('list.heroEyebrow') }}</p>
-          <div class="hero-id">
-            <span class="hero-avatar">
-              <img v-if="store.storefront.avatarUrl" :src="store.storefront.avatarUrl" :alt="store.storefront.storeName" />
-              <template v-else>{{ avatarInitial }}</template>
-            </span>
-            <div class="hero-id-text">
-              <h1 class="hero-title">{{ store.storefront.storeName }}</h1>
-              <p class="hero-handle">@{{ store.storefront.storeSlug }}</p>
-            </div>
-          </div>
+      <div class="hero-band">
+        <span class="hero-avatar">
+          <img v-if="store.storefront.avatarUrl" :src="store.storefront.avatarUrl" :alt="store.storefront.storeName" />
+          <template v-else>{{ avatarInitial }}</template>
+        </span>
+
+        <div class="hero-main">
+          <h1 class="hero-title"><span class="hl hl-lime">{{ store.storefront.storeName }}</span></h1>
           <p class="hero-sub">{{ heroDesc }}</p>
           <div class="hero-stats">
-            <div class="hero-stat">
-              <b>{{ workCount }}</b>
-              <span>{{ t('list.statWorks') }}</span>
-            </div>
-            <div class="hero-stat">
-              <b><app-icon name="star" :size="19" :stroke="2.2" class="stat-star" />{{ avgRating ?? '—' }}</b>
-              <span>{{ t('list.statRating') }}</span>
-            </div>
-            <div class="hero-stat">
-              <b>{{ store.followerCount.toLocaleString() }}</b>
-              <span>{{ t('list.statFollowers') }}</span>
-            </div>
+            <span class="hero-stat"><b>{{ workCount }}</b> {{ t('list.statWorks') }}</span>
+            <span class="hero-stat-sep"></span>
+            <span class="hero-stat"><app-icon name="star" :size="16" :stroke="2.2" class="stat-star" /><b>{{ avgRating ?? '—' }}</b> {{ t('list.statRating') }}</span>
+            <span class="hero-stat-sep"></span>
+            <span class="hero-stat"><b>{{ store.followerCount.toLocaleString() }}</b> {{ t('list.statFollowers') }}</span>
           </div>
         </div>
 
-        <!-- 右：信箱追蹤卡 -->
-        <aside class="hero-follow">
-          <div class="follow-card">
-            <template v-if="!store.following">
-              <div class="fc-head">
-                <span class="fc-mark"><app-icon name="mail" :size="19" /></span>
-                <h2 class="fc-title">{{ t('follow.title') }}</h2>
-              </div>
-              <p class="fc-desc">{{ t('follow.desc') }}</p>
-              <form class="fc-form" @submit.prevent="subscribe">
-                <div class="fc-input-row">
-                  <span class="fc-input-ic"><app-icon name="mail" :size="16" /></span>
-                  <input class="fc-input" type="email" v-model="followEmail" @input="emailEdited = true"
-                         :placeholder="t('follow.placeholder')" :aria-label="t('nav.followEmailAria')" :disabled="followSubmitting" />
-                </div>
-                <button class="fc-btn" type="submit" :disabled="followSubmitting">
-                  {{ followSubmitting ? t('follow.submitting') : t('follow.cta') }}
-                </button>
-              </form>
-              <p class="fc-note"><app-icon name="shield" :size="13" /> {{ t('follow.note') }}</p>
-            </template>
-            <div v-else class="fc-done">
-              <span class="fc-done-ring"><app-icon name="check" :size="22" :stroke="2.6" /></span>
+        <!-- 追蹤卡：緊貼創作者身旁 -->
+        <aside class="follow-card">
+          <template v-if="!store.following">
+            <p class="fc-title">{{ t('follow.title') }}</p>
+            <p class="fc-desc">{{ t('follow.desc') }}</p>
+            <form class="fc-form" @submit.prevent="subscribe">
+              <input class="fc-input" type="email" v-model="followEmail" @input="emailEdited = true"
+                     :placeholder="t('follow.placeholder')" :aria-label="t('nav.followEmailAria')" :disabled="followSubmitting" />
+              <button class="fc-btn" type="submit" :disabled="followSubmitting">
+                {{ followSubmitting ? t('follow.submitting') : t('follow.cta') }}
+              </button>
+            </form>
+          </template>
+          <div v-else class="fc-done">
+            <span class="fc-done-ring"><app-icon name="check" :size="18" :stroke="2.6" /></span>
+            <div>
               <p class="fc-title">{{ t('follow.doneTitle') }}</p>
               <p class="fc-desc">{{ t('follow.doneDesc') }}</p>
             </div>
           </div>
         </aside>
       </div>
+    </section>
 
+    <!-- 店長精選 spotlight -->
+    <section v-if="spotlight" class="spotlight">
+      <div class="spot-body">
+        <span class="spot-badge"><app-icon name="sparkle" :size="13" /> {{ t('spotlight.badge') }}</span>
+        <h2 class="spot-title">{{ spotlight.title }}</h2>
+        <p v-if="spotlight.blurb" class="spot-blurb">{{ spotlight.blurb }}</p>
+        <div class="spot-meta">
+          <span class="spot-chip">{{ t('spotlight.sold', { count: spotlight.sales.toLocaleString() }) }}</span>
+          <span v-if="spotlight.ratingCount" class="spot-chip">★ {{ spotlight.rating.toFixed(1) }}（{{ spotlight.ratingCount }}）</span>
+          <span class="spot-chip">{{ catLabel(spotlight.cat) }}</span>
+        </div>
+        <div class="spot-actions">
+          <button type="button" class="spot-cta" @click="goSpotlight">{{ t('spotlight.cta') }}</button>
+          <span class="spot-price" :class="{ free: spotlight.price === 0 }">
+            {{ spotlight.price === 0 ? t('common.free') : '$' + spotlight.price }}
+          </span>
+        </div>
+      </div>
+      <div class="spot-cover" @click="goSpotlight">
+        <product-thumb :product="spotlight" hide-label :glyph-size="72" />
+      </div>
+    </section>
+
+    <section class="browse">
       <div class="hero-cats">
         <span class="cat-pill c-all" :class="{ on: s.category === 'all' }" @click="setCat('all')">
           <span class="dot" style="background:var(--c-violet)"></span>{{ t('list.allWorks') }}
@@ -190,9 +209,7 @@ const activeChips = computed(() => {
           <span class="dot" :style="{ background: catColor(c.id) }"></span>{{ t('category.' + c.id) }}
         </span>
       </div>
-    </section>
 
-    <section class="browse">
       <!-- toolbar: result count + sort tabs -->
       <div class="browse-toolbar">
         <i18n-t keypath="list.count" tag="span" class="browse-count" scope="global">
