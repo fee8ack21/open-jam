@@ -194,12 +194,19 @@ onMounted(() => {
         scrollTrigger: { trigger: '.dc-collage', start: 'top 78%', once: true },
       });
 
-      // ---- 巨型出血字：隨捲動水平飄移（Begonia 式大字） ----
+      // ---- 巨型出血字：隨捲動明顯水平偏移（往左／往右滑動，奇偶交錯方向）----
+      // 以 vw 計算左右位移，區塊在視窗內通過期間隨捲動雙向滑動；overflow-x: clip 吸收溢出。
       gsap.utils.toArray<HTMLElement>('.l-bigword[data-drift]').forEach((el, i) => {
-        gsap.fromTo(el, { xPercent: i % 2 ? -3 : 2 }, {
-          xPercent: i % 2 ? 2 : -4,
+        gsap.fromTo(el, { x: i % 2 ? '9vw' : '-9vw' }, {
+          x: i % 2 ? '-9vw' : '9vw',
           ease: 'none',
-          scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },
+          scrollTrigger: {
+            trigger: el.parentElement,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
         });
       });
 

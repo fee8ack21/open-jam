@@ -8,13 +8,17 @@
    內容撈取 ContentService「已發布」的 FAQ（GET /v1/faqs/published，
    後台可維護）；撈取失敗或尚無資料時退回 i18n 靜態文案（faq.items）。
    ============================================================ */
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useShopStore } from '@/stores/shop.js';
 import { contentApi } from '@/api';
 import { FaqCategory, type FaqItemDto } from '@/api/content-service';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const store = useShopStore();
 const { t, tm, rt } = useI18n();
@@ -96,10 +100,37 @@ function catColor(cat: string): string {
 function tabCount(k: TabKey): number {
   return k === 'all' ? items.value.length : items.value.filter((it) => it.cat === k).length;
 }
+
+// ── 縷空大字視差：隨頁面捲動左右偏移（往下捲向左滑、往上捲向右滑）。
+//    收在 gsap.context 內、離開頁面 revert；reduced-motion 不啟用。 ──
+const rootEl = ref<HTMLElement | null>(null);
+let ctx: gsap.Context | undefined;
+onMounted(() => {
+  ctx = gsap.context(() => {
+    gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(
+        '.faq-bigword',
+        { x: '10vw' },
+        {
+          x: '-10vw',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.faq-page',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+    });
+  }, rootEl.value!);
+});
+onBeforeUnmount(() => ctx?.revert());
 </script>
 
 <template>
-  <div class="oj-root" :class="'font-' + store.font" :data-screen-label="t('faq.screenLabel')">
+  <div ref="rootEl" class="oj-root" :class="'font-' + store.font" :data-screen-label="t('faq.screenLabel')">
     <!-- ============ NAV ============ -->
     <app-nav />
 

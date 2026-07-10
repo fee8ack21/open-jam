@@ -7,15 +7,19 @@
    （GET /v1/legal-documents/active，後台可編輯 / 換版）；
    撈取失敗時退回 i18n 靜態文案（src/data/legal.ts 結構）。
    ============================================================ */
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useShopStore } from '@/stores/shop.js';
 import { LEGAL_META, type LegalKey } from '@/data/legal.js';
 import { contentApi } from '@/api';
 import { LegalDocumentType, type LegalDocumentDto } from '@/api/content-service';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const props = defineProps<{ doc: LegalKey }>();
 
@@ -104,10 +108,37 @@ const sections = computed<Section[]>(() => {
     }),
   );
 });
+
+// ── 縷空大字視差：隨頁面捲動左右偏移（往下捲向左滑、往上捲向右滑）。
+//    收在 gsap.context 內、離開頁面 revert；reduced-motion 不啟用。 ──
+const rootEl = ref<HTMLElement | null>(null);
+let ctx: gsap.Context | undefined;
+onMounted(() => {
+  ctx = gsap.context(() => {
+    gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(
+        '.li-bigword',
+        { x: '10vw' },
+        {
+          x: '-10vw',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.legal-page',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+    });
+  }, rootEl.value!);
+});
+onBeforeUnmount(() => ctx?.revert());
 </script>
 
 <template>
-  <div class="oj-root" :class="'font-' + store.font" :data-screen-label="title">
+  <div ref="rootEl" class="oj-root" :class="'font-' + store.font" :data-screen-label="title">
     <!-- ============ NAV ============ -->
     <app-nav />
 
