@@ -62,7 +62,7 @@ spec:
               value: {{ .Values.config.authPageUrl | quote }}
             - name: App__WorkspaceUrl
               value: {{ .Values.config.workspaceUrl | quote }}
-            - name: App__MarketUrl
+            - name: App__PortalUrl
               value: {{ .Values.config.portalPageUrl | quote }}
             # 取得啟用中法律文件供註冊 / 登入 re-consent 同意流程
             - name: Services__ContentService__BaseUrl

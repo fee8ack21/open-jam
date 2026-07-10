@@ -120,7 +120,7 @@ services:
       Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
       App__BaseUrl: ${AUTH_PAGE_URL}
       App__WorkspaceUrl: ${WORKSPACE_URL}
-      App__MarketUrl: ${MARKET_PAGE_URL}
+      App__PortalUrl: ${PORTAL_PAGE_URL}
       Services__ContentService__BaseUrl: http://${PROJECT_NAME}-content-service:8080
     ports:
       - "5169:8080"
@@ -392,7 +392,7 @@ services:
       context: ../../apps/creator-web
     restart: unless-stopped
     environment:
-      MARKET_PAGE_URL: ${MARKET_PAGE_URL}
+      PORTAL_PAGE_URL: ${PORTAL_PAGE_URL}
       CATALOG_API_URL: ${CATALOG_API_URL}
       STORE_API_URL: ${STORE_API_URL}
       STORE_SLUG: ${STORE_SLUG}
@@ -428,7 +428,7 @@ services:
     restart: unless-stopped
     environment:
       WORKSPACE_PAGE_URL: ${WORKSPACE_URL}
-      MARKET_PAGE_URL: ${MARKET_PAGE_URL}
+      PORTAL_PAGE_URL: ${PORTAL_PAGE_URL}
       OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}

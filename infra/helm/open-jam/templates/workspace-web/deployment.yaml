@@ -28,7 +28,7 @@ spec:
           env:
             - name: WORKSPACE_PAGE_URL
               value: {{ .Values.config.workspaceUrl | quote }}
-            - name: MARKET_PAGE_URL
+            - name: PORTAL_PAGE_URL
               value: {{ .Values.config.portalPageUrl | quote }}
             - name: OIDC_AUTHORITY
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}

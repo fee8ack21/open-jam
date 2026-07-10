@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
   if (outside) document.removeEventListener('click', outside)
 })
 
-function goToMarket() { window.location.href = env.MARKET_PAGE_URL }
+function goToMarket() { window.location.href = env.PORTAL_PAGE_URL }
 </script>
 
 <template>

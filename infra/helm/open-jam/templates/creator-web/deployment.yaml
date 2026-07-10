@@ -26,7 +26,7 @@ spec:
             - containerPort: 80
               name: http
           env:
-            - name: MARKET_PAGE_URL
+            - name: PORTAL_PAGE_URL
               value: {{ .Values.config.externalUrl | quote }}
             - name: CATALOG_API_URL
               value: {{ .Values.config.catalogApiUrl | quote }}

@@ -4,7 +4,7 @@ import { env } from '@/environment';
 import AppIcon from '@/components/app-icon';
 
 const { t } = useI18n();
-const goMarket = () => { window.location.href = env.MARKET_PAGE_URL; };
+const goMarket = () => { window.location.href = env.PORTAL_PAGE_URL; };
 </script>
 
 <template>

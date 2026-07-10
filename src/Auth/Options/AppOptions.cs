@@ -13,5 +13,5 @@ public class AppOptions
 
     /// <summary>Portal Web（平台首頁）根 URL，供登入頁「返回平台」連結使用。</summary>
     /// <example>https://openjam.co</example>
-    public string MarketUrl { get; set; } = null!;
+    public string PortalUrl { get; set; } = null!;
 }

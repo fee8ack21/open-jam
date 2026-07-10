@@ -2,7 +2,7 @@ class AppEnv {
   [key: string]: string;
 
   WORKSPACE_PAGE_URL = "http://localhost:5175";
-  MARKET_PAGE_URL = "http://localhost:5173";
+  PORTAL_PAGE_URL = "http://localhost:5173";
   CREATOR_PAGE_BASE_URL = "https://<store-slug>.openjam.co";
   OIDC_AUTHORITY = "https://hydra.openjam.co";
   OIDC_CLIENT_ID = "open-jam-web";

@@ -1,7 +1,7 @@
 class AppEnv {
   [key: string]: string;
 
-  MARKET_PAGE_URL = 'http://localhost:5173'
+  PORTAL_PAGE_URL = 'http://localhost:5173'
   CATALOG_API_URL = 'https://api.openjam.co/catalog-service'
   STORE_API_URL = 'https://api.openjam.co/store-service'
   ORDER_API_URL = 'https://api.openjam.co/order-service'
