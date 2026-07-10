@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import AppNav from './layout/AppNav.vue';
+import AppFooter from './layout/AppFooter.vue';
 import { STORE } from './data/store';
 import { useAuthStore } from '@/stores/auth';
 import { useShopStore } from '@/stores/shop';
@@ -73,6 +74,8 @@ const overrides = computed(() => ({
       <main>
         <router-view />
       </main>
+
+      <app-footer />
 
     </div>
   </n-message-provider>

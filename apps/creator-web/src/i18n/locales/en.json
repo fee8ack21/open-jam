@@ -29,12 +29,22 @@
     "msgFollowSuccess": "You’re now following this creator",
     "msgFollowError": "Couldn’t follow, please try again later"
   },
+  "footer": {
+    "links": "Footer links",
+    "marketplace": "Explore the marketplace",
+    "about": "About",
+    "faq": "FAQ",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2026 Open Jam · A marketplace for creators"
+  },
   "list": {
     "screenLabel": "Product list",
-    "heroTitle": "Turn your {creativity} into work you can {sell}",
-    "heroCreativity": "creativity",
-    "heroSell": "sell",
+    "heroEyebrow": "Creator store",
     "heroSub": "Sheet music, photo collections, e-books — buy directly from the creator and download instantly after payment.",
+    "statWorks": "Works",
+    "statRating": "Avg rating",
+    "statFollowers": "Followers",
     "allWorks": "All works",
     "sortLabel": "Sort",
     "sortAria": "Sort by",
@@ -61,6 +71,16 @@
       "hot": "Bestseller",
       "new": "New"
     }
+  },
+  "follow": {
+    "title": "Follow this creator",
+    "desc": "New releases and store announcements land in your inbox — no account needed.",
+    "placeholder": "you@example.com",
+    "cta": "Follow",
+    "submitting": "Following…",
+    "note": "Unsubscribe any time",
+    "doneTitle": "You're following",
+    "doneDesc": "You'll be the first to know when new work drops."
   },
   "detail": {
     "screenLabel": "Product detail",

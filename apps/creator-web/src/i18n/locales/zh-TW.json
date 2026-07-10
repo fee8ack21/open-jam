@@ -29,12 +29,22 @@
     "msgFollowSuccess": "已開始追蹤這位創作者",
     "msgFollowError": "追蹤失敗，請稍後再試"
   },
+  "footer": {
+    "links": "頁尾連結",
+    "marketplace": "探索市集",
+    "about": "關於",
+    "faq": "常見問題",
+    "privacy": "隱私權政策",
+    "terms": "服務條款",
+    "copyright": "© 2026 Open Jam · 創作者數位市集"
+  },
   "list": {
     "screenLabel": "產品列表頁",
-    "heroTitle": "把你的{creativity}變成可以{sell}的作品",
-    "heroCreativity": "創造力",
-    "heroSell": "販售",
+    "heroEyebrow": "創作者商店",
     "heroSub": "樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。",
+    "statWorks": "件作品",
+    "statRating": "平均評分",
+    "statFollowers": "位追蹤者",
     "allWorks": "全部作品",
     "sortLabel": "排序",
     "sortAria": "排序方式",
@@ -61,6 +71,16 @@
       "hot": "熱賣",
       "new": "新上架"
     }
+  },
+  "follow": {
+    "title": "追蹤這位創作者",
+    "desc": "新作上架與商店公告會寄到你的信箱，不需註冊帳號。",
+    "placeholder": "you@example.com",
+    "cta": "追蹤",
+    "submitting": "追蹤中…",
+    "note": "隨時可以取消訂閱",
+    "doneTitle": "已追蹤",
+    "doneDesc": "之後有新作上架，會第一時間通知你。"
   },
   "detail": {
     "screenLabel": "產品詳細頁",

@@ -98,6 +98,9 @@ export const useShopStore = defineStore('shop', () => {
 
   // 追蹤創作者（依信箱訂閱本店面更新）
   const following = ref(false);
+  // 追蹤人數：StoreService 公開 StoreDto 尚無追蹤數欄位（followers 端點僅 Owner 可查），
+  // 先以示範值顯示（後端缺口），待後端曝露公開計數後改由 API 帶入。
+  const followerCount = ref(236);
 
   // ── getters ────────────────────────────────────────────
   // arg-taking getters return a function
@@ -293,6 +296,7 @@ export const useShopStore = defineStore('shop', () => {
     // 確保已載入真實店面 id（瀏覽時通常已載入，guard 後重呼為低成本）
     await loadCatalog();
     await storeApi.storeFollowers.follow(storefront.value.id, { email });
+    if (!following.value) followerCount.value += 1; // 樂觀反映本地顯示
     following.value = true;
   }
 
@@ -364,7 +368,7 @@ export const useShopStore = defineStore('shop', () => {
 
   return {
     // state
-    theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order, following,
+    theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order, following, followerCount,
     products, storefront, categories, loading, loaded, pendingOrder, checkingOut,
     // getters
     product, isFav, inCart, cartProducts, cartCount, subtotal, filtered, activeFilterCount,
