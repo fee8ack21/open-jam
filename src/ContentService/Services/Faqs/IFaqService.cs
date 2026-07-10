@@ -1,4 +1,3 @@
-using ContentService.Data.Entities;
 using ContentService.Models;
 
 namespace ContentService.Services.Faqs;
@@ -9,8 +8,8 @@ public interface IFaqService
     /// <summary>分頁查詢常見問題（管理員後台列表）。</summary>
     Task<ListFaqItemsResponse> ListAsync(ListFaqItemsRequest request, CancellationToken ct = default);
 
-    /// <summary>取得已發布的常見問題（匿名公開，依分類與排序）；category 為 null 時回傳所有分類。</summary>
-    Task<List<FaqItemDto>> GetPublishedAsync(FaqCategory? category, CancellationToken ct = default);
+    /// <summary>取得已發布的常見問題（匿名公開，依分類與排序）；categoryId 為 null 時回傳所有分類。</summary>
+    Task<List<FaqItemDto>> GetPublishedAsync(Guid? categoryId, CancellationToken ct = default);
 
     /// <summary>取得單筆常見問題。</summary>
     Task<FaqItemDto> GetAsync(Guid id, CancellationToken ct = default);

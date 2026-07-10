@@ -10,6 +10,10 @@ public class FaqMappingProfile : Profile
     /// <summary>建立對應規則。</summary>
     public FaqMappingProfile()
     {
-        CreateMap<FaqItem, FaqItemDto>();
+        CreateMap<FaqCategory, FaqCategoryDto>();
+
+        CreateMap<FaqItem, FaqItemDto>()
+            .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category.Name))
+            .ForMember(d => d.CategorySlug, o => o.MapFrom(s => s.Category.Slug));
     }
 }

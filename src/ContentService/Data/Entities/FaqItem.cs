@@ -3,7 +3,7 @@ using Shared.Audit;
 namespace ContentService.Data.Entities;
 
 /// <summary>
-/// 常見問題（FAQ）項目。依主題分類（<see cref="FaqCategory"/>）分組，
+/// 常見問題（FAQ）項目。歸屬於某個 <see cref="FaqCategory"/>，
 /// 於同分類內以 <see cref="SortOrder"/> 排序；僅 <see cref="IsPublished"/> 為 true 者對外公開。
 /// </summary>
 public class FaqItem : ICreatedAt, IUpdatedAt, IUpdatedBy
@@ -11,8 +11,11 @@ public class FaqItem : ICreatedAt, IUpdatedAt, IUpdatedBy
     /// <summary>項目唯一識別碼。</summary>
     public Guid Id { get; private set; } = Guid.NewGuid();
 
-    /// <summary>主題分類。</summary>
-    public FaqCategory Category { get; set; }
+    /// <summary>所屬主題分類 ID。</summary>
+    public Guid CategoryId { get; set; }
+
+    /// <summary>所屬主題分類（導覽屬性）。</summary>
+    public FaqCategory Category { get; set; } = null!;
 
     /// <summary>問題。</summary>
     public string Question { get; set; } = "";

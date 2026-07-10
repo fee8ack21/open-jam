@@ -1,0 +1,26 @@
+[
+  {
+    "name": "認識平台",
+    "slug": "platform",
+    "description": "關於 Open Jam 平台的基本介紹與使用方式",
+    "sortOrder": 0
+  },
+  {
+    "name": "購買與下載",
+    "slug": "buying",
+    "description": "免註冊購買、取得下載連結與退款相關問題",
+    "sortOrder": 1
+  },
+  {
+    "name": "開店與上架",
+    "slug": "selling",
+    "description": "成為創作者、開店申請與商品上架相關問題",
+    "sortOrder": 2
+  },
+  {
+    "name": "金流與結算",
+    "slug": "payments",
+    "description": "付款方式、平台抽成與銷售結算相關問題",
+    "sortOrder": 3
+  }
+]

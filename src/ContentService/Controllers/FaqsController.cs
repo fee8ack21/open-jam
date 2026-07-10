@@ -1,5 +1,4 @@
 using Asp.Versioning;
-using ContentService.Data.Entities;
 using ContentService.Models;
 using ContentService.Services.Faqs;
 using Microsoft.AspNetCore.Authorization;
@@ -28,14 +27,14 @@ public class FaqsController(IFaqService faqService) : ControllerBase
         => Ok(await faqService.ListAsync(request, ct));
 
     /// <summary>取得已發布的常見問題（匿名公開，依分類與排序）。</summary>
-    /// <param name="category">主題分類；不帶時回傳所有分類。</param>
+    /// <param name="categoryId">主題分類 ID；不帶時回傳所有分類。</param>
     /// <param name="ct">Cancellation token。</param>
     /// <returns>已發布的項目清單。</returns>
     [HttpGet("published")]
     [AllowAnonymous]
     [ProducesResponseType<List<FaqItemDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<FaqItemDto>>> GetPublishedAsync([FromQuery] FaqCategory? category, CancellationToken ct)
-        => Ok(await faqService.GetPublishedAsync(category, ct));
+    public async Task<ActionResult<List<FaqItemDto>>> GetPublishedAsync([FromQuery] Guid? categoryId, CancellationToken ct)
+        => Ok(await faqService.GetPublishedAsync(categoryId, ct));
 
     /// <summary>取得單筆常見問題。</summary>
     /// <param name="id">項目 ID。</param>

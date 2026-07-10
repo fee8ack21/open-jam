@@ -1,4 +1,4 @@
-﻿{
+{
   "openapi": "3.0.1",
   "info": {
     "title": "ContentService",
@@ -13,6 +13,243 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/faq-categories": {
+      "get": {
+        "tags": [
+          "FaqCategories"
+        ],
+        "summary": "列出所有分類（匿名公開，依排序）。",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FaqCategoryDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FaqCategoryDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FaqCategoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FaqCategories"
+        ],
+        "summary": "建立分類。僅 Admin 可操作。",
+        "operationId": "Create",
+        "requestBody": {
+          "description": "分類資料。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFaqCategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFaqCategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFaqCategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/faq-categories/{id}": {
+      "get": {
+        "tags": [
+          "FaqCategories"
+        ],
+        "summary": "查詢單一分類。僅 Admin 可存取。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "分類 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "FaqCategories"
+        ],
+        "summary": "更新分類。僅 Admin 可操作。",
+        "operationId": "Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "分類 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "欲更新的欄位。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFaqCategoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFaqCategoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFaqCategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaqCategoryDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FaqCategories"
+        ],
+        "summary": "刪除分類（不可仍被常見問題項目引用）。僅 Admin 可操作。",
+        "operationId": "Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "分類 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
           }
         }
       }
@@ -48,13 +285,15 @@
             "example": 20
           },
           {
-            "name": "Category",
+            "name": "CategoryId",
             "in": "query",
-            "description": "過濾主題分類；null 表示不限。",
+            "description": "過濾主題分類 ID；null 表示不限。",
             "schema": {
-              "$ref": "#/components/schemas/FaqCategory"
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
             },
-            "example": "Platform"
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "IsPublished",
@@ -149,11 +388,12 @@
         "operationId": "GetPublished",
         "parameters": [
           {
-            "name": "category",
+            "name": "categoryId",
             "in": "query",
-            "description": "主題分類；不帶時回傳所有分類。",
+            "description": "主題分類 ID；不帶時回傳所有分類。",
             "schema": {
-              "$ref": "#/components/schemas/FaqCategory"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -863,11 +1103,45 @@
   },
   "components": {
     "schemas": {
+      "CreateFaqCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "分類名稱（1–100 字）。",
+            "nullable": true,
+            "example": "認識平台"
+          },
+          "slug": {
+            "type": "string",
+            "description": "分類代稱（全域唯一，3–100 字小寫英數字與連字號）。",
+            "nullable": true,
+            "example": "platform"
+          },
+          "description": {
+            "type": "string",
+            "description": "分類補充敘述（選填，最多 200 字）。",
+            "nullable": true,
+            "example": "關於 Open Jam 平台的基本介紹"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "分頁顯示排序。",
+            "format": "int32",
+            "example": 0
+          }
+        },
+        "additionalProperties": false,
+        "description": "建立常見問題主題分類請求（平台維護）。"
+      },
       "CreateFaqItemRequest": {
         "type": "object",
         "properties": {
-          "category": {
-            "$ref": "#/components/schemas/FaqCategory"
+          "categoryId": {
+            "type": "string",
+            "description": "所屬主題分類 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "question": {
             "type": "string",
@@ -918,15 +1192,42 @@
         "additionalProperties": false,
         "description": "建立法律文件草稿請求；版本序號由伺服器依同類型現有最大版本 +1 產生。"
       },
-      "FaqCategory": {
-        "enum": [
-          "Platform",
-          "Buying",
-          "Selling",
-          "Payments"
-        ],
-        "type": "string",
-        "description": "常見問題主題分類（對應 portal-web FAQ 頁的主題分頁）。"
+      "FaqCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "分類唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "name": {
+            "type": "string",
+            "description": "分類名稱。",
+            "nullable": true,
+            "example": "認識平台"
+          },
+          "slug": {
+            "type": "string",
+            "description": "分類代稱（全域唯一）。",
+            "nullable": true,
+            "example": "platform"
+          },
+          "description": {
+            "type": "string",
+            "description": "分類補充敘述；null 表示未設定。",
+            "nullable": true,
+            "example": "關於 Open Jam 平台的基本介紹"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "分頁顯示排序。",
+            "format": "int32",
+            "example": 0
+          }
+        },
+        "additionalProperties": false,
+        "description": "常見問題主題分類回應。"
       },
       "FaqItemDto": {
         "type": "object",
@@ -937,8 +1238,23 @@
             "format": "uuid",
             "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
-          "category": {
-            "$ref": "#/components/schemas/FaqCategory"
+          "categoryId": {
+            "type": "string",
+            "description": "所屬主題分類 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "categoryName": {
+            "type": "string",
+            "description": "所屬主題分類名稱。",
+            "nullable": true,
+            "example": "認識平台"
+          },
+          "categorySlug": {
+            "type": "string",
+            "description": "所屬主題分類代稱。",
+            "nullable": true,
+            "example": "platform"
           },
           "question": {
             "type": "string",
@@ -1174,11 +1490,46 @@
         },
         "additionalProperties": { }
       },
+      "UpdateFaqCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "分類名稱；null 表示不變更。",
+            "nullable": true,
+            "example": "認識平台"
+          },
+          "slug": {
+            "type": "string",
+            "description": "分類代稱；null 表示不變更。",
+            "nullable": true,
+            "example": "platform"
+          },
+          "description": {
+            "type": "string",
+            "description": "分類補充敘述；null 表示不變更。",
+            "nullable": true,
+            "example": "關於 Open Jam 平台的基本介紹"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "分頁顯示排序；null 表示不變更。",
+            "format": "int32",
+            "nullable": true,
+            "example": 1
+          }
+        },
+        "additionalProperties": false,
+        "description": "更新常見問題主題分類請求（部分欄位，null 表示不變更）。"
+      },
       "UpdateFaqItemRequest": {
         "type": "object",
         "properties": {
-          "category": {
-            "$ref": "#/components/schemas/FaqCategory"
+          "categoryId": {
+            "type": "string",
+            "description": "所屬主題分類 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "question": {
             "type": "string",

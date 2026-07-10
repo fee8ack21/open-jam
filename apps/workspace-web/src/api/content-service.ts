@@ -23,18 +23,39 @@ export enum LegalDocumentStatus {
   Inactive = "Inactive",
 }
 
-/** 常見問題主題分類（對應 portal-web FAQ 頁的主題分頁）。 */
-export enum FaqCategory {
-  Platform = "Platform",
-  Buying = "Buying",
-  Selling = "Selling",
-  Payments = "Payments",
+/** 建立常見問題主題分類請求（平台維護）。 */
+export interface CreateFaqCategoryRequest {
+  /**
+   * 分類名稱（1–100 字）。
+   * @example "認識平台"
+   */
+  name?: string | null;
+  /**
+   * 分類代稱（全域唯一，3–100 字小寫英數字與連字號）。
+   * @example "platform"
+   */
+  slug?: string | null;
+  /**
+   * 分類補充敘述（選填，最多 200 字）。
+   * @example "關於 Open Jam 平台的基本介紹"
+   */
+  description?: string | null;
+  /**
+   * 分頁顯示排序。
+   * @format int32
+   * @example 0
+   */
+  sortOrder?: number;
 }
 
 /** 建立常見問題項目請求。 */
 export interface CreateFaqItemRequest {
-  /** 常見問題主題分類（對應 portal-web FAQ 頁的主題分頁）。 */
-  category?: FaqCategory;
+  /**
+   * 所屬主題分類 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  categoryId?: string;
   /**
    * 問題。
    * @example "Open Jam 是什麼？"
@@ -74,6 +95,37 @@ export interface CreateLegalDocumentRequest {
   content?: string | null;
 }
 
+/** 常見問題主題分類回應。 */
+export interface FaqCategoryDto {
+  /**
+   * 分類唯一識別碼。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  id?: string;
+  /**
+   * 分類名稱。
+   * @example "認識平台"
+   */
+  name?: string | null;
+  /**
+   * 分類代稱（全域唯一）。
+   * @example "platform"
+   */
+  slug?: string | null;
+  /**
+   * 分類補充敘述；null 表示未設定。
+   * @example "關於 Open Jam 平台的基本介紹"
+   */
+  description?: string | null;
+  /**
+   * 分頁顯示排序。
+   * @format int32
+   * @example 0
+   */
+  sortOrder?: number;
+}
+
 /** 常見問題項目。 */
 export interface FaqItemDto {
   /**
@@ -82,8 +134,22 @@ export interface FaqItemDto {
    * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
    */
   id?: string;
-  /** 常見問題主題分類（對應 portal-web FAQ 頁的主題分頁）。 */
-  category?: FaqCategory;
+  /**
+   * 所屬主題分類 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  categoryId?: string;
+  /**
+   * 所屬主題分類名稱。
+   * @example "認識平台"
+   */
+  categoryName?: string | null;
+  /**
+   * 所屬主題分類代稱。
+   * @example "platform"
+   */
+  categorySlug?: string | null;
   /**
    * 問題。
    * @example "Open Jam 是什麼？"
@@ -244,10 +310,39 @@ export interface ProblemDetails {
   [key: string]: any;
 }
 
+/** 更新常見問題主題分類請求（部分欄位，null 表示不變更）。 */
+export interface UpdateFaqCategoryRequest {
+  /**
+   * 分類名稱；null 表示不變更。
+   * @example "認識平台"
+   */
+  name?: string | null;
+  /**
+   * 分類代稱；null 表示不變更。
+   * @example "platform"
+   */
+  slug?: string | null;
+  /**
+   * 分類補充敘述；null 表示不變更。
+   * @example "關於 Open Jam 平台的基本介紹"
+   */
+  description?: string | null;
+  /**
+   * 分頁顯示排序；null 表示不變更。
+   * @format int32
+   * @example 1
+   */
+  sortOrder?: number | null;
+}
+
 /** 更新常見問題項目請求。 */
 export interface UpdateFaqItemRequest {
-  /** 常見問題主題分類（對應 portal-web FAQ 頁的主題分頁）。 */
-  category?: FaqCategory;
+  /**
+   * 所屬主題分類 ID。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  categoryId?: string;
   /**
    * 問題。
    * @example "Open Jam 是什麼？"
@@ -566,6 +661,94 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  faqCategories = {
+    /**
+     * No description
+     *
+     * @tags FaqCategories
+     * @name List
+     * @summary 列出所有分類（匿名公開，依排序）。
+     * @request GET:/v1/faq-categories
+     */
+    list: (params: RequestParams = {}) =>
+      this.http.request<FaqCategoryDto[], any>({
+        path: `/v1/faq-categories`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags FaqCategories
+     * @name Create
+     * @summary 建立分類。僅 Admin 可操作。
+     * @request POST:/v1/faq-categories
+     */
+    create: (data: CreateFaqCategoryRequest, params: RequestParams = {}) =>
+      this.http.request<FaqCategoryDto, any>({
+        path: `/v1/faq-categories`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags FaqCategories
+     * @name Get
+     * @summary 查詢單一分類。僅 Admin 可存取。
+     * @request GET:/v1/faq-categories/{id}
+     */
+    get: (id: string, params: RequestParams = {}) =>
+      this.http.request<FaqCategoryDto, ProblemDetails>({
+        path: `/v1/faq-categories/${id}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags FaqCategories
+     * @name Update
+     * @summary 更新分類。僅 Admin 可操作。
+     * @request PATCH:/v1/faq-categories/{id}
+     */
+    update: (
+      id: string,
+      data: UpdateFaqCategoryRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FaqCategoryDto, any>({
+        path: `/v1/faq-categories/${id}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags FaqCategories
+     * @name Delete
+     * @summary 刪除分類（不可仍被常見問題項目引用）。僅 Admin 可操作。
+     * @request DELETE:/v1/faq-categories/{id}
+     */
+    delete: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/faq-categories/${id}`,
+        method: "DELETE",
+        ...params,
+      }),
+  };
   faqs = {
     /**
      * No description
@@ -590,10 +773,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         Limit?: number;
         /**
-         * 過濾主題分類；null 表示不限。
-         * @example "Platform"
+         * 過濾主題分類 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
          */
-        Category?: FaqCategory;
+        CategoryId?: string;
         /**
          * 過濾發布狀態；null 表示不限。
          * @example true
@@ -638,8 +822,11 @@ export class Api<SecurityDataType extends unknown> {
      */
     getPublished: (
       query?: {
-        /** 主題分類；不帶時回傳所有分類。 */
-        category?: FaqCategory;
+        /**
+         * 主題分類 ID；不帶時回傳所有分類。
+         * @format uuid
+         */
+        categoryId?: string;
       },
       params: RequestParams = {},
     ) =>

@@ -22,8 +22,8 @@ public class FaqService(
     {
         var query = db.FaqItems.AsNoTracking();
 
-        if (request.Category.HasValue)
-            query = query.Where(f => f.Category == request.Category);
+        if (request.CategoryId.HasValue)
+            query = query.Where(f => f.CategoryId == request.CategoryId);
 
         if (request.IsPublished.HasValue)
             query = query.Where(f => f.IsPublished == request.IsPublished);
@@ -31,7 +31,7 @@ public class FaqService(
         var total = await query.CountAsync(ct);
 
         var items = await query
-            .OrderBy(f => f.Category)
+            .OrderBy(f => f.Category.SortOrder)
             .ThenBy(f => f.SortOrder)
             .Skip(request.Offset)
             .Take(request.Limit)
@@ -42,15 +42,15 @@ public class FaqService(
     }
 
     /// <inheritdoc/>
-    public async Task<List<FaqItemDto>> GetPublishedAsync(FaqCategory? category, CancellationToken ct = default)
+    public async Task<List<FaqItemDto>> GetPublishedAsync(Guid? categoryId, CancellationToken ct = default)
     {
         var query = db.FaqItems.AsNoTracking().Where(f => f.IsPublished);
 
-        if (category.HasValue)
-            query = query.Where(f => f.Category == category);
+        if (categoryId.HasValue)
+            query = query.Where(f => f.CategoryId == categoryId);
 
         return await query
-            .OrderBy(f => f.Category)
+            .OrderBy(f => f.Category.SortOrder)
             .ThenBy(f => f.SortOrder)
             .ProjectTo<FaqItemDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
@@ -59,17 +59,22 @@ public class FaqService(
     /// <inheritdoc/>
     public async Task<FaqItemDto> GetAsync(Guid id, CancellationToken ct = default)
     {
-        var item = await db.FaqItems.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id, ct)
+        var item = await db.FaqItems.AsNoTracking()
+            .Where(f => f.Id == id)
+            .ProjectTo<FaqItemDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync(ct)
             ?? throw new NotFoundException("找不到指定的常見問題");
-        return mapper.Map<FaqItemDto>(item);
+        return item;
     }
 
     /// <inheritdoc/>
     public async Task<FaqItemDto> CreateAsync(CreateFaqItemRequest request, CancellationToken ct = default)
     {
+        await EnsureCategoryExistsAsync(request.CategoryId, ct);
+
         var item = new FaqItem
         {
-            Category    = request.Category,
+            CategoryId  = request.CategoryId,
             Question    = request.Question.Trim(),
             Answer      = request.Answer,
             SortOrder   = request.SortOrder,
@@ -80,7 +85,7 @@ public class FaqService(
         audit.Add(currentUser.UserId, "faq.create", "FaqItem", item.Id);
         await db.SaveChangesAsync(ct);
 
-        return mapper.Map<FaqItemDto>(item);
+        return await GetAsync(item.Id, ct);
     }
 
     /// <inheritdoc/>
@@ -89,7 +94,9 @@ public class FaqService(
         var item = await db.FaqItems.FirstOrDefaultAsync(f => f.Id == id, ct)
             ?? throw new NotFoundException("找不到指定的常見問題");
 
-        item.Category    = request.Category;
+        await EnsureCategoryExistsAsync(request.CategoryId, ct);
+
+        item.CategoryId  = request.CategoryId;
         item.Question    = request.Question.Trim();
         item.Answer      = request.Answer;
         item.SortOrder   = request.SortOrder;
@@ -97,7 +104,15 @@ public class FaqService(
         audit.Add(currentUser.UserId, "faq.update", "FaqItem", item.Id);
         await db.SaveChangesAsync(ct);
 
-        return mapper.Map<FaqItemDto>(item);
+        return await GetAsync(item.Id, ct);
+    }
+
+    /// <summary>確認指定分類存在，否則拋 <see cref="ValidationException"/>。</summary>
+    private async Task EnsureCategoryExistsAsync(Guid categoryId, CancellationToken ct)
+    {
+        var exists = await db.FaqCategories.AnyAsync(c => c.Id == categoryId, ct);
+        if (!exists)
+            throw new ValidationException("指定的常見問題分類不存在。");
     }
 
     /// <inheritdoc/>

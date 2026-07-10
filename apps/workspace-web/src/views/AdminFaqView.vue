@@ -3,20 +3,20 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { contentApi } from '@/api'
-import { FaqCategory, type FaqItemDto } from '@/api/content-service'
+import type { FaqCategoryDto, FaqItemDto } from '@/api/content-service'
 
 const { t, locale } = useI18n()
 const message = useMessage()
 
-// 主題分類 → 顯示用標籤
-const CATEGORY = {
-  [FaqCategory.Platform]: 'faqs.catPlatform',
-  [FaqCategory.Buying]:   'faqs.catBuying',
-  [FaqCategory.Selling]:  'faqs.catSelling',
-  [FaqCategory.Payments]: 'faqs.catPayments',
-}
-function categoryOf(c?: FaqCategory) {
-  return (c != null && CATEGORY[c]) || 'appStatus.unknown'
+// 主題分類（後台可 CRUD，來自 ContentService）
+const categories = ref<FaqCategoryDto[]>([])
+async function loadCategories() {
+  try {
+    const res = await contentApi.faqCategories.list()
+    categories.value = res.data ?? []
+  } catch {
+    categories.value = []
+  }
 }
 
 function messageOf(err: unknown, fallback = t('faqs.msgActionFailed')) {
@@ -32,17 +32,16 @@ const items = ref<FaqItemDto[]>([])
 const totalCount = ref(0)
 const loading = ref(false)
 const page = ref(1)
-/** 分類篩選：all | <FaqCategory> */
-const categoryFilter = ref<'all' | FaqCategory>('all')
+/** 分類篩選：all | <categoryId> */
+const categoryFilter = ref<'all' | string>('all')
 /** 發布狀態篩選：all | true | false */
 const publishedFilter = ref<'all' | 'true' | 'false'>('all')
 
-const categoryOptions = computed(() => [
+// 篩選下拉（含「全部主題」）；表單下拉（僅分類本身）
+const categorySelectOptions = computed(() => categories.value.map((c) => ({ label: c.name ?? '', value: c.id! })))
+const categoryFilterOptions = computed(() => [
   { label: t('faqs.filterAllCategories'), value: 'all' },
-  { label: t('faqs.catPlatform'), value: FaqCategory.Platform },
-  { label: t('faqs.catBuying'), value: FaqCategory.Buying },
-  { label: t('faqs.catSelling'), value: FaqCategory.Selling },
-  { label: t('faqs.catPayments'), value: FaqCategory.Payments },
+  ...categorySelectOptions.value,
 ])
 const publishedOptions = computed(() => [
   { label: t('faqs.filterAllStatuses'), value: 'all' },
@@ -58,7 +57,7 @@ async function load() {
     const res = await contentApi.faqs.list({
       Offset: (page.value - 1) * PAGE_SIZE,
       Limit: PAGE_SIZE,
-      Category: categoryFilter.value === 'all' ? undefined : categoryFilter.value,
+      CategoryId: categoryFilter.value === 'all' ? undefined : categoryFilter.value,
       IsPublished: publishedFilter.value === 'all' ? undefined : publishedFilter.value === 'true',
     })
     items.value = res.data.items ?? []
@@ -84,7 +83,7 @@ const modalOpen = ref(false)
 const saving = ref(false)
 const editing = ref<FaqItemDto | null>(null)
 const form = reactive({
-  category: FaqCategory.Platform as FaqCategory,
+  categoryId: '',
   question: '',
   answer: '',
   sortOrder: 0,
@@ -93,7 +92,7 @@ const form = reactive({
 
 function openCreate() {
   editing.value = null
-  form.category = FaqCategory.Platform
+  form.categoryId = categories.value[0]?.id ?? ''
   form.question = ''
   form.answer = ''
   form.sortOrder = 0
@@ -103,7 +102,7 @@ function openCreate() {
 
 function openEdit(row: FaqItemDto) {
   editing.value = row
-  form.category = row.category ?? FaqCategory.Platform
+  form.categoryId = row.categoryId ?? ''
   form.question = row.question ?? ''
   form.answer = row.answer ?? ''
   form.sortOrder = row.sortOrder ?? 0
@@ -113,11 +112,12 @@ function openEdit(row: FaqItemDto) {
 
 async function save() {
   const question = form.question.trim()
+  if (!form.categoryId) { message.warning(t('faqs.valCategoryRequired')); return }
   if (!question) { message.warning(t('faqs.valQuestionRequired')); return }
   if (!form.answer.trim()) { message.warning(t('faqs.valAnswerRequired')); return }
 
   const payload = {
-    category: form.category,
+    categoryId: form.categoryId,
     question,
     answer: form.answer,
     sortOrder: form.sortOrder,
@@ -161,7 +161,7 @@ async function remove(row: FaqItemDto) {
   }
 }
 
-onMounted(load)
+onMounted(() => { loadCategories(); load() })
 </script>
 
 <template>
@@ -180,7 +180,7 @@ onMounted(load)
             <div class="fb-group">
               <div class="fb-field" style="flex:1 1 150px;">
                 <label class="fb-label">{{ t('faqs.category') }}</label>
-                <n-select v-model:value="categoryFilter" :options="categoryOptions" />
+                <n-select v-model:value="categoryFilter" :options="categoryFilterOptions" />
               </div>
               <div class="fb-field" style="flex:1 1 150px;">
                 <label class="fb-label">{{ t('faqs.colStatus') }}</label>
@@ -211,7 +211,7 @@ onMounted(load)
               </tr>
               <tr v-for="row in items" v-else :key="row.id">
                 <td class="hide-sm">
-                  <n-tag size="small" round>{{ t(categoryOf(row.category)) }}</n-tag>
+                  <n-tag size="small" round>{{ row.categoryName }}</n-tag>
                 </td>
                 <td>
                   <div class="pc-title faq-q-cell">{{ row.question }}</div>
@@ -250,7 +250,7 @@ onMounted(load)
       <div style="display:grid; gap:16px;">
         <div>
           <label class="field-label">{{ t('faqs.category') }}</label>
-          <n-select v-model:value="form.category" :options="categoryOptions.slice(1)" />
+          <n-select v-model:value="form.categoryId" :options="categorySelectOptions" :placeholder="t('faqs.categoryPlaceholder')" />
         </div>
         <div>
           <label class="field-label">{{ t('faqs.questionLabel') }}</label>

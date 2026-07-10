@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using ContentService.Data;
 using ContentService.Services;
 using ContentService.Services.Background;
+using ContentService.Services.FaqCategories;
 using ContentService.Services.Faqs;
 using ContentService.Services.Legal;
 using MassTransit;
@@ -41,6 +42,7 @@ builder.Services.AddHostedService<OutboxRelayService>();
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
 builder.Services.AddScoped<AuditLogPublisher>();
 builder.Services.AddScoped<ILegalDocumentService, LegalDocumentService>();
+builder.Services.AddScoped<IFaqCategoryService, FaqCategoryService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy

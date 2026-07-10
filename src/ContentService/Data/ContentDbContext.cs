@@ -15,6 +15,9 @@ public class ContentDbContext(DbContextOptions<ContentDbContext> options, ICurre
     /// <summary>法律文件資料表。</summary>
     public DbSet<LegalDocument> LegalDocuments => Set<LegalDocument>();
 
+    /// <summary>常見問題主題分類資料表。</summary>
+    public DbSet<FaqCategory> FaqCategories => Set<FaqCategory>();
+
     /// <summary>常見問題資料表。</summary>
     public DbSet<FaqItem> FaqItems => Set<FaqItem>();
 
@@ -39,12 +42,27 @@ public class ContentDbContext(DbContextOptions<ContentDbContext> options, ICurre
                 .HasFilter("status = 1");
         });
 
+        model.Entity<FaqCategory>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.Property(c => c.Name).HasMaxLength(100).IsRequired();
+            e.Property(c => c.Slug).HasMaxLength(100).IsRequired();
+            e.Property(c => c.Description).HasMaxLength(200);
+            e.HasIndex(c => c.Slug).IsUnique();
+            e.HasIndex(c => c.SortOrder);
+        });
+
         model.Entity<FaqItem>(e =>
         {
             e.HasKey(f => f.Id);
             e.Property(f => f.Question).HasMaxLength(500).IsRequired();
             e.Property(f => f.Answer).IsRequired();
-            e.HasIndex(f => new { f.Category, f.SortOrder });
+            e.HasIndex(f => new { f.CategoryId, f.SortOrder });
+
+            e.HasOne(f => f.Category)
+                .WithMany(c => c.Items)
+                .HasForeignKey(f => f.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         model.Entity<OutboxMessage>(e =>

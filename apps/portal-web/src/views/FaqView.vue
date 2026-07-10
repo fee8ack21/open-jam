@@ -14,7 +14,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useShopStore } from '@/stores/shop.js';
 import { contentApi } from '@/api';
-import { FaqCategory, type FaqItemDto } from '@/api/content-service';
+import { type FaqCategoryDto, type FaqItemDto } from '@/api/content-service';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 
@@ -23,40 +23,51 @@ gsap.registerPlugin(ScrollTrigger);
 const store = useShopStore();
 const { t, tm, rt } = useI18n();
 
-// 分頁：'all' 為彙整視角，其餘對應問答的 cat
-const TAB_KEYS = ['all', 'platform', 'buying', 'selling', 'payments'] as const;
-type TabKey = (typeof TAB_KEYS)[number];
-const activeTab = ref<TabKey>('all');
+const ALL = 'all';
 
 interface FaqItem { i: number; cat: string; q: string; a: string; }
+interface Tab { key: string; label: string; color: string; }
 
-// FaqCategory（後端 enum）→ 分頁 cat key
-const CAT_KEY: Record<FaqCategory, string> = {
-  [FaqCategory.Platform]: 'platform',
-  [FaqCategory.Buying]: 'buying',
-  [FaqCategory.Selling]: 'selling',
-  [FaqCategory.Payments]: 'payments',
-};
+// 主題分類（後台可 CRUD）撈取失敗時退回的靜態 slug；標籤取自 i18n faq.tabs.<slug>
+const FALLBACK_SLUGS = ['platform', 'buying', 'selling', 'payments'] as const;
 
-// ── 已發布 FAQ（撈取失敗 / 尚無資料時 apiItems 為 null，退回 i18n 靜態文案）─────
+// 便條紙色盤：分類依索引輪替取色（分類資料表不存顏色），對應書籤色標與問答卡片左緣色帶、主題 chip
+const PALETTE = ['var(--c-cyan)', 'var(--c-pink)', 'var(--c-lime)', '#f5a623', 'var(--c-violet)'];
+
+// ── 已發布 FAQ + 主題分類（撈取失敗 / 尚無資料時為 null，退回 i18n 靜態文案）─────
+const apiCats = ref<FaqCategoryDto[] | null>(null);
 const apiItems = ref<FaqItemDto[] | null>(null);
 
 async function loadFaqs() {
-  try {
-    const res = await contentApi.faqs.getPublished();
-    apiItems.value = res.data?.length ? res.data : null;
-  } catch {
-    apiItems.value = null;
-  }
+  const [cats, items] = await Promise.allSettled([
+    contentApi.faqCategories.list(),
+    contentApi.faqs.getPublished(),
+  ]);
+  apiCats.value = cats.status === 'fulfilled' && cats.value.data?.length ? cats.value.data : null;
+  apiItems.value = items.status === 'fulfilled' && items.value.data?.length ? items.value.data : null;
 }
 loadFaqs();
+
+// 主題分類（slug + 顯示名稱）：優先用 API，否則退回 i18n 靜態分類
+const categories = computed<{ slug: string; name: string }[]>(() => {
+  if (apiCats.value) return apiCats.value.map((c) => ({ slug: c.slug ?? '', name: c.name ?? '' }));
+  return FALLBACK_SLUGS.map((s) => ({ slug: s, name: t('faq.tabs.' + s) }));
+});
+
+// 分頁列（'all' 彙整視角在最前，其餘為各分類）；每個分類依索引輪替便條紙色
+const tabs = computed<Tab[]>(() => [
+  { key: ALL, label: t('faq.tabs.all'), color: 'var(--c-violet)' },
+  ...categories.value.map((c, idx) => ({ key: c.slug, label: c.name, color: PALETTE[idx % PALETTE.length] })),
+]);
+
+const activeTab = ref<string>(ALL);
 
 // 全部問答（帶原始索引，供手風琴開合狀態穩定對應）：優先用 API，否則退回 i18n
 const items = computed<FaqItem[]>(() => {
   if (apiItems.value) {
     return apiItems.value.map((it, i) => ({
       i,
-      cat: it.category ? (CAT_KEY[it.category] ?? 'platform') : 'platform',
+      cat: it.categorySlug ?? '',
       q: it.question ?? '',
       a: it.answer ?? '',
     }));
@@ -70,7 +81,7 @@ const items = computed<FaqItem[]>(() => {
 });
 
 const visible = computed<FaqItem[]>(() =>
-  activeTab.value === 'all' ? items.value : items.value.filter((it) => it.cat === activeTab.value),
+  activeTab.value === ALL ? items.value : items.value.filter((it) => it.cat === activeTab.value),
 );
 
 // 手風琴開合：以原始索引為 key
@@ -80,25 +91,22 @@ function toggle(i: number) {
   next.has(i) ? next.delete(i) : next.add(i);
   open.value = next;
 }
-function selectTab(k: TabKey) {
+function selectTab(k: string) {
   activeTab.value = k;
   open.value = new Set(); // 換分頁時收合，避免殘留展開狀態
 }
 
-// 每個主題一種便條紙色（書籤色標），對應下方問答卡片左緣色帶與主題 chip
-const TAB_ACCENT: Record<TabKey, string> = {
-  all: 'var(--c-violet)',
-  platform: 'var(--c-cyan)',
-  buying: 'var(--c-pink)',
-  selling: 'var(--c-lime)',
-  payments: '#f5a623',
-};
+// 分類 slug → 便條紙色（供問答卡片左緣色帶與主題 chip）
 function catColor(cat: string): string {
-  return TAB_ACCENT[cat as TabKey] ?? 'var(--c-violet)';
+  return tabs.value.find((tb) => tb.key === cat)?.color ?? 'var(--c-violet)';
+}
+// 分類 slug → 顯示名稱（供「全部」視角的主題 chip）
+function catLabel(cat: string): string {
+  return tabs.value.find((tb) => tb.key === cat)?.label ?? cat;
 }
 // 書籤上的計數（該主題的問答則數）
-function tabCount(k: TabKey): number {
-  return k === 'all' ? items.value.length : items.value.filter((it) => it.cat === k).length;
+function tabCount(k: string): number {
+  return k === ALL ? items.value.length : items.value.filter((it) => it.cat === k).length;
 }
 
 // ── 縷空大字視差：隨頁面捲動左右偏移（往下捲向左滑、往上捲向右滑）。
@@ -152,26 +160,26 @@ onBeforeUnmount(() => ctx?.revert());
           class="faq-select"
           :value="activeTab"
           :aria-label="t('faq.title')"
-          @change="selectTab(($event.target as HTMLSelectElement).value as TabKey)"
+          @change="selectTab(($event.target as HTMLSelectElement).value)"
         >
-          <option v-for="k in TAB_KEYS" :key="k" :value="k">{{ t('faq.tabs.' + k) }}（{{ tabCount(k) }}）</option>
+          <option v-for="tb in tabs" :key="tb.key" :value="tb.key">{{ tb.label }}（{{ tabCount(tb.key) }}）</option>
         </select>
 
         <!-- ── 左側書籤：垂直分頁列（便條紙 / 索引標籤風） ── -->
         <nav class="faq-rail" role="tablist" :aria-label="t('faq.title')">
           <button
-            v-for="k in TAB_KEYS"
-            :key="k"
+            v-for="tb in tabs"
+            :key="tb.key"
             type="button"
             role="tab"
             class="faq-tab"
-            :class="{ on: activeTab === k }"
-            :style="{ '--acc': TAB_ACCENT[k] }"
-            :aria-selected="activeTab === k"
-            @click="selectTab(k)"
+            :class="{ on: activeTab === tb.key }"
+            :style="{ '--acc': tb.color }"
+            :aria-selected="activeTab === tb.key"
+            @click="selectTab(tb.key)"
           >
-            <span class="ft-label">{{ t('faq.tabs.' + k) }}</span>
-            <span class="ft-count">{{ tabCount(k) }}</span>
+            <span class="ft-label">{{ tb.label }}</span>
+            <span class="ft-count">{{ tabCount(tb.key) }}</span>
           </button>
         </nav>
 
@@ -191,7 +199,7 @@ onBeforeUnmount(() => ctx?.revert());
               @click="toggle(it.i)"
             >
               <span class="faq-q-text">
-                <span v-if="activeTab === 'all'" class="faq-chip">{{ t('faq.tabs.' + it.cat) }}</span>
+                <span v-if="activeTab === ALL" class="faq-chip">{{ catLabel(it.cat) }}</span>
                 {{ it.q }}
               </span>
               <app-icon name="chevron" :size="18" class="faq-caret" />

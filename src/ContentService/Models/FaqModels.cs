@@ -1,5 +1,3 @@
-using ContentService.Data.Entities;
-
 namespace ContentService.Models;
 
 /// <summary>常見問題列表查詢請求（管理員後台，分頁採 offset / limit）。</summary>
@@ -13,9 +11,9 @@ public class ListFaqItemsRequest
     /// <example>20</example>
     public int Limit { get; set; } = 20;
 
-    /// <summary>過濾主題分類；null 表示不限。</summary>
-    /// <example>Platform</example>
-    public FaqCategory? Category { get; set; }
+    /// <summary>過濾主題分類 ID；null 表示不限。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid? CategoryId { get; set; }
 
     /// <summary>過濾發布狀態；null 表示不限。</summary>
     /// <example>true</example>
@@ -29,9 +27,17 @@ public class FaqItemDto
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid Id { get; set; }
 
-    /// <summary>主題分類。</summary>
-    /// <example>Platform</example>
-    public FaqCategory Category { get; set; }
+    /// <summary>所屬主題分類 ID。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid CategoryId { get; set; }
+
+    /// <summary>所屬主題分類名稱。</summary>
+    /// <example>認識平台</example>
+    public string CategoryName { get; set; } = "";
+
+    /// <summary>所屬主題分類代稱。</summary>
+    /// <example>platform</example>
+    public string CategorySlug { get; set; } = "";
 
     /// <summary>問題。</summary>
     /// <example>Open Jam 是什麼？</example>
@@ -72,9 +78,9 @@ public class ListFaqItemsResponse
 /// <summary>建立常見問題項目請求。</summary>
 public class CreateFaqItemRequest
 {
-    /// <summary>主題分類。</summary>
-    /// <example>Platform</example>
-    public FaqCategory Category { get; set; }
+    /// <summary>所屬主題分類 ID。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid CategoryId { get; set; }
 
     /// <summary>問題。</summary>
     /// <example>Open Jam 是什麼？</example>
@@ -96,9 +102,9 @@ public class CreateFaqItemRequest
 /// <summary>更新常見問題項目請求。</summary>
 public class UpdateFaqItemRequest
 {
-    /// <summary>主題分類。</summary>
-    /// <example>Platform</example>
-    public FaqCategory Category { get; set; }
+    /// <summary>所屬主題分類 ID。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid CategoryId { get; set; }
 
     /// <summary>問題。</summary>
     /// <example>Open Jam 是什麼？</example>

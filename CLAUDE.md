@@ -225,15 +225,16 @@ REST API + RabbitMQ Consumer，管理通知任務（`NotificationRequest`）與 
 
 ## ContentService（`src/ContentService/`）
 
-REST API，管理平台內容——法律文件（`LegalDocument`，服務條款 / 隱私權政策）與常見問題（`FaqItem`）。Controller（`LegalDocuments` / `Faqs`）僅轉接，業務在 `Services/<Feature>/` 的 `ILegalDocumentService` / `IFaqService`。純 REST API 服務，無事件訂閱；僅經 Outbox 發 `AuditLogRequestedEvent`（`OutboxRelayService` + `AuditLogPublisher`）。
+REST API，管理平台內容——法律文件（`LegalDocument`，服務條款 / 隱私權政策）、常見問題主題分類（`FaqCategory`）與常見問題（`FaqItem`）。Controller（`LegalDocuments` / `FaqCategories` / `Faqs`）僅轉接，業務在 `Services/<Feature>/` 的 `ILegalDocumentService` / `IFaqCategoryService` / `IFaqService`。純 REST API 服務，無事件訂閱；僅經 Outbox 發 `AuditLogRequestedEvent`（`OutboxRelayService` + `AuditLogPublisher`）。
 
 - **法律文件**（原屬 Auth，已抽離）：每次修訂為一筆新 `LegalDocument`（同類型 `Version` 遞增，狀態 `Draft → Active → Inactive`，僅 Draft 可編輯、**永不刪除**供歷史比對；partial unique index 保證同類型僅一筆 Active，啟用時自動停用既有版本）。`/v1/legal-documents`（Admin）——分頁列表 / 單筆 / 建草稿 / 改草稿 / activate / deactivate（無 DELETE），另 `GET /v1/legal-documents/active?type=` 匿名公開（portal-web 條款頁 + Auth 註冊 / 登入 re-consent 同意流程撈取）。供 workspace-web 管理員「條款管理」後台。**同意紀錄（`UserLegalConsent`）留在 Auth，本服務不涉及。**
-- **常見問題（FAQ）**：`FaqItem`（`Category` 主題分類列舉 Platform / Buying / Selling / Payments、`Question` / `Answer`、`SortOrder` 同分類排序、`IsPublished` 發布旗標）。`/v1/faqs`（Admin）——分頁列表 / 單筆 / CRUD（含 DELETE），另 `GET /v1/faqs/published?category=` 匿名公開（portal-web FAQ 頁撈取已發布項目，依分類 + 排序）。供 workspace-web 管理員「常見問題」後台；取代 portal-web 原前端寫死的 FAQ 內容。
+- **常見問題主題分類（FaqCategory）**：由平台維護、可 CRUD 的單層分類（`Name` / `Slug` 全域唯一 / `Description` / `SortOrder`，比照 CatalogService 商品分類但無 `ParentId`）。`/v1/faq-categories`——`GET`（列表）匿名公開（portal-web FAQ 頁建立主題分頁、workspace-web 分類下拉）、`GET {id}` / `POST` / `PATCH` / `DELETE` 僅 Admin（刪除前若仍被 `FaqItem` 引用回 409）。供 workspace-web 管理員「常見問題分類」後台。**取代原本寫死的 `FaqCategory` enum。**
+- **常見問題（FAQ）**：`FaqItem`（`CategoryId` 參照 `FaqCategory`（FK，`OnDelete Restrict`）、`Question` / `Answer`、`SortOrder` 同分類排序、`IsPublished` 發布旗標；DTO 另帶 `CategoryName` / `CategorySlug`）。`/v1/faqs`（Admin）——分頁列表 / 單筆 / CRUD（含 DELETE，建立 / 更新時驗證 `CategoryId` 存在），另 `GET /v1/faqs/published?categoryId=` 匿名公開（portal-web FAQ 頁撈取已發布項目，依分類 `SortOrder` + 項目 `SortOrder` 排序）。供 workspace-web 管理員「常見問題」後台；取代 portal-web 原前端寫死的 FAQ 內容。
 - **DB**：`open_jam_content`；開發 URL http://localhost:5181，Swagger `/swagger`。
 
 ## Bootstrap（`src/Bootstrap/`）
 
-一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`LegalDocumentSeeder`（seed 服務條款 / 隱私權政策初始啟用版本至 **ContentService** DB，該類型已有紀錄即略過）、`FaqSeeder`（seed 常見問題初始內容至 ContentService DB，取自 portal-web 原前端 FAQ；FAQ 表已有資料即略過）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
+一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`LegalDocumentSeeder`（seed 服務條款 / 隱私權政策初始啟用版本至 **ContentService** DB，該類型已有紀錄即略過）、`FaqSeeder`（seed 常見問題主題分類與初始問答至 ContentService DB，取自 portal-web 原前端 FAQ；分類以 slug 冪等 upsert，問答於 FAQ 表已有資料時略過）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
 
 掛載 6 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection` / `NotificationConnection` / `ContentConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
 
