@@ -312,7 +312,8 @@
     "screenLabel": "Brand story",
     "intro": {
       "eyebrow": "About Open Jam",
-      "title": "Open Jam is a digital marketplace for creators.",
+      "title": "Open Jam is a {mark} for creators.",
+      "titleMark": "digital marketplace",
       "lead": "Built in Taiwan for independent creators — turn your music, photography and e-books into products people can collect and buy. Shoppers don't even need an account; one email is all it takes.",
       "facts": [
         {

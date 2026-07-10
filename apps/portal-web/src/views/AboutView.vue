@@ -1,13 +1,14 @@
 <script setup lang="ts">
 /* ============================================================
    AboutView — 品牌故事頁（/about）
-   自 LandingView 遷移的敘事區塊，以 GSAP ScrollTrigger 驅動：
+   版面結構：Hero 漸層色帶（比照 FaqView / LegalView）→ 三特色卡
+   （疊在色帶下緣）→ 敘事區塊（GSAP ScrollTrigger 驅動）：
    - Pinned Product Story（創作者能在這裡賣什麼？——音樂 / 攝影 / 電子書
      三章，pin 住同一舞台，滾動推進，內容轉場而非整頁換頁）
    - Creator Workflow（上傳 → 定價 → 開店 → 分享 → 收到支持）
    - Consumer Experience（探索 / 追蹤 / 收藏庫 collage）
    - Why Open Jam（平台精神四卡）
-   - 雙 CTA + Footer
+   - 雙 CTA
    prefers-reduced-motion: reduce 時不做 pin 與動畫，
    三章退化為一般直向排列。
    ============================================================ */
@@ -194,22 +195,6 @@ onMounted(() => {
         scrollTrigger: { trigger: '.dc-collage', start: 'top 78%', once: true },
       });
 
-      // ---- 巨型出血字：隨捲動明顯水平偏移（往左／往右滑動，奇偶交錯方向）----
-      // 以 vw 計算左右位移，區塊在視窗內通過期間隨捲動雙向滑動；overflow-x: clip 吸收溢出。
-      gsap.utils.toArray<HTMLElement>('.l-bigword[data-drift]').forEach((el, i) => {
-        gsap.fromTo(el, { x: i % 2 ? '9vw' : '-9vw' }, {
-          x: i % 2 ? '-9vw' : '9vw',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: el.parentElement,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        });
-      });
-
       // ---- 其餘區塊：進場 reveal ----
       gsap.utils.toArray<HTMLElement>('.lrv').forEach((el) => {
         gsap.from(el, {
@@ -236,25 +221,27 @@ onBeforeUnmount(() => ctx?.revert());
     <!-- ============ NAV ============ -->
     <app-nav />
 
-    <main class="landing">
-      <!-- 紙質顆粒 + 貫穿格線（全頁氛圍層） -->
-      <div class="l-grain" aria-hidden="true"></div>
-      <div class="l-gridlines" aria-hidden="true"><i v-for="i in 4" :key="i"></i></div>
-
-      <!-- ============ 開場：關於 Open Jam ============ -->
-      <section class="l-intro">
-        <span class="l-bigword li-bigword" data-drift aria-hidden="true">OPEN JAM</span>
-        <p class="lsec-eyebrow li-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.intro.eyebrow') }}</p>
-        <h1 class="li-title">{{ t('landing.intro.title') }}</h1>
-        <p class="li-lead">{{ t('landing.intro.lead') }}</p>
-        <ul class="li-facts">
-          <li v-for="f in introFacts" :key="f.title" class="li-fact" :style="{ '--accent': f.accent }">
-            <span class="li-fact-ic"><app-icon :name="f.icon" :size="22" :stroke="1.9" /></span>
-            <h3>{{ f.title }}</h3>
-            <p>{{ f.text }}</p>
-          </li>
-        </ul>
+    <main class="page about-page">
+      <!-- ============ HERO：漸層色帶（比照 FaqView / LegalView） ============ -->
+      <section class="about-hero">
+        <span class="ah-word" aria-hidden="true">ABOUT</span>
+        <div class="ah-inner">
+          <p class="ah-badge"><app-icon name="sparkle" :size="13" /> {{ t('landing.intro.eyebrow') }}</p>
+          <i18n-t keypath="landing.intro.title" tag="h1" class="ah-title" scope="global">
+            <template #mark><span class="hl hl-lime">{{ t('landing.intro.titleMark') }}</span></template>
+          </i18n-t>
+          <p class="ah-lede">{{ t('landing.intro.lead') }}</p>
+        </div>
       </section>
+
+      <!-- ============ 三特色卡（疊在色帶下緣） ============ -->
+      <ul class="about-facts">
+        <li v-for="f in introFacts" :key="f.title" class="af-card" :style="{ '--acc': f.accent }">
+          <span class="af-ic"><app-icon :name="f.icon" :size="22" :stroke="1.9" /></span>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.text }}</p>
+        </li>
+      </ul>
 
       <!-- ============ Pinned Product Story（創作者能在這裡賣什麼？） ============ -->
       <section class="l-story">
@@ -378,7 +365,6 @@ onBeforeUnmount(() => ctx?.revert());
 
       <!-- ============ Creator Workflow ============ -->
       <section class="l-flow">
-        <span class="l-bigword lf-bigword" data-drift aria-hidden="true">WORKFLOW</span>
         <div class="lsec-head lrv">
           <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.flow.eyebrow') }}</p>
           <h2 class="lsec-title">{{ t('landing.flow.title') }}</h2>
@@ -397,7 +383,6 @@ onBeforeUnmount(() => ctx?.revert());
 
       <!-- ============ Consumer Experience ============ -->
       <section class="l-discover">
-        <span class="l-bigword ld-bigword" data-drift aria-hidden="true">DISCOVER</span>
         <div class="dc-inner">
           <div class="dc-copy lrv">
             <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.discover.eyebrow') }}</p>
@@ -436,7 +421,6 @@ onBeforeUnmount(() => ctx?.revert());
 
       <!-- ============ Why Open Jam ============ -->
       <section class="l-why">
-        <span class="l-bigword lw-bigword" data-drift aria-hidden="true">BELIEVE</span>
         <div class="lsec-head lrv">
           <p class="lsec-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('landing.why.eyebrow') }}</p>
           <h2 class="lsec-title">{{ t('landing.why.title') }}</h2>
@@ -452,7 +436,6 @@ onBeforeUnmount(() => ctx?.revert());
 
       <!-- ============ 最後區塊：CTA ============ -->
       <section class="l-cta lrv">
-        <span class="l-bigword lc-bigword" data-drift aria-hidden="true">JAM ON!</span>
         <p class="lc-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('landing.cta.eyebrow') }}</p>
         <div class="lc-grid">
           <div class="lc-card lc-creator">
@@ -473,36 +456,22 @@ onBeforeUnmount(() => ctx?.revert());
           </div>
         </div>
       </section>
-
-      <!-- ============ FOOTER ============ -->
-      <div class="l-footwrap">
-        <app-footer />
-      </div>
     </main>
+
+    <!-- ============ FOOTER ============ -->
+    <app-footer />
   </div>
 </template>
 
 <style scoped>
-/* 不在容器設左右 padding：Pinned story 需滿版，改由各區塊自帶 */
-.landing { padding: 0; position: relative; }
-.l-footwrap { padding: 0 clamp(20px, 3.5vw, 56px); }
+/* 頁面滿版（覆蓋 .page 左右 gutter）：hero 色帶與 Pinned story 貼齊 viewport，比照 FaqView / LegalView */
+.about-page { position: relative; max-width: none; padding: 0; }
 
-/* ---------- 全頁氛圍：紙質顆粒 + 貫穿細格線（Begonia 式 frame） ---------- */
-.l-grain {
-  position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 260px 260px;
-}
-.l-gridlines { position: fixed; inset: 0; z-index: 60; pointer-events: none; display: flex; }
-.l-gridlines i { flex: 1; border-right: 1px solid rgba(26,22,38,.05); }
-.l-gridlines i:last-child { border-right: none; }
-
-/* ---------- 巨型出血標題字（描邊空心，隨捲動飄移） ---------- */
+/* ---------- 巨型出血標題字（描邊空心，僅章節舞台使用） ---------- */
 .l-bigword {
   position: absolute; z-index: 0; pointer-events: none; user-select: none;
   font-family: var(--oj-display); font-weight: 800; line-height: 1; white-space: nowrap;
   letter-spacing: -0.02em; color: transparent;
-  -webkit-text-stroke: 2px rgba(26,22,38,.13);
 }
 
 /* 共用區塊標頭 */
@@ -518,46 +487,75 @@ onBeforeUnmount(() => ctx?.revert());
 }
 .lsec-sub { margin: 14px 0 0; font-size: 15.5px; line-height: 1.8; color: var(--text-soft); }
 
-/* ---------- 開場：關於 Open Jam ---------- */
-.l-intro {
-  position: relative;
-  padding: clamp(52px, 8vh, 96px) clamp(20px, 3.5vw, 56px) clamp(44px, 6vh, 76px);
-  text-align: center;
+/* ── Hero 漸層色帶：滿版飽和漸層帶 + 半調網點（同 .mkt-hero 配方）────── */
+.about-hero { position: relative; padding: clamp(52px, 8vh, 76px) clamp(20px, 3.5vw, 56px) clamp(84px, 11vh, 108px); text-align: center; }
+.about-hero::before, .about-hero::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 100vw; transform: translateX(-50%); z-index: 0; pointer-events: none;
 }
-/* 背景縷空大字：內容抬到 z-index 1 之上，字落在後方 */
-.li-bigword { top: .08em; left: 6%; font-size: clamp(90px, 14vw, 210px); }
-.li-eyebrow, .li-title, .li-lead, .li-facts { position: relative; z-index: 1; }
-.li-eyebrow { justify-content: center; }
-.li-title {
-  margin: 0 auto;
-  font-family: var(--oj-display); font-weight: 800;
-  font-size: clamp(18px, 4.6vw, 46px); line-height: 1.15; letter-spacing: -1.4px; color: var(--text);
-  white-space: nowrap;
+.about-hero::before {
+  background:
+    radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.40), transparent 58%),
+    radial-gradient(680px 520px at 92% 16%, rgba(255,77,157,.52), transparent 60%),
+    radial-gradient(720px 620px at 78% 98%, rgba(31,214,198,.40), transparent 62%),
+    radial-gradient(820px 720px at 16% 94%, rgba(108,76,241,.55), transparent 64%),
+    linear-gradient(150deg, #6c4cf1, #8a3df1 46%, #c33ad6);
+  border-bottom: 1.5px solid var(--text);
 }
-.li-lead {
-  margin: 20px auto 0; max-width: 52ch;
-  font-size: 16.5px; line-height: 1.85; color: var(--text-soft);
+.about-hero::after {
+  background-image: radial-gradient(rgba(255,255,255,.55) 1.5px, transparent 1.7px);
+  background-size: 18px 18px; opacity: .15; mix-blend-mode: soft-light;
 }
-.li-facts {
-  list-style: none; margin: 40px auto 0; padding: 0; max-width: 940px;
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+
+/* 色帶內的縷空大字（白色微透，置中沉在內容後） */
+.ah-word {
+  position: absolute; z-index: 1; top: -0.08em; left: 50%; transform: translateX(-50%);
+  font-family: var(--oj-display); font-weight: 800; line-height: 1;
+  font-size: clamp(120px, 19vw, 230px); letter-spacing: .04em;
+  color: rgba(255, 255, 255, .09); pointer-events: none; user-select: none;
 }
-.li-fact {
-  text-align: left; padding: 22px 22px 24px;
-  background: var(--surface); border: 1.5px solid var(--text); border-radius: var(--r-lg);
-  box-shadow: 5px 5px 0 var(--text);
+
+.ah-inner {
+  position: relative; z-index: 2; max-width: 780px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
 }
-.li-fact-ic {
+.ah-badge {
+  display: inline-flex; align-items: center; gap: 7px; margin: 0; padding: 6px 14px;
+  font-family: var(--oj-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: #fff; background: rgba(255,255,255,.16);
+  border: 1.5px solid rgba(255,255,255,.28); border-radius: 999px; backdrop-filter: blur(4px);
+}
+.ah-title {
+  margin: 0; font-family: var(--oj-display); font-weight: 800; color: #fff;
+  font-size: clamp(28px, 4.6vw, 50px); line-height: 1.18; letter-spacing: -1.4px;
+}
+.ah-title .hl { box-shadow: 3px 3px 0 rgba(26,22,38,.45); }
+.ah-lede { margin: 0; max-width: 54ch; font-size: 15.5px; line-height: 1.8; color: rgba(255,255,255,.88); }
+
+/* ── 三特色卡：疊在色帶下緣，依特色輪替便條紙色（同 faq-topics） ────── */
+.about-facts {
+  position: relative; z-index: 2; list-style: none; max-width: 1080px; margin: -48px auto 0;
+  padding: 0 clamp(20px, 3.5vw, 56px);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;
+}
+.af-card {
+  text-align: left; padding: 20px 22px 22px;
+  background: color-mix(in srgb, var(--acc) 14%, #fffef8);
+  border: 1.5px solid var(--border-strong); border-radius: var(--r-md);
+  box-shadow: var(--pop-3);
+}
+.af-ic {
   display: grid; place-items: center; width: 46px; height: 46px; margin: 0 0 14px;
-  color: #fff; background: var(--accent);
+  color: #fff; background: var(--acc);
   border: 1.5px solid var(--text); border-radius: 13px; box-shadow: var(--pop-1);
 }
 /* cyan tile 底色偏亮，icon 改深色維持對比 */
-.li-fact:nth-child(3) .li-fact-ic { color: #08312d; }
-.li-fact h3 { margin: 0 0 6px; font-family: var(--oj-display); font-weight: 800; font-size: 17px; color: var(--text); }
-.li-fact p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text-soft); }
+.af-card:nth-child(3) .af-ic { color: #08312d; }
+.af-card h3 { margin: 0 0 6px; font-family: var(--oj-display); font-weight: 800; font-size: 17px; color: var(--text); }
+.af-card p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text-soft); }
 
 /* ---------- 區塊二：Pinned Product Story ---------- */
+.l-story { margin-top: clamp(48px, 7vh, 72px); }
 .ls-stage {
   position: relative;
   display: flex; flex-direction: column;
@@ -589,6 +587,10 @@ onBeforeUnmount(() => ctx?.revert());
   font-size: clamp(28px, 4vw, 46px); letter-spacing: -1.2px; color: #fff;
   text-shadow: 3px 3px 0 rgba(26,22,38,.35);
 }
+/* 非動畫模式（reduced-motion）：常駐標題落在米色頁面底上，改回深色維持對比 */
+.ls-stage:not(.ls-anim) .ls-head { padding-bottom: clamp(20px, 3.5vh, 36px); }
+.ls-stage:not(.ls-anim) .ls-eyebrow { color: var(--oj-primary); }
+.ls-stage:not(.ls-anim) .ls-title { color: var(--text); text-shadow: none; }
 
 .ls-chapters { position: relative; z-index: 1; flex: 1; }
 .ls-chapter {
@@ -780,7 +782,6 @@ onBeforeUnmount(() => ctx?.revert());
     var(--text);
   background-size: 22px 22px, 25% 100%, auto;
 }
-.lf-bigword { top: .08em; left: 6%; font-size: clamp(90px, 14vw, 210px); -webkit-text-stroke: 2px rgba(255,255,255,.12); }
 .l-flow .lsec-head { position: relative; z-index: 1; }
 .l-flow .lsec-eyebrow { color: var(--c-lime); }
 .l-flow .lsec-title { color: #fff; text-shadow: 3px 3px 0 rgba(0,0,0,.4); }
@@ -812,7 +813,6 @@ onBeforeUnmount(() => ctx?.revert());
     color-mix(in srgb, var(--c-violet) 10%, var(--bg));
   background-size: 22px 22px, auto;
 }
-.ld-bigword { top: .08em; left: 6%; font-size: clamp(90px, 14vw, 210px); }
 .dc-inner {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
   align-items: center; gap: clamp(30px, 5vw, 76px);
@@ -877,7 +877,6 @@ onBeforeUnmount(() => ctx?.revert());
   background-size: 22px 22px, 25% 100%, auto;
   border-top: 1.5px solid var(--text); border-bottom: 1.5px solid var(--text);
 }
-.lw-bigword { top: .06em; right: 3%; -webkit-text-stroke: 2px rgba(26,22,38,.15); font-size: clamp(90px, 14vw, 210px); }
 .l-why .lsec-head { position: relative; z-index: 1; }
 .l-why .lsec-eyebrow { color: var(--text); }
 .why-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 1120px; margin: 0 auto; }
@@ -891,8 +890,7 @@ onBeforeUnmount(() => ctx?.revert());
 .why-card p { margin: 0; font-size: 14px; line-height: 1.75; color: var(--text-soft); }
 
 /* ---------- 最後區塊：CTA ---------- */
-.l-cta { position: relative; overflow: hidden; padding: 88px clamp(20px, 3.5vw, 56px) 110px; }
-.lc-bigword { top: .08em; left: 6%; font-size: clamp(100px, 15vw, 230px); }
+.l-cta { position: relative; overflow: hidden; padding: 88px clamp(20px, 3.5vw, 56px) 96px; }
 .lc-eyebrow {
   position: relative; z-index: 1;
   display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 34px;
@@ -927,7 +925,6 @@ onBeforeUnmount(() => ctx?.revert());
   .fl-line { display: none; }
 }
 @media (max-width: 860px) {
-  .li-facts { grid-template-columns: 1fr; }
   .ls-inner { grid-template-columns: 1fr; gap: 22px; }
   .ls-chapter { padding-bottom: 110px; }
   .ls-visual { order: -1; }
@@ -936,6 +933,9 @@ onBeforeUnmount(() => ctx?.revert());
   .dc-inner { grid-template-columns: 1fr; }
   .lc-grid { grid-template-columns: 1fr; }
   .why-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .about-facts { margin-top: -36px; }
 }
 @media (max-width: 560px) {
   .fl-steps { grid-template-columns: 1fr; }
