@@ -8,18 +8,26 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 </head>
 <body>
-    <form class="lang-switch" action="/set-language" method="get">
-        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString">
-        <button type="button" class="lang-trigger" data-langtoggle>
-            @IconHelper.Render("globe", 16) <span class="lang-label">@(System.Globalization.CultureInfo.CurrentUICulture.Name switch { "en" => "English", _ => "繁體中文" })</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
-        </button>
-        <div class="lang-menu" data-langmenu>
-            <button type="submit" name="culture" value="zh-Hant" class="lang-opt @(System.Globalization.CultureInfo.CurrentUICulture.Name == "zh-Hant" ? "on" : "")">繁體中文</button>
-            <button type="submit" name="culture" value="en" class="lang-opt @(System.Globalization.CultureInfo.CurrentUICulture.Name == "en" ? "on" : "")">English</button>
-        </div>
-    </form>
-    @RenderBody()
+    <div class="auth-viewport">
+        @RenderBody()
+        <form class="lang-switch" action="/set-language" method="get">
+            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString">
+            <button type="button" class="lang-trigger" data-langtoggle>
+                @IconHelper.Render("globe", 16) <span class="lang-label">@(System.Globalization.CultureInfo.CurrentUICulture.Name switch { "en" => "English", _ => "繁體中文" })</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+            </button>
+            <div class="lang-menu" data-langmenu>
+                <button type="submit" name="culture" value="zh-Hant" class="lang-opt @(System.Globalization.CultureInfo.CurrentUICulture.Name == "zh-Hant" ? "on" : "")">
+                    <span class="lang-opt-check">@IconHelper.Render("check", 14, 2.6)</span>
+                    <span>繁體中文</span>
+                </button>
+                <button type="submit" name="culture" value="en" class="lang-opt @(System.Globalization.CultureInfo.CurrentUICulture.Name == "en" ? "on" : "")">
+                    <span class="lang-opt-check">@IconHelper.Render("check", 14, 2.6)</span>
+                    <span>English</span>
+                </button>
+            </div>
+        </form>
+    </div>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/validation-setup.js"></script>

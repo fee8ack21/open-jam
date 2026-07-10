@@ -39,12 +39,26 @@ html,
 body {
   margin: 0;
   padding: 0;
+}
+html {
   height: 100%;
 }
 body {
   font-family: var(--oj-font);
   color: var(--text);
-  background: var(--bg);
+  background:
+    radial-gradient(rgba(26, 22, 38, 0.05) 1.3px, transparent 1.5px),
+    radial-gradient(780px 600px at 6% 12%, rgba(108, 76, 241, 0.14), transparent 58%),
+    radial-gradient(720px 600px at 98% 22%, rgba(31, 214, 198, 0.13), transparent 60%),
+    radial-gradient(820px 680px at 92% 92%, rgba(255, 77, 157, 0.12), transparent 62%),
+    radial-gradient(720px 620px at 8% 96%, rgba(255, 200, 58, 0.13), transparent 64%),
+    var(--bg);
+  background-size: 22px 22px, auto, auto, auto, auto, auto;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vh, 44px);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -58,10 +72,25 @@ input {
 /* ============================================================
    SHELL — split screen
    ============================================================ */
+.auth-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 1080px;
+  display: flex;
+}
 .auth-shell {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  min-height: 100vh;
+  width: 100%;
+  max-width: 1080px;
+  min-height: min(660px, calc(100vh - 88px));
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 28px;
+  box-shadow:
+    8px 8px 0 var(--text),
+    0 40px 90px -40px rgba(20, 16, 60, 0.55);
+  overflow: hidden;
 }
 
 /* ---------- LEFT: brand panel ---------- */
@@ -222,7 +251,7 @@ input {
 }
 .fc {
   position: absolute;
-  width: 168px;
+  width: 132px;
   border-radius: var(--r-md);
   background: var(--surface);
   border: 1.5px solid var(--text);
@@ -240,7 +269,7 @@ input {
     rotate(var(--rot, 0deg));
 }
 .fc .fc-thumb {
-  height: 98px;
+  height: 76px;
   position: relative;
 }
 .fc .fc-dots {
@@ -371,7 +400,7 @@ input {
       rgba(255, 77, 157, 0.05),
       transparent 60%
     ),
-    var(--bg);
+    var(--surface);
 }
 .form-wrap {
   width: 100%;
@@ -944,8 +973,14 @@ a.btn-pop {
 }
 
 @media (max-width: 860px) {
+  .auth-viewport {
+    max-width: 460px;
+  }
   .auth-shell {
     grid-template-columns: 1fr;
+    max-width: 460px;
+    min-height: auto;
+    border-radius: 24px;
   }
   .brand-panel {
     display: none;
@@ -974,8 +1009,10 @@ a.btn-pop {
     flex-direction: column;
     padding: 24px;
     align-items: stretch;
-    /* header（mobile-brand）置頂，form 佔滿剩餘空間 */
+    /* header（mobile-brand）置頂，form 佔滿剩餘空間；
+       gap 確保表單較長時 form-title 不會緊貼 LOGO */
     justify-content: flex-start;
+    gap: 22px;
   }
   .form-wrap {
     /* 撐滿 header 以下的剩餘高度，並讓表單依此高度垂直置中；
@@ -1185,9 +1222,9 @@ a.btn-pop {
    LANGUAGE SWITCH
    ============================================================ */
 .lang-switch {
-  position: fixed;
-  top: 16px;
-  right: 20px;
+  position: absolute;
+  top: 18px;
+  right: 18px;
   z-index: 100;
 }
 .lang-trigger {
@@ -1208,40 +1245,60 @@ a.btn-pop {
   border-color: var(--border-strong);
   box-shadow: 0 2px 8px rgba(20, 16, 60, .08);
 }
+
+/* expanded menu — portal-web voice: soft card, light border, rounded rows */
 .lang-menu {
   display: none;
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   right: 0;
-  min-width: 140px;
+  min-width: 168px;
+  padding: 6px;
   background: var(--surface);
   border: 1.5px solid var(--border);
-  border-radius: var(--r-sm);
-  box-shadow: 0 6px 24px rgba(20, 16, 60, .12);
-  overflow: hidden;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
 }
 .lang-menu.open {
   display: block;
+  animation: fade .18s ease;
 }
 .lang-opt {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 11px;
   border: 0;
+  border-radius: 10px;
   background: none;
   color: var(--text);
-  font-size: 13px;
+  font-family: var(--oj-font);
+  font-size: 13.5px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background .12s;
+  transition: background .12s, color .12s;
 }
 .lang-opt:hover {
   background: var(--surface-2);
+  color: var(--oj-primary);
 }
 .lang-opt.on {
   color: var(--oj-primary);
   font-weight: 600;
+  background: var(--oj-primary-wash);
+}
+.lang-opt-check {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  flex: none;
+  color: var(--oj-primary);
+  opacity: 0;
+}
+.lang-opt.on .lang-opt-check {
+  opacity: 1;
 }
 
 @media (max-width: 560px) {
