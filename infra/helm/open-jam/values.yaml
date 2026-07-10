@@ -6,7 +6,7 @@ config:
   externalUrl: "https://openjam.co/"
   hydraPublicUrl: "https://hydra.openjam.co/"
   authPageUrl: "https://auth.openjam.co/"
-  marketPageUrl: "https://openjam.co/"
+  portalPageUrl: "https://openjam.co/"
   workspaceUrl: "https://workspace.openjam.co/"
   creatorBaseUrl: "https://<store-slug>.openjam.co"
   authApiUrl: "https://api.openjam.co/auth-service"

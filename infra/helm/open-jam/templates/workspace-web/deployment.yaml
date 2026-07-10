@@ -29,7 +29,7 @@ spec:
             - name: WORKSPACE_PAGE_URL
               value: {{ .Values.config.workspaceUrl | quote }}
             - name: MARKET_PAGE_URL
-              value: {{ .Values.config.marketPageUrl | quote }}
+              value: {{ .Values.config.portalPageUrl | quote }}
             - name: OIDC_AUTHORITY
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: OIDC_CLIENT_ID
