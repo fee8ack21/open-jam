@@ -112,8 +112,7 @@ const goCart = () => router.push({ name: 'checkout' });
       </div>
 
       <!-- right: buy card -->
-      <div>
-        <div class="buy-card">
+      <div class="buy-card">
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <span class="chip">{{ catLabel }}</span>
             <button class="fav" :class="{ on: fav }" style="position:static;"
@@ -141,11 +140,11 @@ const goCart = () => router.push({ name: 'checkout' });
             <n-button type="primary" size="large" block strong @click="buyNow">
               {{ p.price === 0 ? t('detail.getFree') : t('detail.buyNow') }}
             </n-button>
-            <n-button v-if="!inCart" size="large" block secondary @click="addCart">
+            <n-button v-if="!inCart" type="primary" size="large" block secondary @click="addCart">
               <template #icon><app-icon name="cart" :size="18" /></template>
               {{ t('detail.addToCart') }}
             </n-button>
-            <n-button v-else size="large" block secondary @click="goCart">
+            <n-button v-else type="primary" size="large" block secondary @click="goCart">
               <template #icon><app-icon name="check" :size="18" /></template>
               {{ t('detail.inCart') }}
             </n-button>
@@ -178,7 +177,6 @@ const goCart = () => router.push({ name: 'checkout' });
             </div>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </template>
