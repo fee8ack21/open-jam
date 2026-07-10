@@ -278,9 +278,18 @@
       "title": "Open Jam is a digital marketplace for creators.",
       "lead": "Built in Taiwan for independent creators — turn your music, photography and e-books into products people can collect and buy. Shoppers don't even need an account; one email is all it takes.",
       "facts": [
-        { "title": "No sign-up to buy", "text": "Check out and download with just an email — no account required." },
-        { "title": "Your own storefront", "text": "Every creator gets a shop at name.openjam.co." },
-        { "title": "Support creators directly", "text": "Every purchase goes straight to the maker behind the work." }
+        {
+          "title": "No sign-up to buy",
+          "text": "Check out and download with just an email — no account required."
+        },
+        {
+          "title": "Your own storefront",
+          "text": "Every creator gets a shop at name.openjam.co."
+        },
+        {
+          "title": "Support creators directly",
+          "text": "Every purchase goes straight to the maker behind the work."
+        }
       ]
     },
     "hero": {
@@ -413,15 +422,45 @@
   },
   "faq": {
     "screenLabel": "FAQ",
-    "eyebrow": "Help & support",
-    "title": "Frequently asked questions",
-    "lede": "The questions we get asked most about buying, selling, and payments on Open Jam. Can't find your answer? Get in touch.",
+    "badge": "Help & support · {count} questions",
+    "title": "Your {mark}, answered",
+    "titleMark": "questions",
+    "lede": "Everything we get asked about buying, selling, and payments — all in one place. Type a keyword or pick a topic to start.",
+    "search": {
+      "placeholder": "Search questions — e.g. refunds, fees, downloads…",
+      "clear": "Clear",
+      "hotLabel": "Popular:",
+      "hot": [
+        "refund",
+        "fee",
+        "download",
+        "shop"
+      ]
+    },
     "tabs": {
       "all": "All",
       "platform": "About the platform",
       "buying": "Buying & downloads",
       "selling": "Selling & listing",
       "payments": "Payments & payouts"
+    },
+    "tabDesc": {
+      "platform": "The basics — what Open Jam is, accounts, and safety.",
+      "buying": "Every step from checkout and payment to download.",
+      "selling": "Opening a shop, listing, and managing your work.",
+      "payments": "Payment methods, platform fees, and payouts."
+    },
+    "sectionMeta": "{count} answers",
+    "empty": {
+      "title": "No answers match “{query}”",
+      "hint": "Try a different keyword, or just ask us directly.",
+      "clear": "Clear search"
+    },
+    "cta": {
+      "title": "Still can't find your answer?",
+      "text": "Email us or ask in the GitHub discussions — we usually reply within 1–2 business days.",
+      "contact": "Contact us",
+      "github": "GitHub discussions"
     },
     "items": [
       {
