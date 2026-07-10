@@ -116,10 +116,21 @@ body {
   background: linear-gradient(135deg, var(--c-violet), var(--c-pink));
   display: grid; place-items: center; flex: none;
   box-shadow: 3px 3px 0 var(--text);
-  transition: transform .18s;
 }
-.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.05); }
 .brand-name { font-family: var(--oj-display); font-weight: 800; font-size: 23px; letter-spacing: -.6px; color: var(--text); white-space: nowrap; }
+/* 逐字彈跳（皮克斯風，同 portal-web）：hover 時每個字母交錯上彈 + 擠壓伸展 */
+.brand-letter { display: inline-block; will-change: transform; transform-origin: bottom center; }
+.brand:hover .brand-letter { animation: brand-hop .55s cubic-bezier(.28,.84,.42,1) both; animation-delay: calc(var(--i) * 55ms); }
+@keyframes brand-hop {
+  0%   { transform: translateY(0)     scale(1, 1); }
+  25%  { transform: translateY(-9px)  scale(.92, 1.12); }
+  55%  { transform: translateY(0)     scale(1.1, .9); }
+  75%  { transform: translateY(-3px)  scale(.98, 1.04); }
+  100% { transform: translateY(0)     scale(1, 1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand:hover .brand-letter { animation: none; }
+}
 .nav-search { flex: 1; max-width: 420px; }
 .search-box {
   display: flex; align-items: center; gap: 8px;
