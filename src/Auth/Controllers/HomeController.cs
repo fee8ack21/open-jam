@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Auth.Common;
 using Auth.Data.Entities;
 using Auth.Models;
 using Auth.Options;
@@ -15,6 +16,7 @@ namespace Auth.Controllers;
 /// <summary>Auth service 的主要 MVC Controller，處理登入、註冊、信箱驗證、忘記密碼及重置密碼流程。</summary>
 /// <remarks>純 MVC 視圖流程，非 REST API；以 IgnoreApi 排除於 OpenAPI 文件外。</remarks>
 [ApiExplorerSettings(IgnoreApi = true)]
+[InvalidChallengeRedirect]
 public class HomeController(
     IHydraService hydra,
     IUserService userService,
@@ -94,8 +96,12 @@ public class HomeController(
 
     /// <summary>Hydra consent 端點，第一方應用自動全部接受。</summary>
     [HttpGet("consent")]
-    public async Task<IActionResult> Consent(string consent_challenge)
+    public async Task<IActionResult> Consent(string? consent_challenge)
     {
+        // consent 頁只該由 Hydra 帶 challenge 導入，缺 challenge 即視為非法存取
+        if (string.IsNullOrEmpty(consent_challenge))
+            return RedirectToAction(nameof(Error));
+
         var info = await hydra.GetConsentInfoAsync(consent_challenge);
 
         var accessTokenClaims = await userService.GetAccessTokenClaimsAsync(info.Subject);
