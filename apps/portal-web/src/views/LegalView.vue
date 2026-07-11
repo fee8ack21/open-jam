@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /* ============================================================
-   LegalView — 服務條款 / 隱私政策頁（/terms、/privacy）
+   LegalView — 服務條款 / 隱私權政策頁（/terms、/privacy）
    版面結構：Hero 漸層色帶（版本 meta pill）→ 資料夾式頁籤 +
    內容卡（重點速覽卡片格 + sticky 目錄 + 編號章節）→ 聯絡 CTA。
    兩份文件合併於同一頁，以分頁（tab）切換，切換時同步更新網址
@@ -149,7 +149,7 @@ function jumpTo(n: string) {
 
       <!-- ============ 頁籤 + 內容卡（疊在色帶下緣） ============ -->
       <div class="legal-body">
-        <!-- ── 分頁：服務條款 / 隱私政策 ── -->
+        <!-- ── 分頁：服務條款 / 隱私權政策 ── -->
         <div class="legal-tabs" role="tablist" :aria-label="t('legal.tabsLabel')">
           <button
             v-for="k in TABS"

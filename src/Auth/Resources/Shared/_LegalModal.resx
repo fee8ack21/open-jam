@@ -25,8 +25,8 @@
   <data name="LegalTerms.Section5.Body" xml:space="preserve"><value>你保留作品的完整著作權。為了在平台上展示與銷售，你授予 Open Jam 一項非專屬、全球性的授權以託管、展示與推廣你的作品。</value></data>
   <data name="LegalTerms.Section6.Title" xml:space="preserve"><value>帳號終止</value></data>
   <data name="LegalTerms.Section6.Body" xml:space="preserve"><value>若你違反本條款，我們有權暫停或終止你的帳號。你也可以隨時於設定中刪除帳號。</value></data>
-  <data name="LegalPrivacy.AriaLabel" xml:space="preserve"><value>隱私政策</value></data>
-  <data name="LegalPrivacy.Title" xml:space="preserve"><value>隱私政策</value></data>
+  <data name="LegalPrivacy.AriaLabel" xml:space="preserve"><value>隱私權政策</value></data>
+  <data name="LegalPrivacy.Title" xml:space="preserve"><value>隱私權政策</value></data>
   <data name="LegalPrivacy.Section1.Title" xml:space="preserve"><value>我們重視你的隱私</value></data>
   <data name="LegalPrivacy.Section1.Body" xml:space="preserve"><value>本政策說明 Open Jam 如何蒐集、使用與保護你的個人資料。使用本服務即表示你了解並同意以下作法。</value></data>
   <data name="LegalPrivacy.Section2.Title" xml:space="preserve"><value>我們蒐集的資料</value></data>
