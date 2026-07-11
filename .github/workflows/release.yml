@@ -1,26 +1,28 @@
 name: Release build & push
 
-# 觸發策略：推 per-package git tag，格式 `<image-key>@<version>`（例：portal-web@1.0.0）。
-# tag 名稱本身即宣告要建哪個映像與版本，無需在 commit 訊息另寫 images: 行。
+# 觸發策略：push 到 main，且 HEAD 為 chore(release) commit。
+# commit body 的 `- <image-key>@<version>` 清單即宣告要建哪些映像與版本，
+# 無需另打 git tag——一個 release commit = 一次 workflow run = 一則 Discord 通知。
 on:
   push:
-    tags: ['*@*']
+    branches: [main]
 
 env:
   REGISTRY: asia-east1-docker.pkg.dev
   IMAGE_PREFIX: asia-east1-docker.pkg.dev/open-jam-498418/open-jam
 
 jobs:
-  # ── 1. 解析 tag 名稱，查表得出 image / context / dockerfile / version ──
+  # ── 1. 判斷是否為 release commit，解析清單查表產出 build matrix ──
   setup:
     runs-on: ubuntu-latest
     outputs:
-      image:      ${{ steps.pick.outputs.image }}
-      context:    ${{ steps.pick.outputs.context }}
-      dockerfile: ${{ steps.pick.outputs.dockerfile }}
-      version:    ${{ steps.pick.outputs.version }}
+      is_release: ${{ steps.parse.outputs.is_release }}
+      matrix:     ${{ steps.parse.outputs.matrix }}
     steps:
-      - id: pick
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - id: parse
         run: |
           cat > /tmp/manifest.json <<'JSON'
           {
@@ -43,37 +45,47 @@ jobs:
           }
           JSON
 
-          TAG="${{ github.ref_name }}"          # 例：portal-web@1.0.0
-          KEY="${TAG%@*}"                        # @ 之前：portal-web
-          RAW_VERSION="${TAG##*@}"               # 最後一個 @ 之後：1.0.0
+          # 只看 HEAD 這一筆 commit：subject 非 chore(release) 即非發佈，直接結束
+          SUBJECT=$(git log -1 --format=%s)
+          case "$SUBJECT" in
+            chore\(release\)*) : ;;
+            *)
+              echo "非 release commit（$SUBJECT），略過"
+              echo "is_release=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
 
-          if [ "$KEY" = "$TAG" ] || [ -z "$RAW_VERSION" ]; then
-            echo "::error::tag '$TAG' 格式錯誤，需為 <image-key>@<version>（例：portal-web@1.0.0）"
+          # 解析 body 的 `- key@version` 行 → 查 manifest → 併入 version 組出 include
+          INCLUDE='[]'
+          while IFS='@' read -r KEY VER; do
+            [ -z "$KEY" ] && continue
+            ENTRY=$(jq -c --arg k "$KEY" '.[$k] // empty' /tmp/manifest.json)
+            if [ -z "$ENTRY" ]; then
+              echo "::error::未知的 image key '$KEY'（release commit 清單）。合法 key 見 manifest。"
+              exit 1
+            fi
+            INCLUDE=$(echo "$INCLUDE" | jq -c --argjson e "$ENTRY" --arg v "v$VER" '. + [$e + {version:$v}]')
+          done < <(git log -1 --format=%b | grep -oE '^- [a-z0-9-]+@[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^- //')
+
+          if [ "$(echo "$INCLUDE" | jq 'length')" -eq 0 ]; then
+            echo "::error::release commit 未列出任何 '- <key>@<version>' 項目"
             exit 1
           fi
+          echo "is_release=true" >> "$GITHUB_OUTPUT"
+          echo "matrix={\"include\":$INCLUDE}" >> "$GITHUB_OUTPUT"
 
-          VERSION="v$RAW_VERSION"                 # image tag 加 v 前綴：v1.0.0
-
-          ENTRY=$(jq -c --arg k "$KEY" '.[$k] // empty' /tmp/manifest.json)
-          if [ -z "$ENTRY" ]; then
-            echo "::error::未知的 image key '$KEY'（tag '$TAG'）。合法 key 見 manifest。"
-            exit 1
-          fi
-
-          echo "image=$(echo "$ENTRY"      | jq -r .image)"      >> "$GITHUB_OUTPUT"
-          echo "context=$(echo "$ENTRY"    | jq -r .context)"    >> "$GITHUB_OUTPUT"
-          echo "dockerfile=$(echo "$ENTRY" | jq -r .dockerfile)" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION"                                >> "$GITHUB_OUTPUT"
-
-  # ── 2. 建置並推送該映像（版本已存在則略過） ──
+  # ── 2. 平行建置各映像（版本已存在則略過），各自輸出結果 artifact ──
   build:
     needs: setup
+    if: needs.setup.outputs.is_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write        # WIF 需要
-    outputs:
-      skipped: ${{ steps.check.outputs.exists }}
+    strategy:
+      fail-fast: false       # 單一服務失敗不中斷其他服務
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -87,8 +99,8 @@ jobs:
       # 查 Artifact Registry 是否已有該版本 tag（回 200 = 已存在）
       - id: check
         env:
-          IMAGE:   ${{ needs.setup.outputs.image }}
-          VERSION: ${{ needs.setup.outputs.version }}
+          IMAGE:   ${{ matrix.image }}
+          VERSION: ${{ matrix.version }}
           TOKEN:   ${{ steps.auth.outputs.access_token }}
         run: |
           REPO_PATH="${IMAGE_PREFIX#${REGISTRY}/}"   # open-jam-498418/open-jam
@@ -118,46 +130,74 @@ jobs:
       - if: steps.check.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
-          context: ${{ needs.setup.outputs.context }}
-          file: ${{ needs.setup.outputs.dockerfile }}
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}/${{ needs.setup.outputs.image }}:${{ needs.setup.outputs.version }}
-            ${{ env.IMAGE_PREFIX }}/${{ needs.setup.outputs.image }}:latest
+            ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── 3. 將結果推播 Discord ──
-  notify:
-    needs: [setup, build]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Discord notify
+      # 各 entry 記錄自己的結果（success / skipped / failed），供 notify 彙整
+      - if: always()
         env:
-          RESULT:  ${{ needs.build.result }}          # success / failure / cancelled / skipped
-          SKIPPED: ${{ needs.build.outputs.skipped }}  # true = 版本已存在
+          IMAGE:   ${{ matrix.image }}
+          VERSION: ${{ matrix.version }}
+          SKIPPED: ${{ steps.check.outputs.exists }}
+          JOB:     ${{ job.status }}
         run: |
-          if [ "$RESULT" = "success" ] && [ "$SKIPPED" = "true" ]; then
-            COLOR=9807270; STATUS="⏭️ 略過（版本已存在）"
-          elif [ "$RESULT" = "success" ]; then
-            COLOR=3066993; STATUS="✅ 成功"
-          else
-            COLOR=15158332; STATUS="❌ 失敗（$RESULT）"
-          fi
+          if [ "$JOB" = success ] && [ "$SKIPPED" = true ]; then STATUS=skipped
+          elif [ "$JOB" = success ]; then STATUS=success
+          else STATUS=failed; fi
+          jq -nc --arg i "$IMAGE" --arg v "$VERSION" --arg s "$STATUS" \
+            '{image:$i,version:$v,status:$s}' > "${IMAGE}.json"
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: result-${{ matrix.image }}
+          path: ${{ matrix.image }}.json
+
+  # ── 3a. setup 階段失敗（未知 image key／清單為空／前置工具錯誤）也要通知 ──
+  #        此時 build / notify 皆不會執行，需獨立 job 補發，避免「紅了卻無聲」。
+  notify-setup-failure:
+    needs: setup
+    if: always() && needs.setup.result == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord notify (setup failed)
+        run: |
           curl -sf -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
             -H "Content-Type: application/json" \
-            -d @- <<EOF
-          {
-            "embeds": [{
-              "title": "Open Jam Release ${{ github.ref_name }}",
-              "description": "映像建置與推送 $STATUS",
-              "color": $COLOR,
-              "fields": [
-                { "name": "Image", "value": "${{ needs.setup.outputs.image }}:${{ needs.setup.outputs.version }}", "inline": true },
-                { "name": "Commit", "value": "${{ github.sha }}", "inline": true }
-              ],
-              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }]
-          }
-          EOF
+            -d "{\"embeds\":[{\"title\":\"Open Jam Release — ❌ 設定階段失敗\",\"description\":\"release commit 清單解析或前置步驟失敗（未知 image key／清單為空／工具錯誤），未進入建置。請查看 Actions log。\",\"color\":15158332,\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}"
+
+  # ── 3b. 彙整所有結果，發一則 Discord ──
+  notify:
+    needs: [setup, build]
+    if: always() && needs.setup.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: results
+          pattern: result-*
+          merge-multiple: true
+
+      - name: Discord notify
+        run: |
+          # 組出每行 "✅ `image:version`"（依 image 名排序）
+          LINES=$(cat results/*.json | jq -rs 'sort_by(.image)[] |
+            (if .status=="skipped" then "⏭️"
+             elif .status=="success" then "✅"
+             else "❌" end) + " `" + .image + ":" + .version + "`"')
+          FAILED=$(cat results/*.json | jq -s '[.[]|select(.status=="failed")]|length')
+          if [ "${{ needs.build.result }}" != "success" ] || [ "$FAILED" -gt 0 ]; then
+            COLOR=15158332; TITLE="部分失敗"
+          else
+            COLOR=3066993; TITLE="全部成功"
+          fi
+          DESC=$(printf '%s' "$LINES" | jq -Rs .)
+          curl -sf -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"Open Jam Release — $TITLE\",\"description\":$DESC,\"color\":$COLOR,\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}"

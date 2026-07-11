@@ -110,21 +110,18 @@ chore(release): 發佈新版本
 
 > **不必每次都全服務升版**：條列清單只列出「自上次升版以來確實有異動」的服務，逐一比對該服務目錄自己上次版本提交至今的 `git log`。也要留意**間接異動**——若 `Shared/`（或其他共用類別庫）在此期間有變更，所有引用它的服務即視為有異動，即便該服務自身檔案未動到。
 
-### Release Git Tag
+### 推送觸發 CI
 
-Release commit 之後，須為 body 條列的**每個服務各建立一個 git tag**，格式與 release commit 條列**完全一致**——`<service-name>@<version>`（如 `creator-web@0.0.12`）。推送 tag 觸發 CI 建置推送對應映像（見 [[CI]]）；CI 會將 tag 的版本自動補 `v` 前綴作為映像 tag，例如 git tag `creator-web@0.0.12` → 映像 `creator-web:v0.0.12`。
+Release commit **推上 `main` 即觸發 CI**——CI 讀取該 commit body 的 `- <service-name>@<version>` 清單，逐項建置推送對應映像（見 [[CI]]），並將版本自動補 `v` 前綴作為映像 tag（`- creator-web@0.0.12` → 映像 `creator-web:v0.0.12`）。**無需另打 git tag**：
 
 ```bash
-# 依 release commit 條列的服務逐一建 tag（版本同該服務 package.json / .csproj）
-git tag creator-web@0.0.12
-git tag portal-web@0.0.26
-git tag workspace-web@0.0.25
-
-# 推送 commit 與所有 tag
-git push origin main --tags
+# 提交 release commit（body 條列本次升版服務）後直接推送 main
+git push origin main
 ```
 
-> tag 名稱是 CI 的觸發條件（`tags: ['*@*']`）與建置對象的唯一依據，故只建「本次確實升版」的服務 tag（對齊 release commit 條列）。git tag 名稱不含冒號（`:` 為 git ref 非法字元），映像的 `:v` 形式由 CI 產生，非手動輸入。
+> commit body 的條列清單即 CI 的建置對象唯一依據，故只列「本次確實升版」的服務。一個 release commit = 一次 workflow run = 一則彙整 Discord 通知；一般 feature / fix commit 推上 `main` 不會觸發建置（CI 判定非 `chore(release)` 後即結束）。
+>
+> 若仍想以 git tag 標記發佈點供人類瀏覽，可自行補打（如 `git tag creator-web@0.0.12 && git push --tags`），但**不影響 CI**——CI 已不再以 tag 觸發。
 
 ## 後端注意事項
 
