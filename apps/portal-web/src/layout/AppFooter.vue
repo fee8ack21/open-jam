@@ -9,6 +9,9 @@ import { env } from '@/environment.js';
 
 const { t } = useI18n();
 
+/** 應用程式版本號（Vite build 時由 package.json 的 version 注入），併入頁尾版權列顯示。 */
+const appVersion = __APP_VERSION__;
+
 function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 </script>
 
@@ -22,6 +25,6 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
       <router-link to="/privacy">{{ t('footer.privacy') }}</router-link>
       <router-link to="/terms">{{ t('footer.terms') }}</router-link>
     </nav>
-    <div class="mkt-foot-copy">{{ t('footer.copyright') }}</div>
+    <div class="mkt-foot-copy">{{ t('footer.copyright') }} · v{{ appVersion }}</div>
   </footer>
 </template>
