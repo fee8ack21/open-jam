@@ -98,7 +98,9 @@ body {
     var(--bg);
 }
 
-.oj-root > main { flex: 1; } /* 撐開內容區，將 footer 推至底部 */
+/* 撐開內容區，將 footer 推至底部；flex column 讓子頁能以 flex:1 填滿可用高度
+   （main 高度 = 100vh - header - footer），不影響一般頁面（子頁預設仍為內容高） */
+.oj-root > main { flex: 1; display: flex; flex-direction: column; }
 .page { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
 .page-pad { padding-top: 22px; padding-bottom: 96px; }
 

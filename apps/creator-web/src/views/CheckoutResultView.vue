@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
 import ProductThumb from '@/components/ProductThumb.vue';
 import ReviewWidget from '@/components/ReviewWidget.vue';
+import ResultArt from '@/components/ResultArt.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
@@ -41,7 +42,7 @@ const goOrder = () => {
 
     <!-- SUCCESS -->
     <div v-if="isSuccess && order" class="success-wrap">
-      <div class="success-ring"><app-icon name="check" :size="44" :stroke="2.4" /></div>
+      <span class="result-art"><result-art name="success" /></span>
       <p class="h-eyebrow" style="text-align:center">{{ t('result.successOrder', { id: order.id }) }}</p>
       <h1 class="h-title" style="text-align:center">{{ t('result.successTitle') }}</h1>
       <i18n-t keypath="result.successSub" tag="p" class="h-sub" style="text-align:center" scope="global">
@@ -77,7 +78,7 @@ const goOrder = () => {
 
     <!-- SUCCESS, but nothing to restore (e.g. page revisited / refreshed) -->
     <div v-else-if="isSuccess" class="success-wrap">
-      <div class="success-ring"><app-icon name="check" :size="44" :stroke="2.4" /></div>
+      <span class="result-art"><result-art name="success" /></span>
       <h1 class="h-title" style="text-align:center">{{ t('result.successTitle2') }}</h1>
       <p class="h-sub" style="text-align:center">{{ t('result.successSub2') }}</p>
       <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
@@ -85,9 +86,9 @@ const goOrder = () => {
       </div>
     </div>
 
-    <!-- CANCELLED -->
+    <!-- CANCELLED — 放棄結帳不是錯誤，收斂為「暫停」語氣，不用錯誤紅 -->
     <div v-else class="success-wrap">
-      <div class="success-ring cancel"><app-icon name="close" :size="40" :stroke="2.4" /></div>
+      <span class="result-art"><result-art name="cancel" /></span>
       <h1 class="h-title" style="text-align:center">{{ t('result.cancelTitle') }}</h1>
       <p class="h-sub" style="text-align:center">{{ t('result.cancelSub') }}</p>
       <div style="display:flex; gap:12px; margin-top:24px; justify-content:center;">
@@ -99,8 +100,19 @@ const goOrder = () => {
 </template>
 
 <style scoped>
-.success-ring.cancel {
-  color: var(--err, #e5484d);
-  background: color-mix(in srgb, var(--err, #e5484d) 12%, transparent);
+/* 手繪貼紙插畫（比照 portal-web AboutView 的 LandingArt）：
+   奶油面板 + 品牌色小場景，外層補品牌硬陰影。 */
+/* 結果頁填滿 main（= 100vh - header - footer）並垂直置中：
+   短內容不再撐高頁面、不出現捲軸；內容較長（含訂單明細）時
+   flex item 仍會長到內容高、正常捲動，不會裁切。 */
+.page.page-pad {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 32px;
+  padding-bottom: 32px;
 }
+.success-wrap { margin-top: 0; margin-bottom: 0; }
+.result-art { display: block; width: 104px; margin: 0 auto 22px; }
 </style>
