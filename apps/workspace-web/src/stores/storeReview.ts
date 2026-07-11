@@ -28,6 +28,7 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
   const historyTotal = ref(0);                    // 已審核總筆數（跨頁）
   const pendingOffset = ref(0);
   const historyOffset = ref(0);
+  const pageSize = ref(PAGE_SIZE);
   /** 已審核紀錄的結果篩選：null 表示全部（Approved + Rejected）。 */
   const historyStatus = ref<StoreApplicationStatus | null>(null);
   const loading = ref(false);
@@ -44,7 +45,7 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
       const res = await storeApi.storeApplications.getAll({
         Status: StoreApplicationStatus.Pending,
         Offset: pendingOffset.value,
-        Limit: PAGE_SIZE,
+        Limit: pageSize.value,
       });
       items.value = res.data.items ?? [];
       pendingTotal.value = res.data.totalCount ?? items.value.length;
@@ -67,7 +68,7 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
         Status: historyStatus.value ?? undefined,
         Reviewed: historyStatus.value ? undefined : true,
         Offset: historyOffset.value,
-        Limit: PAGE_SIZE,
+        Limit: pageSize.value,
       });
       history.value = res.data.items ?? [];
       historyTotal.value = res.data.totalCount ?? history.value.length;
@@ -88,13 +89,27 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
 
   /** 待審核佇列跳頁（1-based）。 */
   async function goPendingPage(page: number) {
-    pendingOffset.value = Math.max(0, (page - 1) * PAGE_SIZE);
+    pendingOffset.value = Math.max(0, (page - 1) * pageSize.value);
     await loadPending();
   }
 
   /** 已審核紀錄跳頁（1-based）。 */
   async function goHistoryPage(page: number) {
-    historyOffset.value = Math.max(0, (page - 1) * PAGE_SIZE);
+    historyOffset.value = Math.max(0, (page - 1) * pageSize.value);
+    await loadHistory();
+  }
+
+  /** 變更每頁筆數並回到待審核第一頁重新載入。 */
+  async function setPendingPageSize(size: number) {
+    pageSize.value = size;
+    pendingOffset.value = 0;
+    await loadPending();
+  }
+
+  /** 變更每頁筆數並回到已審核第一頁重新載入。 */
+  async function setHistoryPageSize(size: number) {
+    pageSize.value = size;
+    historyOffset.value = 0;
     await loadHistory();
   }
 
@@ -138,7 +153,7 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
     historyTotal,
     pendingOffset,
     historyOffset,
-    pageSize: PAGE_SIZE,
+    pageSize,
     loading,
     error,
     pendingCount,
@@ -147,6 +162,8 @@ export const useStoreReviewStore = defineStore('storeReview', () => {
     loadHistory,
     goPendingPage,
     goHistoryPage,
+    setPendingPageSize,
+    setHistoryPageSize,
     applyHistoryFilter,
     approve,
     reject,

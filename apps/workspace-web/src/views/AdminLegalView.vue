@@ -38,7 +38,7 @@ function messageOf(err: unknown, fallback = t('legalDocs.msgActionFailed')) {
 }
 
 // ── 列表（伺服器端分頁）────────────────────────────────────
-const PAGE_SIZE = 10
+const pageSize = ref(10)
 const items = ref<LegalDocumentSummaryDto[]>([])
 const totalCount = ref(0)
 const loading = ref(false)
@@ -60,14 +60,14 @@ const statusOptions = computed(() => [
   { label: t('legalDocs.statusInactive'), value: LegalDocumentStatus.Inactive },
 ])
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)))
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 async function load() {
   loading.value = true
   try {
     const res = await contentApi.legalDocuments.list({
-      Offset: (page.value - 1) * PAGE_SIZE,
-      Limit: PAGE_SIZE,
+      Offset: (page.value - 1) * pageSize.value,
+      Limit: pageSize.value,
       Type: typeFilter.value === 'all' ? undefined : typeFilter.value,
       Status: statusFilter.value === 'all' ? undefined : statusFilter.value,
     })
@@ -84,6 +84,7 @@ async function load() {
 
 watch([typeFilter, statusFilter], () => { page.value = 1; load() })
 function changePage(p: number) { page.value = p; load() }
+function changePageSize(size: number) { pageSize.value = size; page.value = 1; load() }
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
@@ -315,7 +316,12 @@ onMounted(load)
         </div>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

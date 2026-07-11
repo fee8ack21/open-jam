@@ -28,6 +28,7 @@ export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
   const items = ref<CatalogSummaryDto[]>([]); // 目前頁次的商品
   const totalCount = ref(0);                  // 目前篩選條件下的總筆數
   const offset = ref(0);
+  const pageSize = ref(PAGE_SIZE);
   const loading = ref(false);
   const error = ref<string | null>(null);
   const filter = ref<AdminCatalogFilter>({ search: '', status: null });
@@ -39,7 +40,7 @@ export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
     try {
       const res = await catalogApi.catalogs.list({
         Offset: offset.value,
-        Limit: PAGE_SIZE,
+        Limit: pageSize.value,
         Search: filter.value.search?.trim() || undefined,
         Status: filter.value.status ?? undefined,
       });
@@ -63,7 +64,14 @@ export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
 
   /** 跳至指定頁（1-based）。 */
   async function goPage(page: number) {
-    offset.value = Math.max(0, (page - 1) * PAGE_SIZE);
+    offset.value = Math.max(0, (page - 1) * pageSize.value);
+    await load();
+  }
+
+  /** 變更每頁筆數並回到第一頁重新載入。 */
+  async function setPageSize(size: number) {
+    pageSize.value = size;
+    offset.value = 0;
     await load();
   }
 
@@ -91,7 +99,8 @@ export const useAdminCatalogStore = defineStore('adminCatalogs', () => {
     items,
     totalCount,
     offset,
-    pageSize: PAGE_SIZE,
+    pageSize,
+    setPageSize,
     loading,
     error,
     filter,

@@ -69,6 +69,7 @@ export const useCatalogStore = defineStore('catalog', () => {
   const products = ref<CatalogSummaryDto[]>([]); // 目前頁次的商品
   const totalCount = ref(0);                     // 目前篩選條件下的總筆數
   const offset = ref(0);
+  const pageSize = ref(PAGE_SIZE);
   const categories = ref<CatalogCategoryDto[]>([]);
   const loading = ref(false);
   const busyId = ref<string | null>(null);   // 進行中的商品 id（避免重複點擊）
@@ -100,7 +101,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     error.value = null;
     const query = {
       Offset: offset.value,
-      Limit: PAGE_SIZE,
+      Limit: pageSize.value,
       Search: filter.value.search?.trim() || undefined,
       Status: filter.value.status ?? undefined,
     };
@@ -150,7 +151,14 @@ export const useCatalogStore = defineStore('catalog', () => {
 
   /** 跳至指定頁（1-based）。 */
   async function goPage(page: number) {
-    offset.value = Math.max(0, (page - 1) * PAGE_SIZE);
+    offset.value = Math.max(0, (page - 1) * pageSize.value);
+    await fetchPage();
+  }
+
+  /** 變更每頁筆數並回到第一頁重新載入。 */
+  async function setPageSize(size: number) {
+    pageSize.value = size;
+    offset.value = 0;
     await fetchPage();
   }
 
@@ -287,7 +295,8 @@ export const useCatalogStore = defineStore('catalog', () => {
     products,
     totalCount,
     offset,
-    pageSize: PAGE_SIZE,
+    pageSize,
+    setPageSize,
     categories,
     loading,
     busyId,

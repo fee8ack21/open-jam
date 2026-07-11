@@ -50,6 +50,11 @@ async function changePage(p: number) {
   await store.goPage(p)
 }
 
+async function changePageSize(size: number) {
+  page.value = 1
+  await store.setPageSize(size)
+}
+
 // ── 明細檢視 ────────────────────────────────────────────────
 const detail = ref<AuditLogDto | null>(null)
 const detailOpen = ref(false)
@@ -153,10 +158,12 @@ onMounted(store.load)
         </div>
 
         <div class="audit-pager">
-          <n-pagination
+          <list-pager
             :page="page"
             :page-count="totalPages"
-            @update:page="changePage" />
+            :page-size="store.pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

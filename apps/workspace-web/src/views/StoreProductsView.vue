@@ -34,6 +34,7 @@ const store = computed(() => items.value.find((s) => s.id === storeId.value) ?? 
 const page = ref(1)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / catalog.pageSize)))
 async function changePage(p: number) { page.value = p; await catalog.goPage(p) }
+async function changePageSize(size: number) { page.value = 1; await catalog.setPageSize(size) }
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleDateString(locale.value) : '—'
@@ -138,7 +139,12 @@ onMounted(load)
         </table>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="catalog.pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

@@ -18,7 +18,7 @@ const message = useMessage()
 const categories = ref<CatalogCategoryDto[]>([])
 const keyword = ref('')
 const appliedKeyword = ref('') // 已套用的關鍵字（按下搜尋才更新）
-const PAGE_SIZE = 10
+const pageSize = ref(10)
 const page = ref(1)
 const loading = ref(false)
 const saving = ref(false)
@@ -99,13 +99,15 @@ const rows = computed<CategoryRow[]>(() => {
 })
 
 // 分頁：分類為前端一次載入，於目前層級的過濾結果上做客戶端分頁
-const totalPages = computed(() => Math.max(1, Math.ceil(rows.value.length / PAGE_SIZE)))
+const totalPages = computed(() => Math.max(1, Math.ceil(rows.value.length / pageSize.value)))
 const pagedRows = computed(() => {
-  const start = (page.value - 1) * PAGE_SIZE
-  return rows.value.slice(start, start + PAGE_SIZE)
+  const start = (page.value - 1) * pageSize.value
+  return rows.value.slice(start, start + pageSize.value)
 })
 // 資料變動（刪除 / 過濾）後夾住頁碼，避免停在空白頁
 watch(totalPages, (n) => { if (page.value > n) page.value = n })
+
+function changePageSize(size: number) { pageSize.value = size; page.value = 1 }
 
 // 按下搜尋：套用目前關鍵字並回到第一頁（分類為前端一次載入，僅過濾目前層級）
 function onSearch() {
@@ -298,7 +300,12 @@ onMounted(load)
         </div>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="(p: number) => (page = p)" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="pageSize"
+            @update:page="(p: number) => (page = p)"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

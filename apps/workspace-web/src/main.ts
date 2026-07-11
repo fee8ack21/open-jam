@@ -10,6 +10,7 @@ import AppIcon from '@/components/app-icon'
 import ProductThumb from '@/components/ProductThumb.vue'
 import Stars from '@/components/Stars.vue'
 import TrendChart from '@/components/TrendChart.vue'
+import ListPager from '@/components/ListPager.vue'
 
 import '@/assets/styles/base.css'
 import '@/assets/styles/workspace.css'
@@ -39,6 +40,7 @@ async function bootstrap() {
   app.component('product-thumb', ProductThumb)
   app.component('stars', Stars)
   app.component('trend-chart', TrendChart)
+  app.component('list-pager', ListPager)
 
   app.mount('#app')
 }

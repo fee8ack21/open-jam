@@ -29,7 +29,7 @@ export const useAnnouncementsStore = defineStore('announcements', () => {
   const submitting = ref(false);
   const error = ref<string | null>(null);
 
-  const pageSize = PAGE_SIZE;
+  const pageSize = ref(PAGE_SIZE);
   let offset = 0;
   let statusFilter: NotificationRequestStatus | null = null;
 
@@ -49,7 +49,7 @@ export const useAnnouncementsStore = defineStore('announcements', () => {
         StoreId: storeId.value,
         Status: statusFilter ?? undefined,
         Offset: offset,
-        Limit: pageSize,
+        Limit: pageSize.value,
       });
       items.value = res.data.items ?? [];
       totalCount.value = res.data.totalCount ?? 0;
@@ -68,7 +68,14 @@ export const useAnnouncementsStore = defineStore('announcements', () => {
   }
 
   async function goPage(page: number) {
-    offset = (page - 1) * pageSize;
+    offset = (page - 1) * pageSize.value;
+    await load();
+  }
+
+  /** 變更每頁筆數並回到第一頁重新載入。 */
+  async function setPageSize(size: number) {
+    pageSize.value = size;
+    offset = 0;
     await load();
   }
 
@@ -123,6 +130,7 @@ export const useAnnouncementsStore = defineStore('announcements', () => {
     load,
     applyFilter,
     goPage,
+    setPageSize,
     create,
     cancel,
   };

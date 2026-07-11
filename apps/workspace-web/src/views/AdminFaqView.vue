@@ -27,7 +27,7 @@ function messageOf(err: unknown, fallback = t('faqs.msgActionFailed')) {
 }
 
 // ── 列表（伺服器端分頁）────────────────────────────────────
-const PAGE_SIZE = 10
+const pageSize = ref(10)
 const items = ref<FaqItemDto[]>([])
 const totalCount = ref(0)
 const loading = ref(false)
@@ -49,14 +49,14 @@ const publishedOptions = computed(() => [
   { label: t('faqs.statusHidden'), value: 'false' },
 ])
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)))
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 
 async function load() {
   loading.value = true
   try {
     const res = await contentApi.faqs.list({
-      Offset: (page.value - 1) * PAGE_SIZE,
-      Limit: PAGE_SIZE,
+      Offset: (page.value - 1) * pageSize.value,
+      Limit: pageSize.value,
       CategoryId: categoryFilter.value === 'all' ? undefined : categoryFilter.value,
       IsPublished: publishedFilter.value === 'all' ? undefined : publishedFilter.value === 'true',
     })
@@ -73,6 +73,7 @@ async function load() {
 
 watch([categoryFilter, publishedFilter], () => { page.value = 1; load() })
 function changePage(p: number) { page.value = p; load() }
+function changePageSize(size: number) { pageSize.value = size; page.value = 1; load() }
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
@@ -240,7 +241,12 @@ onMounted(() => { loadCategories(); load() })
         </div>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

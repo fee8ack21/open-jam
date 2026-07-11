@@ -29,6 +29,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
   const items = ref<OrderSummaryDto[]>([]);
   const totalCount = ref(0);
   const offset = ref(0);
+  const pageSize = ref(PAGE_SIZE);
   const loading = ref(false);
   const error = ref<string | null>(null);
   const filter = ref<SellerOrderFilter>({ buyerEmail: '', status: null });
@@ -58,7 +59,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
     try {
       const res = await orderApi.orders.listByStore(storeId.value, {
         Offset: offset.value,
-        Limit: PAGE_SIZE,
+        Limit: pageSize.value,
         BuyerEmail: filter.value.buyerEmail?.trim() || undefined,
         Status: filter.value.status ?? undefined,
       });
@@ -82,7 +83,14 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
 
   /** 跳至指定頁（1-based）。 */
   async function goPage(page: number) {
-    offset.value = Math.max(0, (page - 1) * PAGE_SIZE);
+    offset.value = Math.max(0, (page - 1) * pageSize.value);
+    await load();
+  }
+
+  /** 變更每頁筆數並回到第一頁重新載入。 */
+  async function setPageSize(size: number) {
+    pageSize.value = size;
+    offset.value = 0;
     await load();
   }
 
@@ -106,7 +114,8 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
     items,
     totalCount,
     offset,
-    pageSize: PAGE_SIZE,
+    pageSize,
+    setPageSize,
     loading,
     error,
     filter,

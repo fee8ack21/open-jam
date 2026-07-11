@@ -76,6 +76,7 @@ async function onStatusChange() {
   await refetch()
 }
 async function changePage(p: number) { page.value = p; await store.goHistoryPage(p) }
+async function changePageSize(size: number) { page.value = 1; await store.setHistoryPageSize(size) }
 
 onMounted(store.loadHistory)
 </script>
@@ -173,7 +174,12 @@ onMounted(store.loadHistory)
         </div>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="store.pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

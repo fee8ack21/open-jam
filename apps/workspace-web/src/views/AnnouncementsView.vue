@@ -76,6 +76,11 @@ async function changePage(p: number) {
   await store.goPage(p)
 }
 
+async function changePageSize(size: number) {
+  page.value = 1
+  await store.setPageSize(size)
+}
+
 /** 由任務 Payload（camelCase JSON）取出標題顯示。 */
 function titleOf(r: NotificationRequestDto): string {
   try {
@@ -202,10 +207,12 @@ function onCancel(r: NotificationRequestDto) {
           </div>
 
           <div class="history-pager">
-            <n-pagination
+            <list-pager
               :page="page"
               :page-count="totalPages"
-              @update:page="changePage" />
+              :page-size="store.pageSize"
+              @update:page="changePage"
+              @update:page-size="changePageSize" />
           </div>
         </div>
 

@@ -43,6 +43,11 @@ async function changePage(p: number) {
   await store.goPage(p)
 }
 
+async function changePageSize(size: number) {
+  page.value = 1
+  await store.setPageSize(size)
+}
+
 const detailOpen = ref(false)
 async function openDetail(row: OrderSummaryDto) {
   if (!row.id) return
@@ -136,10 +141,12 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
         </div>
 
         <div class="history-pager">
-          <n-pagination
+          <list-pager
             :page="page"
             :page-count="totalPages"
-            @update:page="changePage" />
+            :page-size="store.pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

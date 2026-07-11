@@ -55,6 +55,7 @@ async function applyFilter() {
 // 關鍵字改由「搜尋」按鈕 / Enter 觸發；下拉狀態維持即時套用
 watch(statusFilter, () => { applyFilter() })
 async function changePage(p: number) { page.value = p; await store.goPage(p) }
+async function changePageSize(size: number) { page.value = 1; await store.setPageSize(size) }
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
@@ -222,7 +223,12 @@ onMounted(store.load)
         </div>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="store.pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

@@ -80,6 +80,7 @@ async function applyFilter() {
 // 關鍵字改由「搜尋」按鈕 / Enter 觸發；下拉條件維持即時套用
 watch([roleFilter, statusFilter], () => { applyFilter() })
 async function changePage(p: number) { page.value = p; await store.goPage(p) }
+async function changePageSize(size: number) { page.value = 1; await store.setPageSize(size) }
 </script>
 
 <template>
@@ -176,7 +177,12 @@ async function changePage(p: number) { page.value = p; await store.goPage(p) }
         </div>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="store.pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>

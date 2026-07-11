@@ -13,7 +13,9 @@
     "startDate": "Start date",
     "endDate": "End date",
     "loading": "Loading…",
-    "all": "All"
+    "all": "All",
+    "perPagePrefix": "",
+    "perPageSuffix": "/ page"
   },
   "storeError": {
     "actionFailed": "Action failed, please try again later.",

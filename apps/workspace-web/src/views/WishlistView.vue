@@ -15,17 +15,19 @@ const { items, loading, error } = storeToRefs(store)
 // 載入 / 取消收藏錯誤以彈出 message 呈現，清單維持現狀
 watch(error, (msg) => { if (msg) message.error(msg) })
 
-const PAGE_SIZE = 12
+const pageSize = ref(12)
 const page = ref(1)
 
-const totalPages = computed(() => Math.max(1, Math.ceil(items.value.length / PAGE_SIZE)))
+const totalPages = computed(() => Math.max(1, Math.ceil(items.value.length / pageSize.value)))
 const list = computed(() => {
-  const start = (page.value - 1) * PAGE_SIZE
-  return items.value.slice(start, start + PAGE_SIZE)
+  const start = (page.value - 1) * pageSize.value
+  return items.value.slice(start, start + pageSize.value)
 })
 
 // 移除項目使總頁數縮減時，將頁碼夾回有效範圍。
 watch(totalPages, (n) => { if (page.value > n) page.value = n })
+
+function changePageSize(size: number) { pageSize.value = size; page.value = 1 }
 
 function accent(p: WishlistEntry) { return `hsl(${p.hue} 85% 58%)` }
 function openProduct(p: WishlistEntry) {
@@ -67,10 +69,13 @@ onMounted(store.load)
       </div>
 
       <div v-if="items.length" class="wish-pager">
-        <n-pagination
+        <list-pager
           :page="page"
           :page-count="totalPages"
-          @update:page="(p: number) => (page = p)" />
+          :page-size="pageSize"
+          :page-sizes="[12, 24, 48]"
+          @update:page="(p: number) => (page = p)"
+          @update:page-size="changePageSize" />
       </div>
 
       <div v-if="!loading && !items.length" class="empty-box">

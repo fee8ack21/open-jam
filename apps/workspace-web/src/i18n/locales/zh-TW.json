@@ -13,7 +13,9 @@
     "startDate": "起始日期",
     "endDate": "結束日期",
     "loading": "載入中…",
-    "all": "全部"
+    "all": "全部",
+    "perPagePrefix": "每頁",
+    "perPageSuffix": "筆"
   },
   "storeError": {
     "actionFailed": "操作失敗，請稍後再試。",

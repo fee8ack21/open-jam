@@ -42,6 +42,7 @@ const columns = [
 
 const totalPages = computed(() => Math.max(1, Math.ceil(pendingTotal.value / store.pageSize)))
 async function changePage(p: number) { page.value = p; await store.goPendingPage(p) }
+async function changePageSize(size: number) { page.value = 1; await store.setPendingPageSize(size) }
 
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
@@ -196,7 +197,12 @@ onMounted(store.load)
         </div>
 
         <div class="history-pager">
-          <n-pagination :page="page" :page-count="totalPages" @update:page="changePage" />
+          <list-pager
+            :page="page"
+            :page-count="totalPages"
+            :page-size="store.pageSize"
+            @update:page="changePage"
+            @update:page-size="changePageSize" />
         </div>
       </div>
     </n-spin>
