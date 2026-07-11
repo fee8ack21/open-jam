@@ -49,6 +49,9 @@
   .side:not(:hover) .nav-item > span:not(.nav-ic),
   .side:not(:hover) .nav-count { display: none; }
 
+  /* 收合狀態隱藏版本號文字，避免窄軌溢出（保留佔位不位移底部） */
+  .side:not(:hover) .side-version { visibility: hidden; }
+
   /* 模式切換是垂直區塊：用 visibility 保留佔位，避免展開時 nav 上下位移 */
   .side:not(:hover) .mode-switch { visibility: hidden; }
 
@@ -56,11 +59,24 @@
   .side:not(:hover) .nav-item { justify-content: center; padding: 13px 0; }
   .side:not(:hover) .nav-item:hover { transform: none; }
 }
+.side-version { flex: none; padding: 12px 12px 4px; font-family: var(--oj-mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--text-faint); user-select: none; text-align: center; white-space: nowrap; overflow: hidden; }
 .side-brand { flex: none; box-sizing: border-box; height: var(--nav-h); display: flex; align-items: center; gap: 11px; padding: 0 8px 18px; cursor: pointer; user-select: none; }
-.side-brand .brand-mark { width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, var(--c-violet), var(--c-pink)); display: grid; place-items: center; flex: none; box-shadow: 3px 3px 0 var(--text); transition: transform .18s; }
-.side-brand:hover .brand-mark { transform: rotate(-8deg) scale(1.05); }
+.side-brand .brand-mark { width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, var(--c-violet), var(--c-pink)); display: grid; place-items: center; flex: none; box-shadow: 3px 3px 0 var(--text); }
 .side-brand .brand-name { font-family: var(--oj-display); font-weight: 800; font-size: 22px; letter-spacing: -.6px; }
 .side-brand .brand-name small { display: block; font-family: var(--oj-mono); font-weight: 500; font-size: 10px; letter-spacing: .18em; color: var(--text-faint); text-transform: uppercase; margin-top: 1px; }
+/* 逐字彈跳（皮克斯風，比照 portal-web）：hover 時每個字母交錯上彈 + 擠壓伸展 */
+.side-brand .brand-letter { display: inline-block; will-change: transform; transform-origin: bottom center; }
+.side-brand:hover .brand-letter { animation: brand-hop .55s cubic-bezier(.28,.84,.42,1) both; animation-delay: calc(var(--i) * 55ms); }
+@keyframes brand-hop {
+  0%   { transform: translateY(0)     scale(1, 1); }
+  25%  { transform: translateY(-9px)  scale(.92, 1.12); }
+  55%  { transform: translateY(0)     scale(1.1, .9); }
+  75%  { transform: translateY(-3px)  scale(.98, 1.04); }
+  100% { transform: translateY(0)     scale(1, 1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .side-brand:hover .brand-letter { animation: none; }
+}
 
 /* seller / buyer mode toggle */
 .mode-switch { display: flex; padding: 3px; border-radius: 13px; background: var(--oj-primary-wash); gap: 3px; margin: 2px 4px 18px; }
@@ -439,6 +455,7 @@
 .oj-root.dash-theme .side-brand .brand-mark { box-shadow: none; }
 .oj-root.dash-theme .side-brand .brand-name { color: #fff; }
 .oj-root.dash-theme .side-brand .brand-name small { color: rgba(255,255,255,.42); }
+.oj-root.dash-theme .side-version { color: rgba(255,255,255,.34); }
 .oj-root.dash-theme .mode-switch { background: rgba(255,255,255,.06); }
 .oj-root.dash-theme .mode-switch button { color: rgba(233,236,250,.62); }
 .oj-root.dash-theme .mode-switch button.on { background: rgba(255,255,255,.12); color: #fff; box-shadow: none; }

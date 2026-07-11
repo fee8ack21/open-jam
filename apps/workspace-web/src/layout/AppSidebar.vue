@@ -72,6 +72,12 @@ function count(key?: string) {
 function nav(view: string) { store.go(view); emit('navigate') }
 function pickMode(m: string) { store.setMode(m) }
 function isActive(view: string) { return route.name === view }
+
+/** 應用程式版本號（Vite build 時由 package.json 的 version 注入），顯示於選單下方。 */
+const appVersion = __APP_VERSION__
+
+// 逐字拆解品牌名以套用交錯的彈跳動畫（hover 效果比照 portal-web）；空白換成 nbsp 保留字距（inline-block 下一般空白會塌陷）
+const brandLetters = [...'Open Jam'].map((ch) => (ch === ' ' ? ' ' : ch))
 </script>
 
 <template>
@@ -83,7 +89,15 @@ function isActive(view: string) { return route.name === view }
           <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
         </svg>
       </span>
-      <span class="brand-name">Open Jam<small>Workspace</small></span>
+      <span class="brand-name"
+        ><span
+          v-for="(ch, i) in brandLetters"
+          :key="i"
+          class="brand-letter"
+          :style="{ '--i': i }"
+          >{{ ch }}</span
+        ><small>Workspace</small></span
+      >
     </div>
 
     <div v-if="isReady && !isAdmin" class="mode-switch">
@@ -91,7 +105,7 @@ function isActive(view: string) { return route.name === view }
       <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><app-icon name="bag" :size="15" /> {{ t('sidebar.modeBuyer') }}</button>
     </div>
 
-    <nav style="flex:1; overflow-y:auto;">
+    <nav style="flex:1; overflow-y:auto; overflow-x:hidden;">
       <!-- 身份載入完成前保持空白，載入後才依角色呈現選單 -->
       <template v-if="!isReady" />
       <template v-else-if="isAdmin">
@@ -172,5 +186,7 @@ function isActive(view: string) { return route.name === view }
         </div>
       </template>
     </nav>
+
+    <div class="side-version">v{{ appVersion }}</div>
   </aside>
 </template>
