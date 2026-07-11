@@ -31,7 +31,9 @@
 /* font switch — toggles the display face */
 .font-grotesk { --oj-display: 'Unbounded', 'Noto Sans TC', sans-serif; }
 
-.oj-root {
+/* theme tokens live on :root so overlays rendered outside .oj-root
+   (OnboardingGuide, teleported dialogs, AppCursor) resolve them too */
+:root {
   --bg: #faf6ee;
   --surface: #ffffff;
   --surface-2: #faf7f1;
