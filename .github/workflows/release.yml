@@ -1,0 +1,163 @@
+name: Release build & push
+
+# 觸發策略：推 per-package git tag，格式 `<image-key>@<version>`（例：portal-web@1.0.0）。
+# tag 名稱本身即宣告要建哪個映像與版本，無需在 commit 訊息另寫 images: 行。
+on:
+  push:
+    tags: ['*@*']
+
+env:
+  REGISTRY: asia-east1-docker.pkg.dev
+  IMAGE_PREFIX: asia-east1-docker.pkg.dev/open-jam-498418/open-jam
+
+jobs:
+  # ── 1. 解析 tag 名稱，查表得出 image / context / dockerfile / version ──
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      image:      ${{ steps.pick.outputs.image }}
+      context:    ${{ steps.pick.outputs.context }}
+      dockerfile: ${{ steps.pick.outputs.dockerfile }}
+      version:    ${{ steps.pick.outputs.version }}
+    steps:
+      - id: pick
+        run: |
+          cat > /tmp/manifest.json <<'JSON'
+          {
+            "auth":                 { "image": "auth",                 "context": "src", "dockerfile": "src/Auth/Dockerfile" },
+            "log-service":          { "image": "log-service",          "context": "src", "dockerfile": "src/LogService/Dockerfile" },
+            "email-service":        { "image": "email-service",        "context": "src", "dockerfile": "src/EmailService/Dockerfile" },
+            "storage-service":      { "image": "storage-service",      "context": "src", "dockerfile": "src/StorageService/Dockerfile" },
+            "store-service":        { "image": "store-service",        "context": "src", "dockerfile": "src/StoreService/Dockerfile" },
+            "catalog-service":      { "image": "catalog-service",      "context": "src", "dockerfile": "src/CatalogService/Dockerfile" },
+            "quota-service":        { "image": "quota-service",        "context": "src", "dockerfile": "src/QuotaService/Dockerfile" },
+            "payment-service":      { "image": "payment-service",      "context": "src", "dockerfile": "src/PaymentService/Dockerfile" },
+            "order-service":        { "image": "order-service",        "context": "src", "dockerfile": "src/OrderService/Dockerfile" },
+            "notification-service": { "image": "notification-service", "context": "src", "dockerfile": "src/NotificationService/Dockerfile" },
+            "content-service":      { "image": "content-service",      "context": "src", "dockerfile": "src/ContentService/Dockerfile" },
+            "bootstrap":            { "image": "bootstrap",            "context": "src", "dockerfile": "src/Bootstrap/Dockerfile" },
+            "portal-web":           { "image": "portal-web",           "context": "apps/portal-web",    "dockerfile": "apps/portal-web/Dockerfile" },
+            "creator-web":          { "image": "creator-web",          "context": "apps/creator-web",   "dockerfile": "apps/creator-web/Dockerfile" },
+            "workspace-web":        { "image": "workspace-web",        "context": "apps/workspace-web", "dockerfile": "apps/workspace-web/Dockerfile" },
+            "docs":                 { "image": "docs",                 "context": "docs",               "dockerfile": "docs/Dockerfile" }
+          }
+          JSON
+
+          TAG="${{ github.ref_name }}"          # 例：portal-web@1.0.0
+          KEY="${TAG%@*}"                        # @ 之前：portal-web
+          RAW_VERSION="${TAG##*@}"               # 最後一個 @ 之後：1.0.0
+
+          if [ "$KEY" = "$TAG" ] || [ -z "$RAW_VERSION" ]; then
+            echo "::error::tag '$TAG' 格式錯誤，需為 <image-key>@<version>（例：portal-web@1.0.0）"
+            exit 1
+          fi
+
+          VERSION="v$RAW_VERSION"                 # image tag 加 v 前綴：v1.0.0
+
+          ENTRY=$(jq -c --arg k "$KEY" '.[$k] // empty' /tmp/manifest.json)
+          if [ -z "$ENTRY" ]; then
+            echo "::error::未知的 image key '$KEY'（tag '$TAG'）。合法 key 見 manifest。"
+            exit 1
+          fi
+
+          echo "image=$(echo "$ENTRY"      | jq -r .image)"      >> "$GITHUB_OUTPUT"
+          echo "context=$(echo "$ENTRY"    | jq -r .context)"    >> "$GITHUB_OUTPUT"
+          echo "dockerfile=$(echo "$ENTRY" | jq -r .dockerfile)" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION"                                >> "$GITHUB_OUTPUT"
+
+  # ── 2. 建置並推送該映像（版本已存在則略過） ──
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write        # WIF 需要
+    outputs:
+      skipped: ${{ steps.check.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+          token_format: 'access_token'        # 產出 steps.auth.outputs.access_token
+
+      # 查 Artifact Registry 是否已有該版本 tag（回 200 = 已存在）
+      - id: check
+        env:
+          IMAGE:   ${{ needs.setup.outputs.image }}
+          VERSION: ${{ needs.setup.outputs.version }}
+          TOKEN:   ${{ steps.auth.outputs.access_token }}
+        run: |
+          REPO_PATH="${IMAGE_PREFIX#${REGISTRY}/}"   # open-jam-498418/open-jam
+          URL="https://${REGISTRY}/v2/${REPO_PATH}/${IMAGE}/manifests/${VERSION}"
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Accept: application/vnd.docker.distribution.manifest.v2+json,application/vnd.oci.image.manifest.v1+json,application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json" \
+            "$URL")
+          if [ "$CODE" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${IMAGE}:${VERSION} 已存在於 Artifact Registry，略過建置"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "${IMAGE}:${VERSION} 不存在（HTTP $CODE），開始建置"
+          fi
+
+      - if: steps.check.outputs.exists != 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - if: steps.check.outputs.exists != 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - if: steps.check.outputs.exists != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ needs.setup.outputs.context }}
+          file: ${{ needs.setup.outputs.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/${{ needs.setup.outputs.image }}:${{ needs.setup.outputs.version }}
+            ${{ env.IMAGE_PREFIX }}/${{ needs.setup.outputs.image }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── 3. 將結果推播 Discord ──
+  notify:
+    needs: [setup, build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Discord notify
+        env:
+          RESULT:  ${{ needs.build.result }}          # success / failure / cancelled / skipped
+          SKIPPED: ${{ needs.build.outputs.skipped }}  # true = 版本已存在
+        run: |
+          if [ "$RESULT" = "success" ] && [ "$SKIPPED" = "true" ]; then
+            COLOR=9807270; STATUS="⏭️ 略過（版本已存在）"
+          elif [ "$RESULT" = "success" ]; then
+            COLOR=3066993; STATUS="✅ 成功"
+          else
+            COLOR=15158332; STATUS="❌ 失敗（$RESULT）"
+          fi
+          curl -sf -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d @- <<EOF
+          {
+            "embeds": [{
+              "title": "Open Jam Release ${{ github.ref_name }}",
+              "description": "映像建置與推送 $STATUS",
+              "color": $COLOR,
+              "fields": [
+                { "name": "Image", "value": "${{ needs.setup.outputs.image }}:${{ needs.setup.outputs.version }}", "inline": true },
+                { "name": "Commit", "value": "${{ github.sha }}", "inline": true }
+              ],
+              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }]
+          }
+          EOF
