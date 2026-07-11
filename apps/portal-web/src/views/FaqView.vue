@@ -273,7 +273,7 @@ function toggle(i: number) {
           <h2 class="fc-title">{{ t('faq.cta.title') }}</h2>
           <p class="fc-text">{{ t('faq.cta.text') }}</p>
           <div class="fc-actions">
-            <a class="fc-btn fc-btn-light" href="mailto:admin@openjam.co">
+            <a class="fc-btn fc-btn-light" href="mailto:support@openjam.co">
               <app-icon name="mail" :size="16" /> {{ t('faq.cta.contact') }}
             </a>
             <a class="fc-btn fc-btn-light" :href="env.GITHUB_REPO_URL + '/issues'" target="_blank" rel="noopener">
