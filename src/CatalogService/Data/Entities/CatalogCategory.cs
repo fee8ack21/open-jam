@@ -20,4 +20,7 @@ public class CatalogCategory
 
     /// <summary>同層分類的顯示排序（由小到大）。</summary>
     public int SortOrder { get; set; }
+
+    /// <summary>是否為系統預設分類；系統預設分類不允許刪除。</summary>
+    public bool IsSystem { get; set; }
 }

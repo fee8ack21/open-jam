@@ -68,6 +68,12 @@ public class CatalogCategorySeeder(CatalogDbContext db, ILogger<CatalogCategoryS
             {
                 logger.LogInformation("Catalog category '{Slug}' already exists, skipping", seed.Slug);
             }
+            // 確保既有系統分類標記為不可刪除（回填舊資料）。
+            if (!existing.IsSystem)
+            {
+                existing.IsSystem = true;
+                logger.LogInformation("Marked catalog category '{Slug}' as system category", seed.Slug);
+            }
             return existing.Id;
         }
 
@@ -78,6 +84,7 @@ public class CatalogCategorySeeder(CatalogDbContext db, ILogger<CatalogCategoryS
             Slug        = seed.Slug,
             Description = seed.Description,
             SortOrder   = seed.SortOrder,
+            IsSystem    = true,
         };
         db.CatalogCategories.Add(category);
         logger.LogInformation("Created catalog category '{Name}' ({Slug})", seed.Name, seed.Slug);

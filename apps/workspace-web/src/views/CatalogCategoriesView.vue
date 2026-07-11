@@ -286,7 +286,14 @@ onMounted(load)
               <td>
                 <div class="row-actions">
                   <button class="ic-act" :title="t('common.edit')" @click="openEdit(category)"><app-icon name="edit" :size="17" /></button>
-                  <n-popconfirm @positive-click="remove(category)">
+                  <button
+                    v-if="category.isSystem"
+                    class="ic-act danger"
+                    :title="t('catalogCategories.systemDeleteBlocked')"
+                    disabled>
+                    <app-icon name="trash" :size="17" />
+                  </button>
+                  <n-popconfirm v-else @positive-click="remove(category)">
                     <template #trigger>
                       <button class="ic-act danger" :title="t('common.delete')" :disabled="deletingId === category.id"><app-icon name="trash" :size="17" /></button>
                     </template>

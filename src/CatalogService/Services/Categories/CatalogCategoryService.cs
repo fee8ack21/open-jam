@@ -94,6 +94,9 @@ public class CatalogCategoryService(CatalogDbContext db, IMapper mapper) : ICata
         var category = await db.CatalogCategories.FirstOrDefaultAsync(c => c.Id == id, ct)
             ?? throw new NotFoundException("找不到分類。");
 
+        if (category.IsSystem)
+            throw new ConflictException("系統預設分類不允許刪除。");
+
         var hasChildren = await db.CatalogCategories.AnyAsync(c => c.ParentId == id, ct);
         if (hasChildren)
             throw new ConflictException("此分類仍有子分類，無法刪除。");

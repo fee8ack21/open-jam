@@ -26,6 +26,10 @@ public class CatalogCategoryDto
     /// <summary>同層顯示排序。</summary>
     /// <example>0</example>
     public int SortOrder { get; set; }
+
+    /// <summary>是否為系統預設分類；系統預設分類不允許刪除。</summary>
+    /// <example>false</example>
+    public bool IsSystem { get; set; }
 }
 
 /// <summary>建立商品分類請求（平台維護）。</summary>
