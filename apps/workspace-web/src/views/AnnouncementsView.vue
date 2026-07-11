@@ -224,4 +224,84 @@ function onCancel(r: NotificationRequestDto) {
 <style scoped>
 .set-card { border-radius: 10px; }
 .field-hint { font-size: 12px; color: var(--text-faint); margin-top: 6px; }
+
+/* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
+.list-filter {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.list-filter :deep(.n-base-selection),
+.list-filter :deep(.n-base-selection__border),
+.list-filter :deep(.n-base-selection__state-border) {
+  border-radius: 10px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.fb-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fb-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.history-table-card {
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.history-table-wrap {
+  overflow-x: auto;
+  padding: 8px 8px 4px;
+}
+
+.history-table {
+  min-width: 760px;
+}
+
+.history-table thead th {
+  font-size: 12.5px;
+  padding-top: 12px;
+  vertical-align: middle;
+}
+
+.history-table thead th + th {
+  border-left: 1.5px solid var(--border);
+}
+
+.history-table tbody td + td {
+  border-left: 1.5px solid var(--border);
+}
+
+.history-mono {
+  font-family: var(--oj-mono);
+  color: var(--text-soft);
+}
+
+.history-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 8px;
+}
 </style>
