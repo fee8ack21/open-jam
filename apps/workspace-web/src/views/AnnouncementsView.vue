@@ -66,10 +66,12 @@ const statusFilter = ref<NotificationRequestStatus | null>(null)
 const page = ref(1)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
-watch(statusFilter, async (s) => {
+async function applyFilter() {
   page.value = 1
-  await store.applyFilter(s)
-})
+  await store.applyFilter(statusFilter.value)
+}
+// 狀態下拉維持即時套用；搜尋按鈕提供與其他頁一致的手動觸發入口
+watch(statusFilter, () => { applyFilter() })
 
 async function changePage(p: number) {
   page.value = p
@@ -157,13 +159,17 @@ function onCancel(r: NotificationRequestDto) {
           <div class="list-filter">
             <div class="filter-bar">
               <div class="fb-group">
-                <div class="fb-field" style="flex:0 1 220px;">
+                <div class="fb-field" style="flex:none; width:220px;">
                   <label class="fb-label">{{ t('common.status') }}</label>
                   <n-select v-model:value="statusFilter"
                             :placeholder="t('requestStatus.all')"
                             :options="statusOptions" />
                 </div>
               </div>
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyFilter">
+                <template #icon><app-icon name="search" :size="16" /></template>
+                {{ t('common.search') }}
+              </n-button>
             </div>
           </div>
 
@@ -242,13 +248,14 @@ function onCancel(r: NotificationRequestDto) {
   flex-wrap: wrap;
   gap: 12px;
   align-items: flex-end;
+  justify-content: flex-end;
 }
 
 .fb-group {
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  flex: 1 1 360px;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
@@ -263,6 +270,12 @@ function onCancel(r: NotificationRequestDto) {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
+}
+
+/* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
+.fb-search-btn {
+  height: 42px;
+  border-radius: 10px;
 }
 
 .history-table-card {
