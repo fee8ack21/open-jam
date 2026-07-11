@@ -64,7 +64,7 @@
 
 ## CI / CD
 
-- **CI**：GitHub Actions 建置映像，推送至 **GCP Artifact Registry**。
+- **CI**：GitHub Actions 於 release（推 git tag）時建置映像，推送至 **GCP Artifact Registry**，並將結果推播 Discord。詳細流程（Workflow Identity 設定、由 commit 訊息決定建置範圍、完整 workflow）見 [[CI]]。
 - **CD**：**Argo CD**（GitOps）+ **Helm Umbrella Chart**。
 - 流程：CI build / push image → 更新 git 中的 manifest / Helm values → Argo CD 自動同步至 GKE。
 

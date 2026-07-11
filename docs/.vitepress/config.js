@@ -75,6 +75,7 @@ export default defineConfig({
         text: '維運與開發',
         items: [
           { text: '基礎架構 Infra', link: '/infra' },
+          { text: 'CI 建置與推送', link: '/ci' },
           { text: '初始化 Bootstrap', link: '/bootstrap' },
           { text: '開發慣例 Develop', link: '/develop' },
         ],
