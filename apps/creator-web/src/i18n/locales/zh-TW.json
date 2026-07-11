@@ -42,6 +42,8 @@
   "list": {
     "screenLabel": "產品列表頁",
     "heroSub": "樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。",
+    "bannerAlt": "{store} 的店面橫幅",
+    "bannerTagline": "獨立數位創作 · 即買即下載",
     "statWorks": "件作品",
     "statRating": "平均評分",
     "statFollowers": "位追蹤者",

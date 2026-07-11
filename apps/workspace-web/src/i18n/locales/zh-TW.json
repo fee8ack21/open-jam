@@ -52,7 +52,9 @@
     "archiveFailed": "下架失敗。",
     "fileUploadFailed": "檔案上傳失敗（{status}）：{name}",
     "firstRelease": "首次發行。",
-    "createProductFailed": "建立商品失敗。"
+    "createProductFailed": "建立商品失敗。",
+    "storeFeatureFailed": "設定店長精選失敗。",
+    "reorderStoreFeaturedFailed": "更新精選排序失敗。"
   },
   "catalogStatus": {
     "all": "全部",
@@ -77,7 +79,17 @@
     "reviewsTitle": "買家評價",
     "msgArchived": "已下架。",
     "msgPublished": "已上架。",
-    "msgActionFailed": "操作失敗"
+    "msgActionFailed": "操作失敗",
+    "feature": "設為店長精選",
+    "unfeature": "取消店長精選",
+    "msgFeatured": "已設為店長精選。",
+    "msgUnfeatured": "已取消店長精選。",
+    "manageFeatured": "精選排序",
+    "reorderHint": "拖動排序決定店面首頁精選商品的顯示順序，第一項會作為主打 spotlight。",
+    "noFeatured": "尚未設定任何店長精選商品。於商品列表點擊星號即可設為精選。",
+    "moveUp": "上移",
+    "moveDown": "下移",
+    "msgOrderSaved": "已更新精選排序。"
   },
   "stores": {
     "subStats": "共 {total} 間商店，其中 {active} 間營運中",
@@ -288,7 +300,8 @@
     "msgUpdateFailed": "更新商品分類失敗。",
     "msgCreateFailed": "建立商品分類失敗。",
     "msgDeleted": "已刪除商品分類。",
-    "msgDeleteBlocked": "此分類仍有子分類或商品引用，無法刪除。"
+    "msgDeleteBlocked": "此分類仍有子分類或商品引用，無法刪除。",
+    "systemDeleteBlocked": "系統預設分類，不允許刪除。"
   },
   "auditLog": {
     "subStats": "共 {count} 筆稽核事件",

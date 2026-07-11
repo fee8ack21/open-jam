@@ -38,6 +38,12 @@ public interface ICatalogManager
     /// <summary>設定 / 取消商品的編輯精選旗標。僅 Admin 可操作。</summary>
     Task SetFeaturedAsync(Guid id, bool featured, CancellationToken ct);
 
+    /// <summary>設定 / 取消商品的店長精選旗標（設為精選時接續排在現有精選之後）。僅商店 Owner 可操作。</summary>
+    Task SetStoreFeaturedAsync(Guid id, bool featured, CancellationToken ct);
+
+    /// <summary>重排店長精選的顯示順序（全量覆蓋）。僅商店 Owner 可操作。</summary>
+    Task ReorderStoreFeaturedAsync(ReorderStoreFeaturedRequest request, CancellationToken ct);
+
     /// <summary>商品詳情頁瀏覽次數 +1（公開，原子累加）。</summary>
     Task IncrementViewAsync(Guid id, CancellationToken ct);
 

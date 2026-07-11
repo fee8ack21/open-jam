@@ -53,6 +53,12 @@ public class Catalog : ICreatedAt, IUpdatedAt
     /// <summary>是否為編輯精選（平台策展）；由 Admin 設定，市集首頁精選輪播取用。</summary>
     public bool IsFeatured { get; set; }
 
+    /// <summary>是否為店長精選；由商店 Owner 於自家店面標記，店面首頁 spotlight 取用。</summary>
+    public bool IsStoreFeatured { get; set; }
+
+    /// <summary>店長精選顯示排序（小者在前）；非精選商品此值無意義。設為精選時自動接續於現有精選之後，可由 Owner 重排。</summary>
+    public int StoreFeaturedSortOrder { get; set; }
+
     /// <summary>平均評分（0–5）；由評論彙總，無評論時為 0。</summary>
     public double RatingAverage { get; set; }
 

@@ -61,6 +61,14 @@ public class CatalogDto
     /// <example>false</example>
     public bool IsFeatured { get; set; }
 
+    /// <summary>是否為店長精選（商店 Owner 於自家店面標記）。</summary>
+    /// <example>false</example>
+    public bool IsStoreFeatured { get; set; }
+
+    /// <summary>店長精選顯示排序（小者在前）；非精選商品此值無意義。</summary>
+    /// <example>0</example>
+    public int StoreFeaturedSortOrder { get; set; }
+
     /// <summary>平均評分（0–5）；無評論時為 0。</summary>
     /// <example>4.6</example>
     public double RatingAverage { get; set; }
@@ -147,6 +155,14 @@ public class CatalogSummaryDto
     /// <summary>是否為編輯精選（平台策展）。</summary>
     /// <example>false</example>
     public bool IsFeatured { get; set; }
+
+    /// <summary>是否為店長精選（商店 Owner 於自家店面標記）。</summary>
+    /// <example>false</example>
+    public bool IsStoreFeatured { get; set; }
+
+    /// <summary>店長精選顯示排序（小者在前）；非精選商品此值無意義。</summary>
+    /// <example>0</example>
+    public int StoreFeaturedSortOrder { get; set; }
 
     /// <summary>平均評分（0–5）；無評論時為 0。</summary>
     /// <example>4.6</example>
@@ -279,6 +295,18 @@ public class UpdateCatalogRequest
     public string? Currency { get; set; }
 }
 
+/// <summary>重排店長精選顯示順序請求（全量覆蓋，依陣列先後決定順序）。</summary>
+public class ReorderStoreFeaturedRequest
+{
+    /// <summary>所屬商店 ID（用於 Owner 驗證）。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid StoreId { get; set; }
+
+    /// <summary>依欲顯示順序排列的商品 ID 清單；須為該商店目前的店長精選商品，且需完整涵蓋。</summary>
+    /// <example>["3fa85f64-5717-4562-b3fc-2c963f66afa6"]</example>
+    public List<Guid> CatalogIds { get; set; } = [];
+}
+
 /// <summary>設定商品分類請求。</summary>
 public class SetCatalogCategoryRequest
 {
@@ -306,6 +334,9 @@ public enum CatalogSort
 
     /// <summary>價格由高到低。</summary>
     PriceHighToLow = 2,
+
+    /// <summary>店長精選排序（依 StoreFeaturedSortOrder 由小到大）；搭配 StoreFeatured 篩選取店面 spotlight。</summary>
+    StoreFeatured = 3,
 }
 
 /// <summary>商品列表查詢請求（分頁採 offset / limit）。</summary>
@@ -334,6 +365,10 @@ public class ListCatalogsRequest
     /// <summary>僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。</summary>
     /// <example>true</example>
     public bool? Featured { get; set; }
+
+    /// <summary>僅限店長精選；true 只回店長精選、false 只回非店長精選、null 表示不限。</summary>
+    /// <example>true</example>
+    public bool? StoreFeatured { get; set; }
 
     /// <summary>售價下限（含）；null 表示不限。</summary>
     /// <example>0</example>

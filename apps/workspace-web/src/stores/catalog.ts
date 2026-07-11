@@ -4,6 +4,7 @@ import { catalogApi } from '@/api';
 import i18n from '@/i18n';
 import {
   CatalogStatus,
+  CatalogSort,
   type CatalogSummaryDto,
   type CatalogDto,
   type CatalogCategoryDto,
@@ -226,6 +227,47 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
+  /** 設定 / 取消店長精選（僅已上架商品可設為精選），完成後重新載入目前頁次。 */
+  async function setStoreFeatured(id: string, featured: boolean) {
+    busyId.value = id;
+    error.value = null;
+    try {
+      if (featured) await catalogApi.catalogs.storeFeature(id);
+      else await catalogApi.catalogs.storeUnfeature(id);
+      await reload();
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.storeFeatureFailed'));
+      return false;
+    } finally {
+      busyId.value = null;
+    }
+  }
+
+  /** 取得該商店目前的店長精選商品（依 storeFeaturedSortOrder 排序），供精選排序管理使用。 */
+  async function listStoreFeatured(storeId: string): Promise<CatalogSummaryDto[]> {
+    const res = await catalogApi.catalogs.listMine({
+      StoreId: storeId,
+      StoreFeatured: true,
+      Sort: CatalogSort.StoreFeatured,
+      Offset: 0,
+      Limit: 100,
+    });
+    return res.data.items ?? [];
+  }
+
+  /** 重排店長精選顯示順序（catalogIds 須完整涵蓋該商店目前的店長精選商品）。 */
+  async function reorderStoreFeatured(storeId: string, catalogIds: string[]) {
+    error.value = null;
+    try {
+      await catalogApi.catalogs.reorderStoreFeatured({ storeId, catalogIds });
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.reorderStoreFeaturedFailed'));
+      return false;
+    }
+  }
+
   /** 以 PUT 直傳檔案 bytes 到 StorageService 簽發的 uploadUrl。 */
   async function putFile(uploadUrl: string, file: File) {
     const res = await fetch(uploadUrl, {
@@ -313,6 +355,9 @@ export const useCatalogStore = defineStore('catalog', () => {
     unsuspend,
     publish,
     archive,
+    setStoreFeatured,
+    listStoreFeatured,
+    reorderStoreFeatured,
     createProduct,
   };
 });

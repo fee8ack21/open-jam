@@ -52,7 +52,9 @@
     "archiveFailed": "Failed to unlist.",
     "fileUploadFailed": "File upload failed ({status}): {name}",
     "firstRelease": "First release.",
-    "createProductFailed": "Failed to create product."
+    "createProductFailed": "Failed to create product.",
+    "storeFeatureFailed": "Failed to update store feature.",
+    "reorderStoreFeaturedFailed": "Failed to update featured order."
   },
   "catalogStatus": {
     "all": "All",
@@ -77,7 +79,17 @@
     "reviewsTitle": "Buyer reviews",
     "msgArchived": "Unlisted.",
     "msgPublished": "Published.",
-    "msgActionFailed": "Action failed"
+    "msgActionFailed": "Action failed",
+    "feature": "Set as store pick",
+    "unfeature": "Remove store pick",
+    "msgFeatured": "Added to store picks.",
+    "msgUnfeatured": "Removed from store picks.",
+    "manageFeatured": "Order picks",
+    "reorderHint": "Reorder to control how store picks appear on your storefront — the first item becomes the spotlight.",
+    "noFeatured": "No store picks yet. Click the star on a product to feature it.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "msgOrderSaved": "Featured order updated."
   },
   "stores": {
     "subStats": "{total} stores, {active} active",
@@ -288,7 +300,8 @@
     "msgUpdateFailed": "Failed to update product category.",
     "msgCreateFailed": "Failed to create product category.",
     "msgDeleted": "Product category deleted.",
-    "msgDeleteBlocked": "This category still has subcategories or product references and can’t be deleted."
+    "msgDeleteBlocked": "This category still has subcategories or product references and can’t be deleted.",
+    "systemDeleteBlocked": "System default category — deletion is not allowed."
   },
   "auditLog": {
     "subStats": "{count} audit events",

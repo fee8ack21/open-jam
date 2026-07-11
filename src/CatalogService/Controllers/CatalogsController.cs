@@ -173,6 +173,39 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>設為店長精選（店面首頁 spotlight，接續排在現有精選之後）。僅商店 Owner 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/store-feature")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> StoreFeatureAsync(Guid id, CancellationToken ct)
+    {
+        await catalogManager.SetStoreFeaturedAsync(id, featured: true, ct);
+        return NoContent();
+    }
+
+    /// <summary>取消店長精選。僅商店 Owner 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/store-unfeature")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> StoreUnfeatureAsync(Guid id, CancellationToken ct)
+    {
+        await catalogManager.SetStoreFeaturedAsync(id, featured: false, ct);
+        return NoContent();
+    }
+
+    /// <summary>重排店長精選的顯示順序（全量覆蓋）。僅商店 Owner 可操作。</summary>
+    /// <param name="request">商店 ID 與依顯示順序排列的商品 ID 清單。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPut("store-featured/order")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ReorderStoreFeaturedAsync([FromBody] ReorderStoreFeaturedRequest request, CancellationToken ct)
+    {
+        await catalogManager.ReorderStoreFeaturedAsync(request, ct);
+        return NoContent();
+    }
+
     /// <summary>申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。簽發階段不扣配額、不建資產。僅 Owner 可操作。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="request">資產資訊。</param>

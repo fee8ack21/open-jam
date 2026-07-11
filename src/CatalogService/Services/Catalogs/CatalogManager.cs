@@ -107,6 +107,9 @@ public class CatalogManager(
         if (request.Featured is { } featured)
             query = query.Where(c => c.IsFeatured == featured);
 
+        if (request.StoreFeatured is { } storeFeatured)
+            query = query.Where(c => c.IsStoreFeatured == storeFeatured);
+
         if (!string.IsNullOrWhiteSpace(request.Tag))
         {
             var tag = request.Tag.Trim().ToLowerInvariant();
@@ -131,6 +134,7 @@ public class CatalogManager(
         {
             CatalogSort.PriceLowToHigh => query.OrderBy(c => c.Price).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
             CatalogSort.PriceHighToLow => query.OrderByDescending(c => c.Price).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
+            CatalogSort.StoreFeatured => query.OrderBy(c => c.StoreFeaturedSortOrder).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
             _ => query.OrderByDescending(c => c.PublishedAt ?? c.CreatedAt),
         };
 
@@ -329,6 +333,66 @@ public class CatalogManager(
 
         auditLog.Add(currentUser.UserId, featured ? "catalog.feature" : "catalog.unfeature",
             "Catalog", catalog.Id, tenant: catalog.StoreId);
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task SetStoreFeaturedAsync(Guid id, bool featured, CancellationToken ct)
+    {
+        var catalog = await LoadOwnedCatalogAsync(id, ct);
+
+        // 僅已上架商品可設為店長精選（店面 spotlight 只展示上架商品）。取消精選則不限狀態。
+        if (featured && catalog.Status != CatalogStatus.Published)
+            throw new ConflictException("僅已上架商品可設為店長精選。");
+
+        if (catalog.IsStoreFeatured == featured)
+            return; // 冪等：狀態未變則不重複寫入 / 記錄。
+
+        catalog.IsStoreFeatured = featured;
+
+        // 新加入的精選接續排在現有精選之後；取消時不動排序值。
+        if (featured)
+        {
+            var maxOrder = await db.Catalogs
+                .Where(c => c.StoreId == catalog.StoreId && c.IsStoreFeatured && c.Id != catalog.Id)
+                .MaxAsync(c => (int?)c.StoreFeaturedSortOrder, ct) ?? -1;
+            catalog.StoreFeaturedSortOrder = maxOrder + 1;
+        }
+
+        auditLog.Add(currentUser.UserId, featured ? "catalog.store_feature" : "catalog.store_unfeature",
+            "Catalog", catalog.Id, tenant: catalog.StoreId);
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task ReorderStoreFeaturedAsync(ReorderStoreFeaturedRequest request, CancellationToken ct)
+    {
+        _ = currentUser.UserId ?? throw new UnauthorizedException();
+        await storeClient.EnsureStoreOwnerAsync(request.StoreId, ct);
+
+        // 該商店目前的店長精選商品全集。
+        var featured = await db.Catalogs
+            .Where(c => c.StoreId == request.StoreId && c.IsStoreFeatured)
+            .ToListAsync(ct);
+
+        var requestedIds = request.CatalogIds;
+
+        // 請求須完整涵蓋現有精選集合（不多不少、不重複），避免遺漏商品排序未定義。
+        if (requestedIds.Count != requestedIds.Distinct().Count())
+            throw new ValidationException("店長精選商品 ID 不可重複。");
+
+        var featuredIds = featured.Select(c => c.Id).ToHashSet();
+        if (requestedIds.Count != featuredIds.Count || !requestedIds.All(featuredIds.Contains))
+            throw new ValidationException("須完整涵蓋且僅包含目前的店長精選商品。");
+
+        var byId = featured.ToDictionary(c => c.Id);
+        for (var i = 0; i < requestedIds.Count; i++)
+            byId[requestedIds[i]].StoreFeaturedSortOrder = i;
+
+        auditLog.Add(currentUser.UserId, "catalog.store_feature.reorder",
+            "Store", request.StoreId, tenant: request.StoreId);
 
         await db.SaveChangesAsync(ct);
     }

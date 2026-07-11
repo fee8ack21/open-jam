@@ -42,6 +42,7 @@
   "list": {
     "screenLabel": "Product list",
     "heroSub": "Sheet music, photo collections, e-books — buy directly from the creator and download instantly after payment.",
+    "bannerAlt": "{store} storefront banner",
     "statWorks": "works",
     "statRating": "avg rating",
     "statFollowers": "followers",

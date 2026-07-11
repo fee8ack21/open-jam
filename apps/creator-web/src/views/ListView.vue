@@ -16,6 +16,8 @@ const { t } = useI18n();
 onMounted(store.loadCatalog);
 
 // ----- hero: creator profile stats -----
+// 店家於後台設定的橫幅：有設定時渲染為封面條（頭像疊在下緣，與設定頁預覽一致）
+const bannerUrl = computed(() => store.storefront.bannerUrl);
 const heroDesc = computed(() => store.storefront.description || t('list.heroSub'));
 const avatarInitial = computed(() => (store.storefront.storeName || 'O').trim().charAt(0));
 const workCount = computed(() => store.products.length);
@@ -27,11 +29,14 @@ const avgRating = computed(() => {
   return (rated.reduce((sum, p) => sum + p.rating * p.ratingCount, 0) / n).toFixed(1);
 });
 
-// ----- 店長精選 spotlight：Admin 精選（isFeatured）優先，否則以最熱賣作品補位 -----
+// ----- 店長精選 spotlight：店長精選（依 featuredOrder 排序）優先，否則以最熱賣作品補位 -----
 const spotlight = computed<Product | null>(() => {
   const list = store.products;
   if (!list.length) return null;
-  return list.find((p) => p.featured) ?? [...list].sort((a, b) => b.sales - a.sales)[0];
+  const featured = list
+    .filter((p) => p.featured)
+    .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0));
+  return featured[0] ?? [...list].sort((a, b) => b.sales - a.sales)[0];
 });
 const goSpotlight = () => {
   if (spotlight.value) router.push({ name: 'product', params: { id: spotlight.value.id } });
@@ -93,10 +98,19 @@ const activeChips = computed(() => {
   <div class="page page-pad" :data-screen-label="t('list.screenLabel')">
     <!-- 創作者 Hero：主角是創作者，不是平台 -->
     <section class="hero">
-      <div class="hero-shapes">
-        <span class="shape s1"></span>
-        <span class="shape s2"></span>
-        <span class="shape s3"></span>
+      <!-- 橫幅封面：有設定→顯示圖片；未設定→品牌漸層 + 手繪幾何 fallback。頭像一律疊在下緣 -->
+      <div class="hero-cover" :class="{ empty: !bannerUrl }"
+           :style="bannerUrl ? { backgroundImage: `url(${bannerUrl})` } : {}"
+           :role="bannerUrl ? 'img' : undefined"
+           :aria-label="bannerUrl ? t('list.bannerAlt', { store: store.storefront.storeName }) : undefined">
+        <template v-if="!bannerUrl">
+          <div class="hero-cover-shapes" aria-hidden="true">
+            <span class="shape s1"></span>
+            <span class="shape s2"></span>
+            <span class="shape s3"></span>
+          </div>
+          <p class="hero-cover-tagline">{{ t('list.bannerTagline') }}</p>
+        </template>
       </div>
 
       <div class="hero-band">
@@ -106,7 +120,7 @@ const activeChips = computed(() => {
         </span>
 
         <div class="hero-main">
-          <h1 class="hero-title"><span class="hl hl-lime">{{ store.storefront.storeName }}</span></h1>
+          <h1 class="hero-title">{{ store.storefront.storeName }}</h1>
           <p class="hero-sub">{{ heroDesc }}</p>
           <div class="hero-stats">
             <span class="hero-stat"><b>{{ workCount }}</b> {{ t('list.statWorks') }}</span>

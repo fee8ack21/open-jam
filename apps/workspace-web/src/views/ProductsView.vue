@@ -39,6 +39,46 @@ const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
 const reviewing = ref<CatalogSummaryDto | null>(null)
 function openReviews(p: CatalogSummaryDto) { reviewing.value = p }
 
+// 只有已上架商品可設為店長精選
+function canFeature(p: CatalogSummaryDto) {
+  return p.status === CatalogStatus.Published
+}
+async function toggleFeatured(p: CatalogSummaryDto) {
+  if (!p.id) return
+  const next = !p.isStoreFeatured
+  const ok = await catalog.setStoreFeatured(p.id, next)
+  if (ok) message.success(next ? t('products.msgFeatured') : t('products.msgUnfeatured'))
+  else message.error(catalog.error ?? t('products.msgActionFailed'))
+}
+
+// 店長精選排序 drawer
+const reordering = ref(false)
+const featuredList = ref<CatalogSummaryDto[]>([])
+const savingOrder = ref(false)
+async function openReorder() {
+  reordering.value = true
+  featuredList.value = await catalog.listStoreFeatured(storeId.value)
+}
+function moveFeatured(i: number, dir: -1 | 1) {
+  const j = i + dir
+  if (j < 0 || j >= featuredList.value.length) return
+  const arr = featuredList.value
+  ;[arr[i], arr[j]] = [arr[j], arr[i]]
+}
+async function saveOrder() {
+  savingOrder.value = true
+  const ids = featuredList.value.map((p) => p.id!).filter(Boolean)
+  const ok = await catalog.reorderStoreFeatured(storeId.value, ids)
+  savingOrder.value = false
+  if (ok) {
+    message.success(t('products.msgOrderSaved'))
+    reordering.value = false
+    await catalog.reload()
+  } else {
+    message.error(catalog.error ?? t('products.msgActionFailed'))
+  }
+}
+
 // 狀態下拉選項（對齊訂單管理的下拉篩選）
 const statusOptions = computed(() => [
   { label: t('catalogStatus.all'), value: 'all' as const },
@@ -91,7 +131,11 @@ onMounted(load)
 
 <template>
   <div :data-screen-label="t('route.products')">
-    <div class="page-head" style="justify-content:flex-end;">
+    <div class="page-head" style="justify-content:flex-end; gap:10px;">
+      <n-button class="fb-search-btn" @click="openReorder">
+        <template #icon><app-icon name="star" :size="16" /></template>
+        {{ t('products.manageFeatured') }}
+      </n-button>
       <n-button class="fb-search-btn" type="primary" @click="dashboard.go('upload')">
         <template #icon><app-icon name="plus" :size="16" :stroke="2.4" /></template>
         {{ t('products.newProduct') }}
@@ -174,6 +218,15 @@ onMounted(load)
                     <span v-else style="font-size:12px; color:var(--text-faint); font-family:var(--oj-mono); margin-right:6px;">
                       {{ p.status === CatalogStatus.Suspended ? t('catalogStatus.suspended') : t('catalogStatus.draft') }}
                     </span>
+                    <button
+                      v-if="canFeature(p)"
+                      class="ic-act"
+                      :class="{ 'is-featured': p.isStoreFeatured }"
+                      :disabled="busyId === p.id"
+                      :title="p.isStoreFeatured ? t('products.unfeature') : t('products.feature')"
+                      @click="toggleFeatured(p)">
+                      <app-icon name="star" :size="17" :fill="!!p.isStoreFeatured" />
+                    </button>
                     <button class="ic-act" :title="t('products.viewReviews')" @click="openReviews(p)"><app-icon name="star" :size="17" /></button>
                     <button class="ic-act" :title="t('common.edit')" @click="dashboard.go('upload')"><app-icon name="edit" :size="17" /></button>
                   </div>
@@ -198,6 +251,35 @@ onMounted(load)
     <n-drawer :show="!!reviewing" :width="440" placement="right" @update:show="(v: boolean) => { if (!v) reviewing = null }">
       <n-drawer-content :title="reviewing?.name || t('products.reviewsTitle')" closable>
         <review-list v-if="reviewing?.id" :catalog-id="reviewing.id" />
+      </n-drawer-content>
+    </n-drawer>
+
+    <!-- 店長精選排序 -->
+    <n-drawer :show="reordering" :width="440" placement="right" @update:show="(v: boolean) => { reordering = v }">
+      <n-drawer-content :title="t('products.manageFeatured')" closable>
+        <p style="font-size:13px; color:var(--text-soft); margin:0 0 16px;">{{ t('products.reorderHint') }}</p>
+        <div v-if="!featuredList.length" style="text-align:center; padding:40px 24px; color:var(--text-faint); font-size:13px;">
+          {{ t('products.noFeatured') }}
+        </div>
+        <ul v-else class="feat-list">
+          <li v-for="(p, i) in featuredList" :key="p.id" class="feat-row">
+            <span class="feat-idx">{{ i + 1 }}</span>
+            <span class="prod-cover" :style="coverStyle(p.coverHue)">
+              <img v-if="p.thumbnailUrl" :src="p.thumbnailUrl" alt="" />
+            </span>
+            <span class="feat-name">{{ p.name }}</span>
+            <span class="feat-moves">
+              <button class="ic-act" :disabled="i === 0" :title="t('products.moveUp')" @click="moveFeatured(i, -1)"><app-icon name="chevronU" :size="16" /></button>
+              <button class="ic-act" :disabled="i === featuredList.length - 1" :title="t('products.moveDown')" @click="moveFeatured(i, 1)"><app-icon name="chevronD" :size="16" /></button>
+            </span>
+          </li>
+        </ul>
+        <template #footer>
+          <n-button @click="reordering = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" :loading="savingOrder" :disabled="!featuredList.length" @click="saveOrder" style="margin-left:10px;">
+            {{ t('common.save') }}
+          </n-button>
+        </template>
       </n-drawer-content>
     </n-drawer>
   </div>
@@ -313,5 +395,54 @@ onMounted(load)
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* 店長精選：亮起的星星以品牌強調色 */
+.ic-act.is-featured {
+  color: var(--c-amber, #f5a623);
+}
+.ic-act.is-featured:hover {
+  color: var(--c-amber, #f5a623);
+}
+
+/* 店長精選排序清單 */
+.feat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.feat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+}
+.feat-idx {
+  font-family: var(--oj-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-faint);
+  width: 18px;
+  text-align: center;
+  flex: none;
+}
+.feat-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.feat-moves {
+  display: flex;
+  gap: 2px;
+  flex: none;
 }
 </style>

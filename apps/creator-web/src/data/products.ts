@@ -57,8 +57,10 @@ export interface Product {
   formats: string[];
   contents: ProductContent[];
   previews: number;
-  /** 店長精選旗標（Admin isFeatured）；店面首頁 spotlight 優先展示。 */
+  /** 店長精選旗標（後端 isStoreFeatured，由商店 Owner 標記）；店面首頁 spotlight 優先展示。 */
   featured?: boolean;
+  /** 店長精選顯示排序（後端 storeFeaturedSortOrder，小者在前）；非精選商品此值無意義。 */
+  featuredOrder?: number;
   /** 實際商品縮圖（webp import URL）；未設定時退回程式產生的佔位縮圖。 */
   image?: string;
   /** 目前版本 ID（下單必填，來自 CatalogService 商品詳情的 currentVersion）。 */

@@ -134,6 +134,20 @@ public class ListCatalogsRequestValidator : AbstractValidator<ListCatalogsReques
     }
 }
 
+/// <summary>重排店長精選順序請求驗證：商店與商品 ID 清單。</summary>
+public class ReorderStoreFeaturedRequestValidator : AbstractValidator<ReorderStoreFeaturedRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public ReorderStoreFeaturedRequestValidator()
+    {
+        RuleFor(x => x.StoreId)
+            .NotEmpty().WithMessage("所屬商店 ID 為必填。");
+
+        RuleForEach(x => x.CatalogIds)
+            .NotEmpty().WithMessage("商品 ID 不得為空。");
+    }
+}
+
 /// <summary>新增 / 更新評論請求驗證：評分範圍與留言長度。</summary>
 public class UpsertReviewRequestValidator : AbstractValidator<UpsertReviewRequest>
 {
