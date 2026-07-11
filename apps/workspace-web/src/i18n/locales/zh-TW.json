@@ -32,6 +32,8 @@
     "loadPurchasesFailed": "載入購買紀錄失敗，請稍後再試。",
     "loadOrderDetailFailed": "載入訂單明細失敗，請稍後再試。",
     "loadDownloadsFailed": "載入下載連結失敗，請稍後再試。",
+    "loadWishlistFailed": "載入願望清單失敗，請稍後再試。",
+    "removeWishlistFailed": "移除收藏失敗，請稍後再試。",
     "loadProductsFailed": "載入商品列表失敗。",
     "updateFeaturedFailed": "更新精選狀態失敗。",
     "loadStoreDataFailed": "載入開店資料失敗。",
@@ -402,6 +404,7 @@
     "sub": "{count} 件想收藏的作品。降價或上新時我們會通知你。",
     "remove": "從願望清單移除",
     "addToCart": "加入購物車",
+    "viewProduct": "前往商品頁",
     "emptyTitle": "願望清單是空的",
     "emptyDesc": "在商城點愛心，把心儀的作品存到這裡。"
   },

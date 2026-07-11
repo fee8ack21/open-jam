@@ -1,70 +1,84 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { useDashboardStore } from '@/stores/dashboard'
+import { storeToRefs } from 'pinia'
+import { useWishlistStore } from '@/stores/wishlist'
 import { JFmt as F } from '@/utils/format'
-import type { WishlistItem } from '@/data/products'
+import type { WishlistEntry } from '@/stores/wishlist'
 
 const { t } = useI18n()
-const store = useDashboardStore()
+const message = useMessage()
+const store = useWishlistStore()
+const { items, loading, error } = storeToRefs(store)
+
+// 載入 / 取消收藏錯誤以彈出 message 呈現，清單維持現狀
+watch(error, (msg) => { if (msg) message.error(msg) })
 
 const PAGE_SIZE = 12
 const page = ref(1)
 
-const totalPages = computed(() => Math.max(1, Math.ceil(store.wishlist.length / PAGE_SIZE)))
+const totalPages = computed(() => Math.max(1, Math.ceil(items.value.length / PAGE_SIZE)))
 const list = computed(() => {
   const start = (page.value - 1) * PAGE_SIZE
-  return store.wishlist.slice(start, start + PAGE_SIZE)
+  return items.value.slice(start, start + PAGE_SIZE)
 })
 
 // 移除項目使總頁數縮減時，將頁碼夾回有效範圍。
 watch(totalPages, (n) => { if (page.value > n) page.value = n })
 
-function accent(p: WishlistItem) { return `hsl(${p.hue} 85% 58%)` }
+function accent(p: WishlistEntry) { return `hsl(${p.hue} 85% 58%)` }
+function openProduct(p: WishlistEntry) {
+  if (p.productUrl) window.open(p.productUrl, '_blank', 'noopener')
+}
+
+onMounted(store.load)
 </script>
 
 <template>
   <div data-screen-label="Wishlist">
+    <n-spin :show="loading">
 
-    <div v-if="store.wishlist.length" class="grid">
-      <div v-for="p in list" :key="p.id" class="card" :style="{ '--accent': accent(p) }">
-        <div class="fav on" :title="t('wishlist.remove')" @click="store.removeWish(p.id)">
-          <app-icon name="heart" :size="17" fill />
-        </div>
-        <product-thumb :product="p" />
-        <div class="card-body">
-          <h3 class="card-title">{{ p.title }}</h3>
-          <div class="card-creator">
-            <span class="avatar" :style="{ background: p.avatar }">{{ F.initials(p.creator) }}</span>
-            {{ p.creator }}
+      <div v-if="items.length" class="grid">
+        <div v-for="p in list" :key="p.id" class="card" :style="{ '--accent': accent(p) }">
+          <div class="fav on" :title="t('wishlist.remove')" @click="store.remove(p.id)">
+            <app-icon name="heart" :size="17" fill />
           </div>
-          <div class="tagrow">
-            <span v-for="tag in p.tags" :key="tag" class="chip">{{ tag }}</span>
+          <product-thumb :product="p" />
+          <div class="card-body">
+            <h3 class="card-title">{{ p.title }}</h3>
+            <div class="card-creator">
+              <span class="avatar" :style="{ background: p.avatar }">{{ F.initials(p.creator) }}</span>
+              {{ p.creator }}
+            </div>
+            <div class="tagrow">
+              <span v-for="tag in p.tags" :key="tag" class="chip">{{ tag }}</span>
+            </div>
+            <div class="card-foot">
+              <span class="price" :class="{ free: p.price === 0 }">{{ p.price === 0 ? t('common.free') : '$' + p.price }}</span>
+              <stars :value="p.rating" :count="p.ratingCount" />
+            </div>
+            <n-button type="primary" block strong style="margin-top:14px;" :disabled="!p.productUrl" @click="openProduct(p)">
+              <template #icon><app-icon name="arrowRight" :size="16" /></template>
+              {{ t('wishlist.viewProduct') }}
+            </n-button>
           </div>
-          <div class="card-foot">
-            <span class="price" :class="{ free: p.price === 0 }">{{ p.price === 0 ? t('common.free') : '$' + p.price }}</span>
-            <stars :value="p.rating" :count="p.ratingCount" />
-          </div>
-          <n-button type="primary" block strong style="margin-top:14px;">
-            <template #icon><app-icon name="cart" :size="16" /></template>
-            {{ t('wishlist.addToCart') }}
-          </n-button>
         </div>
       </div>
-    </div>
 
-    <div v-if="store.wishlist.length" class="wish-pager">
-      <n-pagination
-        :page="page"
-        :page-count="totalPages"
-        @update:page="(p: number) => (page = p)" />
-    </div>
+      <div v-if="items.length" class="wish-pager">
+        <n-pagination
+          :page="page"
+          :page-count="totalPages"
+          @update:page="(p: number) => (page = p)" />
+      </div>
 
-    <div v-if="!store.wishlist.length" class="empty-box">
-      <div class="eb-ic"><app-icon name="heart" :size="30" /></div>
-      <div class="eb-t">{{ t('wishlist.emptyTitle') }}</div>
-      <p style="margin-top:6px;">{{ t('wishlist.emptyDesc') }}</p>
-    </div>
+      <div v-if="!loading && !items.length" class="empty-box">
+        <div class="eb-ic"><app-icon name="heart" :size="30" /></div>
+        <div class="eb-t">{{ t('wishlist.emptyTitle') }}</div>
+        <p style="margin-top:6px;">{{ t('wishlist.emptyDesc') }}</p>
+      </div>
+    </n-spin>
   </div>
 </template>
 

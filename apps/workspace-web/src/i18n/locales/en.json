@@ -32,6 +32,8 @@
     "loadPurchasesFailed": "Failed to load purchases, please try again later.",
     "loadOrderDetailFailed": "Failed to load order details, please try again later.",
     "loadDownloadsFailed": "Failed to load download links, please try again later.",
+    "loadWishlistFailed": "Failed to load wishlist, please try again later.",
+    "removeWishlistFailed": "Failed to remove from wishlist, please try again later.",
     "loadProductsFailed": "Failed to load product list.",
     "updateFeaturedFailed": "Failed to update featured status.",
     "loadStoreDataFailed": "Failed to load store data.",
@@ -402,6 +404,7 @@
     "sub": "{count} works you’d love to own. We’ll let you know about price drops and new releases.",
     "remove": "Remove from wishlist",
     "addToCart": "Add to cart",
+    "viewProduct": "View product",
     "emptyTitle": "Your wishlist is empty",
     "emptyDesc": "Tap the heart in the marketplace to save works you love here."
   },

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDashboardStore } from '@/stores/dashboard'
@@ -8,6 +8,7 @@ import { useStoreApplicationStore } from '@/stores/storeApplication'
 import { useStoreReviewStore } from '@/stores/storeReview'
 import { useStoreListStore } from '@/stores/storeList'
 import { useMemberListStore } from '@/stores/memberList'
+import { useWishlistStore } from '@/stores/wishlist'
 
 /** 賣家 / 買家兩組導覽項目；labelKey 對應 i18n route.*，countKey 對應 store 中的數量。 */
 const NAV = {
@@ -39,9 +40,13 @@ const storeAppStore = useStoreApplicationStore()
 const reviewStore = useStoreReviewStore()
 const storeListStore = useStoreListStore()
 const memberListStore = useMemberListStore()
+const wishlistStore = useWishlistStore()
 
 /** 已有可用身份時才呈現選單；登出卸載 user 後到導頁前保持空白，避免閃現錯誤角色項目。 */
 const isReady = computed(() => authStore.isReady && authStore.isAuthenticated)
+
+// 使用者可用後便宜地取一次收藏數（單一請求），讓側欄願望清單徽章即時正確。
+watch(isReady, (ready) => { if (ready) wishlistStore.loadCount() }, { immediate: true })
 /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
 const canSell = computed(() => authStore.isUser)
 /** 是否為系統管理員：顯示店家審核後台，不顯示買家/賣家分頁。 */
@@ -60,7 +65,7 @@ function count(key?: string) {
   const map: Record<string, number> = {
     products: store.products.length,
     orders: store.paidOrders.length,
-    wishlist: store.wishlist.length,
+    wishlist: wishlistStore.count,
   }
   return map[key]
 }
