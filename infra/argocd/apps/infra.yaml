@@ -1,0 +1,45 @@
+# 叢集基礎設施 chart（GKE Ingress + cert-manager ClusterIssuer / Certificate）。
+#
+# 前置需求（本 chart 不含、需先在叢集就緒）：
+#   - cert-manager 本體 + CRDs 已安裝
+#   - Cloudflare API Token Secret（建議由 External Secrets 從 GCP Secret Manager 同步）
+#   - GKE 全域靜態 IP（gcloud compute addresses create open-jam-ip --global）
+#
+# sync-wave 2：晚於 open-jam（wave 1）。Ingress 的 backend 需 open-jam 的
+# Service 已存在，否則 GCE Ingress 整份同步失敗。
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-jam-infra
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/fee8ack21/open-jam
+    targetRevision: main
+    path: infra/helm/infra
+    helm:
+      valueFiles:
+        - values.prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    # Certificate 為 namespaced 資源，與 Ingress / TLS Secret 對齊於同一 namespace；
+    # ClusterIssuer 為叢集級資源不受此影響。
+    namespace: open-jam
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
