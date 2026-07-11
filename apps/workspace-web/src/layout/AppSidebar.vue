@@ -101,8 +101,8 @@ const brandLetters = [...'Open Jam'].map((ch) => (ch === ' ' ? ' ' : ch))
     </div>
 
     <div v-if="isReady && !isAdmin" class="mode-switch">
-      <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><app-icon name="rocket" :size="15" /> {{ t('sidebar.modeSeller') }}</button>
-      <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><app-icon name="bag" :size="15" /> {{ t('sidebar.modeBuyer') }}</button>
+      <button v-if="canSell" :class="{ on: store.mode === 'sell' }" @click="pickMode('sell')"><app-icon name="rocket" :size="15" /> <span class="ms-label">{{ t('sidebar.modeSeller') }}</span></button>
+      <button :class="{ on: store.mode === 'buy' }" @click="pickMode('buy')"><app-icon name="bag" :size="15" /> <span class="ms-label">{{ t('sidebar.modeBuyer') }}</span></button>
     </div>
 
     <nav style="flex:1; overflow-y:auto; overflow-x:hidden;">

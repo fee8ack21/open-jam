@@ -52,8 +52,14 @@
   /* 收合狀態隱藏版本號文字，避免窄軌溢出（保留佔位不位移底部） */
   .side:not(:hover) .side-version { visibility: hidden; }
 
-  /* 模式切換是垂直區塊：用 visibility 保留佔位，避免展開時 nav 上下位移 */
-  .side:not(:hover) .mode-switch { visibility: hidden; }
+  /* 收合狀態仍要顯示目前分頁（買家 / 賣家）：只留 active 那顆按鈕的 icon，
+     其餘按鈕與文字標籤隱藏，讓窄軌保留當前模式資訊 */
+  .side:not(:hover) .mode-switch { background: transparent; margin-left: 0; margin-right: 0; }
+  .side:not(:hover) .mode-switch button:not(.on) { display: none; }
+  .side:not(:hover) .mode-switch button.on { flex: 1; gap: 0; }
+  /* 標籤收合為 0 寬度並裁切，但保留 inline-block 行高，
+     讓按鈕高度與展開狀態一致（避免收合時 mode-switch 略矮造成位移） */
+  .side:not(:hover) .mode-switch .ms-label { display: inline-block; width: 0; overflow: hidden; }
 
   /* 收合狀態 nav icon 置中；brand 維持與展開時相同的左對齊，避免 hover 時 logo 水平位移 */
   .side:not(:hover) .nav-item { justify-content: center; padding: 13px 0; }
