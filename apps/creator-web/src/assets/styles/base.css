@@ -318,7 +318,7 @@ body {
 /* fallback 文案 — 參考 portal-web hero：置中 eyebrow pill + 大標（rotating word + lime highlight） */
 .hero-cover-copy {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
   padding: 0 24px; text-align: center;
 }
 .hero-cover-eyebrow {
@@ -614,5 +614,5 @@ body {
   .field-grid.two { grid-template-columns: 1fr; }
   .page { padding: 0 16px; }
   .hero-avatar { width: 76px; height: 76px; font-size: 30px; margin-top: -44px; border-width: 3px; }
-  .hero-cover-copy { padding: 0 16px; gap: 10px; }
+  .hero-cover-copy { padding: 0 16px; gap: 16px; }
 }

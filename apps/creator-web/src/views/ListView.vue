@@ -6,12 +6,16 @@ import { useShopStore } from '@/stores/shop';
 import { CATEGORIES, TAGS, type Product } from '@/data/products';
 import ProductCard from '@/components/ProductCard.vue';
 import ProductThumb from '@/components/ProductThumb.vue';
+import RotatingWord from '@/components/RotatingWord.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const s = store;
 const router = useRouter();
-const { t } = useI18n();
+const { t, tm, rt } = useI18n();
+
+// fallback banner 標題的輪播關鍵詞（參考 portal-web hero）
+const rotatingWords = computed(() => (tm('list.bannerRotating') as string[]).map((w) => rt(w)));
 
 onMounted(store.loadCatalog);
 
@@ -103,14 +107,13 @@ const activeChips = computed(() => {
            :style="bannerUrl ? { backgroundImage: `url(${bannerUrl})` } : {}"
            :role="bannerUrl ? 'img' : undefined"
            :aria-label="bannerUrl ? t('list.bannerAlt', { store: store.storefront.storeName }) : undefined">
-        <template v-if="!bannerUrl">
-          <div class="hero-cover-shapes" aria-hidden="true">
-            <span class="shape s1"></span>
-            <span class="shape s2"></span>
-            <span class="shape s3"></span>
-          </div>
-          <p class="hero-cover-tagline">{{ t('list.bannerTagline') }}</p>
-        </template>
+        <div v-if="!bannerUrl" class="hero-cover-copy">
+          <p class="hero-cover-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('list.bannerEyebrow') }}</p>
+          <i18n-t keypath="list.bannerTitle" tag="p" class="hero-cover-title" scope="global">
+            <template #collect><span class="hl hl-lime">{{ t('list.bannerCollect') }}</span></template>
+            <template #rotating><rotating-word :words="rotatingWords" /></template>
+          </i18n-t>
+        </div>
       </div>
 
       <div class="hero-band">
