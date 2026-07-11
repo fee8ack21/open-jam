@@ -12,11 +12,8 @@ env:
   IMAGE_PREFIX: asia-east1-docker.pkg.dev/open-jam-498418/open-jam
 
 jobs:
-  # ── 1. 解析 release commit 清單查表產出 build matrix ──
-  #        job-level if：HEAD 非 chore(release) 直接 skip 整個 job（不起 runner、不計費），
-  #        下游 build / notify 因 needs 連帶 skip，整個 workflow 只對 release commit 動作。
+  # ── 1. 判斷是否為 release commit，解析清單查表產出 build matrix ──
   setup:
-    if: startsWith(github.event.head_commit.message, 'chore(release)')
     runs-on: ubuntu-latest
     outputs:
       is_release: ${{ steps.parse.outputs.is_release }}
@@ -47,6 +44,17 @@ jobs:
             "docs":                 { "image": "docs",                 "context": "docs",               "dockerfile": "docs/Dockerfile" }
           }
           JSON
+
+          # 只看 HEAD 這一筆 commit：subject 非 chore(release) 即非發佈，直接結束
+          SUBJECT=$(git log -1 --format=%s)
+          case "$SUBJECT" in
+            chore\(release\)*) : ;;
+            *)
+              echo "非 release commit（$SUBJECT），略過"
+              echo "is_release=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
 
           # 解析 body 的 `- key@version` 行 → 查 manifest → 併入 version 組出 include
           INCLUDE='[]'
