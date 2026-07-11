@@ -132,6 +132,7 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .brand:hover .brand-letter { animation: none; }
+  .rw-flip-enter-active, .rw-flip-leave-active { transition: none; }
 }
 .nav-search { flex: 1; max-width: 420px; }
 .search-box {
@@ -213,17 +214,20 @@ body {
 }
 
 /* ---------- hero (creator profile band + follow card) ---------- */
-.hero { position: relative; padding: 40px 0 16px; }
-.hero-band { display: flex; align-items: center; gap: 36px; flex-wrap: wrap; }
+/* margin-top 抵銷 .page-pad 的 padding-top，讓封面緊貼 header 下緣無間隙 */
+.hero { position: relative; padding: 0 0 16px; margin-top: -22px; }
+.hero-band { display: flex; align-items: flex-start; gap: 36px; flex-wrap: wrap; margin-top: 16px; }
 .hero-avatar {
   width: 112px; height: 112px; border-radius: 50%; flex: none; overflow: hidden;
   display: grid; place-items: center; color: #fff;
   font-family: var(--oj-display); font-weight: 800; font-size: 44px;
   background: linear-gradient(135deg, var(--c-lime), var(--c-violet));
-  border: 1.5px solid var(--border-strong); box-shadow: var(--pop-2);
+  /* 頭像一律疊在封面下緣：白環浮起（與 workspace-web 設定頁預覽一致） */
+  margin-top: -64px; position: relative; z-index: 1;
+  border: 4px solid var(--surface); box-shadow: var(--pop-2);
 }
 .hero-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.hero-main { flex: 1; min-width: 300px; max-width: 640px; }
+.hero-main { flex: 1; min-width: 300px; max-width: 640px; padding-top: 28px; }
 .hero-title {
   font-family: var(--oj-display); font-size: clamp(30px, 3.8vw, 44px); font-weight: 800;
   line-height: 1.12; letter-spacing: -1.2px; margin: 0; color: var(--text); text-wrap: balance;
@@ -287,12 +291,66 @@ body {
 .cat-pill.on.c-photo { background: var(--c-pink); border-color: var(--c-pink); }
 .cat-pill.on.c-ebook { background: var(--c-cyan); border-color: var(--c-cyan); color: #08312d; }
 
-/* shapes peek out from behind the tilted follow card */
-.hero-shapes { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: -1; }
-.shape { position: absolute; opacity: .9; }
-.shape.s1 { right: 0; top: 2%; width: 86px; height: 86px; border-radius: 26px; background: var(--c-lime); transform: rotate(14deg); box-shadow: 4px 4px 0 var(--text); }
-.shape.s2 { right: 40%; top: 60%; width: 56px; height: 56px; border-radius: 50%; background: var(--c-pink); }
-.shape.s3 { right: 44%; top: 2%; width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-bottom: 52px solid var(--c-cyan); transform: rotate(-18deg); }
+/* store-set cover banner — mirrors the workspace-web settings preview (avatar overlaps its lower edge) */
+.hero-cover {
+  position: relative; overflow: hidden;
+  /* 滿版：突破 .page 的左右 padding 與 max-width，貼齊視窗兩側 */
+  width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+  height: clamp(150px, 22vw, 232px);
+  border-bottom: 1.5px solid var(--border-strong);
+  background-size: cover; background-position: center;
+  background-color: var(--surface-2, #efeaff);
+}
+/* 未設定橫幅的 fallback 封面 — 直接參考 portal-web hero：飽和多層漸層 + 圓點 soft-light overlay */
+.hero-cover.empty {
+  background:
+    radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.40), transparent 58%),
+    radial-gradient(680px 520px at 92% 16%, rgba(255,77,157,.52), transparent 60%),
+    radial-gradient(720px 620px at 78% 98%, rgba(31,214,198,.40), transparent 62%),
+    radial-gradient(820px 720px at 16% 94%, rgba(108,76,241,.55), transparent 64%),
+    linear-gradient(150deg, #6c4cf1, #8a3df1 46%, #c33ad6);
+}
+.hero-cover.empty::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,.55) 1.5px, transparent 1.7px);
+  background-size: 18px 18px; opacity: .15; mix-blend-mode: soft-light;
+}
+/* fallback 文案 — 參考 portal-web hero：置中 eyebrow pill + 大標（rotating word + lime highlight） */
+.hero-cover-copy {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  padding: 0 24px; text-align: center;
+}
+.hero-cover-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin: 0; font-family: var(--oj-mono);
+  font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: #fff;
+  background: rgba(255, 255, 255, .16); border: 1.5px solid rgba(255, 255, 255, .28);
+  backdrop-filter: blur(4px); padding: 6px 12px; border-radius: 999px;
+}
+.hero-cover-title {
+  margin: 0; color: #fff; font-family: var(--oj-display); font-weight: 800;
+  font-size: clamp(30px, 5.6vw, 68px); line-height: 1.0; letter-spacing: -2px; text-wrap: balance;
+}
+.hero-cover-title .hl { box-shadow: 3px 3px 0 rgba(26, 22, 38, .45); }
+
+/* RotatingWord — 移植自 portal-web hero（翻牌輪替 + 隨字換色的色塊） */
+.rw { display: inline-grid; grid-template-columns: 100%; justify-items: center; vertical-align: bottom; }
+.rw-word { grid-area: 1 / 1; display: grid; place-items: center; }
+.rw-pill {
+  display: inline-block; white-space: nowrap; transform-origin: center;
+  padding: 0 .14em; border-radius: 10px; transform: rotate(-1.5deg);
+  box-shadow: 3px 3px 0 rgba(26,22,38,.45);
+}
+.rw-sizer { grid-area: 1 / 1; visibility: hidden; white-space: nowrap; padding: 0 .14em; }
+.rw-yellow { background: var(--c-yellow); color: #1a1626; }
+.rw-violet { background: var(--c-violet); color: #fff; }
+.rw-pink   { background: var(--c-pink); color: #fff; }
+.rw-cyan   { background: var(--c-cyan); color: #08312d; }
+.rw-flip-enter-active { transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .3s ease-out; }
+.rw-flip-leave-active { transition: transform .4s cubic-bezier(.6,0,.8,.4), opacity .28s ease-in; }
+.rw-flip-enter-from { opacity: 0; transform: translateY(.55em); }
+.rw-flip-leave-to { opacity: 0; transform: translateY(-.55em); }
 
 /* ---------- thumbnail (vibrant gradient + halftone) ---------- */
 .thumb {
@@ -523,7 +581,6 @@ body {
   .detail-grid { grid-template-columns: 1fr; gap: 28px; }
   .checkout-grid { grid-template-columns: 1fr; }
   .buy-card, .summary { position: static; }
-  .hero-shapes { display: none; }
   .hero-band { gap: 22px; }
   .spotlight { padding: 28px; gap: 26px; }
   .spot-cover { width: 100%; transform: none; }
@@ -556,5 +613,6 @@ body {
 @media (max-width: 560px) {
   .field-grid.two { grid-template-columns: 1fr; }
   .page { padding: 0 16px; }
-  .hero-avatar { width: 76px; height: 76px; font-size: 30px; }
+  .hero-avatar { width: 76px; height: 76px; font-size: 30px; margin-top: -44px; border-width: 3px; }
+  .hero-cover-copy { padding: 0 16px; gap: 10px; }
 }
