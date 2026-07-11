@@ -2975,6 +2975,15 @@
             "format": "int32",
             "example": 128
           },
+          "ratingDistribution": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "各星等評論數分佈；固定 5 個元素，索引 0 = 1★、索引 4 = 5★（供評分分佈長條圖）。",
+            "nullable": true
+          },
           "items": {
             "type": "array",
             "items": {

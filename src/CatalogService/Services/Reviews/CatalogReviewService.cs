@@ -80,10 +80,24 @@ public class CatalogReviewService(
             .ProjectTo<CatalogReviewDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
 
+        // 各星等評論數分佈（跨全部評論的彙總，非僅本頁）。
+        var buckets = await db.CatalogReviews.AsNoTracking()
+            .Where(r => r.CatalogId == catalogId)
+            .GroupBy(r => r.Rating)
+            .Select(g => new { Rating = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+        var distribution = new int[5];
+        foreach (var b in buckets)
+        {
+            if (b.Rating is >= 1 and <= 5)
+                distribution[b.Rating - 1] = b.Count;
+        }
+
         return new ListReviewsResponse
         {
             RatingAverage = agg.RatingAverage,
             RatingCount = agg.RatingCount,
+            RatingDistribution = distribution,
             Items = items,
         };
     }

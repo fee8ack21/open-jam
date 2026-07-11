@@ -65,6 +65,12 @@ public class ListReviewsResponse
     /// <example>128</example>
     public int RatingCount { get; set; }
 
+    /// <summary>
+    /// 各星等評論數分佈；固定 5 個元素，索引 0 = 1★、索引 4 = 5★（供評分分佈長條圖）。
+    /// </summary>
+    /// <example>[3, 5, 12, 40, 68]</example>
+    public int[] RatingDistribution { get; set; } = new int[5];
+
     /// <summary>本頁評論清單（依時間新到舊）。</summary>
     public List<CatalogReviewDto> Items { get; set; } = [];
 }

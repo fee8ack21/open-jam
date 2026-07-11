@@ -3,7 +3,7 @@
    ReviewList — 公開買家評價列表（星等 + 留言 + 日期）。
    讀公開端點 catalogReviews.list；評論者以「買家」匿名呈現。
    ============================================================ */
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { catalogApi } from '@/api';
 import type { CatalogReviewDto } from '@/api/catalog-service';
@@ -17,8 +17,17 @@ const PAGE = 10;
 const items = ref<CatalogReviewDto[]>([]);
 const average = ref(0);
 const count = ref(0);
+const distribution = ref<number[]>([0, 0, 0, 0, 0]); // 索引 0 = 1★ … 索引 4 = 5★
 const loading = ref(false);
 const loaded = ref(false);
+
+// 由高到低（5★ → 1★）的分佈列，含各星等占總數的百分比。
+const distRows = computed(() =>
+  [5, 4, 3, 2, 1].map((star) => {
+    const c = distribution.value[star - 1] ?? 0;
+    return { star, count: c, pct: count.value ? Math.round((c / count.value) * 100) : 0 };
+  }),
+);
 
 async function load(append = false) {
   if (loading.value || !props.catalogId) return;
@@ -30,6 +39,8 @@ async function load(append = false) {
     });
     average.value = res.data.ratingAverage ?? 0;
     count.value = res.data.ratingCount ?? 0;
+    const dist = res.data.ratingDistribution;
+    if (dist && dist.length === 5) distribution.value = dist;
     const batch = res.data.items ?? [];
     items.value = append ? [...items.value, ...batch] : batch;
     loaded.value = true;
@@ -58,7 +69,15 @@ onMounted(() => load());
       <p>{{ t('review.empty') }}</p>
     </div>
 
-    <div v-else class="rl-items">
+    <div v-else class="rl-dist">
+      <div v-for="row in distRows" :key="row.star" class="rl-dist-row">
+        <span class="rl-dist-star">{{ row.star }}<app-icon name="star" :size="12" fill style="color:#f0a92b" /></span>
+        <span class="rl-dist-track"><span class="rl-dist-fill" :style="{ width: row.pct + '%' }" /></span>
+        <span class="rl-dist-count">{{ row.count }}</span>
+      </div>
+    </div>
+
+    <div v-if="count" class="rl-items">
       <div v-for="r in items" :key="r.id" class="rl-item">
         <span class="rl-avatar"><app-icon name="user" :size="16" /></span>
         <div class="rl-body">
@@ -85,6 +104,22 @@ onMounted(() => load());
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 28px; color: var(--text-faint); font-size: 14px;
   border: 1px dashed var(--border); border-radius: var(--r-lg);
+}
+.rl-dist { display: flex; flex-direction: column; gap: 7px; margin-bottom: 24px; }
+.rl-dist-row { display: flex; align-items: center; gap: 10px; }
+.rl-dist-star {
+  display: inline-flex; align-items: center; gap: 3px;
+  width: 34px; flex: none; font-size: 13px; color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+.rl-dist-track {
+  flex: 1; height: 8px; border-radius: 999px;
+  background: var(--border); overflow: hidden;
+}
+.rl-dist-fill { display: block; height: 100%; border-radius: 999px; background: #f0a92b; }
+.rl-dist-count {
+  width: 30px; flex: none; text-align: right;
+  font-size: 12px; color: var(--text-faint); font-variant-numeric: tabular-nums;
 }
 .rl-items { display: flex; flex-direction: column; gap: 18px; }
 .rl-item { display: flex; gap: 12px; }

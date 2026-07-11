@@ -645,6 +645,8 @@ export interface ListReviewsResponse {
    * @example 128
    */
   ratingCount?: number;
+  /** 各星等評論數分佈；固定 5 個元素，索引 0 = 1★、索引 4 = 5★（供評分分佈長條圖）。 */
+  ratingDistribution?: number[] | null;
   /** 本頁評論清單（依時間新到舊）。 */
   items?: CatalogReviewDto[] | null;
 }
