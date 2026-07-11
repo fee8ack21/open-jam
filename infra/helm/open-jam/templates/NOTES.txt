@@ -1,30 +1,72 @@
 Open Jam 已部署至 namespace: {{ .Release.Namespace }}
 
 服務端口對照（ClusterIP，需 Ingress 或 port-forward 存取）：
-  auth            :8080  → {{ include "open-jam.fullname" . }}-auth:8080
-  log-service     :8080  → {{ include "open-jam.fullname" . }}-log-service:8080
-  storage-service :8080  → {{ include "open-jam.fullname" . }}-storage-service:8080
-  store-service   :8080  → {{ include "open-jam.fullname" . }}-store-service:8080
-  creator-web     :80    → {{ include "open-jam.fullname" . }}-creator-web:80
-  portal-web      :80    → {{ include "open-jam.fullname" . }}-portal-web:80
-  workspace-web   :80    → {{ include "open-jam.fullname" . }}-workspace-web:80
-  docs            :80    → {{ include "open-jam.fullname" . }}-docs:80
+{{- if .Values.auth.enabled }}
+  auth                 :8080  → {{ include "open-jam.fullname" . }}-auth:8080
+{{- end }}
+{{- if .Values.logService.enabled }}
+  log-service          :8080  → {{ include "open-jam.fullname" . }}-log-service:8080
+{{- end }}
+{{- if .Values.storageService.enabled }}
+  storage-service      :8080  → {{ include "open-jam.fullname" . }}-storage-service:8080
+{{- end }}
+{{- if .Values.storeService.enabled }}
+  store-service        :8080  → {{ include "open-jam.fullname" . }}-store-service:8080
+{{- end }}
+{{- if .Values.catalogService.enabled }}
+  catalog-service      :8080  → {{ include "open-jam.fullname" . }}-catalog-service:8080
+{{- end }}
+{{- if .Values.quotaService.enabled }}
+  quota-service        :8080  → {{ include "open-jam.fullname" . }}-quota-service:8080
+{{- end }}
+{{- if .Values.paymentService.enabled }}
+  payment-service      :8080  → {{ include "open-jam.fullname" . }}-payment-service:8080
+{{- end }}
+{{- if .Values.orderService.enabled }}
+  order-service        :8080  → {{ include "open-jam.fullname" . }}-order-service:8080
+{{- end }}
+{{- if .Values.notificationService.enabled }}
+  notification-service :8080  → {{ include "open-jam.fullname" . }}-notification-service:8080
+{{- end }}
+{{- if .Values.contentService.enabled }}
+  content-service      :8080  → {{ include "open-jam.fullname" . }}-content-service:8080
+{{- end }}
+{{- if .Values.creatorWeb.enabled }}
+  creator-web          :80    → {{ include "open-jam.fullname" . }}-creator-web:80
+{{- end }}
+{{- if .Values.portalWeb.enabled }}
+  portal-web           :80    → {{ include "open-jam.fullname" . }}-portal-web:80
+{{- end }}
+{{- if .Values.workspaceWeb.enabled }}
+  workspace-web        :80    → {{ include "open-jam.fullname" . }}-workspace-web:80
+{{- end }}
+{{- if .Values.docs.enabled }}
+  docs                 :80    → {{ include "open-jam.fullname" . }}-docs:80
+{{- end }}
 {{- if .Values.hydra.enabled }}
-  hydra public    :4444  → {{ include "open-jam.fullname" . }}-hydra:4444
-  hydra admin     :4445  → {{ include "open-jam.fullname" . }}-hydra:4445
+  hydra public         :4444  → {{ include "open-jam.fullname" . }}-hydra:4444
+  hydra admin          :4445  → {{ include "open-jam.fullname" . }}-hydra:4445
 {{- end }}
 {{- if .Values.mailpit.enabled }}
-  mailpit UI      :8025  → {{ include "open-jam.fullname" . }}-mailpit:8025
+  mailpit UI           :8025  → {{ include "open-jam.fullname" . }}-mailpit:8025
 {{- end }}
+{{- if .Values.emailService.enabled }}
 
   email-service 為 RabbitMQ Worker，無對外服務埠。
+{{- end }}
 
-快速 port-forward 範例：
+快速 port-forward 範例（左為本機慣用開發埠，右為服務內埠）：
+{{- if .Values.auth.enabled }}
   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "open-jam.fullname" . }}-auth 5169:8080
+{{- end }}
+{{- if .Values.catalogService.enabled }}
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "open-jam.fullname" . }}-catalog-service 5176:8080
+{{- end }}
 
 注意事項：
   - Secrets 中的密碼皆為預設值，正式環境請以 --set 或 ExternalSecret 覆蓋。
-  - Bootstrap Job 僅在首次安裝時執行（helm.sh/hook: post-install）。
-  - Production 請設 mailpit.enabled=false 並配置外部 SMTP。
+  - Bootstrap Job 僅在首次安裝時執行（helm.sh/hook: post-install），依序 seed Hydra client / Email 模板 / 管理員 / 法律文件 / FAQ / 分類等。
+  - Production 請設 mailpit.enabled=false 並配置外部 SMTP（EmailService 走 SendGrid API）。
+  - PaymentService 需設定 Stripe 金鑰（paymentService.stripe.*），正式環境請以 Secret 覆蓋。
   - 檔案儲存預設 storage.provider=Gcs（雲端）；如需本地檔案系統可設 storage.provider=Local。
   - Ingress / TLS 由獨立的 infra/helm/infra chart 提供，請另行部署（見 README）。
