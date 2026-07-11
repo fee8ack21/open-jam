@@ -60,14 +60,14 @@ PROJECT=<project-id>
 POOL=github-pool
 PROVIDER=github-provider
 REPO=<owner>/open-jam                       # 換成實際 GitHub owner/repo
-SA=gha-pusher@$PROJECT.iam.gserviceaccount.com
+SA=open-jam-ci@$PROJECT.iam.gserviceaccount.com
 
 # 1) Artifact Registry repo（若尚未建立）
 gcloud artifacts repositories create open-jam \
   --repository-format=docker --location=asia-east1 --project=$PROJECT
 
 # 2) CI 用 Service Account + 授 AR 推送權
-gcloud iam service-accounts create gha-pusher --project=$PROJECT
+gcloud iam service-accounts create open-jam-ci --project=$PROJECT
 gcloud artifacts repositories add-iam-policy-binding open-jam \
   --location=asia-east1 --project=$PROJECT \
   --member="serviceAccount:$SA" --role="roles/artifactregistry.writer"
@@ -103,7 +103,7 @@ Workflow 需要三個 repository secret：
 | Secret | 內容 | 取得方式 |
 |--------|------|----------|
 | `GCP_WIF_PROVIDER` | WIF provider 完整資源名<br>（`projects/<PN>/locations/global/workloadIdentityPools/github-pool/providers/github-provider`） | 上面 WIF 設定第 6 步的輸出 |
-| `GCP_SA_EMAIL` | `gha-pusher@<project-id>.iam.gserviceaccount.com` | 固定值（WIF 設定第 2 步建立的 SA） |
+| `GCP_SA_EMAIL` | `open-jam-ci@<project-id>.iam.gserviceaccount.com` | 固定值（WIF 設定第 2 步建立的 SA） |
 | `DISCORD_WEBHOOK` | `https://discord.com/api/webhooks/<id>/<token>` | Discord 見下方步驟 |
 
 **取得 Discord webhook**：Discord 伺服器 → 目標頻道 → 編輯頻道 → 整合（Integrations）→ 建立 Webhook → 複製 Webhook URL。
@@ -117,7 +117,7 @@ Workflow 需要三個 repository secret：
   gh secret set GCP_WIF_PROVIDER --repo <owner>/open-jam \
     --body "projects/<PN>/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
   gh secret set GCP_SA_EMAIL --repo <owner>/open-jam \
-    --body "gha-pusher@<project-id>.iam.gserviceaccount.com"
+    --body "open-jam-ci@<project-id>.iam.gserviceaccount.com"
   gh secret set DISCORD_WEBHOOK --repo <owner>/open-jam \
     --body "https://discord.com/api/webhooks/<id>/<token>"
   ```
