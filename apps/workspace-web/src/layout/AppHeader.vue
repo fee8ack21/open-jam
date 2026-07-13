@@ -17,9 +17,32 @@ const { t, locale } = useI18n()
 const userMenuOpen = ref(false)
 
 const langOptions = computed(() =>
-  SUPPORTED_LOCALES.map((code) => ({ label: t(`language.${code}`), key: code })),
+  SUPPORTED_LOCALES.map((code) => ({ label: t(`language.${code}`), code })),
 )
-function onSelectLang(key: string) { setLocale(key as Locale) }
+
+const langOpen = ref(false)
+const langRoot = ref<HTMLElement | null>(null)
+
+function onDocPointer(e: PointerEvent) {
+  if (langRoot.value && !langRoot.value.contains(e.target as Node)) closeLang()
+}
+function openLang() {
+  if (langOpen.value) return
+  langOpen.value = true
+  document.addEventListener('pointerdown', onDocPointer, true)
+}
+function closeLang() {
+  if (!langOpen.value) return
+  langOpen.value = false
+  document.removeEventListener('pointerdown', onDocPointer, true)
+}
+function toggleLang() {
+  langOpen.value ? closeLang() : openLang()
+}
+function onSelectLang(code: Locale) {
+  setLocale(code)
+  closeLang()
+}
 
 const pageTitle = computed(() => {
   const key = route.meta.titleKey as string | undefined
@@ -44,6 +67,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (outside) document.removeEventListener('click', outside)
+  document.removeEventListener('pointerdown', onDocPointer, true)
 })
 
 function goToMarket() { window.location.href = env.PORTAL_PAGE_URL }
@@ -60,11 +84,37 @@ function goToMarket() { window.location.href = env.PORTAL_PAGE_URL }
     <div class="tb-spacer"></div>
 
     <div class="tb-actions">
-      <n-dropdown trigger="click" :options="langOptions" :value="locale" @select="onSelectLang">
-        <button class="icon-btn" :title="t('language.label')" :aria-label="t('language.label')">
+      <div ref="langRoot" class="lang">
+        <button
+          type="button"
+          class="icon-btn"
+          :class="{ 'lang-open': langOpen }"
+          :title="t('language.label')"
+          :aria-label="t('language.label')"
+          aria-haspopup="menu"
+          :aria-expanded="langOpen"
+          @click="toggleLang"
+        >
           <app-icon name="globe" :size="20" />
         </button>
-      </n-dropdown>
+        <transition name="lang-pop">
+          <div v-if="langOpen" class="lang-menu" role="menu">
+            <button
+              v-for="opt in langOptions"
+              :key="opt.code"
+              type="button"
+              class="lang-opt"
+              :class="{ active: opt.code === locale }"
+              role="menuitemradio"
+              :aria-checked="opt.code === locale"
+              @click="onSelectLang(opt.code)"
+            >
+              <span class="lang-opt-label">{{ opt.label }}</span>
+              <app-icon v-if="opt.code === locale" name="check" class="lang-opt-check" :size="15" />
+            </button>
+          </div>
+        </transition>
+      </div>
       <button class="icon-btn" @click="goToMarket" :title="t('header.backToMarket')" :aria-label="t('header.backToMarket')">
         <app-icon name="bag" :size="20" />
       </button>
