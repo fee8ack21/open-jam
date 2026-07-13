@@ -38,7 +38,8 @@
   .side:not(:hover) .side-version { visibility: hidden; }
 
   /* 收合狀態仍顯示目前分頁（買家 / 賣家）：只留 active 按鈕的 icon */
-  .side:not(:hover) .mode-switch { background: transparent; padding: 0; }
+  /* 保留上下 4px padding 與展開態同高，避免 hover 展開時下方項目位移 */
+  .side:not(:hover) .mode-switch { background: transparent; padding: 4px 0; }
   .side:not(:hover) .mode-switch button:not(.on) { display: none; }
   .side:not(:hover) .mode-switch button.on { flex: 1; gap: 0; }
   .side:not(:hover) .mode-switch .ms-label { display: inline-block; width: 0; overflow: hidden; }
@@ -76,7 +77,8 @@
 .nav-group { margin: 2px 0; display: flex; flex-direction: column; gap: 6px; }
 .nav-label { font-family: var(--oj-display); font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #666; padding: 12px 12px 6px; }
 .nav-item {
-  position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
+  /* 固定 46px 高，與收合態方鈕同高，hover 展開時項目不位移 */
+  position: relative; display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 14px; border-radius: 14px;
   cursor: pointer; color: #888; font-weight: 700; font-size: 14px; line-height: 1.2; user-select: none;
   border: 2px solid transparent;
   transition: background .15s, color .15s, transform .15s;
