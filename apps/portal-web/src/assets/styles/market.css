@@ -40,6 +40,49 @@
 .nav-ic:hover { background: var(--c-yellow); border-color: var(--border-strong); transform: translateY(-2px); }
 .nav-ic:active { transform: translateY(0); }
 
+/* ---------- 語系下拉（果醬罐風格 popover） ---------- */
+.lang { position: relative; flex: none; }
+.lang-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 40px; padding: 0 11px 0 12px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 13px; color: var(--text);
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 999px;
+  cursor: pointer;
+  transition: transform .15s var(--ease-pop), background .15s, box-shadow .15s;
+}
+.lang-btn:hover { background: var(--c-yellow); transform: translateY(-2px); box-shadow: var(--pop-1); }
+.lang-btn:active { transform: translateY(0); box-shadow: none; }
+.lang-btn.open { background: var(--c-yellow); box-shadow: var(--pop-1); }
+.lang-short { line-height: 1; letter-spacing: .01em; }
+.lang-caret { transition: transform .2s var(--ease-pop); opacity: .7; }
+.lang-btn.open .lang-caret { transform: rotate(180deg); }
+
+.lang-menu {
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
+  min-width: 160px; padding: 6px;
+  background: var(--surface);
+  border: 2px solid var(--border-strong); border-radius: var(--r-md);
+  box-shadow: var(--ink-drop);
+}
+.lang-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; padding: 9px 12px;
+  font-family: var(--oj-font); font-weight: 700; font-size: 13.5px; color: var(--text);
+  text-align: left; background: transparent; border: 0; border-radius: 10px;
+  cursor: pointer; white-space: nowrap;
+  transition: background .13s, transform .13s var(--ease-pop);
+}
+.lang-opt + .lang-opt { margin-top: 2px; }
+.lang-opt:hover { background: var(--c-yellow); transform: translateX(2px); }
+.lang-opt.active { background: var(--c-pink); }
+.lang-opt.active:hover { background: var(--c-pink); }
+.lang-opt-check { color: var(--c-pink-deep); flex: none; }
+
+.lang-pop-enter-active { transition: opacity .16s, transform .2s var(--ease-pop); }
+.lang-pop-leave-active { transition: opacity .12s, transform .12s ease; }
+.lang-pop-enter-from,
+.lang-pop-leave-to { opacity: 0; transform: translateY(-6px) scale(.97); }
+
 /* ---------- hero（紫色圓點滿版帶 + 黑色波浪收邊） ---------- */
 .mkt-hero { position: relative; padding: 84px 0 118px; text-align: center; }
 .mkt-hero::before, .mkt-hero::after {
@@ -482,6 +525,7 @@
   .nav-admin { height: 36px; padding: 0 14px; font-size: 13px; gap: 6px; }
   .nav-admin-label { display: inline; }
   .nav-logout, .nav-ic { width: 36px; height: 36px; }
+  .lang-btn { height: 36px; }
   .kw { font-size: 12.5px; padding: 6px 12px; }
 
   /* single-column product grid on phones */
