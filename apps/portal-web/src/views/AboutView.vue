@@ -56,11 +56,11 @@ const publishTags = computed(() => (tm('landing.publish.tags') as string[]).map(
 
 // ── 創作者旅程五步（flow.steps）──
 const STEP = [
-  { icon: 'arrowU', text: '',  bg: 'var(--c-pink)',   glow: '255, 144, 232', rot: '-3deg', iconLight: false, tilt: false },
-  { icon: '',       text: '$', bg: 'var(--c-yellow)', glow: '255, 222, 0',   rot: '3deg',  iconLight: false, tilt: false },
-  { icon: 'home',   text: '',  bg: 'var(--c-cyan)',   glow: '125, 217, 255', rot: '-3deg', iconLight: false, tilt: false },
-  { icon: 'arrow',  text: '',  bg: 'var(--c-lime)',   glow: '184, 255, 159', rot: '3deg',  iconLight: false, tilt: true },
-  { icon: 'heart',  text: '',  bg: 'var(--c-violet)', glow: '138, 92, 246',  rot: '-3deg', iconLight: true,  tilt: false },
+  { icon: 'arrowU', glyph: '',  bg: 'var(--c-pink)',   glow: '255, 144, 232', rot: '-3deg', iconLight: false, tilt: false },
+  { icon: '',       glyph: '$', bg: 'var(--c-yellow)', glow: '255, 222, 0',   rot: '3deg',  iconLight: false, tilt: false },
+  { icon: 'home',   glyph: '',  bg: 'var(--c-cyan)',   glow: '125, 217, 255', rot: '-3deg', iconLight: false, tilt: false },
+  { icon: 'arrow',  glyph: '',  bg: 'var(--c-lime)',   glow: '184, 255, 159', rot: '3deg',  iconLight: false, tilt: true },
+  { icon: 'heart',  glyph: '',  bg: 'var(--c-violet)', glow: '138, 92, 246',  rot: '-3deg', iconLight: true,  tilt: false },
 ] as const;
 const flowSteps = computed(() =>
   (tm('landing.flow.steps') as { title: string; text: string }[]).map((s, i) => ({
@@ -210,7 +210,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
                 :style="{ background: s.bg, '--rot': s.rot }"
               >
                 <app-icon v-if="s.icon" :name="s.icon" :size="20" />
-                <span v-else class="stp-glyph">{{ s.text }}</span>
+                <span v-else class="stp-glyph">{{ s.glyph }}</span>
               </span>
               <span class="stp-num">STEP {{ i + 1 }}</span>
               <h3>{{ s.title }}</h3>
@@ -225,7 +225,9 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
         <div class="dsc-inner">
           <div class="dsc-copy">
             <span class="sec-eyebrow" style="--pill-fg: var(--c-pink)"><app-icon name="note" :size="12" /> {{ t('landing.discover.eyebrow') }}</span>
-            <h2 class="dsc-title">{{ t('landing.discover.title') }}</h2>
+            <i18n-t keypath="landing.discover.title" tag="h2" class="dsc-title" scope="global">
+              <template #mark><span class="hl dsc-mark">{{ t('landing.discover.titleMark') }}</span></template>
+            </i18n-t>
             <p class="dsc-text">{{ t('landing.discover.text') }}</p>
             <button type="button" class="dsc-btn" @click="goMarket">
               {{ t('landing.cta.buyer.button') }} <app-icon name="arrow" :size="14" />
@@ -282,7 +284,9 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 
       <!-- ============ 雙 CTA ============ -->
       <section class="a-cta">
-        <h2 class="cta-title">・{{ t('landing.cta.eyebrow') }}・</h2>
+        <i18n-t keypath="landing.cta.eyebrow" tag="h2" class="cta-title" scope="global">
+          <template #mark><span class="hl cta-mark">{{ t('landing.cta.eyebrowMark') }}</span></template>
+        </i18n-t>
         <p class="cta-note">{{ t('landing.cta.note') }}</p>
         <div class="cta-grid">
           <div class="cta-card cta-creator">
@@ -544,7 +548,8 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
   border-bottom: 2px solid var(--border-strong);
 }
 .dsc-inner { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(30px, 4vw, 48px); align-items: center; max-width: 1100px; margin: 0 auto; }
-.dsc-title { margin: 18px 0 16px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 3.4vw, 40px); line-height: 1.35; color: var(--text); }
+.dsc-title { margin: 18px 0 16px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 3.4vw, 40px); line-height: 1.5; color: var(--text); }
+.dsc-mark { background: var(--c-yellow); }
 .dsc-text { margin: 0 0 26px; max-width: 440px; font-size: 15px; font-weight: 500; line-height: 1.9; color: var(--text); }
 .dsc-btn {
   display: inline-flex; align-items: center; gap: 7px; cursor: pointer; border: 0;
@@ -601,7 +606,8 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 
 /* ---------- 雙 CTA ---------- */
 .a-cta { max-width: 1020px; margin: 0 auto; padding: 80px clamp(20px, 3.5vw, 56px) 88px; text-align: center; }
-.cta-title { margin: 0 0 12px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 4vw, 42px); color: var(--text); }
+.cta-title { margin: 0 0 12px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 4vw, 42px); line-height: 1.5; color: var(--text); text-align: center; }
+.cta-mark { background: var(--c-violet); color: #fff; }
 .cta-note { margin: 0 0 36px; font-family: var(--oj-hand); font-weight: 700; font-size: 26px; color: var(--c-violet); transform: rotate(-2deg); }
 .cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; text-align: left; }
 .cta-card {

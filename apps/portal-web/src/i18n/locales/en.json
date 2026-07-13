@@ -418,7 +418,8 @@
     },
     "discover": {
       "eyebrow": "For explorers",
-      "title": "Discover independent works before they become mainstream.",
+      "title": "Discover independent works before they become {mark}.",
+      "titleMark": "mainstream",
       "text": "Every purchase directly supports a creator. Browse the market, follow the shops you love, and keep every find in your library — ready to download anytime.",
       "gridLabel": "Marketplace picks",
       "profileLabel": "Creator profile",
@@ -456,7 +457,8 @@
       ]
     },
     "cta": {
-      "eyebrow": "The next page of the story is yours to turn",
+      "eyebrow": "The next page of the story is {mark} to turn",
+      "eyebrowMark": "yours",
       "creator": {
         "title": "I'm a creator",
         "text": "Open your own shop in three minutes and turn your work into income.",
