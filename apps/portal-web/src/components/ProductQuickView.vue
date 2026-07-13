@@ -326,6 +326,10 @@ onBeforeUnmount(() => {
     box-shadow: 0 -8px 40px rgba(26, 26, 26, 0.4);
   }
   .qv-gallery { flex: 0 0 auto; border-right: 0; border-bottom: 2px solid var(--border-strong); border-radius: 22px 22px 0 0; }
+  /* 直式版面卡片高度由內容決定（僅設 max-height），flex-basis 0 會讓
+     info 塌成 0 高、details 與 CTA footer 整段溢出視窗外；改 auto 基準，
+     超過 92vh 時由 info 收縮、body 內捲。 */
+  .qv-info { flex: 1 1 auto; }
   /* 直式時卡片底部為直角（貼齊視窗），footer 不需圓角 */
   .qv-foot { border-bottom-right-radius: 0; }
   /* 直式版面下 stage 與關閉鈕同在右上角，書籤左移避開 */
