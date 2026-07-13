@@ -463,26 +463,9 @@ body {
   .hero-shapes { display: none; }
 }
 @media (max-width: 860px) {
-  .nav { height: auto; }
-  .nav-inner { flex-wrap: wrap; height: auto; padding: 11px 16px; gap: 12px; }
-  .nav-spacer { display: none; }
-  .brand { flex: 1; }
+  /* nav 維持單行：actions 收進右側 burger 下拉（選單樣式在 market.css） */
+  .nav-inner { padding: 0 16px; gap: 12px; }
   .brand-badge { display: none; }
-  .nav-actions .nav-icon-toggle { display: grid; }
-
-  /* slimmer search field when expanded on mobile */
-  .search-box { height: 38px; }
-  .search-input { font-size: 14px; }
-
-  /* collapse search & follow; reveal as full-width rows when toggled */
-  .nav-search { display: none; }
-  .nav-search.is-open { display: block; order: 3; flex-basis: 100%; max-width: none; }
-
-  .nav-follow { display: none; order: 4; flex-basis: 100%; }
-  .nav-follow.is-open { display: block; }
-  .nav-follow:has(.follow-done) { display: block; }
-  .nav-follow .follow-form { width: 100%; }
-  .follow-input { flex: 1; width: auto; min-width: 0; }
 }
 @media (max-width: 560px) {
   .field-grid.two { grid-template-columns: 1fr; }

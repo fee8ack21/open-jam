@@ -7,12 +7,14 @@
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.js';
+import { useNotificationsStore } from '@/stores/notifications';
 import BrandLogo from '@/components/BrandLogo.vue';
 import NotificationBell from '@/components/NotificationBell.vue';
 import { env } from '@/environment.js';
 import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n';
 
 const auth = useAuthStore();
+const notifications = useNotificationsStore();
 const { t, locale } = useI18n();
 
 function goWorkspace() {
@@ -25,6 +27,8 @@ const langOptions = computed(() =>
   SUPPORTED_LOCALES.map((code) => ({ label: t(`language.${code}`), code })),
 );
 const currentShort = computed(() => LOCALE_SHORT[locale.value as Locale] ?? '中');
+/* 手機選單顯示完整語言名稱（繁體中文 / English） */
+const currentFull = computed(() => t(`language.${locale.value}`));
 
 const langOpen = ref(false);
 const langRoot = ref<HTMLElement | null>(null);
@@ -49,15 +53,55 @@ function onSelectLang(code: Locale) {
   setLocale(code);
   closeLang();
 }
-onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer, true));
+/* ---------- 手機版 burger 選單 ---------- */
+const menuOpen = ref(false);
+const navRoot = ref<HTMLElement | null>(null);
+
+function onMenuDocPointer(e: PointerEvent) {
+  if (navRoot.value && !navRoot.value.contains(e.target as Node)) closeMenu();
+}
+function closeMenu() {
+  if (!menuOpen.value) return;
+  menuOpen.value = false;
+  document.removeEventListener('pointerdown', onMenuDocPointer, true);
+}
+function toggleMenu() {
+  if (menuOpen.value) {
+    closeMenu();
+    return;
+  }
+  menuOpen.value = true;
+  document.addEventListener('pointerdown', onMenuDocPointer, true);
+}
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', onDocPointer, true);
+  document.removeEventListener('pointerdown', onMenuDocPointer, true);
+});
 </script>
 
 <template>
-  <header class="nav">
+  <header ref="navRoot" class="nav" :class="{ 'menu-open': menuOpen }">
     <div class="nav-inner">
       <BrandLogo badge />
 
       <div class="nav-spacer"></div>
+
+      <button
+        type="button"
+        class="nav-burger"
+        :title="t('nav.menu')"
+        :aria-label="t('nav.menu')"
+        :aria-expanded="menuOpen"
+        @click="toggleMenu"
+      >
+        <app-icon :name="menuOpen ? 'close' : 'menu'" :size="19" />
+        <span
+          v-if="!menuOpen && auth.isAuthenticated && notifications.unreadCount > 0"
+          class="nav-burger-dot"
+          aria-hidden="true"
+        ></span>
+      </button>
 
       <div class="nav-actions">
         <a
@@ -66,8 +110,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer, 
           target="_blank"
           rel="noopener noreferrer"
           :title="t('nav.github')"
+          @click="closeMenu"
         >
           <app-icon name="github" :size="18" />
+          <span class="nav-act-label">{{ t('nav.github') }}</span>
         </a>
         <a
           class="nav-ic"
@@ -75,8 +121,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer, 
           target="_blank"
           rel="noopener noreferrer"
           :title="t('nav.docs')"
+          @click="closeMenu"
         >
           <app-icon name="book" :size="18" />
+          <span class="nav-act-label">{{ t('nav.docs') }}</span>
         </a>
         <div ref="langRoot" class="lang">
           <button
@@ -91,6 +139,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer, 
           >
             <app-icon name="globe" :size="17" />
             <span class="lang-short">{{ currentShort }}</span>
+            <span class="lang-full nav-act-label">{{ currentFull }}</span>
             <app-icon name="chevronD" class="lang-caret" :size="12" />
           </button>
           <transition name="lang-pop">
@@ -119,6 +168,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer, 
           </a>
           <a class="nav-logout" href="#" :title="t('nav.logout')" @click.prevent="auth.logout()">
             <app-icon name="logout" :size="17" />
+            <span class="nav-act-label">{{ t('nav.logout') }}</span>
           </a>
         </template>
         <template v-else>

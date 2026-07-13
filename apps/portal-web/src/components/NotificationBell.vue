@@ -102,13 +102,14 @@ onBeforeUnmount(() => {
 <template>
   <div class="notif-menu">
     <a
-      class="nav-link notif-trigger"
+      class="nav-ic notif-trigger"
       href="#"
       :title="t('notifications.title')"
       :aria-label="t('notifications.title')"
       @click.prevent="toggle"
     >
       <app-icon name="bell" :size="18" />
+      <span class="nav-act-label">{{ t('notifications.title') }}</span>
       <span v-if="store.unreadCount > 0" class="notif-badge">{{ badgeText }}</span>
     </a>
     <transition name="notif">

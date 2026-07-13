@@ -40,6 +40,22 @@
 .nav-ic:hover { background: var(--c-yellow); border-color: var(--border-strong); transform: translateY(-2px); }
 .nav-ic:active { transform: translateY(0); }
 
+/* 手機版 burger（桌機隱藏）；icon 鈕的文字標籤僅在手機下拉選單顯示 */
+.nav-burger {
+  position: relative; display: none; width: 40px; height: 40px; flex: none;
+  place-items: center; color: var(--text); background: var(--surface);
+  border: 2px solid var(--border-strong); border-radius: 999px; cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.nav-burger:hover { background: var(--c-yellow); }
+.nav-burger:active { transform: scale(.95); }
+.nav.menu-open .nav-burger { background: var(--c-yellow); }
+.nav-burger-dot {
+  position: absolute; top: -3px; right: -3px; width: 12px; height: 12px;
+  border-radius: 999px; background: var(--c-pink-deep); border: 2px solid var(--surface);
+}
+.nav-act-label { display: none; }
+
 /* ---------- 語系下拉（果醬罐風格 popover） ---------- */
 .lang { position: relative; flex: none; }
 .lang-btn {
@@ -493,6 +509,37 @@
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
+  /* nav actions 收進 burger 下拉選單：圓形 icon 鈕攤平成「icon + 文字」列 */
+  .nav-burger { display: grid; }
+  .nav-actions {
+    display: none;
+    position: absolute; top: calc(100% + 10px); right: 12px; z-index: 70;
+    flex-direction: column; align-items: stretch; gap: 4px;
+    min-width: 236px; padding: 10px;
+    background: var(--surface);
+    border: 2px solid var(--border-strong); border-radius: var(--r-md);
+    box-shadow: var(--pop-1-h);
+  }
+  .nav.menu-open .nav-actions { display: flex; }
+  .nav-act-label { display: inline; font-family: var(--oj-font); font-weight: 700; font-size: 14px; line-height: 1; }
+  .nav-actions .nav-ic,
+  .nav-actions .nav-logout {
+    width: 100%; height: 44px; justify-content: flex-start; gap: 10px; padding: 0 12px;
+    border-radius: 10px; border-color: transparent;
+  }
+  .nav-actions .nav-ic:hover,
+  .nav-actions .nav-logout:hover { transform: none; }
+  .nav-actions .lang { width: 100%; }
+  /* 語系鈕比照登入膠囊外型：全圓角、完整語言名稱（縮寫隱藏） */
+  .nav-actions .lang-btn { width: 100%; height: 44px; border-radius: 999px; justify-content: flex-start; gap: 10px; padding: 0 16px; }
+  .nav-actions .lang-btn:hover { transform: none; }
+  .nav-actions .lang-short { display: none; }
+  .nav-actions .lang-caret { margin-left: auto; }
+  .nav-actions .nav-admin { height: 44px; justify-content: center; margin-top: 4px; }
+  /* 鈴鐺列：未讀數改為列尾 inline 徽章 */
+  .nav-actions .notif-menu { width: 100%; }
+  .nav-actions .notif-trigger .notif-badge { position: static; margin-left: auto; }
+
   /* browse: filter rail collapses to inline selects above the grid */
   .browse-body { grid-template-columns: 1fr; gap: 18px; }
   .browse-side { position: static; }
@@ -522,10 +569,6 @@
   .mkt-search button { padding: 0 16px; font-size: 14px; }
   .mkt-search button svg { display: none; }
 
-  .nav-admin { height: 36px; padding: 0 14px; font-size: 13px; gap: 6px; }
-  .nav-admin-label { display: inline; }
-  .nav-logout, .nav-ic { width: 36px; height: 36px; }
-  .lang-btn { height: 36px; }
   .kw { font-size: 12.5px; padding: 6px 12px; }
 
   /* single-column product grid on phones */

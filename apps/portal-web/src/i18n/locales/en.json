@@ -14,6 +14,7 @@
     "workspace": "Go to workspace",
     "login": "Sign in",
     "logout": "Sign out",
+    "menu": "Menu",
     "menuAria": "Main navigation",
     "explore": "Explore",
     "about": "About"
