@@ -153,7 +153,7 @@ function formatBytes(bytes?: number): string {
   font-size: 12.5px;
   color: var(--text-soft);
   background: var(--t-yellow);
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 16px;
@@ -172,7 +172,7 @@ function formatBytes(bytes?: number): string {
 }
 
 .pd-item {
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 12px;
@@ -210,7 +210,7 @@ function formatBytes(bytes?: number): string {
   gap: 10px;
   padding: 8px 10px;
   border-radius: 10px;
-  border: 2px dashed var(--border);
+  border: 1px dashed var(--border);
   background: var(--bg);
   color: inherit;
   text-decoration: none;

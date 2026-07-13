@@ -393,7 +393,7 @@ onMounted(load)
 
 .list-filter {
   padding: 18px 20px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
   background: var(--bg);
 }
 
@@ -452,7 +452,7 @@ onMounted(load)
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   display: grid;
   place-items: center;
   flex: none;
@@ -495,7 +495,7 @@ onMounted(load)
 
 /* 即時預覽：與 Auth dialog / portal-web 條款頁相同的章節樣式 */
 .legal-preview {
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   border-radius: 10px;
   padding: 16px 18px;
   max-height: 560px;

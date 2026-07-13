@@ -165,7 +165,7 @@ onMounted(store.load)
         <div v-if="applications.length" class="card-pad applications-card">
           <div style="font-weight:700; font-size:14px; margin-bottom:12px;">{{ t('openStore.historyTitle') }}</div>
           <div v-for="(a, i) in applications" :key="a.id"
-               :style="`display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:${i === applications.length - 1 ? 'none' : '2px dashed var(--border)'};`">
+               :style="`display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:${i === applications.length - 1 ? 'none' : '1px dashed var(--border)'};`">
             <div style="flex:1;">
               <div style="font-weight:700; font-size:14px;">{{ a.storeName }}</div>
               <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:2px;">

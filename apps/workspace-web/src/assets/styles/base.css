@@ -36,9 +36,12 @@
   --oj-hand: 'Caveat', cursive;
 
   --nav-h: 76px;
-  --r-lg: 18px;
-  --r-md: 14px;
-  --r-sm: 10px;
+  /* 後台簡約變體：圓角階 / 墨線寬 / 膠囊圓角一律收斂（比店面小一號） */
+  --r-lg: 12px;
+  --r-md: 10px;
+  --r-sm: 8px;
+  --r-pill: 10px;   /* 原 999px 膠囊 → 圓角矩形 */
+  --bw: 1.5px;      /* 墨線主框寬（原 2px） */
 
   --bg: #fff9ec;
   --surface: #ffffff;
@@ -59,9 +62,9 @@
   --pop-3: 0 10px 24px rgba(26, 26, 26, 0.12);
   --pop-3-h: 0 18px 34px rgba(26, 26, 26, 0.18);
 
-  /* 貼紙式硬底影（設計稿卡片 / 主 CTA 底座） */
-  --ink-drop: 0 6px 0 rgba(26, 26, 26, 0.85);
-  --ink-drop-sm: 0 4px 0 rgba(26, 26, 26, 0.85);
+  /* 貼紙式硬底影（後台簡約變體：薄一階） */
+  --ink-drop: 0 3px 0 rgba(26, 26, 26, 0.85);
+  --ink-drop-sm: 0 2px 0 rgba(26, 26, 26, 0.85);
 
   /* 彈跳 hover 曲線（設計稿全站共用） */
   --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -100,16 +103,16 @@ body {
 
 /* ---------- 圓形工具鈕：白底 2px 墨線、hover 黃（設計稿 topbar） ---------- */
 .icon-btn {
-  position: relative; width: 38px; height: 38px; border-radius: 999px;
+  position: relative; width: 38px; height: 38px; border-radius: var(--r-pill);
   display: grid; place-items: center; cursor: pointer;
-  color: var(--text); background: var(--surface); border: 2px solid var(--border-strong);
+  color: var(--text); background: var(--surface); border: var(--bw) solid var(--border-strong);
   transition: background .15s, transform .2s var(--ease-pop);
 }
 .icon-btn:hover { background: var(--c-yellow); transform: translateY(-2px); }
 .cart-badge {
   position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px;
-  border-radius: 999px; background: var(--c-pink); color: var(--text); font-size: 11px; font-weight: 900;
-  display: grid; place-items: center; border: 2px solid var(--border-strong); font-family: var(--oj-display);
+  border-radius: var(--r-pill); background: var(--c-pink); color: var(--text); font-size: 11px; font-weight: 900;
+  display: grid; place-items: center; border: var(--bw) solid var(--border-strong); font-family: var(--oj-display);
 }
 
 /* ---------- CTA pills（設計稿共用按鈕語彙） ---------- */
@@ -117,16 +120,16 @@ body {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   background: var(--text); color: var(--c-yellow); border: none; cursor: pointer;
   font-family: var(--oj-font); font-weight: 900; font-size: 15px;
-  padding: 12px 24px; border-radius: 999px; text-decoration: none; white-space: nowrap;
+  padding: 12px 24px; border-radius: var(--r-pill); text-decoration: none; white-space: nowrap;
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
 .cta-ink:hover { transform: translateY(-3px) rotate(-.5deg); box-shadow: 0 12px 26px rgba(26, 26, 26, 0.3); color: var(--c-yellow); }
 .cta-ink:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
 .cta-line {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: var(--surface); color: var(--text); border: 2px solid var(--border-strong); cursor: pointer;
+  background: var(--surface); color: var(--text); border: var(--bw) solid var(--border-strong); cursor: pointer;
   font-family: var(--oj-font); font-weight: 900; font-size: 14px;
-  padding: 10px 20px; border-radius: 999px; text-decoration: none; white-space: nowrap;
+  padding: 10px 20px; border-radius: var(--r-pill); text-decoration: none; white-space: nowrap;
   transition: background .15s, transform .2s var(--ease-pop);
 }
 .cta-line:hover { background: var(--hover-c, var(--c-yellow)); transform: translateY(-2px); color: var(--text); }
@@ -146,14 +149,14 @@ body {
   position: absolute; left: 10px; top: 10px; z-index: 3;
   font-family: var(--oj-display); font-size: 10px; font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; color: var(--text);
-  background: #fff; border: 2px solid var(--border-strong); padding: 1px 9px; border-radius: 999px;
+  background: #fff; border: var(--bw) solid var(--border-strong); padding: 1px 9px; border-radius: var(--r-pill);
   transform: rotate(-3deg);
 }
 .thumb-glyph { position: absolute; inset: 0; display: grid; place-items: center; z-index: 2; color: var(--text); opacity: .9; }
 .thumb-label {
   position: absolute; right: 10px; bottom: 10px; z-index: 3;
   font-family: var(--oj-display); font-size: 10.5px; font-weight: 700; color: var(--text);
-  background: #fff; border: 2px solid var(--border-strong); padding: 1px 9px; border-radius: 999px;
+  background: #fff; border: var(--bw) solid var(--border-strong); padding: 1px 9px; border-radius: var(--r-pill);
   white-space: nowrap;
 }
 
@@ -161,12 +164,12 @@ body {
 .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr)); }
 .card {
   position: relative; background: var(--surface);
-  border: 2px solid var(--border-strong); border-radius: var(--r-lg);
+  border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg);
   overflow: hidden; cursor: pointer; box-shadow: var(--ink-drop);
   transition: transform .2s var(--ease-pop);
 }
 .card:hover { transform: translateY(-3px) rotate(-.4deg); }
-.card .thumb { height: 172px; border-radius: 0; border-bottom: 2px solid var(--border-strong); }
+.card .thumb { height: 172px; border-radius: 0; border-bottom: var(--bw) solid var(--border-strong); }
 .card-body { padding: 16px 17px 17px; }
 .card-title {
   font-family: var(--oj-font); font-weight: 900; font-size: 16.5px; line-height: 1.3;
@@ -184,9 +187,9 @@ body {
 
 /* 收藏愛心圓鈕 */
 .fav {
-  position: absolute; top: 12px; right: 12px; z-index: 4; width: 38px; height: 38px; border-radius: 999px;
+  position: absolute; top: 12px; right: 12px; z-index: 4; width: 38px; height: 38px; border-radius: var(--r-pill);
   display: grid; place-items: center; cursor: pointer; color: var(--text);
-  background: var(--surface); border: 2px solid var(--border-strong);
+  background: var(--surface); border: var(--bw) solid var(--border-strong);
   transition: background .15s, transform .2s var(--ease-pop);
 }
 .fav:hover { transform: scale(1.1) rotate(-6deg); }
@@ -194,13 +197,13 @@ body {
 
 .avatar {
   width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center;
-  font-size: 10px; font-weight: 900; color: #fff; border: 2px solid var(--border-strong); font-family: var(--oj-font);
+  font-size: 10px; font-weight: 900; color: #fff; border: var(--bw) solid var(--border-strong); font-family: var(--oj-font);
 }
 
 .tagrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .chip {
-  font-size: 11.5px; font-weight: 900; padding: 2px 12px; border-radius: 999px;
-  background: var(--bg); border: 2px solid var(--border-strong); color: var(--text); font-family: var(--oj-font); white-space: nowrap;
+  font-size: 11.5px; font-weight: 900; padding: 2px 12px; border-radius: var(--r-pill);
+  background: var(--bg); border: var(--bw) solid var(--border-strong); color: var(--text); font-family: var(--oj-font); white-space: nowrap;
 }
 
 /* ---------- layout helpers ---------- */
@@ -210,7 +213,7 @@ body {
 .h-sub { color: var(--text-soft); margin: 8px 0 0; font-size: 14.5px; }
 
 .breadcrumb { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 22px; flex-wrap: wrap; }
-.breadcrumb a { color: var(--text-soft); cursor: pointer; text-decoration: none; border-bottom: 2px solid transparent; transition: border-color .15s, color .15s; }
+.breadcrumb a { color: var(--text-soft); cursor: pointer; text-decoration: none; border-bottom: var(--bw) solid transparent; transition: border-color .15s, color .15s; }
 .breadcrumb a:hover { color: var(--text); border-bottom-color: var(--border-strong); }
 .breadcrumb .sep { color: #999; }
 
@@ -224,22 +227,22 @@ body {
 .oj-root .n-input,
 .oj-root .n-base-selection,
 .oj-root .n-date-picker .n-input {
-  --n-border: 2px solid var(--border-strong) !important;
-  --n-border-hover: 2px solid var(--border-strong) !important;
-  --n-border-focus: 2px solid var(--border-strong) !important;
-  --n-border-active: 2px solid var(--border-strong) !important;
+  --n-border: var(--bw) solid var(--border-strong) !important;
+  --n-border-hover: var(--bw) solid var(--border-strong) !important;
+  --n-border-focus: var(--bw) solid var(--border-strong) !important;
+  --n-border-active: var(--bw) solid var(--border-strong) !important;
   --n-box-shadow-focus: var(--pop-1) !important;
   --n-box-shadow-active: var(--pop-1) !important;
-  --n-border-radius: 999px;
+  --n-border-radius: var(--r-pill);
   font-weight: 500;
 }
 /* 多行輸入維持圓角矩形 */
 .oj-root .n-input--textarea { --n-border-radius: var(--r-md); }
 .oj-root .n-input:focus-within { transform: translateY(-1px); transition: transform .15s; }
 .oj-root .n-form-item-blank--error .n-input {
-  --n-border: 2px solid var(--c-pink-deep) !important;
-  --n-border-hover: 2px solid var(--c-pink-deep) !important;
-  --n-border-focus: 2px solid var(--c-pink-deep) !important;
+  --n-border: var(--bw) solid var(--c-pink-deep) !important;
+  --n-border-hover: var(--bw) solid var(--c-pink-deep) !important;
+  --n-border-focus: var(--bw) solid var(--c-pink-deep) !important;
 }
 .oj-root .n-input__input-el,
 .oj-root .n-base-selection-label { font-family: var(--oj-font); font-weight: 500; }
@@ -261,7 +264,7 @@ body {
 .n-dropdown-menu,
 .n-popover.n-popover-shared {
   box-shadow: var(--pop-2) !important;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   border-radius: var(--r-md);
   font-family: var(--oj-font);
 }
@@ -270,17 +273,17 @@ body {
 /* dialog / modal 卡片：墨線 + 深軟投影 */
 .n-dialog,
 .n-modal .n-card {
-  border: 2px solid var(--border-strong) !important;
+  border: var(--bw) solid var(--border-strong) !important;
   box-shadow: 0 24px 56px rgba(26, 26, 26, .18) !important;
-  border-radius: 20px !important;
+  border-radius: var(--r-lg) !important;
 }
 .n-dialog .n-dialog__title { font-weight: 900; font-family: var(--oj-font); }
 
 /* 分頁（ListPager / n-pagination）：圓形墨線鈕、active 黑底黃字（設計稿）。
    naive 的 CSS-in-JS 樣式於 runtime 注入、序位在後，需 !important 蓋過 */
 .oj-root .n-pagination .n-pagination-item {
-  min-width: 34px !important; height: 34px !important; border-radius: 999px !important;
-  border: 2px solid var(--border-strong) !important; background: var(--surface); color: var(--text) !important;
+  min-width: 34px !important; height: 34px !important; border-radius: var(--r-pill) !important;
+  border: var(--bw) solid var(--border-strong) !important; background: var(--surface); color: var(--text) !important;
   font-family: var(--oj-display); font-weight: 700; font-size: 13px;
   transition: background .15s;
 }
@@ -291,5 +294,5 @@ body {
 .oj-root .n-tag { font-weight: 900; }
 
 /* checkbox / switch / tag 對齊墨線語彙 */
-.oj-root .n-checkbox .n-checkbox-box { border: 2px solid var(--border-strong); border-radius: 6px; }
+.oj-root .n-checkbox .n-checkbox-box { border: var(--bw) solid var(--border-strong); border-radius: 4px; }
 .oj-root .n-tag { font-weight: 700; }

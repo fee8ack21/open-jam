@@ -290,7 +290,7 @@ onMounted(load)
 /* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
 .list-filter {
   padding: 18px 20px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
   background: var(--bg);
 }
 
@@ -369,7 +369,7 @@ onMounted(load)
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   flex: none;
   overflow: hidden;
   display: grid;
@@ -402,7 +402,7 @@ onMounted(load)
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   border-radius: 10px;
 }
 .feat-idx {

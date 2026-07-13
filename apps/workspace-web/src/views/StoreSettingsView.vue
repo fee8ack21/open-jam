@@ -165,7 +165,7 @@ async function onSave() {
   background-size: cover;
   background-position: center;
   background-color: var(--t-violet);
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   cursor: pointer;
   overflow: hidden;
   transition: filter .15s;
@@ -182,7 +182,7 @@ async function onSave() {
   right: 12px; bottom: 12px;
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--text);
   color: var(--c-yellow);
   font-size: 12.5px; font-weight: 900;
@@ -207,7 +207,7 @@ async function onSave() {
   border-radius: 50%;
   background-size: cover;
   background-position: center;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   box-shadow: var(--pop-1);
   display: grid; place-items: center;
   background-color: var(--c-violet);
@@ -223,7 +223,7 @@ async function onSave() {
   background: var(--c-yellow);
   color: var(--text);
   display: grid; place-items: center;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
 }
 .identity-meta { flex: 1; padding-top: 30px; }
 .store-name { font-family: var(--oj-font); font-weight: 900; font-size: 17px; }

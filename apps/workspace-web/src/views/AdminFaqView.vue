@@ -300,7 +300,7 @@ onMounted(() => { loadCategories(); load() })
 
 .list-filter {
   padding: 18px 20px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
   background: var(--bg);
 }
 

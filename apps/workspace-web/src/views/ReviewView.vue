@@ -220,7 +220,7 @@ onMounted(store.load)
 /* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
 .review-filter {
   padding: 18px 20px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
   background: var(--bg);
 }
 
@@ -293,7 +293,7 @@ onMounted(store.load)
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   display: grid;
   place-items: center;
   flex: none;

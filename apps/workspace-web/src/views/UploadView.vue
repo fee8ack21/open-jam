@@ -254,7 +254,7 @@ async function submit(publish: boolean) {
               <button v-for="h in hueOptions" :key="h" @click="store.patchDraft({ coverHue: h })"
                       :style="{ width:'42px', height:'42px', borderRadius:'12px', cursor:'pointer',
                                 background: huePastel(h),
-                                border: '2px solid var(--border-strong)',
+                                border: 'var(--bw) solid var(--border-strong)',
                                 boxShadow: d.coverHue===h ? 'var(--ink-drop-sm)' : 'none',
                                 transform: d.coverHue===h ? 'rotate(-3deg)' : 'none', transition:'all .15s' }"></button>
             </div>
@@ -275,7 +275,7 @@ async function submit(publish: boolean) {
               <div class="rev-row"><span class="rev-k">{{ t('upload.revBlurb') }}</span><span class="rev-v" style="max-width:280px;">{{ d.blurb || '—' }}</span></div>
             </div>
           </div>
-          <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius:var(--r-md); background:var(--t-violet); border:2px solid var(--border-strong); color:var(--text); font-size:13.5px; font-weight:700;">
+          <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius:var(--r-md); background:var(--t-violet); border:var(--bw) solid var(--border-strong); color:var(--text); font-size:13.5px; font-weight:700;">
             <app-icon name="shield" :size="18" /> {{ t('upload.copyrightNote') }}
           </div>
         </template>

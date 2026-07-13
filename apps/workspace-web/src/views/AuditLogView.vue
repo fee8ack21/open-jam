@@ -201,7 +201,7 @@ onMounted(store.load)
 /* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
 .list-filter {
   padding: 18px 20px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
   background: var(--bg);
 }
 
@@ -326,7 +326,7 @@ onMounted(store.load)
   margin: 0;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   background: var(--bg);
   font-family: var(--oj-mono);
   font-size: 12px;

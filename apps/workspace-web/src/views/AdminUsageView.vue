@@ -140,9 +140,9 @@ onMounted(store.load)
 <style scoped>
 .usage-track {
   height: 16px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--surface-2);
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   overflow: hidden;
   margin: 6px 0 14px;
 }
@@ -151,7 +151,7 @@ onMounted(store.load)
   display: block;
   height: 100%;
   background: var(--c-violet);
-  border-right: 2px solid var(--border-strong);
+  border-right: var(--bw) solid var(--border-strong);
   transition: width 0.4s ease;
 }
 
@@ -188,14 +188,14 @@ onMounted(store.load)
   width: 11px;
   height: 11px;
   border-radius: 4px;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   flex: none;
 }
 
 .store-files-note {
   margin-top: 18px;
   padding-top: 16px;
-  border-top: 2px dashed var(--border);
+  border-top: 1px dashed var(--border);
   font-size: 13px;
   font-weight: 700;
   color: var(--text-soft);

@@ -12,21 +12,21 @@ const authStore = useAuthStore()
 
 const drawerOpen = ref(false)
 
-/* v3 果醬罐色系：primary 按鈕黃底墨線、danger 深粉、圓角膠囊 */
+/* v3 果醬罐色系（後台簡約變體）：primary 按鈕黃底墨線、danger 深粉、小圓角矩形 */
 const ink = '#1a1a1a'
-const inkBorder = `2px solid ${ink}`
+const inkBorder = `1.5px solid ${ink}`
 const overrides = {
   common: {
     primaryColor: '#8a5cf6', primaryColorHover: '#a685ff',
     primaryColorPressed: '#7a4ee0', primaryColorSuppl: '#a685ff',
     errorColor: '#d6479b', errorColorHover: '#e05aac', errorColorPressed: '#c23a8b',
-    borderRadius: '14px', borderRadiusSmall: '10px',
+    borderRadius: '10px', borderRadiusSmall: '8px',
     textColorBase: ink, fontFamily: "'Noto Sans TC', sans-serif",
     fontWeightStrong: '900',
   },
   Button: {
     fontWeight: '900',
-    borderRadiusTiny: '999px', borderRadiusSmall: '999px', borderRadiusMedium: '999px', borderRadiusLarge: '999px',
+    borderRadiusTiny: '8px', borderRadiusSmall: '8px', borderRadiusMedium: '10px', borderRadiusLarge: '10px',
     // default（白底墨線、hover 黃）
     color: '#ffffff', colorHover: '#ffde00', colorPressed: '#f2d300', colorFocus: '#ffffff',
     textColor: ink, textColorHover: ink, textColorPressed: ink, textColorFocus: ink,
@@ -58,7 +58,7 @@ const overrides = {
   InternalSelection: { heightMedium: '40px' },
   Switch: { railColorActive: ink },
   Checkbox: { colorChecked: '#ffde00', checkMarkColor: ink, borderChecked: inkBorder, borderFocus: inkBorder },
-  Popover: { borderRadius: '14px', padding: '6px' },
+  Popover: { borderRadius: '10px', padding: '6px' },
 }
 
 /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */

@@ -80,7 +80,7 @@ onMounted(() => load())
 
 <style scoped>
 .rl { display: flex; flex-direction: column; gap: 18px; }
-.rl-summary { display: flex; align-items: center; gap: 14px; padding-bottom: 14px; border-bottom: 2px dashed var(--border); }
+.rl-summary { display: flex; align-items: center; gap: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); }
 .rl-avg { font-size: 32px; font-weight: 700; line-height: 1; color: var(--text); font-family: var(--oj-display); }
 .rl-count { font-size: 12.5px; color: var(--text-faint); margin-top: 4px; }
 .rl-empty {
@@ -88,15 +88,15 @@ onMounted(() => load())
   padding: 28px; color: var(--text-faint); font-size: 14px;
 }
 .rl-items { display: flex; flex-direction: column; gap: 16px; }
-.rl-item { padding-bottom: 14px; border-bottom: 2px dashed var(--border); }
+.rl-item { padding-bottom: 14px; border-bottom: 1px dashed var(--border); }
 .rl-item:last-child { border-bottom: 0; }
 .rl-meta { display: flex; align-items: center; gap: 10px; }
 .rl-date { font-size: 12px; color: var(--text-faint); font-family: var(--oj-mono); }
 .rl-comment { margin: 6px 0 0; font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; }
 .rl-nocomment { margin: 6px 0 0; font-size: 13px; color: var(--text-faint); }
 .rl-more {
-  align-self: flex-start; border: 2px solid var(--border-strong); background: var(--surface); color: var(--text);
-  padding: 7px 16px; border-radius: 999px; font-size: 13px; font-weight: 900; cursor: pointer;
+  align-self: flex-start; border: var(--bw) solid var(--border-strong); background: var(--surface); color: var(--text);
+  padding: 7px 16px; border-radius: var(--r-pill); font-size: 13px; font-weight: 900; cursor: pointer;
   font-family: var(--oj-font); transition: background .15s;
 }
 .rl-more:hover:not(:disabled) { background: var(--c-yellow); }

@@ -104,7 +104,7 @@ onMounted(() => {
             <span class="bv">{{ F.money(c.value) }}</span>
           </div>
         </div>
-        <div style="margin-top:22px; padding-top:18px; border-top:2px dashed var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <div style="margin-top:22px; padding-top:18px; border-top:1px dashed var(--border); display:flex; align-items:center; justify-content:space-between;">
           <div>
             <div class="kpi-label" style="margin:0">{{ t('adminOverview.newStores') }}</div>
             <div style="font-family:var(--oj-display); font-weight:700; font-size:24px;">{{ stats.newStoresThisMonth }}</div>

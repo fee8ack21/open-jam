@@ -192,7 +192,7 @@ function shortId(v?: string | null) {
   height: 10px;
   border-radius: 50%;
   margin-top: 5px;
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
   background: var(--surface);
 }
 
