@@ -54,15 +54,14 @@
 .lang-btn:active { transform: translateY(0); box-shadow: none; }
 .lang-btn.open { background: var(--c-yellow); box-shadow: var(--pop-1); }
 .lang-short { line-height: 1; letter-spacing: .01em; }
-.lang-caret { transition: transform .2s var(--ease-pop); opacity: .7; }
-.lang-btn.open .lang-caret { transform: rotate(180deg); }
+.lang-caret { opacity: .7; }
 
 .lang-menu {
   position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
   min-width: 160px; padding: 6px;
   background: var(--surface);
   border: 2px solid var(--border-strong); border-radius: var(--r-md);
-  box-shadow: var(--ink-drop);
+  box-shadow: var(--pop-1-h);
 }
 .lang-opt {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;

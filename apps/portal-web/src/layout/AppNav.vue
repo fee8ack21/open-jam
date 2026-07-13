@@ -91,7 +91,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer, 
           >
             <app-icon name="globe" :size="17" />
             <span class="lang-short">{{ currentShort }}</span>
-            <app-icon name="arrowD" class="lang-caret" :size="13" />
+            <app-icon name="chevronD" class="lang-caret" :size="12" />
           </button>
           <transition name="lang-pop">
             <div v-if="langOpen" class="lang-menu" role="menu">

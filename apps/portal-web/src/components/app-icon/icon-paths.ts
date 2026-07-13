@@ -101,6 +101,7 @@ export const ICONS: Record<string, IconDef> = {
   arrowL: { body: stroke('M19.5 12 H6 M11.5 6 l-6 6 6 6', 2.6) },
   arrowU: { body: stroke('M12 19.5 V6 M6 11.5 l6 -6 6 6', 2.6) },
   arrowD: { body: stroke('M12 4.5 v13.5 M6 12.5 l6 6 6 -6', 2.6) },
+  chevronD: { body: stroke('M5 9 l7 7 7 -7', 2.6) },
   close: { body: stroke('M6 6 l12 12 M18 6 L6 18', 2.8) },
   check: { body: stroke('M4.5 12.5 l5 5 L19.5 7', 2.8) },
   download: { body: stroke('M12 3.5 v10.5 M7 10 l5 4.5 5 -4.5 M4.5 20.5 h15') },
