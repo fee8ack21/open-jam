@@ -153,7 +153,7 @@ defineProps<{ name: string }>();
 .hsticker {
   display: block; width: 100%; height: auto; overflow: visible;
   stroke: var(--text); stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round;
-  filter: drop-shadow(3px 4px 0 var(--text));
+  filter: drop-shadow(2px 3px 0 var(--text));
 }
 
 /* 品牌色填色（token 綁定；SVG attribute 不吃 var()，故走 class） */

@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
   background: var(--surface);
   border: 1.5px solid var(--text);
   border-radius: 16px;
-  box-shadow: 5px 6px 0 var(--text);
+  box-shadow: 3px 3px 0 var(--text);
   padding: 8px;
 }
 .notif-head {

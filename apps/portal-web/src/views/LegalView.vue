@@ -273,11 +273,11 @@ function jumpTo(n: string) {
 .lh-deco-s {
   right: 6%; top: 64px; width: 64px; height: 64px;
   display: grid; place-items: center; font-weight: 900; font-size: 30px; color: var(--text);
-  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 18px;
+  background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 18px;
   box-shadow: 0 8px 20px rgba(26, 26, 26, 0.25); transform: rotate(8deg);
 }
-.lh-deco-dot { right: 14%; bottom: 84px; width: 44px; height: 44px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 50%; transform: rotate(-10deg); }
-.lh-deco-sq { left: 11%; bottom: 100px; width: 40px; height: 40px; background: var(--c-pink); border: 2px solid var(--border-strong); border-radius: 12px; transform: rotate(14deg); }
+.lh-deco-dot { right: 14%; bottom: 84px; width: 44px; height: 44px; background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 50%; transform: rotate(-10deg); }
+.lh-deco-sq { left: 11%; bottom: 100px; width: 40px; height: 40px; background: var(--c-pink); border: var(--bw) solid var(--border-strong); border-radius: 12px; transform: rotate(14deg); }
 
 .lh-inner {
   position: relative; z-index: 2; max-width: 780px; margin: 0 auto;
@@ -299,7 +299,7 @@ function jumpTo(n: string) {
   display: inline-flex; align-items: center; margin: 0; padding: 8px 20px;
   font-family: var(--oj-display); font-size: 13px; font-weight: 700; letter-spacing: 1px;
   color: var(--text); background: #fff;
-  border: 2px solid var(--border-strong); border-radius: 999px;
+  border: var(--bw) solid var(--border-strong); border-radius: 999px;
   box-shadow: 0 6px 14px rgba(26, 26, 26, 0.2); white-space: nowrap;
 }
 
@@ -311,7 +311,7 @@ function jumpTo(n: string) {
 .legal-tab {
   display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
   padding: 13px 24px 15px; background: var(--c-violet);
-  border: 2px solid var(--border-strong); border-bottom: none;
+  border: var(--bw) solid var(--border-strong); border-bottom: none;
   border-radius: 16px 16px 0 0;
   font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: #fff;
   transition: background .16s ease, color .16s ease;
@@ -329,7 +329,7 @@ function jumpTo(n: string) {
 
 .legal-card {
   position: relative; z-index: 0;
-  background: var(--surface); border: 2px solid var(--border-strong);
+  background: var(--surface); border: var(--bw) solid var(--border-strong);
   border-radius: 24px;
   box-shadow: 0 16px 36px rgba(26, 26, 26, 0.14); padding: 38px 42px 50px;
 }
@@ -346,7 +346,7 @@ function jumpTo(n: string) {
 .ltd-card {
   display: flex; flex-direction: column; gap: 8px; padding: 20px;
   background: color-mix(in srgb, var(--acc) 45%, #fff);
-  border: 2px solid var(--border-strong); border-radius: 18px;
+  border: var(--bw) solid var(--border-strong); border-radius: 18px;
   box-shadow: 0 8px 18px rgba(26, 26, 26, 0.1);
 }
 .ltd-card:nth-child(odd) { transform: rotate(-0.8deg); }
@@ -360,7 +360,7 @@ function jumpTo(n: string) {
 .legal-toc {
   position: sticky; top: calc(var(--nav-h) + 20px);
   display: flex; flex-direction: column; gap: 2px; padding: 20px;
-  background: var(--bg); border: 2px solid var(--border-strong); border-radius: 18px;
+  background: var(--bg); border: var(--bw) solid var(--border-strong); border-radius: 18px;
   box-shadow: 0 6px 16px rgba(26, 26, 26, 0.08);
 }
 .toc-label {
@@ -382,7 +382,7 @@ function jumpTo(n: string) {
 .legal-title { font-family: var(--oj-font); font-weight: 900; font-size: 32px; margin: 0; color: var(--text); }
 .legal-meta { font-family: var(--oj-display); font-size: 12.5px; font-weight: 500; letter-spacing: 1px; color: var(--text-soft); margin: 9px 0 0; }
 
-.legal-sec { padding: 26px 0 6px; border-top: 2px dashed var(--border); scroll-margin-top: calc(var(--nav-h) + 20px); }
+.legal-sec { padding: 26px 0 6px; border-top: 1px dashed var(--border); scroll-margin-top: calc(var(--nav-h) + 20px); }
 .legal-sec h3 {
   display: flex; align-items: center; gap: 12px; margin: 0 0 14px;
   font-family: var(--oj-font); font-weight: 900; font-size: 21px; color: var(--text);
@@ -391,23 +391,23 @@ function jumpTo(n: string) {
   flex: none; display: inline-block; padding: 2px 12px;
   font-family: var(--oj-display); font-size: 14px; font-weight: 700; color: var(--text);
   background: color-mix(in srgb, var(--acc) 55%, #fff);
-  border: 2px solid var(--border-strong); border-radius: 999px;
+  border: var(--bw) solid var(--border-strong); border-radius: 999px;
 }
 .legal-sec .sec-body { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.9; color: var(--text); white-space: pre-wrap; }
 .legal-sec ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .legal-sec li { display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 500; line-height: 1.8; color: var(--text); }
 .li-mark {
   flex: none; width: 10px; height: 10px; border-radius: 50%; position: relative; top: -1px;
-  background: var(--c-pink); border: 2px solid var(--border-strong);
+  background: var(--c-pink); border: var(--bw) solid var(--border-strong);
 }
 
 /* ── 聯絡 CTA：黃色滿版帶 + 貼紙裝飾 + 手寫註記（同 FaqView） ────── */
 .legal-cta {
   position: relative; overflow: hidden;
   margin: 56px calc(50% - 50vw) 0; padding: 80px 32px;
-  background: var(--c-yellow); border-top: 2px solid var(--border-strong);
+  background: var(--c-yellow); border-top: var(--bw) solid var(--border-strong);
 }
-.fc-deco { position: absolute; border: 2px solid var(--border-strong); }
+.fc-deco { position: absolute; border: var(--bw) solid var(--border-strong); }
 .fc-deco-a { top: 40px; left: 8%; width: 48px; height: 48px; border-radius: 14px; background: var(--c-lime); transform: rotate(12deg); }
 .fc-deco-b { bottom: 44px; right: 10%; width: 40px; height: 40px; border-radius: 999px; background: var(--c-pink); transform: rotate(8deg); }
 .fc-card {
@@ -433,7 +433,7 @@ function jumpTo(n: string) {
 .fc-btn:hover { text-decoration: none; }
 .fc-btn-dark { background: var(--text); color: var(--c-yellow); }
 .fc-btn-dark:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 12px 26px rgba(26, 26, 26, 0.3); color: var(--c-yellow); }
-.fc-btn-light { background: #fff; color: var(--text); border: 2px solid var(--border-strong); }
+.fc-btn-light { background: #fff; color: var(--text); border: var(--bw) solid var(--border-strong); }
 .fc-btn-light:hover { transform: translateY(-3px) rotate(1deg); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.18); color: var(--text); }
 .fc-note {
   font-family: var(--oj-hand); font-weight: 700; font-size: 24px; color: var(--text);

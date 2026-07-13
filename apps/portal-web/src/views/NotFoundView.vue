@@ -69,8 +69,8 @@ const { t } = useI18n();
 
 /* 漂浮貼紙 */
 .nf-deco { position: absolute; font-style: normal; pointer-events: none; }
-.nf-deco-sq { left: 9%; top: 16%; width: 52px; height: 52px; background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 16px; transform: rotate(14deg); animation: nf-float 6s ease-in-out infinite; --r: 14deg; }
-.nf-deco-dot { right: 11%; top: 22%; width: 44px; height: 44px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 50%; animation: nf-float 7s ease-in-out .6s infinite; --r: 0deg; }
+.nf-deco-sq { left: 9%; top: 16%; width: 52px; height: 52px; background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 16px; transform: rotate(14deg); animation: nf-float 6s ease-in-out infinite; --r: 14deg; }
+.nf-deco-dot { right: 11%; top: 22%; width: 44px; height: 44px; background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 50%; animation: nf-float 7s ease-in-out .6s infinite; --r: 0deg; }
 .nf-deco-n1 { left: 14%; bottom: 18%; color: var(--c-yellow); transform: rotate(-10deg); }
 .nf-deco-n2 { right: 16%; bottom: 22%; color: var(--c-pink); transform: rotate(12deg); }
 @keyframes nf-float {
@@ -85,7 +85,7 @@ const { t } = useI18n();
 .nf-four {
   display: inline-block; padding: 14px 26px; line-height: 1;
   font-family: var(--oj-display); font-weight: 700; font-size: clamp(64px, 10vw, 96px); color: var(--text);
-  border: 2px solid var(--border-strong); border-radius: 22px;
+  border: var(--bw) solid var(--border-strong); border-radius: 22px;
   box-shadow: 0 10px 24px rgba(26, 26, 26, 0.25);
 }
 .nf-four-a { background: var(--c-yellow); transform: rotate(-4deg); }
@@ -94,14 +94,14 @@ const { t } = useI18n();
 .nf-record {
   position: relative; width: clamp(96px, 14vw, 128px); aspect-ratio: 1; flex: none;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--text); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: var(--text); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   box-shadow: 0 10px 24px rgba(26, 26, 26, 0.3);
   animation: nf-spin 6s linear infinite;
 }
-.nf-record-ring { position: absolute; inset: 14px; border: 2px dashed rgba(255, 255, 255, 0.35); border-radius: 999px; }
+.nf-record-ring { position: absolute; inset: 14px; border: 1.5px dashed rgba(255, 255, 255, 0.35); border-radius: 999px; }
 .nf-record-core {
   width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-  background: var(--c-pink); border: 2px solid #fff; border-radius: 999px; color: var(--text);
+  background: var(--c-pink); border: var(--bw) solid #fff; border-radius: 999px; color: var(--text);
 }
 @keyframes nf-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -111,7 +111,7 @@ const { t } = useI18n();
 .nf-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 .nf-btn {
   display: inline-flex; align-items: center; gap: 8px;
-  border: 2px solid var(--border-strong); border-radius: 999px;
+  border: var(--bw) solid var(--border-strong); border-radius: 999px;
   font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: var(--text);
   padding: 14px 30px; text-decoration: none;
   transition: transform .2s var(--ease-pop), box-shadow .2s;

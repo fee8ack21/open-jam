@@ -323,11 +323,11 @@ function toggle(i: number) {
 .fh-deco-q {
   right: 6%; top: 64px; width: 64px; height: 64px;
   display: grid; place-items: center; font-weight: 900; font-size: 34px; color: var(--text);
-  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 18px;
+  background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 18px;
   box-shadow: 0 8px 20px rgba(26, 26, 26, 0.25); transform: rotate(8deg);
 }
-.fh-deco-dot { right: 14%; bottom: 96px; width: 44px; height: 44px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 50%; transform: rotate(-10deg); }
-.fh-deco-sq { left: 12%; bottom: 110px; width: 40px; height: 40px; background: var(--c-pink); border: 2px solid var(--border-strong); border-radius: 12px; transform: rotate(14deg); }
+.fh-deco-dot { right: 14%; bottom: 96px; width: 44px; height: 44px; background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 50%; transform: rotate(-10deg); }
+.fh-deco-sq { left: 12%; bottom: 110px; width: 40px; height: 40px; background: var(--c-pink); border: var(--bw) solid var(--border-strong); border-radius: 12px; transform: rotate(14deg); }
 
 .fh-inner {
   position: relative; z-index: 2; max-width: 780px; margin: 0 auto;
@@ -350,7 +350,7 @@ function toggle(i: number) {
 .fh-search {
   width: 100%; max-width: 560px; display: flex; align-items: center; gap: 0;
   height: 56px; padding: 0; overflow: hidden; background: var(--surface);
-  border: 2px solid var(--border-strong); border-radius: 999px;
+  border: var(--bw) solid var(--border-strong); border-radius: 999px;
   box-shadow: 0 10px 24px rgba(26, 26, 26, 0.25); transition: transform .16s, box-shadow .16s;
 }
 .fh-search:focus-within { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(26, 26, 26, 0.3); }
@@ -363,7 +363,7 @@ function toggle(i: number) {
 .fh-clear {
   flex: none; height: 100%; padding: 0 24px; cursor: pointer;
   font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: var(--text);
-  background: var(--c-yellow); border: 0; border-left: 2px solid var(--border-strong);
+  background: var(--c-yellow); border: 0; border-left: var(--bw) solid var(--border-strong);
   transition: background .15s;
 }
 .fh-clear:hover { background: var(--c-pink); }
@@ -382,7 +382,7 @@ function toggle(i: number) {
   display: flex; flex-direction: column; gap: 8px; padding: 22px; text-align: left; cursor: pointer;
   font-family: var(--oj-font); color: var(--text);
   background: color-mix(in srgb, var(--acc) 28%, #fff);
-  border: 2px solid var(--border-strong); border-radius: var(--r-lg);
+  border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg);
   box-shadow: 0 12px 26px rgba(26, 26, 26, 0.16);
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
@@ -394,7 +394,7 @@ function toggle(i: number) {
 .ftp-count {
   flex: none; width: 30px; height: 30px; display: grid; place-items: center;
   font-family: var(--oj-display); font-size: 13px; font-weight: 700; border-radius: 999px;
-  background: #fff; border: 2px solid var(--border-strong);
+  background: #fff; border: var(--bw) solid var(--border-strong);
 }
 .ftp-desc { font-size: 13px; font-weight: 500; line-height: 1.55; color: var(--text); }
 
@@ -408,14 +408,14 @@ function toggle(i: number) {
 .faq-pill {
   display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; cursor: pointer;
   font-family: var(--oj-font); font-weight: 900; font-size: 14px; color: var(--text);
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   transition: transform .2s var(--ease-pop), box-shadow .2s, background .15s, color .15s;
 }
 .faq-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(26, 26, 26, 0.15); }
 .faq-pill.on { background: var(--text); color: var(--c-yellow); }
 .fp-count {
   font-family: var(--oj-display); font-size: 11px; font-weight: 700; color: var(--text);
-  background: var(--bg); border: 2px solid var(--border); border-radius: 999px; padding: 0 8px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 0 8px;
 }
 .faq-pill.on .fp-count { background: var(--c-yellow); border-color: var(--border-strong); }
 
@@ -423,7 +423,7 @@ function toggle(i: number) {
 .faq-empty {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 48px 32px; text-align: center;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: var(--r-lg);
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg);
   box-shadow: var(--pop-2);
 }
 .fe-title { margin: 0; font-family: var(--oj-font); font-weight: 900; font-size: 20px; }
@@ -431,7 +431,7 @@ function toggle(i: number) {
 .fe-clear {
   padding: 9px 24px; cursor: pointer;
   font-family: var(--oj-font); font-weight: 900; font-size: 14px; color: var(--text);
-  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
 .fe-clear:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(26, 26, 26, 0.2); }
@@ -443,15 +443,15 @@ function toggle(i: number) {
   display: inline-block; padding: 6px 18px; transform: rotate(-1deg);
   font-family: var(--oj-font); font-weight: 900; font-size: 16px; color: var(--text);
   background: color-mix(in srgb, var(--acc) 40%, #fff);
-  border: 2px solid var(--border-strong); border-radius: 999px; white-space: nowrap;
+  border: var(--bw) solid var(--border-strong); border-radius: 999px; white-space: nowrap;
 }
 .fs-meta { font-size: 13px; font-weight: 700; color: var(--text-soft); }
 .fs-card {
   list-style: none; margin: 0; padding: 0; overflow: hidden;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: var(--r-lg);
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg);
   box-shadow: 0 8px 20px rgba(26, 26, 26, 0.08);
 }
-.fs-item + .fs-item { border-top: 2px dashed var(--border); }
+.fs-item + .fs-item { border-top: 1px dashed var(--border); }
 .fs-item.open { background: var(--bg); }
 .fs-q {
   width: 100%; display: flex; align-items: center; gap: 16px; padding: 19px 24px;
@@ -465,7 +465,7 @@ function toggle(i: number) {
 .fs-mark {
   flex: none; width: 32px; height: 32px; display: grid; place-items: center;
   font-size: 18px; font-weight: 900; line-height: 1; color: var(--text);
-  background: color-mix(in srgb, var(--acc) 40%, #fff); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: color-mix(in srgb, var(--acc) 40%, #fff); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   transition: background .15s ease, color .15s ease, transform .2s var(--ease-pop);
 }
 .fs-item.open .fs-mark { background: var(--text); color: var(--c-yellow); }
@@ -476,7 +476,7 @@ function toggle(i: number) {
   margin: 0; padding: 18px 22px;
   font-size: 14.5px; font-weight: 500; line-height: 1.8; color: var(--text); white-space: pre-wrap;
   background: #fff;
-  border: 2px solid var(--border); border-radius: var(--r-md);
+  border: 1px solid var(--border); border-radius: var(--r-md);
 }
 .faq-a-enter-active { transition: opacity .2s ease, transform .2s ease; }
 .faq-a-leave-active { transition: opacity .13s ease, transform .13s ease; }
@@ -486,9 +486,9 @@ function toggle(i: number) {
 .faq-cta {
   position: relative; overflow: hidden;
   margin: 48px calc(50% - 50vw) 0; padding: 80px 32px;
-  background: var(--c-yellow); border-top: 2px solid var(--border-strong);
+  background: var(--c-yellow); border-top: var(--bw) solid var(--border-strong);
 }
-.fc-deco { position: absolute; border: 2px solid var(--border-strong); }
+.fc-deco { position: absolute; border: var(--bw) solid var(--border-strong); }
 .fc-deco-a { top: 40px; left: 8%; width: 48px; height: 48px; border-radius: 14px; background: var(--c-lime); transform: rotate(12deg); }
 .fc-deco-b { bottom: 44px; right: 10%; width: 40px; height: 40px; border-radius: 999px; background: var(--c-pink); transform: rotate(8deg); }
 .fc-card {
@@ -514,7 +514,7 @@ function toggle(i: number) {
 .fc-btn:hover { text-decoration: none; }
 .fc-btn-dark { background: var(--text); color: var(--c-yellow); }
 .fc-btn-dark:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 12px 26px rgba(26, 26, 26, 0.3); color: var(--c-yellow); }
-.fc-btn-light { background: #fff; color: var(--text); border: 2px solid var(--border-strong); }
+.fc-btn-light { background: #fff; color: var(--text); border: var(--bw) solid var(--border-strong); }
 .fc-btn-light:hover { transform: translateY(-3px) rotate(1deg); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.18); color: var(--text); }
 .fc-note {
   font-family: var(--oj-hand); font-weight: 700; font-size: 24px; color: var(--text);

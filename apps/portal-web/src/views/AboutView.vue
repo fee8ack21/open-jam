@@ -339,7 +339,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
   background: var(--c-violet);
   background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
   background-size: 26px 26px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
 }
 .ah-word {
   position: absolute; z-index: 1; top: 20px; left: -30px;
@@ -348,8 +348,8 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
   color: rgba(255, 255, 255, .13); pointer-events: none; user-select: none;
 }
 .ah-deco { position: absolute; z-index: 1; font-style: normal; pointer-events: none; }
-.ah-deco-sq { right: 7%; top: 48px; width: 56px; height: 56px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 16px; transform: rotate(14deg); }
-.ah-deco-dot { right: 14%; bottom: 44px; width: 44px; height: 44px; background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 50%; }
+.ah-deco-sq { right: 7%; top: 48px; width: 56px; height: 56px; background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 16px; transform: rotate(14deg); }
+.ah-deco-dot { right: 14%; bottom: 44px; width: 44px; height: 44px; background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 50%; }
 .ah-deco-note { left: 10%; bottom: 56px; color: var(--c-yellow); transform: rotate(-8deg); }
 .ah-inner {
   position: relative; z-index: 2; max-width: 820px; margin: 0 auto;
@@ -377,7 +377,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .af-card {
   position: relative; text-align: left; padding: 22px;
   background: var(--tint);
-  border: 2px solid var(--border-strong); border-radius: 18px;
+  border: var(--bw) solid var(--border-strong); border-radius: 18px;
   box-shadow: 0 10px 24px rgba(26, 26, 26, 0.22);
   transform: rotate(var(--rot));
 }
@@ -389,7 +389,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .af-ic {
   display: grid; place-items: center; width: 44px; height: 44px; margin: 0 0 14px;
   color: var(--text); background: var(--acc);
-  border: 2px solid var(--border-strong); border-radius: 14px; transform: rotate(-3deg);
+  border: var(--bw) solid var(--border-strong); border-radius: 14px; transform: rotate(-3deg);
 }
 .af-ic-light .af-ic { color: #fff; }
 .af-card h3 { margin: 0 0 6px; font-family: var(--oj-font); font-weight: 900; font-size: 17px; color: var(--text); }
@@ -399,14 +399,14 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .a-sell { max-width: 1160px; margin: 0 auto; padding: clamp(56px, 8vh, 80px) clamp(20px, 3.5vw, 56px) 72px; }
 .sell-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
 .sell-card {
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 20px; overflow: hidden;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 20px; overflow: hidden;
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
 .sell-card:nth-child(odd):hover { transform: translateY(-5px) rotate(-0.6deg); box-shadow: 0 14px 28px rgba(26, 26, 26, 0.14); }
 .sell-card:nth-child(even):hover { transform: translateY(-5px) rotate(0.6deg); box-shadow: 0 14px 28px rgba(26, 26, 26, 0.14); }
 .sc-head {
   position: relative; height: 140px; display: grid; place-items: center;
-  background: var(--head); border-bottom: 2px solid var(--border-strong); color: var(--text);
+  background: var(--head); border-bottom: var(--bw) solid var(--border-strong); color: var(--text);
 }
 .sc-head-light { color: #fff; }
 .sc-pat-stripe { background-image: repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(255, 255, 255, 0.16) 14px, rgba(255, 255, 255, 0.16) 16px); }
@@ -415,7 +415,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .sc-big { font-family: var(--oj-display); font-size: 48px; font-weight: 700; color: var(--text); }
 .sc-tag {
   position: absolute; top: 10px; left: 10px; padding: 2px 10px;
-  background: var(--tag-bg); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: var(--tag-bg); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   font-family: var(--oj-display); font-weight: 700; font-size: 11px; color: var(--text);
   transform: rotate(-3deg); white-space: nowrap;
 }
@@ -424,7 +424,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .sc-body > p { margin: 8px 0 0; font-size: 14px; font-weight: 500; line-height: 1.8; color: var(--text); }
 .sc-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; }
 .sc-chips li {
-  padding: 2px 12px; border: 2px solid var(--border-strong); border-radius: 999px; background: var(--bg);
+  padding: 2px 12px; border: var(--bw) solid var(--border-strong); border-radius: 999px; background: var(--bg);
   font-family: var(--oj-font); font-weight: 700; font-size: 12px; color: var(--text); white-space: nowrap;
 }
 
@@ -435,7 +435,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
   background: #18a999;
   background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.5px, transparent 1.5px);
   background-size: 26px 26px;
-  border-top: 2px solid var(--border-strong); border-bottom: 2px solid var(--border-strong);
+  border-top: var(--bw) solid var(--border-strong); border-bottom: var(--bw) solid var(--border-strong);
 }
 .pub-inner {
   display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(30px, 4vw, 48px); align-items: center;
@@ -445,7 +445,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .pub-text { margin: 0 0 22px; font-size: 15px; font-weight: 700; line-height: 1.9; color: #fff; }
 .pub-tags { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
 .pub-tags li {
-  padding: 6px 16px; border: 2px solid var(--border-strong); border-radius: 999px;
+  padding: 6px 16px; border: var(--bw) solid var(--border-strong); border-radius: 999px;
   font-family: var(--oj-font); font-weight: 900; font-size: 13px; color: var(--text); white-space: nowrap;
 }
 .pub-tag-0 { background: var(--surface); }
@@ -456,7 +456,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .pub-art { position: relative; height: 320px; }
 .pub-mini {
   position: absolute; width: 190px; padding: 16px;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 16px;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 16px;
   box-shadow: 0 12px 26px rgba(26, 26, 26, 0.25);
 }
 .pub-mini-a { left: 8%; top: 20px; transform: rotate(-5deg); }
@@ -469,14 +469,14 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .pub-tape-lime { background: rgba(184, 255, 159, 0.85); transform: rotate(3deg); }
 .pub-cover {
   height: 110px; display: grid; place-items: center;
-  border: 2px solid var(--border-strong); border-radius: 12px;
+  border: var(--bw) solid var(--border-strong); border-radius: 12px;
 }
 .pub-cover-zn { background: var(--c-violet); color: #fff; font-family: var(--oj-display); font-weight: 700; font-size: 38px; }
 .pub-cover-note { background: var(--c-yellow); color: var(--text); }
 .pub-mini-title { margin: 10px 0 0; font-family: var(--oj-font); font-weight: 900; font-size: 14px; color: var(--text); }
 .pub-mini-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-weight: 700; font-size: 12px; color: var(--text); }
 .pub-price { font-family: var(--oj-display); }
-.pub-free { padding: 0 8px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 999px; }
+.pub-free { padding: 0 8px; background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 999px; }
 .pub-rate { display: inline-flex; align-items: center; gap: 3px; color: var(--text); }
 .pub-rate :deep(svg) { color: var(--c-yellow); }
 .pub-badge {
@@ -507,16 +507,16 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
   background: #1a1626;
   background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px);
   background-size: 26px 26px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
 }
 .stp-wrap { max-width: 1160px; margin: 0 auto; }
-.stp-eyebrow { background: var(--c-yellow); color: var(--text); border: 2px solid var(--border-strong); }
+.stp-eyebrow { background: var(--c-yellow); color: var(--text); border: var(--bw) solid var(--border-strong); }
 .stp-title { color: #fff; }
 .stp-sub { margin: 10px 0 0; font-size: 15px; font-weight: 500; color: #bbb; }
 .stp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
 .stp-card {
   text-align: center; padding: 20px 14px 22px;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 18px;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 18px;
   box-shadow: 0 10px 22px rgba(var(--glow), 0.28);
   transition: transform .2s var(--ease-pop);
 }
@@ -524,7 +524,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .stp-card:nth-child(even):hover { transform: translateY(-4px) rotate(1deg); }
 .stp-ic {
   display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto;
-  border: 2px solid var(--border-strong); border-radius: 16px; color: var(--text);
+  border: var(--bw) solid var(--border-strong); border-radius: 16px; color: var(--text);
   transform: rotate(var(--rot));
 }
 .stp-ic-light { color: #fff; }
@@ -545,7 +545,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
   background: var(--t-violet);
   background-image: radial-gradient(rgba(26, 26, 26, 0.08) 1.2px, transparent 1.2px);
   background-size: 24px 24px;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: var(--bw) solid var(--border-strong);
 }
 .dsc-inner { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(30px, 4vw, 48px); align-items: center; max-width: 1100px; margin: 0 auto; }
 .dsc-title { margin: 18px 0 16px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 3.4vw, 40px); line-height: 1.5; color: var(--text); }
@@ -563,44 +563,44 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .dsc-art { position: relative; height: 340px; }
 .dsc-card {
   position: absolute; padding: 16px;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 16px;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 16px;
   box-shadow: 0 12px 26px rgba(26, 26, 26, 0.16);
 }
 .dsc-label { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; font-family: var(--oj-font); font-weight: 900; font-size: 12px; color: var(--text); }
 .dsc-grid { left: 0; top: 10px; width: 320px; transform: rotate(-2deg); }
 .dsc-swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.dsc-swatches span { height: 54px; border: 2px solid var(--border-strong); border-radius: 8px; }
+.dsc-swatches span { height: 54px; border: var(--bw) solid var(--border-strong); border-radius: 8px; }
 .dsc-player { right: 0; top: 130px; width: 300px; transform: rotate(2deg); }
 .dsc-player-row { display: flex; align-items: center; gap: 10px; }
-.dsc-play { display: grid; place-items: center; width: 36px; height: 36px; flex: none; background: var(--c-violet); color: #fff; border: 2px solid var(--border-strong); border-radius: 50%; }
-.dsc-bar { position: relative; flex: 1; height: 10px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 999px; overflow: hidden; }
+.dsc-play { display: grid; place-items: center; width: 36px; height: 36px; flex: none; background: var(--c-violet); color: #fff; border: var(--bw) solid var(--border-strong); border-radius: 50%; }
+.dsc-bar { position: relative; flex: 1; height: 10px; background: var(--bg); border: var(--bw) solid var(--border-strong); border-radius: 999px; overflow: hidden; }
 .dsc-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 60%; background: var(--c-pink); }
 .dsc-time { font-family: var(--oj-display); font-weight: 700; font-size: 11px; color: var(--text); }
 .dsc-store { left: 40px; bottom: 0; width: 280px; transform: rotate(-1deg); }
 .dsc-store-row { display: flex; align-items: center; gap: 10px; }
-.dsc-avatar { display: grid; place-items: center; width: 34px; height: 34px; flex: none; background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 50%; font-family: var(--oj-font); font-weight: 900; font-size: 11px; color: var(--text); }
+.dsc-avatar { display: grid; place-items: center; width: 34px; height: 34px; flex: none; background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 50%; font-family: var(--oj-font); font-weight: 900; font-size: 11px; color: var(--text); }
 .dsc-store-meta { flex: 1; min-width: 0; }
 .dsc-store-meta b { display: block; font-family: var(--oj-font); font-weight: 900; font-size: 13px; color: var(--text); }
 .dsc-store-meta i { display: block; font-style: normal; font-weight: 500; font-size: 11px; color: var(--text-soft); }
-.dsc-follow { padding: 3px 12px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 999px; font-family: var(--oj-font); font-weight: 900; font-size: 11px; color: var(--text); white-space: nowrap; }
+.dsc-follow { padding: 3px 12px; background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 999px; font-family: var(--oj-font); font-weight: 900; font-size: 11px; color: var(--text); white-space: nowrap; }
 
 /* ---------- 我們相信的事（黃 band） ---------- */
 .a-beliefs {
   position: relative; overflow: hidden;
   padding: 72px clamp(20px, 3.5vw, 56px);
-  background: #ffc01f; border-bottom: 2px solid var(--border-strong);
+  background: #ffc01f; border-bottom: var(--bw) solid var(--border-strong);
 }
 .blf-wrap { max-width: 1020px; margin: 0 auto; }
 .blf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
 .blf-card {
   display: flex; gap: 18px; align-items: flex-start; padding: 26px;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 20px;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 20px;
   box-shadow: 0 10px 22px rgba(26, 26, 26, 0.12);
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
 .blf-card:nth-child(odd):hover { transform: translateY(-4px) rotate(-0.5deg); box-shadow: 0 16px 30px rgba(26, 26, 26, 0.16); }
 .blf-card:nth-child(even):hover { transform: translateY(-4px) rotate(0.5deg); box-shadow: 0 16px 30px rgba(26, 26, 26, 0.16); }
-.blf-ic { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border: 2px solid var(--border-strong); border-radius: 16px; color: var(--text); transform: rotate(var(--rot)); }
+.blf-ic { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border: var(--bw) solid var(--border-strong); border-radius: 16px; color: var(--text); transform: rotate(var(--rot)); }
 .blf-card h3 { margin: 0; font-family: var(--oj-font); font-weight: 900; font-size: 19px; color: var(--text); }
 .blf-card p { margin: 6px 0 0; font-size: 14px; font-weight: 500; line-height: 1.8; color: var(--text); }
 
@@ -611,7 +611,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .cta-note { margin: 0 0 36px; font-family: var(--oj-hand); font-weight: 700; font-size: 26px; color: var(--c-violet); transform: rotate(-2deg); }
 .cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; text-align: left; }
 .cta-card {
-  padding: 32px; border: 2px solid var(--border-strong); border-radius: 22px;
+  padding: 32px; border: var(--bw) solid var(--border-strong); border-radius: 22px;
   box-shadow: 0 12px 26px rgba(26, 26, 26, 0.12);
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
@@ -619,7 +619,7 @@ const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) 
 .cta-buyer { background: #c9f7e4; }
 .cta-card:nth-child(odd):hover { transform: translateY(-5px) rotate(-0.6deg); box-shadow: 0 18px 34px rgba(26, 26, 26, 0.16); }
 .cta-card:nth-child(even):hover { transform: translateY(-5px) rotate(0.6deg); box-shadow: 0 18px 34px rgba(26, 26, 26, 0.16); }
-.cta-ic { display: grid; place-items: center; width: 56px; height: 56px; background: var(--surface); border: 2px solid var(--border-strong); border-radius: 18px; color: var(--text); }
+.cta-ic { display: grid; place-items: center; width: 56px; height: 56px; background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 18px; color: var(--text); }
 .cta-ic-a { transform: rotate(-4deg); }
 .cta-ic-b { transform: rotate(4deg); }
 .cta-card h3 { margin: 18px 0 0; font-family: var(--oj-font); font-weight: 900; font-size: 23px; color: var(--text); }

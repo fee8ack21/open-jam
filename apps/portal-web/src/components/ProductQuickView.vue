@@ -183,8 +183,8 @@ onBeforeUnmount(() => {
   position: relative;
   width: 100%; max-width: 960px; max-height: min(88vh, 760px);
   display: flex; align-items: stretch;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 24px;
-  box-shadow: 8px 8px 0 rgba(26, 26, 26, 0.9);
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 24px;
+  box-shadow: 4px 4px 0 rgba(26, 26, 26, 0.9);
   /* 不用 overflow:hidden（會截掉頂部膠帶貼條），改為各自圓角內側角落 */
 }
 /* 膠帶貼條（設計稿 dialog 頂部細節） */
@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
 }
 .qv-x {
   position: absolute; top: 16px; right: 16px; z-index: 6; width: 38px; height: 38px; border-radius: 999px;
-  cursor: pointer; border: 2px solid var(--border-strong); background: var(--surface);
+  cursor: pointer; border: var(--bw) solid var(--border-strong); background: var(--surface);
   color: var(--text);
   display: grid; place-items: center; transition: transform 0.2s var(--ease-pop), background 0.15s;
 }
@@ -205,19 +205,19 @@ onBeforeUnmount(() => {
 .qv-gallery {
   flex: 0 0 47%;
   display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 0;
-  border-right: 2px solid var(--border-strong); background: var(--surface-2);
+  border-right: var(--bw) solid var(--border-strong); background: var(--surface-2);
   padding: 18px; gap: 14px;
   border-radius: 22px 0 0 22px;
 }
 .qv-stage {
-  position: relative; border: 2px solid var(--border-strong); border-radius: var(--r-md);
+  position: relative; border: var(--bw) solid var(--border-strong); border-radius: var(--r-md);
   overflow: hidden;
 }
 .qv-stage :deep(.thumb) { position: relative; inset: auto; aspect-ratio: 4 / 3; height: auto; border-radius: 0; }
 .qv-thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
 .qv-thumb {
   width: 56px; padding: 0; cursor: pointer; background: none;
-  border: 2px solid var(--border-strong); border-radius: 10px; overflow: hidden;
+  border: var(--bw) solid var(--border-strong); border-radius: 10px; overflow: hidden;
   transition: transform 0.2s var(--ease-pop), opacity 0.15s; opacity: 0.55;
   box-shadow: var(--ink-drop-sm);
 }
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
 .qv-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding-right: 48px; }
 .qv-tag {
   font-family: var(--oj-font); font-size: 11px; font-weight: 900; color: var(--text);
-  background: var(--bg); border: 2px solid var(--border-strong); border-radius: 999px; padding: 3px 12px;
+  background: var(--bg); border: var(--bw) solid var(--border-strong); border-radius: 999px; padding: 3px 12px;
   white-space: nowrap;
 }
 .qv-title {
@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
 .qv-creator .avatar {
   width: 36px; height: 36px; border-radius: 50%; flex: none; color: var(--text);
   display: grid; place-items: center; font-family: var(--oj-font); font-weight: 900; font-size: 12px;
-  border: 2px solid var(--border-strong); transform: rotate(-2deg);
+  border: var(--bw) solid var(--border-strong); transform: rotate(-2deg);
 }
 .qv-creator-txt { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
 .qv-creator-txt b { font-weight: 900; font-size: 14px; color: var(--text); }
@@ -254,7 +254,7 @@ onBeforeUnmount(() => {
 .qv-prose p { margin: 0 0 12px; font-size: 14px; line-height: 1.9; color: #333; font-weight: 500; }
 .qv-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
 .qv-spec {
-  background: var(--bg); border: 2px solid var(--border-strong); border-radius: var(--r-md); padding: 12px 16px;
+  background: var(--bg); border: var(--bw) solid var(--border-strong); border-radius: var(--r-md); padding: 12px 16px;
 }
 .qv-spec-k {
   display: block; font-family: var(--oj-font); font-size: 11px; font-weight: 900; letter-spacing: 1px;
@@ -266,12 +266,12 @@ onBeforeUnmount(() => {
 }
 .qv-file {
   display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 12px;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 12px;
 }
 .qv-file + .qv-file { margin-top: 8px; }
 .qv-file-ic {
   width: 30px; height: 30px; flex: none; display: grid; place-items: center; color: var(--text);
-  background: var(--c-cyan); border: 2px solid var(--border-strong); border-radius: 9px;
+  background: var(--c-cyan); border: var(--bw) solid var(--border-strong); border-radius: 9px;
 }
 .qv-file-name {
   flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: var(--text);
@@ -279,14 +279,14 @@ onBeforeUnmount(() => {
 }
 .qv-file-type {
   flex: none; font-family: var(--oj-display); font-size: 10.5px; font-weight: 700; color: var(--text);
-  background: var(--bg); border: 2px solid var(--border); border-radius: 6px; padding: 1px 6px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
 }
 .qv-file-size { flex: none; font-family: var(--oj-display); font-size: 12px; font-weight: 700; color: var(--text-soft); font-variant-numeric: tabular-nums; }
 
 /* ---------- sticky footer ---------- */
 .qv-foot {
   flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 16px 28px; border-top: 2px solid var(--border-strong); background: var(--bg);
+  padding: 16px 28px; border-top: var(--bw) solid var(--border-strong); background: var(--bg);
   border-bottom-right-radius: 22px;
 }
 .qv-price {
@@ -294,11 +294,11 @@ onBeforeUnmount(() => {
 }
 .qv-price.free {
   font-family: var(--oj-font); font-weight: 900; font-size: 16px;
-  background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 999px; padding: 5px 18px;
+  background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 999px; padding: 5px 18px;
 }
 .qv-cta {
   display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
-  cursor: pointer; border: 2px solid var(--border-strong);
+  cursor: pointer; border: var(--bw) solid var(--border-strong);
   font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: var(--text);
   padding: 12px 26px; border-radius: 999px;
   background: var(--c-yellow);
@@ -323,9 +323,9 @@ onBeforeUnmount(() => {
     flex-direction: column;
     max-width: 100%; max-height: 92vh;
     border-radius: 24px 24px 0 0; border-bottom: 0;
-    box-shadow: 0 -8px 40px rgba(26, 26, 26, 0.4);
+    box-shadow: 0 -8px 32px rgba(26, 26, 26, 0.25);
   }
-  .qv-gallery { flex: 0 0 auto; border-right: 0; border-bottom: 2px solid var(--border-strong); border-radius: 22px 22px 0 0; }
+  .qv-gallery { flex: 0 0 auto; border-right: 0; border-bottom: var(--bw) solid var(--border-strong); border-radius: 22px 22px 0 0; }
   /* 直式版面卡片高度由內容決定（僅設 max-height），flex-basis 0 會讓
      info 塌成 0 高、details 與 CTA footer 整段溢出視窗外；改 auto 基準，
      超過 92vh 時由 info 收縮、body 內捲。 */
