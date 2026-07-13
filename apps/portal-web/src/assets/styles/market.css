@@ -266,7 +266,6 @@
 .feat-arrow.prev:hover:not(:disabled) { transform: rotate(-6deg); }
 .feat-arrow:active:not(:disabled) { transform: scale(.95); }
 .feat-arrow:disabled { opacity: .35; cursor: default; }
-.feat-arrow.prev svg { transform: rotate(180deg); }
 
 /* 直式精選卡（封面上、資訊下），carousel 保持橫向捲動 */
 .feat-track {
