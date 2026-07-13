@@ -1,87 +1,98 @@
 <script setup lang="ts">
+/* ============================================================
+   NotFoundView — 404（設計稿「404 創作者空間」）
+   置中白卡：空木箱插畫 + 404 黃色貼紙 + 回商店 / 逛市集 CTA。
+   ============================================================ */
+import { computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useShopStore } from '@/stores/shop';
 import { env } from '@/environment';
 import AppIcon from '@/components/app-icon';
 
+const store = useShopStore();
+const router = useRouter();
 const { t } = useI18n();
+
+// 讓「回到商店」CTA 能帶出店名
+onMounted(store.loadCatalog);
+const storeName = computed(() => store.storefront.storeName || 'Open Jam');
+
+const goList = () => router.push({ name: 'list' });
 const goMarket = () => { window.location.href = env.PORTAL_PAGE_URL; };
+const goHelp = () => { window.location.href = `${env.PORTAL_PAGE_URL}/faq`; };
 </script>
 
 <template>
-  <div class="page page-pad" :data-screen-label="t('notfound.screenLabel')">
-    <div class="nf">
-      <div class="nf-shapes" aria-hidden="true">
-        <span class="shape s1"></span>
-        <span class="shape s2"></span>
-        <span class="shape s3"></span>
+  <div class="page page-pad nf-page" :data-screen-label="t('notfound.screenLabel')">
+    <div class="result-card nf-card">
+      <div class="result-deco square" style="left:-18px; top:70px; background:var(--c-lime); --r:12deg; transform:rotate(12deg)"></div>
+      <div class="result-deco dot" style="right:-16px; top:160px; background:var(--c-cyan)"></div>
+      <div class="result-note"><app-icon name="note" :size="26" /></div>
+
+      <!-- 空木箱插畫（設計稿 empty crate） -->
+      <div class="nf-crate" aria-hidden="true">
+        <div class="crate-body"></div>
+        <div class="crate-lid"></div>
+        <div class="crate-q">?</div>
+        <div class="crate-ball"></div>
       </div>
 
-      <p class="nf-code"><span class="hl hl-lime">4</span><span class="hl hl-pink">0</span><span class="hl hl-cyan">4</span></p>
-      <i18n-t keypath="notfound.title" tag="h1" class="nf-title" scope="global">
-        <template #market><span class="hl hl-pink">{{ t('notfound.market') }}</span></template>
-      </i18n-t>
+      <div class="nf-pill">404 NOT FOUND</div>
+      <h1 class="nf-title">{{ t('notfound.title') }}</h1>
       <p class="nf-sub">{{ t('notfound.sub') }}</p>
 
-      <div class="nf-actions">
-        <n-button type="primary" size="large" strong @click="goMarket">
-          <template #icon><app-icon name="arrowLeft" :size="18" /></template>
-          {{ t('notfound.backToMarket') }}
-        </n-button>
+      <div class="result-cta">
+        <button type="button" class="cta-ink block" @click="goList">
+          <app-icon name="arrowL" :size="14" /> {{ t('notfound.backToStore', { store: storeName }) }}
+        </button>
+        <div class="result-cta-row">
+          <button type="button" class="cta-line" @click="goMarket">{{ t('notfound.backToMarket') }}</button>
+          <button type="button" class="cta-line" style="--hover-c:var(--t-pink)" @click="goHelp">{{ t('notfound.help') }}</button>
+        </div>
       </div>
+
+      <div class="result-hand hand-note">{{ t('notfound.handNote') }}</div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.nf {
-  position: relative;
-  text-align: center;
-  padding: 96px 20px 64px;
-  overflow: hidden;
-}
-.nf-shapes { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-.nf-shapes .shape {
-  position: absolute; border-radius: 999px; filter: blur(6px); opacity: .5;
-}
-.nf-shapes .s1 { width: 120px; height: 120px; background: var(--c-violet); top: 8%; left: 12%; }
-.nf-shapes .s2 { width: 84px; height: 84px; background: var(--c-pink); top: 22%; right: 14%; }
-.nf-shapes .s3 { width: 64px; height: 64px; background: var(--c-cyan); bottom: 14%; left: 24%; }
-
-.nf > :not(.nf-shapes) { position: relative; z-index: 1; }
-
-.nf-code {
-  font-family: var(--oj-display);
-  font-size: clamp(64px, 14vw, 132px);
-  font-weight: 800;
-  letter-spacing: -2px;
-  line-height: 1;
-  margin: 0 0 8px;
-}
-.nf-code .hl { transform: rotate(-3deg); }
-.nf-code .hl-pink { transform: rotate(4deg); }
-
-.nf-title {
-  font-family: var(--oj-display);
-  font-size: clamp(28px, 4.6vw, 46px);
-  font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -1px;
-  margin: 0;
-  color: var(--text);
-  text-wrap: balance;
-}
-.nf-sub {
-  color: var(--text-soft);
-  margin: 18px auto 0;
-  font-size: 16px;
-  max-width: 42ch;
-  line-height: 1.6;
-}
-.nf-actions {
+.nf-page {
+  flex: 1;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-direction: column;
   justify-content: center;
-  margin-top: 30px;
+  padding-top: 40px;
+  padding-bottom: 56px;
 }
+.nf-card { max-width: 620px; text-align: center; }
+
+/* 空木箱插畫 */
+.nf-crate { width: 150px; height: 120px; margin: 0 auto; position: relative; }
+.crate-body {
+  position: absolute; left: 8px; right: 8px; bottom: 0; height: 76px;
+  background: var(--t-pink); border: 2px solid var(--border-strong); border-radius: 12px;
+}
+.crate-lid {
+  position: absolute; left: 0; right: 0; bottom: 58px; height: 22px;
+  background: var(--c-pink); border: 2px solid var(--border-strong); border-radius: 8px; transform: rotate(-2deg);
+}
+.crate-q {
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+  font-size: 30px; font-weight: 900; font-family: var(--oj-display); color: var(--text);
+}
+.crate-ball {
+  position: absolute; right: -12px; top: 0; width: 26px; height: 26px;
+  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+}
+
+.nf-pill {
+  display: inline-block; background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+  font-family: var(--oj-display); font-weight: 700; font-size: 14px; letter-spacing: 2px;
+  padding: 4px 16px; margin-top: 22px; transform: rotate(-2deg); white-space: nowrap;
+}
+.nf-title { font-size: clamp(26px, 4vw, 34px); font-weight: 900; margin: 16px 0 10px; }
+.nf-sub { font-weight: 500; font-size: 15px; line-height: 1.9; color: var(--text-soft); margin: 0 0 28px; }
+.nf-card .result-cta { margin-top: 0; }
 </style>

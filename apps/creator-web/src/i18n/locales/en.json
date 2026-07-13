@@ -43,10 +43,6 @@
     "screenLabel": "Product list",
     "heroSub": "Sheet music, photo collections, e-books — buy directly from the creator and download instantly after payment.",
     "bannerAlt": "{store} storefront banner",
-    "bannerEyebrow": "OPEN JAM · A marketplace for creators",
-    "bannerTitle": "Discover {rotating} worth {collect}",
-    "bannerCollect": "collecting",
-    "bannerRotating": ["digital works", "sheet music", "photo packs", "e-books"],
     "statWorks": "works",
     "statRating": "avg rating",
     "statFollowers": "followers",
@@ -80,7 +76,8 @@
   "spotlight": {
     "badge": "Creator's pick",
     "sold": "{count} sold",
-    "cta": "View work →"
+    "cta": "View work",
+    "freeNote": "free!"
   },
   "detail": {
     "screenLabel": "Product detail",
@@ -89,7 +86,7 @@
     "contentPreviewTitle": "Content preview",
     "lockedText": "Full content unlocks instantly after purchase",
     "previewBlurred": "Preview (partially blurred)",
-    "contentsTitle": "Contents ({count} files)",
+    "contentsTitle": "Contents{count}",
     "getFree": "Get for free",
     "buyNow": "Buy now",
     "addToCart": "Add to cart",
@@ -102,7 +99,10 @@
     "specSales": "Sold",
     "specSalesValue": "{count}",
     "specViews": "Views",
-    "specViewsValue": "{count}"
+    "specViewsValue": "{count}",
+    "contentsCount": " ({count} files)",
+    "favTitle": "Save to favorites",
+    "handNoteFree": "grab it, it's free ♡"
   },
   "review": {
     "title": "Buyer reviews",
@@ -152,24 +152,41 @@
   },
   "result": {
     "screenLabel": "Checkout result",
-    "successOrder": "Order {id}",
-    "successTitle": "Purchase complete",
-    "successSub": "Your receipt and download link have been sent to {email}",
-    "download": "Download",
+    "successTitle": "Payment complete — it's yours{punct}",
+    "successPunct": "!",
+    "successSub": "The download link was also sent to {email}. Keep that email to re-download any time.",
+    "orderNumber": "Order no.",
+    "payMethod": "Paid securely via Stripe",
+    "total": "Total",
+    "downloadAll": "Download your work",
+    "backToStore": "Back to store",
     "continueExplore": "Keep exploring",
-    "downloadAll": "Download all",
+    "handNoteSuccess": "happy jamming ♪",
     "successTitle2": "Payment complete",
     "successSub2": "Your receipt and download link have been sent to your email.",
-    "cancelTitle": "Payment cancelled",
-    "cancelSub": "Your cart is still saved — come back any time to finish checking out.",
-    "backToCheckout": "Back to checkout"
+    "cancelTitle": "Payment didn't go through",
+    "cancelSub": "{keep}Any bank pre-authorization will be released automatically within a few days, and your cart is untouched.",
+    "cancelKeep": "Don't worry — you were not charged. ",
+    "cartLabel": "Your cart",
+    "cartKept": "Saved",
+    "causesTitle": "Common causes",
+    "causes": [
+      "Insufficient balance, or over the per-transaction limit",
+      "Your bank declined this online / cross-border payment — a quick call can unblock it",
+      "Card number, expiry date or CVC was mistyped"
+    ],
+    "retryPay": "Try payment again",
+    "contactUs": "Contact us",
+    "handNoteCancel": "no worries — your jam is waiting ♪"
   },
   "notfound": {
     "screenLabel": "404 Not found",
-    "title": "This page isn’t in this {market}",
-    "market": "marketplace",
-    "sub": "The work or page you’re looking for may have been removed, moved, or the URL is wrong.",
-    "backToMarket": "Back to the Open Jam marketplace"
+    "title": "This work isn't on the shelf",
+    "sub": "It may have been taken down, moved to a new URL, or never existed. Browse the rest of the store — treasures usually hide around the next corner.",
+    "backToStore": "Back to {store}",
+    "backToMarket": "Browse the marketplace",
+    "help": "Need help?",
+    "handNote": "sold out? or never here… 🤔"
   },
   "storeError": {
     "noVersion": "Some items have no purchasable version yet, please try again later",

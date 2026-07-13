@@ -86,20 +86,23 @@ const goList = () => router.push({ name: 'list' });
     </div>
 
     <!-- NOT FOUND -->
-    <div v-else-if="notFound || !order" class="success-wrap">
-      <h1 class="h-title" style="text-align:center">{{ t('order.errorTitle') }}</h1>
-      <p class="h-sub" style="text-align:center">{{ t('order.errorDesc') }}</p>
-      <div style="display:flex; justify-content:center; margin-top:24px;">
-        <n-button size="large" type="primary" @click="goList">{{ t('order.backToStore') }}</n-button>
+    <div v-else-if="notFound || !order" class="result-card" style="text-align:center; margin-top:48px;">
+      <div class="result-badge bad"><app-icon name="close" :size="36" /></div>
+      <h1 class="result-title">{{ t('order.errorTitle') }}</h1>
+      <p class="result-sub">{{ t('order.errorDesc') }}</p>
+      <div class="result-cta">
+        <button type="button" class="cta-ink block" @click="goList">
+          <app-icon name="arrowL" :size="14" /> {{ t('order.backToStore') }}
+        </button>
       </div>
     </div>
 
     <!-- ORDER -->
     <div v-else style="max-width:720px; margin:0 auto;">
-      <p class="h-eyebrow">{{ t('order.orderNumber') }} {{ order.orderNumber }}</p>
+      <p class="order-eyebrow">{{ t('order.orderNumber') }}<span class="order-number">{{ order.orderNumber }}</span></p>
       <h1 class="h-title">{{ t('order.title') }}</h1>
       <p class="h-sub">
-        {{ t('order.total') }}：<b style="color:var(--text)">{{ formatAmount(order.totalAmount, order.currency) }}</b>
+        {{ t('order.total') }}：<b class="order-total">{{ formatAmount(order.totalAmount, order.currency) }}</b>
       </p>
 
       <!-- 未完成付款 -->
@@ -109,12 +112,10 @@ const goList = () => router.push({ name: 'list' });
 
       <!-- 項目與下載 -->
       <div v-else class="panel" style="margin-top:26px; text-align:left;">
-        <div v-for="item in order.items" :key="item.id" style="padding:16px 0; border-bottom:1px solid var(--line, rgba(128,128,128,0.15));">
+        <div v-for="item in order.items" :key="item.id" class="order-item">
           <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px;">
-            <div style="font-weight:600;">{{ item.catalogName }}</div>
-            <div style="font-size:13px; color:var(--text-faint); font-family:var(--oj-mono); white-space:nowrap;">
-              {{ formatAmount(item.unitPrice, order.currency) }}
-            </div>
+            <div style="font-weight:900;">{{ item.catalogName }}</div>
+            <div class="order-item-price">{{ formatAmount(item.unitPrice, order.currency) }}</div>
           </div>
 
           <!-- 檔案清單 -->
@@ -122,19 +123,18 @@ const goList = () => router.push({ name: 'list' });
             <div
               v-for="file in downloads[item.id ?? '']"
               :key="file.id"
-              style="display:flex; justify-content:space-between; align-items:center; gap:12px;"
+              class="order-file"
             >
-              <span style="font-size:13.5px; font-family:var(--oj-mono); overflow:hidden; text-overflow:ellipsis;">
+              <span class="order-file-name">
                 {{ file.fileName }}
                 <span style="color:var(--text-faint); margin-left:8px;">{{ formatSize(file.fileSize) }}</span>
               </span>
-              <n-button size="small" type="primary" secondary tag="a" :href="file.downloadUrl ?? undefined" target="_blank" rel="noopener">
-                <template #icon><app-icon name="download" :size="15" /></template>
-                {{ t('order.download') }}
-              </n-button>
+              <a class="cta-line order-dl" :href="file.downloadUrl ?? undefined" target="_blank" rel="noopener">
+                <app-icon name="download" :size="14" /> {{ t('order.download') }}
+              </a>
             </div>
           </div>
-          <p v-else-if="downloads[item.id ?? ''] === null" style="margin:10px 0 0; font-size:13px; color:var(--err, #e5484d);">
+          <p v-else-if="downloads[item.id ?? ''] === null" style="margin:10px 0 0; font-size:13px; font-weight:700; color:var(--c-pink-deep);">
             {{ t('order.loadFilesError') }}
           </p>
           <p v-else style="margin:10px 0 0; font-size:13px; color:var(--text-faint);">
@@ -142,15 +142,39 @@ const goList = () => router.push({ name: 'list' });
           </p>
         </div>
 
-        <p style="margin:16px 0 0; font-size:12.5px; color:var(--text-faint);">
+        <p style="margin:16px 0 0; font-size:12.5px; font-weight:500; color:var(--text-faint);">
           {{ t('order.linkNote') }}
         </p>
       </div>
 
       <div style="display:flex; gap:12px; margin-top:24px;">
-        <n-button size="large" @click="goList">{{ t('order.backToStore') }}</n-button>
-        <n-button v-if="isCompleted" size="large" secondary @click="load">{{ t('order.refresh') }}</n-button>
+        <button type="button" class="cta-line" @click="goList">
+          <app-icon name="arrowL" :size="14" /> {{ t('order.backToStore') }}
+        </button>
+        <button v-if="isCompleted" type="button" class="cta-line" style="--hover-c:var(--t-blue)" @click="load">
+          <app-icon name="refresh" :size="14" /> {{ t('order.refresh') }}
+        </button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.order-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--text-soft); margin: 0 0 10px;
+}
+.order-number {
+  font-family: var(--oj-display); font-weight: 700; font-size: 13px; letter-spacing: 0;
+  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+  padding: 1px 12px; transform: rotate(-1deg);
+}
+.order-total { font-family: var(--oj-display); color: var(--text); }
+.order-item { padding: 16px 0; border-bottom: 2px dashed var(--border); }
+.order-item:first-child { padding-top: 0; }
+.order-item-price { font-size: 13px; font-weight: 700; color: var(--text-soft); font-family: var(--oj-display); white-space: nowrap; }
+.order-file { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.order-file-name { font-size: 13.5px; font-weight: 700; font-family: var(--oj-display); overflow: hidden; text-overflow: ellipsis; }
+.order-dl { padding: 7px 14px; font-size: 13px; }
+</style>

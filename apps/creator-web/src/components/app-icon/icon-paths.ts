@@ -1,31 +1,151 @@
-/* Icon path data for <AppIcon name="..."> */
-export const ICON_PATHS: Record<string, string> = {
-  heart: 'M12 20s-7-4.3-9.3-8.2C1.2 9 2.3 5.8 5.3 5.1 7.2 4.6 9 5.4 10 6.8c.5.6.7 1 1 1 .3 0 .5-.4 1-1 1-1.4 2.8-2.2 4.7-1.7 3 .7 4.1 3.9 2.6 6.7C19 15.7 12 20 12 20z',
-  cart: 'M2 3h1.4a1 1 0 0 1 .98.8l.42 2.2m0 0l1.5 7.9a2 2 0 0 0 1.96 1.6h8.2a2 2 0 0 0 1.96-1.58l1.4-6.4a1 1 0 0 0-.98-1.22H5.2M10 20.5a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0zM18.5 20.5a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0z',
-  globe: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.4 3.9 5.6 4 9-.1 3.4-1.5 6.6-4 9-2.5-2.4-3.9-5.6-4-9 .1-3.4 1.5-6.6 4-9z',
-  search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
-  sun: 'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4',
-  moon: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
-  star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 17l-5.3 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5z',
-  check: 'M5 12.5l4.5 4.5L19 7',
-  lock: 'M6 11V8a6 6 0 0 1 12 0v3M5 11h14v9H5z',
-  download: 'M12 3v12M7 11l5 4 5-4M5 21h14',
-  chevron: 'M9 6l6 6-6 6',
-  chevronD: 'M6 9l6 6 6-6',
-  file: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5',
-  shield: 'M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3z',
-  close: 'M6 6l12 12M18 6L6 18',
-  plus: 'M12 5v14M5 12h14',
-  minus: 'M5 12h14',
-  sliders: 'M4 6h11M19 6h1M4 12h4M12 12h8M4 18h9M17 18h3M15 4v4M8 10v4M13 16v4',
-  trash: 'M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13',
-  note: 'M9 18V6l10-2v12M9 13l10-2M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z',
-  image: 'M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M9 9.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z',
-  book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13',
-  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
-  mail: 'M3 5h18v14H3zM3 6l9 7 9-7',
-  card: 'M2 6h20v12H2zM2 10h20',
-  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z',
-  arrowLeft: 'M19 12H5M11 6l-6 6 6 6',
-  bag: 'M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 0 1 6 0v2',
+/* Icon markup for <AppIcon name="...">
+   手繪厚筆觸貼紙風（果醬罐 Neo-Brutalism 設計稿，同 portal-web）：
+   單色 icon 用 currentColor，多色 icon（flame / star / funnel /
+   user / image / lock / tag / shield / eye）固定品牌色 + 深色描邊。 */
+export interface IconDef {
+  /** 預設 0 0 24 24 */
+  vb?: string;
+  /** <svg> 內部標記 */
+  body: string;
+}
+
+const stroke = (d: string, w = 2.4) =>
+  `<path d="${d}" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"></path>`;
+
+export const ICONS: Record<string, IconDef> = {
+  /* 單音符（badge / 裝飾通用） */
+  note: {
+    body:
+      '<ellipse cx="7.5" cy="17.4" rx="3.4" ry="2.7" transform="rotate(-14 7.5 17.4)" fill="currentColor"></ellipse>' +
+      '<path d="M10.8 17.4 V4.4 c3.6 0.9 5.6 2.8 5.6 6.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path>',
+  },
+  /* 雙音符 */
+  beats: {
+    body:
+      '<ellipse cx="5.8" cy="18.2" rx="2.9" ry="2.3" fill="currentColor"></ellipse>' +
+      '<ellipse cx="16.6" cy="16.7" rx="2.9" ry="2.3" fill="currentColor"></ellipse>' +
+      '<path d="M8.6 18.2 V7 l10.8 -2.6 V16.7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>',
+  },
+  /* 評分星（固定黃底深描邊） */
+  star: {
+    body: '<path d="M12 2.8 l2.7 5.7 6.2 0.8 -4.5 4.2 1.1 6.1 -5.5 -2.9 -5.5 2.9 1.1 -6.1 -4.5 -4.2 6.2 -0.8 z" fill="#ffde00" stroke="#1a1a1a" stroke-width="1.8" stroke-linejoin="round"></path>',
+  },
+  /* 火焰（熱賣徽章，固定橘底深描邊） */
+  flame: {
+    body: '<path d="M12.2 2.6 c0.5 2.9 3.2 4.4 4.3 7.2 a5.9 5.9 0 1 1 -11 1.6 c0.7 1 1.6 1.7 2.8 1.9 C7.2 9.8 10.5 6.7 12.2 2.6 z" fill="#ff6b35" stroke="#1a1a1a" stroke-width="1.8" stroke-linejoin="round"></path>',
+  },
+  /* 四角星光（精選 / 新上架徽章） */
+  sparkle: {
+    body: '<path d="M12 2.5 c0.9 4.6 2.9 6.6 7.5 7.5 c-4.6 0.9 -6.6 2.9 -7.5 7.5 c-0.9 -4.6 -2.9 -6.6 -7.5 -7.5 c4.6 -0.9 6.6 -2.9 7.5 -7.5 z" fill="currentColor"></path>',
+  },
+  /* 篩選漏斗（固定黃底深描邊） */
+  funnel: {
+    body: '<path d="M3.5 4.5 h17 L14 12.5 v6.5 l-4 -2.8 v-3.7 z" fill="#ffde00" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"></path>',
+  },
+  /* 人像（評論者，固定綠底深描邊） */
+  user: {
+    body:
+      '<circle cx="12" cy="7.5" r="4" fill="#b8ff9f" stroke="#1a1a1a" stroke-width="2"></circle>' +
+      '<path d="M4.5 20.5 c0 -3.9 3.3 -6.4 7.5 -6.4 s7.5 2.5 7.5 6.4 z" fill="#b8ff9f" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"></path>',
+  },
+  /* 相機（攝影分類，固定白底粉鏡頭） */
+  image: {
+    vb: '0 0 34 28',
+    body:
+      '<rect x="1" y="6" width="32" height="21" rx="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.5"></rect>' +
+      '<rect x="10" y="1" width="14" height="6" rx="3" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.5"></rect>' +
+      '<circle cx="17" cy="16" r="6" fill="#ff90e8" stroke="#1a1a1a" stroke-width="2.5"></circle>',
+  },
+  /* 翻開的書（電子書分類） */
+  book: {
+    body: '<path d="M3.5 5 c2.8 -1.4 5.6 -1.4 8.5 0 v14.5 c-2.9 -1.4 -5.7 -1.4 -8.5 0 z M20.5 5 c-2.8 -1.4 -5.6 -1.4 -8.5 0 v14.5 c2.9 -1.4 5.7 -1.4 8.5 0 z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>',
+  },
+  /* 條列文件（檔案數量） */
+  doc: {
+    body:
+      '<rect x="4.5" y="2.5" width="15" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"></rect>' +
+      '<path d="M8.5 8 h7 M8.5 12 h7 M8.5 16 h4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>',
+  },
+  /* 疊頁（檔案格式，設計稿 spec row） */
+  copy: {
+    body:
+      '<rect x="7" y="2.5" width="13" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"></rect>' +
+      '<path d="M4.5 7 v11.5 a3 3 0 0 0 3 3 h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>',
+  },
+  /* 價格吊牌（已售出，固定黃底深描邊；設計稿 spec row） */
+  tag: {
+    body:
+      '<path d="M13.5 3 h-6 l-4.5 4.5 v6 l7.5 7.5 c0.8 0.8 2.2 0.8 3 0 l6 -6 c0.8 -0.8 0.8 -2.2 0 -3 z" fill="#ffde00" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round" transform="rotate(45 12 12)"></path>' +
+      '<circle cx="9.8" cy="9.8" r="1.6" fill="#1a1a1a"></circle>',
+  },
+  /* 眼睛（瀏覽次數，設計稿 spec row） */
+  eye: {
+    body:
+      '<path d="M2.5 12 c2.5 -4.6 5.7 -6.9 9.5 -6.9 s7 2.3 9.5 6.9 c-2.5 4.6 -5.7 6.9 -9.5 6.9 s-7 -2.3 -9.5 -6.9 z" fill="#ffffff" stroke="#1a1a1a" stroke-width="2"></path>' +
+      '<circle cx="12" cy="12" r="3" fill="#1a1a1a"></circle>',
+  },
+  /* 盾牌打勾（安全付款，固定綠底深描邊；設計稿 buy card） */
+  shield: {
+    body:
+      '<path d="M12 2.8 l7.5 3 v6 c0 5 -3.4 8.3 -7.5 9.6 c-4.1 -1.3 -7.5 -4.6 -7.5 -9.6 v-6 z" fill="#b8ff9f" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"></path>' +
+      '<path d="M8.7 12 l2.3 2.3 4.3 -4.3" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>',
+  },
+  /* 掛鎖（購買後解鎖，固定黃鎖身深描邊；設計稿 preview / files） */
+  lock: {
+    body:
+      '<rect x="5" y="10.5" width="14" height="10" rx="3" fill="#ffde00" stroke="#1a1a1a" stroke-width="2.2"></rect>' +
+      '<path d="M8 10.5 V8 a4 4 0 0 1 8 0 v2.5" fill="none" stroke="#1a1a1a" stroke-width="2.2"></path>' +
+      '<circle cx="12" cy="15.5" r="1.7" fill="#1a1a1a"></circle>',
+  },
+  /* 手繪實心愛心（已收藏） */
+  heart: {
+    body: '<path d="M12 20.5 c-5.2 -3.6 -8.5 -6.8 -8.5 -10.3 c0 -2.6 2 -4.7 4.6 -4.7 c1.6 0 3 0.8 3.9 2.1 c0.9 -1.3 2.3 -2.1 3.9 -2.1 c2.6 0 4.6 2.1 4.6 4.7 c0 3.5 -3.3 6.7 -8.5 10.3 z" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"></path>',
+  },
+  /* 空心愛心（未收藏） */
+  heartLine: {
+    body: '<path d="M12 20.5 c-5.2 -3.6 -8.5 -6.8 -8.5 -10.3 c0 -2.6 2 -4.7 4.6 -4.7 c1.6 0 3 0.8 3.9 2.1 c0.9 -1.3 2.3 -2.1 3.9 -2.1 c2.6 0 4.6 2.1 4.6 4.7 c0 3.5 -3.3 6.7 -8.5 10.3 z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"></path>',
+  },
+  /* 購物車（設計稿 header） */
+  cart: {
+    body:
+      '<path d="M3 4.5 h2.6 l2.2 11 h10.4 l2 -8 H7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>' +
+      '<circle cx="9.5" cy="20" r="1.8" fill="currentColor"></circle>' +
+      '<circle cx="16.5" cy="20" r="1.8" fill="currentColor"></circle>',
+  },
+  /* 垃圾桶（移除購物車項目） */
+  trash: {
+    body:
+      stroke('M4.5 6.5 h15 M9.5 6.5 v-2.2 h5 v2.2 M6.5 6.5 l0.9 13 a1.6 1.6 0 0 0 1.6 1.5 h6 a1.6 1.6 0 0 0 1.6 -1.5 l0.9 -13', 2.2) +
+      '<path d="M10 10.5 v6.5 M14 10.5 v6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>',
+  },
+  /* 重試（重新嘗試付款，設計稿 fail CTA） */
+  refresh: {
+    body:
+      '<path d="M19.5 12 a7.5 7.5 0 1 1 -2.2 -5.3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></path>' +
+      '<path d="M17.5 2.5 v4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>',
+  },
+  search: {
+    body:
+      '<circle cx="10.5" cy="10.5" r="6.7" fill="none" stroke="currentColor" stroke-width="2.6"></circle>' +
+      '<path d="M15.6 15.6 L21 21" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></path>',
+  },
+  arrow: { body: stroke('M4.5 12 h13.5 M12.5 6 l6 6 -6 6', 2.6) },
+  arrowL: { body: stroke('M19.5 12 H6 M11.5 6 l-6 6 6 6', 2.6) },
+  arrowU: { body: stroke('M12 19.5 V6 M6 11.5 l6 -6 6 6', 2.6) },
+  arrowD: { body: stroke('M12 4.5 v13.5 M6 12.5 l6 6 6 -6', 2.6) },
+  chevronD: { body: stroke('M5 9 l7 7 7 -7', 2.6) },
+  close: { body: stroke('M6 6 l12 12 M18 6 L6 18', 2.8) },
+  check: { body: stroke('M4.5 12.5 l5 5 L19.5 7', 2.8) },
+  download: { body: stroke('M12 3.5 v10.5 M7 10 l5 4.5 5 -4.5 M4.5 20.5 h15') },
+  mail: {
+    body:
+      '<rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"></rect>' +
+      '<path d="M4 7 l8 6 8 -6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>',
+  },
+  globe: {
+    body: stroke(
+      'M12 21 a9 9 0 1 0 0 -18 a9 9 0 0 0 0 18 z M3 12 h18 M12 3 c2.5 2.4 3.9 5.6 4 9 c-0.1 3.4 -1.5 6.6 -4 9 c-2.5 -2.4 -3.9 -5.6 -4 -9 c0.1 -3.4 1.5 -6.6 4 -9 z',
+      2.2,
+    ),
+  },
 };

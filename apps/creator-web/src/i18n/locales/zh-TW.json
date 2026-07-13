@@ -43,10 +43,6 @@
     "screenLabel": "產品列表頁",
     "heroSub": "樂譜、攝影集、電子書 — 直接向創作者購買，付款後立即下載。",
     "bannerAlt": "{store} 的店面橫幅",
-    "bannerEyebrow": "OPEN JAM · 創作者數位市集",
-    "bannerTitle": "發現值得{collect}的{rotating}",
-    "bannerCollect": "收藏",
-    "bannerRotating": ["數位作品", "樂譜", "攝影集", "電子書"],
     "statWorks": "件作品",
     "statRating": "平均評分",
     "statFollowers": "位追蹤者",
@@ -80,7 +76,8 @@
   "spotlight": {
     "badge": "店長精選",
     "sold": "已售 {count}",
-    "cta": "查看作品 →"
+    "cta": "查看作品",
+    "freeNote": "free!"
   },
   "detail": {
     "screenLabel": "產品詳細頁",
@@ -89,7 +86,7 @@
     "contentPreviewTitle": "內容預覽",
     "lockedText": "完整內容於購買後立即解鎖",
     "previewBlurred": "預覽（部分模糊）",
-    "contentsTitle": "內容物（{count} 個檔案）",
+    "contentsTitle": "內容物{count}",
     "getFree": "免費取得",
     "buyNow": "立即購買",
     "addToCart": "加入購物車",
@@ -102,7 +99,10 @@
     "specSales": "已售出",
     "specSalesValue": "{count} 份",
     "specViews": "瀏覽次數",
-    "specViewsValue": "{count} 次"
+    "specViewsValue": "{count} 次",
+    "contentsCount": "（{count} 個檔案）",
+    "favTitle": "收藏",
+    "handNoteFree": "grab it, it's free ♡"
   },
   "review": {
     "title": "買家評價",
@@ -152,24 +152,41 @@
   },
   "result": {
     "screenLabel": "結帳結果頁",
-    "successOrder": "訂單 {id}",
-    "successTitle": "購買完成",
-    "successSub": "收據與下載連結已寄至 {email}",
-    "download": "下載",
-    "continueExplore": "繼續探索",
-    "downloadAll": "下載全部",
+    "successTitle": "付款成功，作品是你的了{punct}",
+    "successPunct": "！",
+    "successSub": "下載連結同時寄到了 {email}，保留那封信隨時可以重新下載。",
+    "orderNumber": "訂單編號",
+    "payMethod": "以 Stripe 安全付款",
+    "total": "合計",
+    "downloadAll": "下載作品",
+    "backToStore": "回到商店",
+    "continueExplore": "繼續逛市集",
+    "handNoteSuccess": "happy jamming ♪",
     "successTitle2": "付款完成",
     "successSub2": "收據與下載連結已寄至您的信箱。",
-    "cancelTitle": "付款已取消",
-    "cancelSub": "您的購物車仍保留著，隨時可以回來完成結帳。",
-    "backToCheckout": "回到結帳"
+    "cancelTitle": "付款沒有成功",
+    "cancelSub": "{keep}銀行的預授權（若有）會在幾天內自動釋放，你的購物車也原封不動。",
+    "cancelKeep": "放心，這筆交易沒有扣款。",
+    "cartLabel": "你的購物車",
+    "cartKept": "已保留",
+    "causesTitle": "常見原因",
+    "causes": [
+      "卡片餘額不足，或超過單筆消費限額",
+      "銀行拒絕了這筆跨國 / 線上交易，可致電開卡銀行放行",
+      "卡號、效期或安全碼輸入有誤"
+    ],
+    "retryPay": "重新嘗試付款",
+    "contactUs": "聯絡我們",
+    "handNoteCancel": "no worries — your jam is waiting ♪"
   },
   "notfound": {
     "screenLabel": "404 找不到頁面",
-    "title": "這個頁面不在這個{market}裡",
-    "market": "市集",
-    "sub": "你要找的作品或頁面可能已下架、搬家，或網址打錯了。",
-    "backToMarket": "回到 Open Jam 市集"
+    "title": "這件作品不在架上",
+    "sub": "可能已被創作者下架、改了網址，或從來沒有存在過。到店裡逛逛其他作品吧——寶物通常藏在下一個轉角。",
+    "backToStore": "回到{store}",
+    "backToMarket": "逛整個市集",
+    "help": "需要協助？",
+    "handNote": "sold out? or never here… 🤔"
   },
   "storeError": {
     "noVersion": "部分商品尚無可購買的版本，請稍後再試",

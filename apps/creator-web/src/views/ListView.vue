@@ -6,21 +6,17 @@ import { useShopStore } from '@/stores/shop';
 import { CATEGORIES, TAGS, type Product } from '@/data/products';
 import ProductCard from '@/components/ProductCard.vue';
 import ProductThumb from '@/components/ProductThumb.vue';
-import RotatingWord from '@/components/RotatingWord.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const s = store;
 const router = useRouter();
-const { t, tm, rt } = useI18n();
-
-// fallback banner 標題的輪播關鍵詞（參考 portal-web hero）
-const rotatingWords = computed(() => (tm('list.bannerRotating') as string[]).map((w) => rt(w)));
+const { t } = useI18n();
 
 onMounted(store.loadCatalog);
 
-// ----- hero: creator profile stats -----
-// 店家於後台設定的橫幅：有設定時渲染為封面條（頭像疊在下緣，與設定頁預覽一致）
+// ----- hero: creator profile（設計稿 Shop profile） -----
+// 店家於後台設定的橫幅：有設定時渲染為封面條（頭像疊在下緣）；未設定則直接顯示檔案帶
 const bannerUrl = computed(() => store.storefront.bannerUrl);
 const heroDesc = computed(() => store.storefront.description || t('list.heroSub'));
 const avatarInitial = computed(() => (store.storefront.storeName || 'O').trim().charAt(0));
@@ -102,19 +98,10 @@ const activeChips = computed(() => {
   <div class="page page-pad" :data-screen-label="t('list.screenLabel')">
     <!-- 創作者 Hero：主角是創作者，不是平台 -->
     <section class="hero">
-      <!-- 橫幅封面：有設定→顯示圖片；未設定→品牌漸層 + 手繪幾何 fallback。頭像一律疊在下緣 -->
-      <div class="hero-cover" :class="{ empty: !bannerUrl }"
-           :style="bannerUrl ? { backgroundImage: `url(${bannerUrl})` } : {}"
-           :role="bannerUrl ? 'img' : undefined"
-           :aria-label="bannerUrl ? t('list.bannerAlt', { store: store.storefront.storeName }) : undefined">
-        <div v-if="!bannerUrl" class="hero-cover-copy">
-          <p class="hero-cover-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('list.bannerEyebrow') }}</p>
-          <i18n-t keypath="list.bannerTitle" tag="p" class="hero-cover-title" scope="global">
-            <template #collect><span class="hl hl-lime">{{ t('list.bannerCollect') }}</span></template>
-            <template #rotating><rotating-word :words="rotatingWords" /></template>
-          </i18n-t>
-        </div>
-      </div>
+      <!-- 店家自訂橫幅（後台有設定才顯示），頭像疊在下緣 -->
+      <div v-if="bannerUrl" class="hero-cover"
+           :style="{ backgroundImage: `url(${bannerUrl})` }"
+           role="img" :aria-label="t('list.bannerAlt', { store: store.storefront.storeName })"></div>
 
       <div class="hero-band">
         <span class="hero-avatar">
@@ -123,12 +110,12 @@ const activeChips = computed(() => {
         </span>
 
         <div class="hero-main">
-          <h1 class="hero-title">{{ store.storefront.storeName }}</h1>
+          <h1 class="hero-title"><span class="hl hl-lime">{{ store.storefront.storeName }}</span></h1>
           <p class="hero-sub">{{ heroDesc }}</p>
           <div class="hero-stats">
             <span class="hero-stat"><b>{{ workCount }}</b> {{ t('list.statWorks') }}</span>
             <span class="hero-stat-sep"></span>
-            <span class="hero-stat"><app-icon name="star" :size="16" :stroke="2.2" class="stat-star" /><b>{{ avgRating ?? '—' }}</b> {{ t('list.statRating') }}</span>
+            <span class="hero-stat"><app-icon name="star" :size="14" class="stat-star" /><b>{{ avgRating ?? '—' }}</b> {{ t('list.statRating') }}</span>
             <span class="hero-stat-sep"></span>
             <span class="hero-stat"><b>{{ store.followerCount.toLocaleString() }}</b> {{ t('list.statFollowers') }}</span>
           </div>
@@ -136,40 +123,46 @@ const activeChips = computed(() => {
       </div>
     </section>
 
-    <!-- 店長精選 spotlight -->
+    <!-- 店長精選 spotlight（設計稿 Featured banner：墨黑卡 + 拍立得） -->
     <section v-if="spotlight" class="spotlight">
       <div class="spot-body">
-        <span class="spot-badge"><app-icon name="sparkle" :size="13" /> {{ t('spotlight.badge') }}</span>
+        <span class="spot-badge"><app-icon name="sparkle" :size="12" /> {{ t('spotlight.badge') }}</span>
         <h2 class="spot-title">{{ spotlight.title }}</h2>
         <p v-if="spotlight.blurb" class="spot-blurb">{{ spotlight.blurb }}</p>
         <div class="spot-meta">
           <span class="spot-chip">{{ t('spotlight.sold', { count: spotlight.sales.toLocaleString() }) }}</span>
-          <span v-if="spotlight.ratingCount" class="spot-chip">★ {{ spotlight.rating.toFixed(1) }}（{{ spotlight.ratingCount }}）</span>
+          <span v-if="spotlight.ratingCount" class="spot-chip"><app-icon name="star" :size="12" /> {{ spotlight.rating.toFixed(1) }} ({{ spotlight.ratingCount }})</span>
           <span class="spot-chip">{{ catLabel(spotlight.cat) }}</span>
         </div>
         <div class="spot-actions">
-          <button type="button" class="spot-cta" @click="goSpotlight">{{ t('spotlight.cta') }}</button>
+          <button type="button" class="spot-cta" @click="goSpotlight">
+            {{ t('spotlight.cta') }}<app-icon name="arrow" :size="14" />
+          </button>
           <span class="spot-price" :class="{ free: spotlight.price === 0 }">
-            {{ spotlight.price === 0 ? t('common.free') : '$' + spotlight.price }}
+            {{ spotlight.price === 0 ? t('spotlight.freeNote') : '$' + spotlight.price }}
           </span>
         </div>
       </div>
-      <div class="spot-cover" @click="goSpotlight">
-        <product-thumb :product="spotlight" hide-label :glyph-size="72" />
+      <div class="spot-stage" @click="goSpotlight">
+        <div class="spot-polaroid">
+          <product-thumb :product="spotlight" hide-label :show-cat="false" :glyph-size="48" />
+          <div class="spot-polaroid-title">{{ spotlight.title }}</div>
+          <div class="spot-polaroid-meta">{{ spotlight.creator }}</div>
+        </div>
       </div>
     </section>
 
     <section class="browse">
       <div class="hero-cats">
         <span class="cat-pill c-all" :class="{ on: s.category === 'all' }" @click="setCat('all')">
-          <span class="dot" style="background:var(--c-violet)"></span>{{ t('list.allWorks') }}
+          <span class="dot" style="background:var(--text)"></span>{{ t('list.allWorks') }}
         </span>
         <span v-for="c in cats" :key="c.id" class="cat-pill" :class="['c-' + c.id, { on: s.category === c.id }]" @click="setCat(c.id)">
           <span class="dot" :style="{ background: catColor(c.id) }"></span>{{ t('category.' + c.id) }}
         </span>
       </div>
 
-      <!-- toolbar: result count + sort tabs -->
+      <!-- toolbar: result count + sort pills -->
       <div class="browse-toolbar">
         <i18n-t keypath="list.count" tag="span" class="browse-count" scope="global">
           <template #count><b>{{ results.length }}</b></template>
@@ -190,7 +183,7 @@ const activeChips = computed(() => {
         <!-- filter rail -->
         <aside class="browse-side">
           <div class="side-card">
-            <p class="side-title"><app-icon name="sparkle" :size="15" /> {{ t('list.filter') }}</p>
+            <p class="side-title"><app-icon name="funnel" :size="15" /> {{ t('list.filter') }}</p>
 
             <div class="side-group">
               <p class="side-label">{{ t('list.tagsLabel') }}</p>
@@ -229,7 +222,7 @@ const activeChips = computed(() => {
             <span class="active-chips-lab">{{ t('list.filtering') }}</span>
             <button v-for="f in activeChips" :key="f.key" type="button" class="fchip" @click="f.clear()">
               {{ f.label }}
-              <span class="fchip-x"><app-icon name="close" :size="13" :stroke="2.4" /></span>
+              <span class="fchip-x"><app-icon name="close" :size="13" /></span>
             </button>
             <button type="button" class="fchip-clear" @click="clear">{{ t('list.clearAllShort') }}</button>
           </div>
@@ -237,14 +230,24 @@ const activeChips = computed(() => {
           <div v-if="results.length" class="grid">
             <product-card v-for="p in results" :key="p.id" :product="p" :badge="badgeFor(p)" />
           </div>
-          <div v-else class="empty">
-            <app-icon name="search" :size="40" style="margin-bottom:14px; opacity:.5;" />
-            <p style="font-size:17px; font-weight:600; color:var(--text-soft);">{{ t('list.emptyTitle') }}</p>
-            <p style="margin-top:6px;">{{ t('list.emptyDesc') }}</p>
-            <n-button style="margin-top:16px" @click="clear">{{ t('list.emptyClear') }}</n-button>
+          <div v-else class="no-results">
+            <app-icon name="search" :size="36" style="margin:0 auto;" />
+            <p class="no-results-title">{{ t('list.emptyTitle') }}</p>
+            <p class="no-results-desc">{{ t('list.emptyDesc') }}</p>
+            <button type="button" class="cta-line" style="margin-top:16px" @click="clear">{{ t('list.emptyClear') }}</button>
           </div>
         </div>
       </div>
     </section>
   </div>
 </template>
+
+<style scoped>
+/* 無符合結果卡（設計稿 no results） */
+.no-results {
+  border: 2px solid var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
+  padding: 48px; text-align: center; box-shadow: var(--pop-2);
+}
+.no-results-title { font-weight: 900; font-size: 18px; margin: 10px 0 0; }
+.no-results-desc { font-weight: 500; font-size: 14px; margin: 6px 0 0; color: var(--text-soft); }
+</style>

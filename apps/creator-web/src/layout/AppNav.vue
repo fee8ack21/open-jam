@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/* ============================================================
+   AppNav — 店面頂部導覽（果醬罐設計稿 Header）
+   果醬罐 logo + 搜尋膠囊（黃色搜尋鈕）+ 語言 / 購物車圓鈕 +
+   追蹤創作者膠囊（黑色追蹤鈕）。
+   ============================================================ */
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
@@ -6,10 +11,8 @@ import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
 import { useAuthStore } from '@/stores/auth';
 import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n';
+import BrandLogo from '@/components/BrandLogo.vue';
 import AppIcon from '@/components/app-icon';
-
-// 逐字拆解以套用交錯的彈跳動畫（同 portal-web BrandLogo）；空白換成 nbsp 保留字距（inline-block 下一般空白會塌陷）
-const brandLetters = [...'Open Jam'].map((ch) => (ch === ' ' ? ' ' : ch));
 
 const store = useShopStore();
 const auth = useAuthStore();
@@ -65,7 +68,6 @@ const subscribe = async () => {
 const toggleSearch = () => { mobileSearchOpen.value = !mobileSearchOpen.value; mobileFollowOpen.value = false; };
 const toggleFollow = () => { mobileFollowOpen.value = !mobileFollowOpen.value; mobileSearchOpen.value = false; };
 
-const goList = () => { if (route.name !== 'list') router.push({ name: 'list' }); };
 const goCheckout = () => router.push({ name: 'checkout' });
 const onSearch = (v: string) => {
   store.search = v;
@@ -80,32 +82,16 @@ const submitSearch = () => {
 <template>
   <header class="nav">
     <div class="nav-inner">
-      <div class="brand" @click="goList" role="link" aria-label="Open Jam">
-        <span class="brand-mark" aria-hidden="true">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-            <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-            <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-          </svg>
-        </span>
-        <span class="brand-name" aria-hidden="true">
-          <span
-            v-for="(ch, i) in brandLetters"
-            :key="i"
-            class="brand-letter"
-            :style="{ '--i': i }"
-            >{{ ch }}</span
-          >
-        </span>
-      </div>
+      <brand-logo />
 
       <div v-if="!minimal" class="nav-search" :class="{ 'is-open': mobileSearchOpen }">
         <form class="search-box" @submit.prevent="submitSearch">
-          <span class="follow-icon"><app-icon name="search" :size="17" /></span>
+          <span class="search-ic"><app-icon name="search" :size="16" /></span>
           <input class="search-input" type="text" :value="store.search"
                  @input="onSearch(($event.target as HTMLInputElement).value)"
                  :placeholder="t('nav.searchPlaceholder')" :aria-label="t('common.search')" />
           <button v-if="store.search" class="search-clear" type="button"
-                  @click="onSearch('')" :aria-label="t('common.clear')"><app-icon name="close" :size="15" /></button>
+                  @click="onSearch('')" :aria-label="t('common.clear')"><app-icon name="close" :size="14" /></button>
           <button class="search-btn" type="submit">{{ t('nav.search') }}</button>
         </form>
       </div>
@@ -114,32 +100,32 @@ const submitSearch = () => {
 
       <div class="nav-actions">
         <n-dropdown trigger="click" :options="langOptions" :value="locale" @select="onSelectLang">
-          <div class="icon-btn" :title="t('language.label')">
-            <app-icon name="globe" :size="20" />
-          </div>
+          <button type="button" class="icon-btn" :title="t('language.label')">
+            <app-icon name="globe" :size="17" />
+          </button>
         </n-dropdown>
 
         <template v-if="!minimal">
-          <div class="icon-btn nav-icon-toggle" :class="{ active: mobileSearchOpen }"
-               @click="toggleSearch" :title="t('nav.searchTitle')">
-            <app-icon name="search" :size="20" />
-          </div>
+          <button type="button" class="icon-btn nav-icon-toggle" :class="{ active: mobileSearchOpen }"
+                  @click="toggleSearch" :title="t('nav.searchTitle')">
+            <app-icon name="search" :size="17" />
+          </button>
 
-          <div class="icon-btn" @click="goCheckout" :title="t('nav.cartTitle')">
-            <app-icon name="cart" :size="20" />
+          <button type="button" class="icon-btn" @click="goCheckout" :title="t('nav.cartTitle')">
+            <app-icon name="cart" :size="18" />
             <span v-if="cartCount" class="cart-badge">{{ cartCount }}</span>
-          </div>
+          </button>
 
-          <div v-if="!subscribed" class="icon-btn nav-icon-toggle" :class="{ active: mobileFollowOpen }"
-               @click="toggleFollow" :title="t('nav.followTitle')">
-            <app-icon name="mail" :size="20" />
-          </div>
+          <button v-if="!subscribed" type="button" class="icon-btn nav-icon-toggle" :class="{ active: mobileFollowOpen }"
+                  @click="toggleFollow" :title="t('nav.followTitle')">
+            <app-icon name="mail" :size="17" />
+          </button>
         </template>
       </div>
 
       <div v-if="!minimal" class="nav-follow" :class="{ 'is-open': mobileFollowOpen }">
         <form v-if="!subscribed" class="follow-form" @submit.prevent="subscribe">
-          <span class="follow-icon"><app-icon name="mail" :size="16" /></span>
+          <span class="follow-icon"><app-icon name="mail" :size="15" /></span>
           <input class="follow-input" type="email" v-model="followEmail" @input="onEmailInput"
                  :placeholder="t('nav.followPlaceholder')" :aria-label="t('nav.followEmailAria')" :disabled="submitting" />
           <button class="follow-btn" type="submit" :disabled="submitting">{{ submitting ? t('nav.following') : t('nav.follow') }}</button>

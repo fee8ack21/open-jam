@@ -71,7 +71,7 @@ onMounted(() => load());
 
     <div v-else class="rl-dist">
       <div v-for="row in distRows" :key="row.star" class="rl-dist-row">
-        <span class="rl-dist-star">{{ row.star }}<app-icon name="star" :size="12" fill style="color:#f0a92b" /></span>
+        <span class="rl-dist-star">{{ row.star }}<app-icon name="star" :size="12" /></span>
         <span class="rl-dist-track"><span class="rl-dist-fill" :style="{ width: row.pct + '%' }" /></span>
         <span class="rl-dist-count">{{ row.count }}</span>
       </div>
@@ -102,8 +102,8 @@ onMounted(() => load());
 .rl-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .rl-empty {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 28px; color: var(--text-faint); font-size: 14px;
-  border: 1px dashed var(--border); border-radius: var(--r-lg);
+  padding: 28px; color: var(--text-soft); font-size: 14px; font-weight: 500;
+  border: 2px dashed var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
 }
 .rl-dist { display: flex; flex-direction: column; gap: 7px; margin-bottom: 24px; }
 .rl-dist-row { display: flex; align-items: center; gap: 10px; }
@@ -113,10 +113,10 @@ onMounted(() => load());
   font-variant-numeric: tabular-nums;
 }
 .rl-dist-track {
-  flex: 1; height: 8px; border-radius: 999px;
-  background: var(--border); overflow: hidden;
+  flex: 1; height: 10px; border-radius: 999px;
+  background: var(--surface); border: 2px solid var(--border-strong); overflow: hidden;
 }
-.rl-dist-fill { display: block; height: 100%; border-radius: 999px; background: #f0a92b; }
+.rl-dist-fill { display: block; height: 100%; background: var(--c-yellow); }
 .rl-dist-count {
   width: 30px; flex: none; text-align: right;
   font-size: 12px; color: var(--text-faint); font-variant-numeric: tabular-nums;
@@ -126,7 +126,7 @@ onMounted(() => load());
 .rl-avatar {
   width: 34px; height: 34px; border-radius: 50%; flex: none;
   display: grid; place-items: center;
-  background: var(--oj-primary-wash, rgba(22,160,122,.12)); color: var(--oj-primary, #16a07a);
+  background: var(--surface); border: 2px solid var(--border-strong);
 }
 .rl-body { flex: 1; min-width: 0; }
 .rl-meta { display: flex; align-items: center; gap: 10px; }
@@ -135,8 +135,10 @@ onMounted(() => load());
 .rl-nocomment { margin: 6px 0 0; font-size: 13px; color: var(--text-faint); }
 .rl-more {
   align-self: flex-start; margin-top: 4px;
-  border: 1.5px solid var(--border); background: transparent; color: var(--text-soft);
-  padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border: 2px solid var(--border-strong); background: var(--surface); color: var(--text);
+  padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 900; cursor: pointer;
+  transition: background .15s;
 }
+.rl-more:hover { background: var(--c-yellow); }
 .rl-more:disabled { opacity: .5; cursor: default; }
 </style>

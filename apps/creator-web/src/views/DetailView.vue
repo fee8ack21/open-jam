@@ -9,10 +9,11 @@ import AppIcon from '@/components/app-icon';
 import Stars from '@/components/Stars.vue';
 import ReviewList from '@/components/ReviewList.vue';
 
+/* 檔案格式色塊（果醬色盤；深色底配白字） */
 const FILE_COLORS: Record<string, string> = {
-  PDF: '#e0573e', MIDI: '#6151f0', MSCZ: '#7a6cff', AUDIO: '#c94f9e', WAV: '#c94f9e',
-  JPG: '#2f9e6b', PNG: '#16a07a', RAW: '#3b7fd4', XMP: '#d8a017', XLSX: '#1f9d57',
-  EPUB: '#8b5cf6', GP: '#d65a3a', TXT: '#888', NOTION: '#444', FIG: '#e0573e', DEFAULT: '#6151f0',
+  PDF: '#ff6b35', MIDI: '#8a5cf6', MSCZ: '#8a5cf6', AUDIO: '#d6479b', WAV: '#d6479b',
+  JPG: '#18a999', PNG: '#18a999', RAW: '#3b7fd4', XMP: '#d8a017', XLSX: '#18a999',
+  EPUB: '#8a5cf6', GP: '#ff6b35', TXT: '#888888', NOTION: '#444444', FIG: '#ff6b35', DEFAULT: '#8a5cf6',
 };
 
 const store = useShopStore();
@@ -55,10 +56,10 @@ const goCart = () => router.push({ name: 'checkout' });
   <div class="page page-pad" :data-screen-label="t('detail.screenLabel')" v-if="p">
     <div class="breadcrumb">
       <a @click="goList">{{ t('common.explore') }}</a>
-      <app-icon name="chevron" :size="14" />
+      <span class="sep">›</span>
       <a @click="goList">{{ catLabel }}</a>
-      <app-icon name="chevron" :size="14" />
-      <span style="color:var(--text-soft)">{{ p.title }}</span>
+      <span class="sep">›</span>
+      <span>{{ p.title }}</span>
     </div>
 
     <div class="detail-grid">
@@ -79,31 +80,33 @@ const goCart = () => router.push({ name: 'checkout' });
           </div>
         </div>
 
-        <div style="margin-top:40px">
+        <div style="margin-top:44px">
           <h2 class="section-title">{{ t('detail.contentPreviewTitle') }}</h2>
           <div class="preview-locked">
+            <product-thumb :product="p" :seed="active + 2"
+                           style="aspect-ratio:16/7;"
+                           :glyph-size="80" :show-cat="false" hide-label />
             <div class="lock-veil">
               <div class="lock-mark">
-                <app-icon name="lock" :size="22" />
+                <app-icon name="lock" :size="18" />
               </div>
               <span class="lock-txt">{{ t('detail.lockedText') }}</span>
             </div>
-            <product-thumb :product="p" :seed="active + 2"
-                           style="aspect-ratio:16/7; border-radius:var(--r-lg);"
-                           :glyph-size="80" :label="t('detail.previewBlurred')" :show-cat="false" />
           </div>
         </div>
 
-        <div style="margin-top:40px">
-          <h2 class="section-title">{{ t('detail.contentsTitle', { count: totalFiles }) }}</h2>
+        <div style="margin-top:44px">
+          <i18n-t keypath="detail.contentsTitle" tag="h2" class="section-title" scope="global">
+            <template #count><small>{{ t('detail.contentsCount', { count: totalFiles }) }}</small></template>
+          </i18n-t>
           <div class="file-list">
             <div v-for="(f, i) in p.contents" :key="i" class="file-row">
               <div class="file-ic" :style="{ background: fileColor(f.type) }">{{ f.type }}</div>
               <div style="flex:1; min-width:0;">
                 <div class="file-name">{{ f.name }}</div>
-                <div class="file-meta">{{ f.type }} · {{ f.size }}</div>
+                <div class="file-meta">{{ f.type }}・{{ f.size }}</div>
               </div>
-              <app-icon name="lock" :size="16" style="color:var(--text-faint)" />
+              <span class="file-lock"><app-icon name="lock" :size="15" /></span>
             </div>
           </div>
         </div>
@@ -114,10 +117,10 @@ const goCart = () => router.push({ name: 'checkout' });
       <!-- right: buy card -->
       <div class="buy-card">
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <span class="chip">{{ catLabel }}</span>
-            <button class="fav" :class="{ on: fav }" style="position:static;"
+            <span class="chip" style="background:var(--t-green)">{{ catLabel }}</span>
+            <button class="fav" :class="{ on: fav }" :title="t('detail.favTitle')"
                     @click="store.toggleFav(p.id)">
-              <app-icon name="heart" :size="18" :fill="fav" />
+              <app-icon :name="fav ? 'heart' : 'heartLine'" :size="18" />
             </button>
           </div>
 
@@ -131,50 +134,59 @@ const goCart = () => router.push({ name: 'checkout' });
             </div>
           </div>
 
-          <div style="display:flex; align-items:baseline; justify-content:space-between; margin:20px 0 4px;">
+          <div class="price-row">
             <span class="price-xl" :class="{ free: p.price === 0 }">{{ p.price === 0 ? t('common.free') : '$' + p.price }}</span>
-            <stars :value="p.rating" :count="p.ratingCount" :size="15" />
+            <stars :value="p.rating" :count="p.ratingCount" :size="14" />
           </div>
 
-          <div style="display:flex; flex-direction:column; gap:10px; margin-top:22px;">
-            <n-button type="primary" size="large" block strong @click="buyNow">
-              {{ p.price === 0 ? t('detail.getFree') : t('detail.buyNow') }}
-            </n-button>
-            <n-button v-if="!inCart" type="primary" size="large" block secondary @click="addCart">
-              <template #icon><app-icon name="cart" :size="18" /></template>
-              {{ t('detail.addToCart') }}
-            </n-button>
-            <n-button v-else type="primary" size="large" block secondary @click="goCart">
-              <template #icon><app-icon name="check" :size="18" /></template>
-              {{ t('detail.inCart') }}
-            </n-button>
-          </div>
+          <button type="button" class="cta-ink block" @click="buyNow">
+            <app-icon :name="p.price === 0 ? 'arrowD' : 'cart'" :size="15" />
+            {{ p.price === 0 ? t('detail.getFree') : t('detail.buyNow') }}
+          </button>
+          <button v-if="!inCart" type="button" class="cta-line block" style="margin-top:12px" @click="addCart">
+            <app-icon name="cart" :size="15" />
+            {{ t('detail.addToCart') }}
+          </button>
+          <button v-else type="button" class="cta-line block" style="margin-top:12px; --hover-c:var(--t-green)" @click="goCart">
+            <app-icon name="check" :size="15" />
+            {{ t('detail.inCart') }}
+          </button>
 
           <div class="trust">
             <app-icon name="shield" :size="14" /> {{ t('detail.trust') }}
           </div>
 
-          <div class="spec-list" style="margin-top:22px;">
+          <div class="spec-list">
             <div class="spec-row">
-              <span class="spec-k"><app-icon name="file" :size="16" /> {{ t('detail.specFiles') }}</span>
-              <span class="spec-v">{{ t('detail.specFilesValue', { count: totalFiles }) }}</span>
+              <span class="spec-k"><app-icon name="doc" :size="13" /> {{ t('detail.specFiles') }}</span>
+              <i18n-t keypath="detail.specFilesValue" tag="span" class="spec-v" scope="global">
+                <template #count><b>{{ totalFiles }}</b></template>
+              </i18n-t>
             </div>
             <div class="spec-row">
-              <span class="spec-k"><app-icon name="bag" :size="16" /> {{ t('detail.specFormats') }}</span>
-              <span class="spec-v">{{ p.formats.join(' · ') }}</span>
+              <span class="spec-k"><app-icon name="copy" :size="13" /> {{ t('detail.specFormats') }}</span>
+              <span class="spec-v"><b>{{ p.formats.join('・') }}</b></span>
             </div>
             <div class="spec-row">
-              <span class="spec-k"><app-icon name="download" :size="16" /> {{ t('detail.specSize') }}</span>
-              <span class="spec-v">{{ p.totalSize }}</span>
+              <span class="spec-k"><app-icon name="download" :size="13" /> {{ t('detail.specSize') }}</span>
+              <span class="spec-v"><b>{{ p.totalSize }}</b></span>
             </div>
             <div class="spec-row">
-              <span class="spec-k"><app-icon name="user" :size="16" /> {{ t('detail.specSales') }}</span>
-              <span class="spec-v">{{ t('detail.specSalesValue', { count: p.sales.toLocaleString() }) }}</span>
+              <span class="spec-k"><app-icon name="tag" :size="13" /> {{ t('detail.specSales') }}</span>
+              <i18n-t keypath="detail.specSalesValue" tag="span" class="spec-v" scope="global">
+                <template #count><b>{{ p.sales.toLocaleString() }}</b></template>
+              </i18n-t>
             </div>
             <div class="spec-row">
-              <span class="spec-k"><app-icon name="search" :size="16" /> {{ t('detail.specViews') }}</span>
-              <span class="spec-v">{{ t('detail.specViewsValue', { count: (p.views ?? 0).toLocaleString() }) }}</span>
+              <span class="spec-k"><app-icon name="eye" :size="13" /> {{ t('detail.specViews') }}</span>
+              <i18n-t keypath="detail.specViewsValue" tag="span" class="spec-v" scope="global">
+                <template #count><b>{{ (p.views ?? 0).toLocaleString() }}</b></template>
+              </i18n-t>
             </div>
+          </div>
+
+          <div v-if="p.price === 0" class="hand-note" style="display:block; text-align:center; font-size:22px; margin-top:14px;">
+            {{ t('detail.handNoteFree') }}
           </div>
         </div>
     </div>

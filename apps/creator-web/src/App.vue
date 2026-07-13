@@ -16,38 +16,38 @@ useAuthStore().getUserIdentity().then(() => useShopStore().loadFavorites());
 const naiveTheme = computed(() => null);
 const overrides = computed(() => ({
   common: {
-    primaryColor: '#6c4cf1',
-    primaryColorHover: '#8a72ff',
-    primaryColorPressed: '#5638d8',
-    primaryColorSuppl: '#8a72ff',
-    borderRadius: '13px',
-    borderRadiusSmall: '9px',
-    fontFamily: "'Space Grotesk', 'Noto Sans TC', sans-serif",
-    fontWeightStrong: '700',
+    primaryColor: '#8a5cf6',
+    primaryColorHover: '#a685ff',
+    primaryColorPressed: '#7a4ce0',
+    primaryColorSuppl: '#a685ff',
+    borderRadius: '14px',
+    borderRadiusSmall: '10px',
+    fontFamily: "'Noto Sans TC', sans-serif",
+    fontWeightStrong: '900',
   },
-  Button: { fontWeight: '700' },
+  Button: { fontWeight: '900', borderRadiusMedium: '999px', borderRadiusLarge: '999px', borderRadiusSmall: '999px' },
   Input: {
     borderRadius: '12px',
-    border: '1.5px solid var(--border-strong)',
-    borderHover: '1.5px solid var(--c-violet)',
-    borderFocus: '1.5px solid var(--c-violet)',
-    borderError: '1.5px solid var(--c-pink)',
-    borderFocusError: '1.5px solid var(--c-pink)',
-    borderHoverError: '1.5px solid var(--c-pink)',
+    border: '2px solid var(--border-strong)',
+    borderHover: '2px solid var(--border-strong)',
+    borderFocus: '2px solid var(--border-strong)',
+    borderError: '2px solid var(--c-pink-deep)',
+    borderFocusError: '2px solid var(--c-pink-deep)',
+    borderHoverError: '2px solid var(--c-pink-deep)',
     boxShadowFocus: 'none',
     boxShadowFocusError: 'none',
     color: 'var(--surface)',
     colorFocus: 'var(--surface)',
-    caretColor: '#6c4cf1',
+    caretColor: '#8a5cf6',
     heightMedium: '42px',
     heightLarge: '46px',
   },
   InternalSelection: {
     borderRadius: '12px',
-    border: '1.5px solid var(--border-strong)',
-    borderHover: '1.5px solid var(--c-violet)',
-    borderActive: '1.5px solid var(--c-violet)',
-    borderFocus: '1.5px solid var(--c-violet)',
+    border: '2px solid var(--border-strong)',
+    borderHover: '2px solid var(--border-strong)',
+    borderActive: '2px solid var(--border-strong)',
+    borderFocus: '2px solid var(--border-strong)',
     boxShadowActive: 'none',
     boxShadowFocus: 'none',
     color: 'var(--surface)',
@@ -55,19 +55,19 @@ const overrides = computed(() => ({
     heightMedium: '42px',
   },
   Slider: {
-    fillColor: '#6c4cf1',
-    fillColorHover: '#8a72ff',
+    fillColor: '#8a5cf6',
+    fillColorHover: '#a685ff',
     handleColor: '#ffffff',
-    dotBorderActive: '1.5px solid #6c4cf1',
+    dotBorderActive: '2px solid #8a5cf6',
   },
-  Switch: { railColorActive: '#6c4cf1' },
+  Switch: { railColorActive: '#8a5cf6' },
 }));
 </script>
 
 <template>
   <n-config-provider :theme="naiveTheme" :theme-overrides="overrides">
   <n-message-provider>
-    <div class="oj-root light">
+    <div class="oj-root">
 
       <app-nav />
 

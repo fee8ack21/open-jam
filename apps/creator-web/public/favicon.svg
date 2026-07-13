@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64">
+  <rect x="12" y="16" width="40" height="44" rx="13" fill="#FF90E8" stroke="#1A1A1A" stroke-width="3.5"></rect>
+  <path d="M18 17.5 h28 v4 c-3 4 -6.5 -1 -10 3 c-3.5 4 -7 -2.5 -10.5 1 c-3.2 3.2 -6.3 -0.5 -7.5 -1.8 z" fill="#D6479B" stroke="#1A1A1A" stroke-width="2.6"></path>
+  <rect x="18" y="31" width="28" height="19" rx="6" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="2.6"></rect>
+  <text x="32" y="45.5" text-anchor="middle" font-family="&#39;Space Grotesk&#39;,&#39;Arial Black&#39;,sans-serif" font-weight="700" font-size="14.5" fill="#1A1A1A">OJ</text>
+  <rect x="15" y="5" width="34" height="11" rx="5" fill="#FFDE00" stroke="#1A1A1A" stroke-width="3.5"></rect>
+</svg>
