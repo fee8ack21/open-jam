@@ -2,7 +2,6 @@
 /* App root — Naive UI providers wrap the router outlet so
    message / dialog hooks are available app-wide. */
 import type { GlobalThemeOverrides } from 'naive-ui';
-import AppCursor from '@/components/AppCursor.vue';
 import OnboardingGuide from '@/components/OnboardingGuide.vue';
 import { useAuthStore } from '@/stores/auth.js';
 
@@ -24,7 +23,6 @@ useAuthStore().getUserIdentity();
     <n-message-provider>
       <router-view />
       <OnboardingGuide />
-      <AppCursor />
     </n-message-provider>
   </n-config-provider>
 </template>
