@@ -181,7 +181,7 @@ const goOrder = () => {
   padding-bottom: 56px;
 }
 .kept-badge {
-  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   font-weight: 900; font-size: 11px; padding: 1px 10px; white-space: nowrap;
 }
 </style>

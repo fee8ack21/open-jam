@@ -245,7 +245,7 @@ const activeChips = computed(() => {
 <style scoped>
 /* 無符合結果卡（設計稿 no results） */
 .no-results {
-  border: 2px solid var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
+  border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
   padding: 48px; text-align: center; box-shadow: var(--pop-2);
 }
 .no-results-title { font-weight: 900; font-size: 18px; margin: 10px 0 0; }

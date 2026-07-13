@@ -103,7 +103,7 @@ onMounted(() => load());
 .rl-empty {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 28px; color: var(--text-soft); font-size: 14px; font-weight: 500;
-  border: 2px dashed var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
+  border: var(--bw) dashed var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
 }
 .rl-dist { display: flex; flex-direction: column; gap: 7px; margin-bottom: 24px; }
 .rl-dist-row { display: flex; align-items: center; gap: 10px; }
@@ -114,7 +114,7 @@ onMounted(() => load());
 }
 .rl-dist-track {
   flex: 1; height: 10px; border-radius: 999px;
-  background: var(--surface); border: 2px solid var(--border-strong); overflow: hidden;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); overflow: hidden;
 }
 .rl-dist-fill { display: block; height: 100%; background: var(--c-yellow); }
 .rl-dist-count {
@@ -126,7 +126,7 @@ onMounted(() => load());
 .rl-avatar {
   width: 34px; height: 34px; border-radius: 50%; flex: none;
   display: grid; place-items: center;
-  background: var(--surface); border: 2px solid var(--border-strong);
+  background: var(--surface); border: var(--bw) solid var(--border-strong);
 }
 .rl-body { flex: 1; min-width: 0; }
 .rl-meta { display: flex; align-items: center; gap: 10px; }
@@ -135,7 +135,7 @@ onMounted(() => load());
 .rl-nocomment { margin: 6px 0 0; font-size: 13px; color: var(--text-faint); }
 .rl-more {
   align-self: flex-start; margin-top: 4px;
-  border: 2px solid var(--border-strong); background: var(--surface); color: var(--text);
+  border: var(--bw) solid var(--border-strong); background: var(--surface); color: var(--text);
   padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 900; cursor: pointer;
   transition: background .15s;
 }

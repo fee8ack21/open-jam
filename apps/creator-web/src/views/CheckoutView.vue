@@ -166,7 +166,7 @@ const pay = async () => {
 /* 空購物車卡（延續設計稿 no-results 卡語彙） */
 .empty-card {
   max-width: 560px; margin: 48px auto; text-align: center;
-  border: 2px solid var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
+  border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
   padding: 48px; box-shadow: var(--pop-2);
 }
 .empty-title { font-weight: 900; font-size: 18px; margin: 12px 0 0; }
@@ -178,7 +178,7 @@ const pay = async () => {
   gap: 14px;
   align-items: flex-start;
   padding: 16px 18px;
-  border: 2px dashed #e4d9c2;
+  border: 1px dashed #e4d9c2;
   border-radius: var(--r-md);
   background: var(--bg);
 }
@@ -190,7 +190,7 @@ const pay = async () => {
   place-items: center;
   border-radius: 999px;
   background: var(--surface);
-  border: 2px solid var(--border-strong);
+  border: var(--bw) solid var(--border-strong);
 }
 .stripe-note-title { font-weight: 900; font-size: 15px; }
 .stripe-note-sub { margin: 4px 0 0; font-size: 12.5px; font-weight: 500; color: var(--text-soft); line-height: 1.7; }

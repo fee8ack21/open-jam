@@ -167,11 +167,11 @@ const goList = () => router.push({ name: 'list' });
 }
 .order-number {
   font-family: var(--oj-display); font-weight: 700; font-size: 13px; letter-spacing: 0;
-  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   padding: 1px 12px; transform: rotate(-1deg);
 }
 .order-total { font-family: var(--oj-display); color: var(--text); }
-.order-item { padding: 16px 0; border-bottom: 2px dashed var(--border); }
+.order-item { padding: 16px 0; border-bottom: 1px dashed var(--border); }
 .order-item:first-child { padding-top: 0; }
 .order-item-price { font-size: 13px; font-weight: 700; color: var(--text-soft); font-family: var(--oj-display); white-space: nowrap; }
 .order-file { display: flex; justify-content: space-between; align-items: center; gap: 12px; }

@@ -72,11 +72,11 @@ const goHelp = () => { window.location.href = `${env.PORTAL_PAGE_URL}/faq`; };
 .nf-crate { width: 150px; height: 120px; margin: 0 auto; position: relative; }
 .crate-body {
   position: absolute; left: 8px; right: 8px; bottom: 0; height: 76px;
-  background: var(--t-pink); border: 2px solid var(--border-strong); border-radius: 12px;
+  background: var(--t-pink); border: var(--bw) solid var(--border-strong); border-radius: 12px;
 }
 .crate-lid {
   position: absolute; left: 0; right: 0; bottom: 58px; height: 22px;
-  background: var(--c-pink); border: 2px solid var(--border-strong); border-radius: 8px; transform: rotate(-2deg);
+  background: var(--c-pink); border: var(--bw) solid var(--border-strong); border-radius: 8px; transform: rotate(-2deg);
 }
 .crate-q {
   position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
@@ -84,11 +84,11 @@ const goHelp = () => { window.location.href = `${env.PORTAL_PAGE_URL}/faq`; };
 }
 .crate-ball {
   position: absolute; right: -12px; top: 0; width: 26px; height: 26px;
-  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+  background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 999px;
 }
 
 .nf-pill {
-  display: inline-block; background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 999px;
+  display: inline-block; background: var(--c-yellow); border: var(--bw) solid var(--border-strong); border-radius: 999px;
   font-family: var(--oj-display); font-weight: 700; font-size: 14px; letter-spacing: 2px;
   padding: 4px 16px; margin-top: 22px; transform: rotate(-2deg); white-space: nowrap;
 }
