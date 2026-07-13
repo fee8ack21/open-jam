@@ -33,8 +33,6 @@ interface DraftState {
 
 interface DashboardState {
   mode: string
-  font: string
-  density: string
   search: string
   products: Product[]
   productFilter: string
@@ -58,8 +56,6 @@ const statusOverrides = load<Record<string, ProductStatus>>('statusOverrides', {
 export const useDashboardStore = defineStore('dashboard', {
   state: (): DashboardState => ({
     mode: load('mode', 'buy'),           // sell | buy（預設買家）
-    font: load('font', 'sora'),          // sora | grotesk
-    density: load('density', 'comfy'),   // comfy | compact
     search: '',
 
     products: MY_PRODUCTS.map(p => ({ ...p, status: statusOverrides[p.id] || p.status })),
@@ -124,8 +120,6 @@ export const useDashboardStore = defineStore('dashboard', {
       if (['purchases', 'wishlist'].includes(name)) { this.mode = 'buy'; save('mode', 'buy') }
       else if (['overview', 'open-store', 'products', 'upload', 'orders'].includes(name)) { this.mode = 'sell'; save('mode', 'sell') }
     },
-    setFont(f: string) { this.font = f; save('font', f) },
-    setDensity(d: string) { this.density = d; save('density', d) },
     setProductFilter(f: string) { this.productFilter = f },
 
     setStatus(id: string, status: ProductStatus) {

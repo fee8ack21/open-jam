@@ -20,9 +20,9 @@ const storeName = computed(() => apiStoreName.value ?? me.storeName)
 
 const catMax = computed(() => Math.max(...revenue.byCategory.map(c => c.value)) || 1)
 const kpis = computed(() => [
-  { key: 'rev', label: t('overview.kpiRevenue'), val: F.money(g.monthRevenue), ic: 'wallet', bg: 'var(--c-violet)', delta: g.monthDelta, up: g.monthDelta >= 0 },
-  { key: 'sales', label: t('overview.kpiSales'), val: g.totalSales.toLocaleString('en-US'), ic: 'bag', bg: 'var(--c-pink)', delta: 12, up: true },
-  { key: 'payout', label: t('overview.kpiPayout'), val: F.money(g.pendingPayout), ic: 'dollar', bg: 'var(--c-orange)', delta: null, sub: t('overview.payoutDate') },
+  { key: 'rev', label: t('overview.kpiRevenue'), val: F.money(g.monthRevenue), ic: 'wallet', bg: 'var(--c-pink)', delta: g.monthDelta, up: g.monthDelta >= 0 },
+  { key: 'sales', label: t('overview.kpiSales'), val: g.totalSales.toLocaleString('en-US'), ic: 'bag', bg: 'var(--c-yellow)', delta: 12, up: true },
+  { key: 'payout', label: t('overview.kpiPayout'), val: F.money(g.pendingPayout), ic: 'dollar', bg: 'var(--c-lime)', delta: null, sub: t('overview.payoutDate') },
   { key: 'views', label: t('overview.kpiViews'), val: F.compact(g.totalViews), ic: 'eye', bg: 'var(--c-cyan)', delta: 8, up: true },
 ])
 </script>
@@ -38,7 +38,7 @@ const kpis = computed(() => [
           <span v-if="k.delta !== null" class="kpi-delta" :class="k.up ? 'up' : 'down'">
             <app-icon :name="k.up ? 'trend' : 'chevronD'" :size="13" :stroke="2.2" /> {{ Math.abs(k.delta) }}%
           </span>
-          <span v-else class="kpi-delta up" style="background:var(--oj-primary-wash); color:var(--oj-primary)">
+          <span v-else class="kpi-delta">
             <app-icon name="clock" :size="13" /> {{ k.sub }}
           </span>
         </div>
@@ -56,7 +56,7 @@ const kpis = computed(() => [
             <div class="ch-sub">{{ t('overview.revenueTrendSub') }}</div>
           </div>
           <div class="chart-legend">
-            <span class="lg"><i style="background:var(--c-violet)"></i>{{ t('overview.netRevenue') }}</span>
+            <span class="lg"><i style="background:var(--c-pink)"></i>{{ t('overview.netRevenue') }}</span>
           </div>
         </div>
         <trend-chart :data="revenue.monthly" :height="232" />
@@ -71,14 +71,14 @@ const kpis = computed(() => [
             <span class="bv">{{ F.money(c.value) }}</span>
           </div>
         </div>
-        <div style="margin-top:22px; padding-top:18px; border-top:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <div style="margin-top:22px; padding-top:18px; border-top:2px dashed var(--border); display:flex; align-items:center; justify-content:space-between;">
           <div>
             <div class="kpi-label" style="margin:0">{{ t('overview.convRate') }}</div>
-            <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ g.convRate }}%</div>
+            <div style="font-family:var(--oj-display); font-weight:700; font-size:24px;">{{ g.convRate }}%</div>
           </div>
           <div style="text-align:right;">
             <div class="kpi-label" style="margin:0">{{ t('overview.followers') }}</div>
-            <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ F.compact(me.followers) }}</div>
+            <div style="font-family:var(--oj-display); font-weight:700; font-size:24px;">{{ F.compact(me.followers) }}</div>
           </div>
         </div>
       </div>
@@ -89,7 +89,7 @@ const kpis = computed(() => [
       <div class="card-pad">
         <div class="card-head">
           <h3>{{ t('overview.topProducts') }}</h3>
-          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('products')">{{ t('overview.viewAll') }} <app-icon name="chevron" :size="13" /></button>
+          <button class="ch-link" @click="store.go('products')">{{ t('overview.viewAll') }} <app-icon name="arrowRight" :size="13" :stroke="2.6" /></button>
         </div>
         <div class="list-rows">
           <div v-for="(p,i) in g.topProducts" :key="p.id" class="lrow">
@@ -110,7 +110,7 @@ const kpis = computed(() => [
       <div class="card-pad">
         <div class="card-head">
           <h3>{{ t('overview.recentOrders') }}</h3>
-          <button class="link-btn" style="color:var(--oj-primary)" @click="store.go('orders')">{{ t('overview.viewAll') }} <app-icon name="chevron" :size="13" /></button>
+          <button class="ch-link" @click="store.go('orders')">{{ t('overview.viewAll') }} <app-icon name="arrowRight" :size="13" :stroke="2.6" /></button>
         </div>
         <div class="list-rows">
           <div v-for="o in g.recentOrders" :key="o.id" class="lrow">

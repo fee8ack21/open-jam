@@ -238,23 +238,12 @@ onMounted(store.load)
 <style scoped>
 /* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
 .list-filter {
-  padding: 16px 18px;
-  border-bottom: 1.5px solid var(--border);
+  padding: 18px 20px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--bg);
 }
 
-.list-filter :deep(.n-input),
-.list-filter :deep(.n-input-wrapper),
-.list-filter :deep(.n-base-selection),
-.list-filter :deep(.n-base-selection-label) {
-  border-radius: 10px;
-}
 
-.list-filter :deep(.n-input__border),
-.list-filter :deep(.n-input__state-border),
-.list-filter :deep(.n-base-selection__border),
-.list-filter :deep(.n-base-selection__state-border) {
-  border-radius: 10px;
-}
 
 /* 篩選列：兩組各佔一半，單行並排（共四欄平均分布），不足時整組換行成最多兩行 */
 .filter-bar {
@@ -281,20 +270,19 @@ onMounted(store.load)
 }
 
 .fb-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
 }
 
 /* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
 .fb-search-btn {
-  height: 42px;
-  border-radius: 10px;
+  height: 40px;
 }
 
 .store-table-wrap {
   overflow-x: auto;
-  padding: 8px 8px 4px;
+  padding: 0 10px;
 }
 
 .store-table {
@@ -304,7 +292,7 @@ onMounted(store.load)
 .history-pager {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 8px;
+  padding: 14px 20px;
 }
 
 .store-table thead th {
@@ -315,17 +303,11 @@ onMounted(store.load)
 
 .store-table-card {
   padding: 0;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   overflow: hidden;
 }
 
-.store-table thead th + th {
-  border-left: 1.5px solid var(--border);
-}
 
-.store-table tbody td + td {
-  border-left: 1.5px solid var(--border);
-}
 
 .store-mono {
   font-family: var(--oj-mono);
@@ -346,7 +328,7 @@ onMounted(store.load)
 }
 
 .store-name-button:hover {
-  color: var(--c-pink);
+  color: var(--c-pink-deep);
 }
 
 .store-closed-hint {

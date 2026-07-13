@@ -9,7 +9,8 @@ const props = withDefaults(defineProps<{
   stroke?: number
 }>(), {
   size: 20,
-  stroke: 1.8,
+  // v3 設計稿線條 icon 筆觸較粗（2.1）
+  stroke: 2.1,
 })
 
 const d = computed(() => ICON_PATHS[props.name ?? ''] || '')

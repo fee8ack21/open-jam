@@ -137,7 +137,7 @@ export const TAGS: Record<string, string[]> = {
 
 // ---- the signed-in creator ----
 export const ME: Creator = {
-  name: 'Mira Chen', storeName: 'Mira Studio', handle: '@mira.studio', avatar: '#6c4cf1',
+  name: 'Mira Chen', storeName: 'Mira Studio', handle: '@mira.studio', avatar: '#8a5cf6',
   bio: '視覺設計師與攝影創作者，分享可商用的素材與模板。',
   email: 'mira@studiomail.co',
   joined: '2024-03',
@@ -149,7 +149,7 @@ export const MY_PRODUCTS: Product[] = [
   {
     id: 'm01', cat: 'photo', hue: 256, status: 'live',
     title: '城市清晨・極簡建築攝影集 40 張',
-    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
+    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#8a5cf6',
     price: 26, rating: 4.9, ratingCount: 184, sales: 612, revenue: 15912, views: 8420,
     tags: ['風景', '旅行'], formats: ['JPG 4K', 'Lightroom 預設'], totalSize: '1.1 GB',
     created: '2025-11-02', updated: '2026-05-18',
@@ -162,7 +162,7 @@ export const MY_PRODUCTS: Product[] = [
   {
     id: 'm02', cat: 'ebook', hue: 168, status: 'live',
     title: '設計師的字體搭配速查手冊',
-    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
+    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#8a5cf6',
     price: 14, rating: 4.8, ratingCount: 246, sales: 1240, revenue: 17360, views: 12030,
     tags: ['設計', '生產力'], formats: ['PDF', 'Figma 範本'], totalSize: '58 MB',
     created: '2025-08-14', updated: '2026-04-30',
@@ -175,7 +175,7 @@ export const MY_PRODUCTS: Product[] = [
   {
     id: 'm03', cat: 'photo', hue: 320, status: 'live',
     title: '霓虹夜景・去背 PNG 素材庫',
-    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
+    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#8a5cf6',
     price: 19, rating: 4.7, ratingCount: 92, sales: 308, revenue: 5852, views: 4110,
     tags: ['街拍', '微距'], formats: ['PNG 去背', 'JPG'], totalSize: '740 MB',
     created: '2026-01-09', updated: '2026-05-02',
@@ -188,7 +188,7 @@ export const MY_PRODUCTS: Product[] = [
   {
     id: 'm04', cat: 'ebook', hue: 44, status: 'draft',
     title: '攝影後製・色彩分級工作流程（草稿）',
-    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
+    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#8a5cf6',
     price: 22, rating: 0, ratingCount: 0, sales: 0, revenue: 0, views: 0,
     tags: ['攝影教學', '設計'], formats: ['PDF', '影片連結'], totalSize: '— ',
     created: '2026-05-21', updated: '2026-05-26',
@@ -200,7 +200,7 @@ export const MY_PRODUCTS: Product[] = [
   {
     id: 'm05', cat: 'music', hue: 198, status: 'review',
     title: '環境氛圍配樂・專注工作 8 段',
-    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
+    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#8a5cf6',
     price: 28, rating: 0, ratingCount: 0, sales: 0, revenue: 0, views: 0,
     tags: ['配樂', '電子'], formats: ['WAV', 'MP3'], totalSize: '520 MB',
     created: '2026-05-24', updated: '2026-05-28',
@@ -213,7 +213,7 @@ export const MY_PRODUCTS: Product[] = [
   {
     id: 'm06', cat: 'photo', hue: 142, status: 'off',
     title: '舊版・森林系桌布包 2024',
-    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#6c4cf1',
+    creator: 'Mira Chen', handle: '@mira.studio', avatar: '#8a5cf6',
     price: 9, rating: 4.5, ratingCount: 60, sales: 410, revenue: 3690, views: 6200,
     tags: ['風景', '旅行'], formats: ['JPG 4K'], totalSize: '320 MB',
     created: '2024-10-01', updated: '2025-12-11',

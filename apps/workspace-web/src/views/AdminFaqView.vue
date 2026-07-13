@@ -294,18 +294,16 @@ onMounted(() => { loadCategories(); load() })
 <style scoped>
 .faq-table-card {
   padding: 0;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   overflow: hidden;
 }
 
 .list-filter {
-  padding: 16px 18px;
-  border-bottom: 1.5px solid var(--border);
+  padding: 18px 20px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--bg);
 }
 
-.list-filter :deep(.n-base-selection) {
-  border-radius: 10px;
-}
 
 .filter-bar {
   display: flex;
@@ -330,14 +328,14 @@ onMounted(() => { loadCategories(); load() })
 }
 
 .fb-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
 }
 
 .faq-table-wrap {
   overflow-x: auto;
-  padding: 8px 8px 4px;
+  padding: 0 10px;
 }
 
 .faq-table {
@@ -350,13 +348,7 @@ onMounted(() => { loadCategories(); load() })
   vertical-align: middle;
 }
 
-.faq-table thead th + th {
-  border-left: 1.5px solid var(--border);
-}
 
-.faq-table tbody td + td {
-  border-left: 1.5px solid var(--border);
-}
 
 .faq-q-cell {
   white-space: normal;
@@ -371,6 +363,6 @@ onMounted(() => { loadCategories(); load() })
 .history-pager {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 8px;
+  padding: 14px 20px;
 }
 </style>

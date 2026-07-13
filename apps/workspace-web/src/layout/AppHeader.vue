@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import NotificationBell from '@/components/NotificationBell.vue'
-import { ME as me } from '@/data/products'
 import { env } from '@/environment'
 import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n'
 
@@ -30,6 +29,10 @@ const pageTitle = computed(() => {
 const accountEmail = computed(() => authStore.userEmail ?? '')
 /** 頭像字母：信箱首字母大寫。 */
 const avatarText = computed(() => (accountEmail.value.charAt(0) || '?').toUpperCase())
+/** 使用者膠囊顯示名：信箱 @ 前段（設計稿 topbar user pill）。 */
+const accountName = computed(() => accountEmail.value.split('@')[0] || '')
+/** 管理員顯示 ADMIN 黃籤（設計稿 topbar）。 */
+const isAdmin = computed(() => authStore.isAdmin)
 
 let outside: ((e: MouseEvent) => void) | null = null
 onMounted(() => {
@@ -52,6 +55,7 @@ function goToMarket() { window.location.href = env.PORTAL_PAGE_URL }
       <app-icon name="menu" :size="22" />
     </button>
     <h2 class="tb-title">{{ pageTitle }}</h2>
+    <span v-if="isAdmin" class="tb-badge">ADMIN</span>
 
     <div class="tb-spacer"></div>
 
@@ -66,13 +70,14 @@ function goToMarket() { window.location.href = env.PORTAL_PAGE_URL }
       </button>
       <NotificationBell />
       <div class="user-menu">
-        <button class="icon-btn user-trigger" :class="{ on: userMenuOpen }" @click="userMenuOpen = !userMenuOpen" :title="t('header.menu')">
-          <app-icon name="menu" :size="20" />
+        <button class="user-trigger" :class="{ on: userMenuOpen }" @click="userMenuOpen = !userMenuOpen" :title="t('header.menu')">
+          <span class="avatar">{{ avatarText }}</span>
+          <span class="ut-name">{{ accountName }}</span>
         </button>
         <transition name="um">
           <div v-if="userMenuOpen" class="user-pop">
             <div class="um-head">
-              <span class="avatar" :style="{ background: me.avatar }">{{ avatarText }}</span>
+              <span class="avatar" style="background: var(--c-violet)">{{ avatarText }}</span>
               <div v-if="accountEmail" class="um-email" :title="accountEmail">{{ accountEmail }}</div>
             </div>
             <div class="um-sep"></div>

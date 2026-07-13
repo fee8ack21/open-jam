@@ -102,7 +102,7 @@ onMounted(store.load)
         <!-- 審核中的申請 -->
         <div v-else-if="hasPending && latestApplication" class="card-pad applications-card">
           <div style="display:flex; align-items:center; gap:14px;">
-            <span class="kpi-ic" style="background:var(--c-amber, #f0a020)"><app-icon name="receipt" :size="20" /></span>
+            <span class="kpi-ic" style="background:var(--c-yellow)"><app-icon name="receipt" :size="20" /></span>
             <div style="flex:1;">
               <div style="display:flex; align-items:center; gap:10px;">
                 <div style="font-weight:700; font-size:15px;">{{ latestApplication.storeName }}</div>
@@ -146,7 +146,7 @@ onMounted(store.load)
                   <template #suffix><span style="color:var(--text-faint)">.openjam.co</span></template>
                 </n-input>
                 <div style="font-size:11.5px; margin-top:6px; font-family:var(--oj-mono);"
-                     :style="{ color: form.storeSlug && !slugValid ? 'var(--c-rose, #d03050)' : 'var(--text-faint)' }">
+                     :style="{ color: form.storeSlug && !slugValid ? 'var(--c-pink-deep)' : 'var(--text-faint)' }">
                   {{ t('openStore.slugHint') }}
                 </div>
               </div>
@@ -165,9 +165,9 @@ onMounted(store.load)
         <div v-if="applications.length" class="card-pad applications-card">
           <div style="font-weight:700; font-size:14px; margin-bottom:12px;">{{ t('openStore.historyTitle') }}</div>
           <div v-for="(a, i) in applications" :key="a.id"
-               :style="`display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:${i === applications.length - 1 ? 'none' : '1.5px solid var(--border)'};`">
+               :style="`display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:${i === applications.length - 1 ? 'none' : '2px dashed var(--border)'};`">
             <div style="flex:1;">
-              <div style="font-weight:600; font-size:14px;">{{ a.storeName }}</div>
+              <div style="font-weight:700; font-size:14px;">{{ a.storeName }}</div>
               <div style="font-family:var(--oj-mono); font-size:12px; color:var(--text-faint); margin-top:2px;">
                 {{ a.storeSlug }}.openjam.co · {{ fmtDate(a.createdAt) }}
               </div>
@@ -182,8 +182,8 @@ onMounted(store.load)
 </template>
 
 <style scoped>
-/* 開店頁所有卡片（狀態區塊與申請紀錄）圓角統一 10px，對齊 admin 頁面 */
+/* 開店頁所有卡片（狀態區塊與申請紀錄）圓角統一，對齊其他頁卡片 */
 .applications-card {
-  border-radius: 10px;
+  border-radius: var(--r-lg);
 }
 </style>

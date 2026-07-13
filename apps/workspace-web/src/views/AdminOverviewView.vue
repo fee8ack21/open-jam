@@ -21,7 +21,7 @@ const kpis = computed(() => [
     label: t('adminOverview.kpiStores'),
     val: stats.totalStores.toLocaleString('en-US'),
     ic: 'home',
-    bg: 'var(--c-violet)',
+    bg: 'var(--c-pink)',
     sub: t('adminOverview.kpiStoresSub', { count: stats.activeStores }),
     delta: null as number | null,
   },
@@ -30,7 +30,7 @@ const kpis = computed(() => [
     label: t('adminOverview.kpiProducts'),
     val: stats.totalProducts.toLocaleString('en-US'),
     ic: 'box',
-    bg: 'var(--c-pink)',
+    bg: 'var(--c-yellow)',
     sub: t('adminOverview.kpiProductsSub', { count: stats.newProductsThisMonth }),
     delta: null,
   },
@@ -39,7 +39,7 @@ const kpis = computed(() => [
     label: t('adminOverview.kpiRevenue'),
     val: F.money(stats.monthRevenue),
     ic: 'wallet',
-    bg: 'var(--c-orange)',
+    bg: 'var(--c-lime)',
     delta: stats.monthDelta,
     up: stats.monthDelta >= 0,
   },
@@ -71,7 +71,7 @@ onMounted(() => {
           <span v-if="k.delta !== null" class="kpi-delta" :class="k.up ? 'up' : 'down'">
             <app-icon :name="k.up ? 'trend' : 'chevronD'" :size="13" :stroke="2.2" /> {{ Math.abs(k.delta) }}%
           </span>
-          <span v-else class="kpi-delta up" style="background:var(--oj-primary-wash); color:var(--oj-primary)">
+          <span v-else class="kpi-delta">
             {{ k.sub }}
           </span>
         </div>
@@ -89,7 +89,7 @@ onMounted(() => {
             <div class="ch-sub">{{ t('adminOverview.revenueTrendSub') }}</div>
           </div>
           <div class="chart-legend">
-            <span class="lg"><i style="background:var(--c-violet)"></i>{{ t('adminOverview.transactionAmount') }}</span>
+            <span class="lg"><i style="background:var(--c-pink)"></i>{{ t('adminOverview.transactionAmount') }}</span>
           </div>
         </div>
         <trend-chart :data="monthly" :height="232" />
@@ -104,14 +104,14 @@ onMounted(() => {
             <span class="bv">{{ F.money(c.value) }}</span>
           </div>
         </div>
-        <div style="margin-top:22px; padding-top:18px; border-top:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <div style="margin-top:22px; padding-top:18px; border-top:2px dashed var(--border); display:flex; align-items:center; justify-content:space-between;">
           <div>
             <div class="kpi-label" style="margin:0">{{ t('adminOverview.newStores') }}</div>
-            <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ stats.newStoresThisMonth }}</div>
+            <div style="font-family:var(--oj-display); font-weight:700; font-size:24px;">{{ stats.newStoresThisMonth }}</div>
           </div>
           <div style="text-align:right;">
             <div class="kpi-label" style="margin:0">{{ t('adminOverview.activeStores') }}</div>
-            <div style="font-family:var(--oj-display); font-weight:800; font-size:24px; letter-spacing:-.6px;">{{ stats.activeStores }}</div>
+            <div style="font-family:var(--oj-display); font-weight:700; font-size:24px;">{{ stats.activeStores }}</div>
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@ onMounted(() => {
     <div class="card-pad">
       <div class="card-head">
         <h3>{{ t('adminOverview.pendingTitle') }}</h3>
-        <button class="link-btn" style="color:var(--oj-primary)" @click="dashboard.go('review')">{{ t('adminOverview.goReview') }} <app-icon name="chevron" :size="13" /></button>
+        <button class="ch-link" @click="dashboard.go('review')">{{ t('adminOverview.goReview') }} <app-icon name="arrowRight" :size="13" :stroke="2.6" /></button>
       </div>
       <div v-if="review.pendingCount" class="list-rows">
         <div v-for="a in review.items" :key="a.id" class="lrow">
@@ -138,6 +138,7 @@ onMounted(() => {
       <div v-else class="empty-box">
         <div class="eb-ic"><app-icon name="shield" :size="30" /></div>
         <div class="eb-t">{{ t('adminOverview.pendingEmpty') }}</div>
+        <div class="eb-hand">all clear, nice work!</div>
       </div>
     </div>
   </div>

@@ -102,9 +102,10 @@ async function changePageSize(size: number) { page.value = 1; await catalog.setP
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleDateString(locale.value) : '—'
 }
+const COVER_PASTELS = ['#dff5d3', '#e4f6ff', '#ffe3f6', '#fff3c4', '#ede6ff']
 function coverStyle(hue?: number) {
-  const h = hue ?? 256
-  return { background: `linear-gradient(135deg, hsl(${h} 88% 62%), hsl(${(h + 42) % 360} 90% 54%))` }
+  const n = Math.abs(hue ?? 256)
+  return { background: COVER_PASTELS[n % COVER_PASTELS.length] }
 }
 // 只有 Published / Archived 可用開關切換上下架；Draft 需先補版本後於精靈上架，Suspended 僅 Admin 可解
 function canToggle(p: CatalogSummaryDto) {
@@ -288,23 +289,12 @@ onMounted(load)
 <style scoped>
 /* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
 .list-filter {
-  padding: 16px 18px;
-  border-bottom: 1.5px solid var(--border);
+  padding: 18px 20px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--bg);
 }
 
-.list-filter :deep(.n-date-picker),
-.list-filter :deep(.n-input),
-.list-filter :deep(.n-input-wrapper),
-.list-filter :deep(.n-base-selection),
-.list-filter :deep(.n-base-selection__border),
-.list-filter :deep(.n-base-selection__state-border) {
-  border-radius: 10px;
-}
 
-.list-filter :deep(.n-input__border),
-.list-filter :deep(.n-input__state-border) {
-  border-radius: 10px;
-}
 
 /* 篩選列：兩組各佔一半，單行並排（共四欄平均分布），不足時整組換行成最多兩行 */
 .filter-bar {
@@ -331,32 +321,31 @@ onMounted(load)
 }
 
 .fb-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
 }
 
 /* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
 .fb-search-btn {
-  height: 42px;
-  border-radius: 10px;
+  height: 40px;
 }
 
 .history-table-card {
   padding: 0;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   overflow: hidden;
 }
 
 .history-pager {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 8px;
+  padding: 14px 20px;
 }
 
 .history-table-wrap {
   overflow-x: auto;
-  padding: 8px 8px 4px;
+  padding: 0 10px;
 }
 
 .history-table {
@@ -369,13 +358,7 @@ onMounted(load)
   vertical-align: middle;
 }
 
-.history-table thead th + th {
-  border-left: 1.5px solid var(--border);
-}
 
-.history-table tbody td + td {
-  border-left: 1.5px solid var(--border);
-}
 
 .history-mono {
   font-family: var(--oj-mono);
@@ -386,6 +369,7 @@ onMounted(load)
   width: 42px;
   height: 42px;
   border-radius: 10px;
+  border: 2px solid var(--border-strong);
   flex: none;
   overflow: hidden;
   display: grid;
@@ -397,12 +381,11 @@ onMounted(load)
   object-fit: cover;
 }
 
-/* 店長精選：亮起的星星以品牌強調色 */
-.ic-act.is-featured {
-  color: var(--c-amber, #f5a623);
-}
+/* 店長精選：亮起的星星 = 黃底貼紙 */
+.ic-act.is-featured,
 .ic-act.is-featured:hover {
-  color: var(--c-amber, #f5a623);
+  background: var(--c-yellow);
+  color: var(--text);
 }
 
 /* 店長精選排序清單 */
@@ -419,7 +402,7 @@ onMounted(load)
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border: 1.5px solid var(--border);
+  border: 2px solid var(--border-strong);
   border-radius: 10px;
 }
 .feat-idx {
@@ -435,7 +418,7 @@ onMounted(load)
   flex: 1 1 auto;
   min-width: 0;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

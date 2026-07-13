@@ -57,12 +57,6 @@ const gridLines = computed(() => {
   <div class="chart-wrap">
     <svg class="chart-svg" :viewBox="'0 0 ' + W + ' ' + H" preserveAspectRatio="xMidYMid meet"
          @mouseleave="hover = -1">
-      <defs>
-        <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--c-violet)" stop-opacity="0.32" />
-          <stop offset="100%" stop-color="var(--c-violet)" stop-opacity="0.02" />
-        </linearGradient>
-      </defs>
       <g class="chart-grid">
         <line v-for="(g,i) in gridLines" :key="i" :x1="g.x1" :y1="g.y" :x2="g.x2" :y2="g.y" />
       </g>
@@ -73,12 +67,12 @@ const gridLines = computed(() => {
         <text class="chart-axis" :x="p.x" :y="H - 9" text-anchor="middle">{{ p.d.label }}</text>
         <rect :x="p.x - (W/data.length)/2" y="0" :width="W/data.length" :height="H - pad.b" fill="transparent"
               @mouseenter="hover = i" style="cursor:crosshair" />
-        <circle class="chart-dot" :class="{ hot: hover === i }" :cx="p.x" :cy="p.y" :r="hover === i ? 6 : 4" />
+        <circle class="chart-dot" :class="{ hot: hover === i }" :cx="p.x" :cy="p.y" :r="hover === i ? 6.5 : 5.5" />
         <g v-if="hover === i">
           <line :x1="p.x" :y1="p.y" :x2="p.x" :y2="H - pad.b" stroke="var(--c-pink)" stroke-width="1.5" stroke-dasharray="3 4" />
           <g :transform="'translate(' + Math.min(Math.max(p.x, 54), W - 54) + ',' + Math.max(p.y - 16, 18) + ')'">
-            <rect x="-46" y="-26" width="92" height="26" rx="8" fill="var(--text)" />
-            <text x="0" y="-8" text-anchor="middle" fill="var(--surface)" font-family="var(--oj-mono)" font-size="12.5" font-weight="600">{{ fmt(p.d.value) }}</text>
+            <rect x="-46" y="-26" width="92" height="26" rx="13" fill="var(--text)" />
+            <text x="0" y="-8" text-anchor="middle" fill="var(--c-yellow)" font-family="var(--oj-display)" font-size="12.5" font-weight="700">{{ fmt(p.d.value) }}</text>
           </g>
         </g>
       </g>

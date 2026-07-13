@@ -74,7 +74,7 @@ onMounted(store.load)
       <div v-for="k in kpis" :key="k.key" class="kpi">
         <div class="kpi-top">
           <div class="kpi-ic" :style="{ background: k.bg }"><app-icon :name="k.ic" :size="20" /></div>
-          <span class="kpi-delta up" style="background:var(--oj-primary-wash); color:var(--oj-primary)">
+          <span class="kpi-delta">
             {{ k.sub }}
           </span>
         </div>
@@ -142,7 +142,7 @@ onMounted(store.load)
   height: 16px;
   border-radius: 999px;
   background: var(--surface-2);
-  border: 1.5px solid var(--border);
+  border: 2px solid var(--border-strong);
   overflow: hidden;
   margin: 6px 0 14px;
 }
@@ -150,24 +150,23 @@ onMounted(store.load)
 .usage-fill {
   display: block;
   height: 100%;
-  border-radius: 999px;
   background: var(--c-violet);
+  border-right: 2px solid var(--border-strong);
   transition: width 0.4s ease;
 }
 
 .usage-fill.warn {
-  background: var(--c-orange);
+  background: var(--c-pink);
 }
 
 .usage-pct {
   font-family: var(--oj-display);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 22px;
-  letter-spacing: -0.6px;
 }
 
 .usage-pct.warn {
-  color: var(--c-orange);
+  color: var(--c-pink-deep);
 }
 
 .usage-legend {
@@ -181,7 +180,7 @@ onMounted(store.load)
   align-items: center;
   gap: 7px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-soft);
 }
 
@@ -189,15 +188,16 @@ onMounted(store.load)
   width: 11px;
   height: 11px;
   border-radius: 4px;
+  border: 2px solid var(--border-strong);
   flex: none;
 }
 
 .store-files-note {
   margin-top: 18px;
   padding-top: 16px;
-  border-top: 1.5px solid var(--border);
+  border-top: 2px dashed var(--border);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-soft);
 }
 

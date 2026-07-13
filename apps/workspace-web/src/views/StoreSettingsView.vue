@@ -155,7 +155,7 @@ async function onSave() {
 </template>
 
 <style scoped>
-.set-card { border-radius: 10px; }
+.set-card { border-radius: var(--r-lg); }
 
 /* 橫幅 */
 .banner {
@@ -164,14 +164,16 @@ async function onSave() {
   border-radius: var(--r-md);
   background-size: cover;
   background-position: center;
-  background-color: var(--oj-primary-wash, #efeaff);
-  border: 1.5px solid var(--border);
+  background-color: var(--t-violet);
+  border: 2px solid var(--border-strong);
   cursor: pointer;
   overflow: hidden;
   transition: filter .15s;
 }
 .banner.empty {
-  background-image: linear-gradient(135deg, hsl(256 88% 64%), hsl(298 90% 56%));
+  background-color: var(--t-violet);
+  background-image: radial-gradient(rgba(26,26,26,0.08) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
   border-style: dashed;
 }
 .banner:hover { filter: brightness(.94); }
@@ -181,10 +183,9 @@ async function onSave() {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, .55);
-  color: #fff;
-  font-size: 12.5px; font-weight: 600;
-  backdrop-filter: blur(2px);
+  background: var(--text);
+  color: var(--c-yellow);
+  font-size: 12.5px; font-weight: 900;
 }
 
 /* 頭像 + 名稱列 */
@@ -206,25 +207,25 @@ async function onSave() {
   border-radius: 50%;
   background-size: cover;
   background-position: center;
-  border: 3px solid var(--surface);
-  box-shadow: var(--shadow);
+  border: 2px solid var(--border-strong);
+  box-shadow: var(--pop-1);
   display: grid; place-items: center;
-  background-color: var(--c-violet, #6c4cf1);
+  background-color: var(--c-violet);
   transition: filter .15s;
 }
 .st-avatar:hover { filter: brightness(.93); }
-.st-avatar-initials { color: #fff; font-weight: 800; font-size: 26px; font-family: var(--oj-display); }
+.st-avatar-initials { color: #fff; font-weight: 700; font-size: 26px; font-family: var(--oj-display); }
 .st-avatar-cam {
   position: absolute;
   right: -2px; bottom: -2px;
   width: 28px; height: 28px;
   border-radius: 50%;
-  background: var(--oj-primary, #5639d6);
-  color: #fff;
+  background: var(--c-yellow);
+  color: var(--text);
   display: grid; place-items: center;
-  border: 2.5px solid var(--surface);
+  border: 2px solid var(--border-strong);
 }
 .identity-meta { flex: 1; padding-top: 30px; }
-.store-name { font-family: var(--oj-display); font-weight: 700; font-size: 17px; }
+.store-name { font-family: var(--oj-font); font-weight: 900; font-size: 17px; }
 .store-slug { font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint); margin-top: 2px; }
 </style>

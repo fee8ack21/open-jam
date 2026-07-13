@@ -213,24 +213,15 @@ onMounted(store.load)
 /* 單一卡片：外框由 .card-pad 提供，內距歸零由內部區段各自管理 */
 .review-card {
   padding: 0;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   overflow: hidden;
 }
 
 /* 篩選區段：卡片頂部，底部整寬分隔線與表格分開 */
 .review-filter {
-  padding: 16px 18px;
-  border-bottom: 1.5px solid var(--border);
-}
-
-.review-filter :deep(.n-input),
-.review-filter :deep(.n-input-wrapper) {
-  border-radius: 10px;
-}
-
-.review-filter :deep(.n-input__border),
-.review-filter :deep(.n-input__state-border) {
-  border-radius: 10px;
+  padding: 18px 20px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--bg);
 }
 
 /* 篩選列：僅單一關鍵字欄位，靠右對齊、不滿版 */
@@ -258,8 +249,7 @@ onMounted(store.load)
 
 /* 搜尋按鈕與輸入框同高、同圓角（Input heightMedium 於 App.vue 覆寫為 42px） */
 .fb-search-btn {
-  height: 42px;
-  border-radius: 10px;
+  height: 40px;
 }
 
 /* 欄位：標籤在上、控制項在下，撐滿配置的 flex 寬度 */
@@ -271,14 +261,14 @@ onMounted(store.load)
 }
 
 .fb-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
 }
 
 .review-table-wrap {
   overflow-x: auto;
-  padding: 8px 8px 4px;
+  padding: 0 10px;
 }
 
 .review-table {
@@ -288,7 +278,7 @@ onMounted(store.load)
 .history-pager {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 8px;
+  padding: 14px 20px;
 }
 
 .review-table thead th {
@@ -297,25 +287,21 @@ onMounted(store.load)
   vertical-align: middle;
 }
 
-.review-table thead th + th {
-  border-left: 1.5px solid var(--border);
-}
 
-.review-table tbody td + td {
-  border-left: 1.5px solid var(--border);
-}
 
 .review-rank {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 2px solid var(--border-strong);
   display: grid;
   place-items: center;
   flex: none;
-  background: var(--oj-primary-wash);
-  color: var(--oj-primary);
+  background: var(--t-violet);
+  color: var(--text);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
+  transform: rotate(-2deg);
 }
 
 .review-mono {

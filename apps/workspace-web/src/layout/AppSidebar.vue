@@ -76,28 +76,20 @@ function isActive(view: string) { return route.name === view }
 /** 應用程式版本號（Vite build 時由 package.json 的 version 注入），顯示於選單下方。 */
 const appVersion = __APP_VERSION__
 
-// 逐字拆解品牌名以套用交錯的彈跳動畫（hover 效果比照 portal-web）；空白換成 nbsp 保留字距（inline-block 下一般空白會塌陷）
-const brandLetters = [...'Open Jam'].map((ch) => (ch === ' ' ? ' ' : ch))
 </script>
 
 <template>
   <aside class="side" :class="{ 'drawer-open': open }">
+    <!-- 果醬罐 logo（v3 設計稿，hover 罐蓋彈開） -->
     <div class="side-brand" @click="nav('overview')">
-      <span class="brand-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M15 16.4V4.5c3.7 1 5 3.9 2 6.8" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
-          <ellipse cx="10.4" cy="16.8" rx="4.7" ry="3.5" fill="#fff" transform="rotate(-22 10.4 16.8)"></ellipse>
-        </svg>
-      </span>
-      <span class="brand-name"
-        ><span
-          v-for="(ch, i) in brandLetters"
-          :key="i"
-          class="brand-letter"
-          :style="{ '--i': i }"
-          >{{ ch }}</span
-        ><small>Workspace</small></span
-      >
+      <svg class="brand-jar" width="34" height="38" viewBox="0 0 48 54" aria-hidden="true">
+        <rect class="oj-lid" x="10" y="3" width="28" height="9" rx="4" fill="#FFDE00" stroke="#1A1A1A" stroke-width="2.5"></rect>
+        <rect x="7" y="12" width="34" height="38" rx="11" fill="#FF90E8" stroke="#1A1A1A" stroke-width="2.5"></rect>
+        <path d="M12 13 h24 v3 c-2.5 3.5 -5.5 -1 -8.5 2.5 c-3 3.5 -6 -2 -9 1 c-2.8 2.8 -5.5 -0.5 -6.5 -1.5 z" fill="#D6479B" stroke="#1A1A1A" stroke-width="2"></path>
+        <rect x="12" y="25" width="24" height="16" rx="5" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="2"></rect>
+        <text x="24" y="37.5" text-anchor="middle" font-family="'Space Grotesk','Noto Sans TC',sans-serif" font-weight="700" font-size="12.5" fill="#1A1A1A">OJ</text>
+      </svg>
+      <span class="brand-name">Open Jam<small>Workspace</small></span>
     </div>
 
     <div v-if="isReady && !isAdmin" class="mode-switch">

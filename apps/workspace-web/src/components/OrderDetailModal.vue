@@ -110,7 +110,7 @@ function shortId(v?: string | null) {
 .od-error {
   padding: 24px;
   text-align: center;
-  color: var(--c-red, #e5484d);
+  color: var(--c-pink-deep);
 }
 
 .od-dl {
@@ -130,7 +130,7 @@ function shortId(v?: string | null) {
 .od-dl dt {
   font-size: 11.5px;
   color: var(--text-faint);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .od-dl dd {
@@ -151,7 +151,7 @@ function shortId(v?: string | null) {
 .od-section-label {
   font-size: 11.5px;
   color: var(--text-faint);
-  font-weight: 600;
+  font-weight: 700;
   margin: 4px 0 6px;
 }
 
@@ -192,13 +192,14 @@ function shortId(v?: string | null) {
   height: 10px;
   border-radius: 50%;
   margin-top: 5px;
-  background: var(--text-faint);
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
 }
 
-.tl-success { background: var(--c-green, #30a46c); }
-.tl-info { background: var(--c-blue, #0091ff); }
-.tl-warning { background: var(--c-amber, #f5a623); }
-.tl-error { background: var(--c-red, #e5484d); }
+.tl-success { background: var(--c-lime); }
+.tl-info { background: var(--c-cyan); }
+.tl-warning { background: var(--c-yellow); }
+.tl-error { background: var(--c-pink-deep); }
 
 .od-tl-head {
   display: flex;

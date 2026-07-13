@@ -12,24 +12,55 @@ const authStore = useAuthStore()
 
 const drawerOpen = ref(false)
 
+/* v3 果醬罐色系：primary 按鈕黃底墨線、danger 深粉、圓角膠囊 */
+const ink = '#1a1a1a'
+const inkBorder = `2px solid ${ink}`
 const overrides = {
   common: {
-    primaryColor: '#5639d6', primaryColorHover: '#7a63ee',
-    primaryColorPressed: '#4a30bd', primaryColorSuppl: '#7a63ee',
-    borderRadius: '12px', borderRadiusSmall: '9px',
-    fontFamily: "'Space Grotesk', 'Noto Sans TC', sans-serif",
-    fontWeightStrong: '700',
+    primaryColor: '#8a5cf6', primaryColorHover: '#a685ff',
+    primaryColorPressed: '#7a4ee0', primaryColorSuppl: '#a685ff',
+    errorColor: '#d6479b', errorColorHover: '#e05aac', errorColorPressed: '#c23a8b',
+    borderRadius: '14px', borderRadiusSmall: '10px',
+    textColorBase: ink, fontFamily: "'Noto Sans TC', sans-serif",
+    fontWeightStrong: '900',
   },
-  Button: { fontWeight: '700' },
-  Input: { borderRadius: '12px', heightMedium: '42px', heightLarge: '46px', caretColor: '#6c4cf1' },
-  InternalSelection: { borderRadius: '12px', heightMedium: '42px' },
-  Switch: { railColorActive: '#5639d6' },
+  Button: {
+    fontWeight: '900',
+    borderRadiusTiny: '999px', borderRadiusSmall: '999px', borderRadiusMedium: '999px', borderRadiusLarge: '999px',
+    // default（白底墨線、hover 黃）
+    color: '#ffffff', colorHover: '#ffde00', colorPressed: '#f2d300', colorFocus: '#ffffff',
+    textColor: ink, textColorHover: ink, textColorPressed: ink, textColorFocus: ink,
+    border: inkBorder, borderHover: inkBorder, borderPressed: inkBorder, borderFocus: inkBorder,
+    // primary（黃底墨線，硬底影在 base.css）
+    colorPrimary: '#ffde00', colorHoverPrimary: '#ffde00', colorPressedPrimary: '#f2d300', colorFocusPrimary: '#ffde00',
+    textColorPrimary: ink, textColorHoverPrimary: ink, textColorPressedPrimary: ink, textColorFocusPrimary: ink,
+    borderPrimary: inkBorder, borderHoverPrimary: inkBorder, borderPressedPrimary: inkBorder, borderFocusPrimary: inkBorder,
+    // error（深粉底白字墨線）
+    colorError: '#d6479b', colorHoverError: '#e05aac', colorPressedError: '#c23a8b', colorFocusError: '#d6479b',
+    textColorError: '#ffffff', textColorHoverError: '#ffffff', textColorPressedError: '#ffffff', textColorFocusError: '#ffffff',
+    borderError: inkBorder, borderHoverError: inkBorder, borderPressedError: inkBorder, borderFocusError: inkBorder,
+    // disabled 維持同色（naive 以 opacityDisabled 淡化）
+    colorDisabled: '#ffffff', textColorDisabled: ink, borderDisabled: inkBorder,
+    colorDisabledPrimary: '#ffde00', textColorDisabledPrimary: ink, borderDisabledPrimary: inkBorder,
+    colorDisabledError: '#d6479b', textColorDisabledError: '#ffffff', borderDisabledError: inkBorder,
+  },
+  Tag: {
+    // 狀態膠囊：糖果底 + 墨線 + 墨字（設計稿 pill）
+    color: '#ffffff', textColor: ink, border: inkBorder,
+    colorSuccess: '#b8ff9f', textColorSuccess: ink, borderSuccess: inkBorder,
+    colorInfo: '#7dd9ff', textColorInfo: ink, borderInfo: inkBorder,
+    colorWarning: '#fff3c4', textColorWarning: ink, borderWarning: inkBorder,
+    colorError: '#ffe3f6', textColorError: '#d6479b', borderError: inkBorder,
+    colorPrimary: '#e9dfff', textColorPrimary: ink, borderPrimary: inkBorder,
+    fontWeightStrong: '900',
+  },
+  Input: { heightMedium: '40px', heightLarge: '46px', caretColor: '#8a5cf6' },
+  InternalSelection: { heightMedium: '40px' },
+  Switch: { railColorActive: ink },
+  Checkbox: { colorChecked: '#ffde00', checkMarkColor: ink, borderChecked: inkBorder, borderFocus: inkBorder },
   Popover: { borderRadius: '14px', padding: '6px' },
 }
 
-const rootClass = computed(() =>
-  ['light', 'dash-theme', 'font-' + store.font, store.density === 'compact' ? 'is-compact' : ''],
-)
 /** 是否為一般使用者：唯一擁有賣家/上架流程的角色。 */
 const canSell = computed(() => authStore.isUser)
 
@@ -45,7 +76,7 @@ watch(canSell, (can) => {
   <n-config-provider :theme="null" :theme-overrides="overrides">
   <n-message-provider>
   <n-dialog-provider>
-    <div class="oj-root" :class="rootClass">
+    <div class="oj-root">
       <div class="dash-shell">
         <app-sidebar :open="drawerOpen" @navigate="drawerOpen = false" />
 

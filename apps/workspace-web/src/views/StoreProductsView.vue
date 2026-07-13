@@ -153,13 +153,13 @@ onMounted(load)
 
 <style scoped>
 .store-table-card {
-  border-radius: 10px;
+  border-radius: var(--r-lg);
 }
 
 .history-pager {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 8px;
+  padding: 14px 20px;
 }
 
 .store-product-table thead th {
@@ -168,24 +168,8 @@ onMounted(load)
   vertical-align: middle;
 }
 
-.store-product-table thead th + th {
-  border-left: 1.5px solid var(--border);
-}
 
-.store-product-table tbody td + td {
-  border-left: 1.5px solid var(--border);
-}
 
-.store-rank {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  flex: none;
-  background: var(--oj-primary-wash);
-  color: var(--oj-primary);
-}
 
 .store-mono {
   font-family: var(--oj-mono);

@@ -20,7 +20,7 @@ const STATUS = {
   [LegalDocumentStatus.Inactive]: { labelKey: 'legalDocs.statusInactive', type: 'default' as const },
 }
 const TYPE = {
-  [LegalDocumentType.TermsOfService]: { labelKey: 'legalDocs.typeTerms', icon: 'note' },
+  [LegalDocumentType.TermsOfService]: { labelKey: 'legalDocs.typeTerms', icon: 'file' },
   [LegalDocumentType.PrivacyPolicy]:  { labelKey: 'legalDocs.typePrivacy', icon: 'shield' },
 }
 function statusOf(s?: LegalDocumentStatus) {
@@ -387,18 +387,16 @@ onMounted(load)
 <style scoped>
 .legal-table-card {
   padding: 0;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   overflow: hidden;
 }
 
 .list-filter {
-  padding: 16px 18px;
-  border-bottom: 1.5px solid var(--border);
+  padding: 18px 20px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--bg);
 }
 
-.list-filter :deep(.n-base-selection) {
-  border-radius: 10px;
-}
 
 .filter-bar {
   display: flex;
@@ -423,14 +421,14 @@ onMounted(load)
 }
 
 .fb-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
 }
 
 .legal-table-wrap {
   overflow-x: auto;
-  padding: 8px 8px 4px;
+  padding: 0 10px;
 }
 
 .legal-table {
@@ -443,13 +441,7 @@ onMounted(load)
   vertical-align: middle;
 }
 
-.legal-table thead th + th {
-  border-left: 1.5px solid var(--border);
-}
 
-.legal-table tbody td + td {
-  border-left: 1.5px solid var(--border);
-}
 
 .legal-mono {
   font-family: var(--oj-mono);
@@ -457,22 +449,24 @@ onMounted(load)
 }
 
 .doc-badge {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
+  border: 2px solid var(--border-strong);
   display: grid;
   place-items: center;
   flex: none;
-  color: #fff;
+  color: var(--text);
+  transform: rotate(-3deg);
 }
 
-.doc-badge.terms { background: linear-gradient(135deg, var(--c-violet), var(--c-pink)); }
-.doc-badge.privacy { background: linear-gradient(135deg, var(--c-cyan), var(--c-violet)); }
+.doc-badge.terms { background: var(--t-violet); }
+.doc-badge.privacy { background: var(--c-cyan); }
 
 .history-pager {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 8px;
+  padding: 14px 20px;
 }
 
 /* 內容檢視：保留換行的純文字呈現（## 章節 / - 列點慣例） */
@@ -501,7 +495,7 @@ onMounted(load)
 
 /* 即時預覽：與 Auth dialog / portal-web 條款頁相同的章節樣式 */
 .legal-preview {
-  border: 1.5px solid var(--border);
+  border: 2px solid var(--border-strong);
   border-radius: 10px;
   padding: 16px 18px;
   max-height: 560px;
@@ -538,7 +532,7 @@ onMounted(load)
   font-family: var(--oj-mono);
   font-size: 12px;
   color: var(--oj-primary);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .legal-preview .legal-sec p {

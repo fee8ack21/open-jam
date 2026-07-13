@@ -26,7 +26,7 @@ const CAT_META: Record<string, { color: string; glyph: string; descKey: string; 
 const CAT_FALLBACK = { color: 'var(--c-violet)', glyph: 'tag', descKey: '', tags: [] as string[], thumb: 'photo' }
 function catMeta(slug: string) { return CAT_META[slug] ?? CAT_FALLBACK }
 
-const TYPE_COLOR: Record<string, string> = { ZIP: '#6c4cf1', XMP: '#1fd6c6', PDF: '#ff4d9d', JPG: '#ff7a2f', PNG: '#ff7a2f', PSD: '#3b7fd4', WAV: '#8b5cf6', MP3: '#16a07a', FIG: '#d8a017' }
+const TYPE_COLOR: Record<string, string> = { ZIP: '#8a5cf6', XMP: '#7dd9ff', PDF: '#d6479b', JPG: '#ff6b35', PNG: '#ff6b35', PSD: '#7dd9ff', WAV: '#8a5cf6', MP3: '#d6479b', FIG: '#ff6b35' }
 
 const store = useDashboardStore()
 const message = useMessage()
@@ -78,6 +78,9 @@ const previewProduct = computed(() => ({
 const step1Valid = computed(() => d.value.title.trim().length >= 2)
 const step2Valid = computed(() => files.value.length > 0)
 const hueOptions = [256, 320, 28, 168, 44, 198, 142, 226]
+// 色票預覽：與 ProductThumb 相同的 hue → 便條淡彩對應
+const HUE_PASTELS = ['#dff5d3', '#e4f6ff', '#ffe3f6', '#fff3c4', '#ede6ff']
+function huePastel(h: number) { return HUE_PASTELS[Math.abs(h) % HUE_PASTELS.length] }
 
 onMounted(async () => {
   await catalog.loadCategories()
@@ -250,9 +253,10 @@ async function submit(publish: boolean) {
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button v-for="h in hueOptions" :key="h" @click="store.patchDraft({ coverHue: h })"
                       :style="{ width:'42px', height:'42px', borderRadius:'12px', cursor:'pointer',
-                                background:'linear-gradient(135deg, hsl('+h+' 88% 62%), hsl('+((h+42)%360)+' 90% 54%))',
-                                border: d.coverHue===h ? '2.5px solid var(--text)' : '2.5px solid transparent',
-                                boxShadow: d.coverHue===h ? '3px 3px 0 var(--text)' : 'none', transition:'all .14s' }"></button>
+                                background: huePastel(h),
+                                border: '2px solid var(--border-strong)',
+                                boxShadow: d.coverHue===h ? 'var(--ink-drop-sm)' : 'none',
+                                transform: d.coverHue===h ? 'rotate(-3deg)' : 'none', transition:'all .15s' }"></button>
             </div>
           </div>
         </template>
@@ -271,14 +275,14 @@ async function submit(publish: boolean) {
               <div class="rev-row"><span class="rev-k">{{ t('upload.revBlurb') }}</span><span class="rev-v" style="max-width:280px;">{{ d.blurb || '—' }}</span></div>
             </div>
           </div>
-          <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius:var(--r-md); background:var(--oj-primary-wash); color:var(--oj-primary); font-size:13.5px; font-weight:600;">
+          <div style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-radius:var(--r-md); background:var(--t-violet); border:2px solid var(--border-strong); color:var(--text); font-size:13.5px; font-weight:700;">
             <app-icon name="shield" :size="18" /> {{ t('upload.copyrightNote') }}
           </div>
         </template>
 
         <!-- footer nav -->
         <div class="wizard-foot">
-          <button class="free-toggle" style="border-color:var(--border)" @click="step > 1 ? store.prevStep() : store.go('products')">
+          <button class="free-toggle" @click="step > 1 ? store.prevStep() : store.go('products')">
             <app-icon name="arrowLeft" :size="16" /> {{ step > 1 ? t('upload.prevStep') : t('upload.cancel') }}
           </button>
           <div style="display:flex; gap:10px; align-items:center;">

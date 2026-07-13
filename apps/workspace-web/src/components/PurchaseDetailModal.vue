@@ -111,7 +111,7 @@ function formatBytes(bytes?: number): string {
 .pd-error {
   padding: 24px;
   text-align: center;
-  color: var(--c-red, #e5484d);
+  color: var(--c-pink-deep);
 }
 
 .pd-dl {
@@ -131,7 +131,7 @@ function formatBytes(bytes?: number): string {
 .pd-dl dt {
   font-size: 11.5px;
   color: var(--text-faint);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .pd-dl dd {
@@ -152,8 +152,9 @@ function formatBytes(bytes?: number): string {
 .pd-notice {
   font-size: 12.5px;
   color: var(--text-soft);
-  background: var(--c-amber-soft, rgba(245, 166, 35, 0.12));
-  border-radius: 8px;
+  background: var(--t-yellow);
+  border: 2px solid var(--border-strong);
+  border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 16px;
 }
@@ -161,7 +162,7 @@ function formatBytes(bytes?: number): string {
 .pd-section-label {
   font-size: 11.5px;
   color: var(--text-faint);
-  font-weight: 600;
+  font-weight: 700;
   margin: 4px 0 8px;
 }
 
@@ -171,7 +172,7 @@ function formatBytes(bytes?: number): string {
 }
 
 .pd-item {
-  border: 1.5px solid var(--border);
+  border: 2px solid var(--border-strong);
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 12px;
@@ -208,15 +209,17 @@ function formatBytes(bytes?: number): string {
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--bg-soft, rgba(0, 0, 0, 0.03));
+  border-radius: 10px;
+  border: 2px dashed var(--border);
+  background: var(--bg);
   color: inherit;
   text-decoration: none;
   transition: background 0.12s;
 }
 
 .pd-file:hover {
-  background: var(--c-violet-soft, rgba(124, 92, 246, 0.12));
+  background: var(--t-yellow);
+  border-style: solid;
 }
 
 .pd-file-main {
@@ -242,7 +245,7 @@ function formatBytes(bytes?: number): string {
 }
 
 .pd-file-dl {
-  color: var(--c-violet, #7c5cf6);
+  color: var(--c-violet);
   flex: none;
 }
 
@@ -256,7 +259,7 @@ function formatBytes(bytes?: number): string {
 }
 
 .pd-files-error {
-  color: var(--c-red, #e5484d);
+  color: var(--c-pink-deep);
 }
 
 @media (max-width: 600px) {

@@ -82,24 +82,10 @@ const suffix = computed(() => t('common.perPageSuffix'))
 }
 
 .list-pager__select {
-  width: 72px;
+  width: 76px;
 }
 
-/* base.css 全域給 .n-base-selection 加了硬派位移陰影（2px 2px 0），
-   此處的每頁筆數選擇器不需要，覆寫掉（需 !important 蓋過 .oj-root 兩層 class） */
-.list-pager__select :deep(.n-base-selection),
-.list-pager__select :deep(.n-base-selection:focus-within),
-.list-pager__select :deep(.n-base-selection.n-base-selection--active),
-.list-pager__select :deep(.n-base-selection.n-base-selection--focus) {
-  box-shadow: none !important;
-}
-</style>
-
-<!-- 下拉選單 teleport 至 body，需非 scoped 樣式才能移除其陰影
-     （base.css 的 .oj-root .n-select-menu 帶 !important，故此處也需 !important） -->
-<style>
-.list-pager__menu.n-select-menu {
-  box-shadow: none !important;
-  border: 1px solid var(--border);
+.list-pager__text {
+  font-weight: 700;
 }
 </style>
