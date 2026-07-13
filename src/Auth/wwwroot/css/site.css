@@ -35,7 +35,8 @@
   --border-strong: #1a1a1a;
 
   --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ink-drop: 0 5px 0 rgba(26, 26, 26, 0.85);
+  --bw: 1.5px; /* 墨線主框寬（簡約調整，原 2px） */
+  --ink-drop: 0 3px 0 rgba(26, 26, 26, 0.85);
 }
 
 * {
@@ -151,7 +152,7 @@ input {
   width: 100%;
   min-height: min(660px, calc(100vh - 96px));
   background: var(--surface);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 28px;
   box-shadow: 0 24px 56px rgba(26, 26, 26, 0.18);
   overflow: hidden;
@@ -171,7 +172,7 @@ input {
     transparent 1.5px
   );
   background-size: 26px 26px;
-  border-right: 2px solid var(--ink);
+  border-right: var(--bw) solid var(--ink);
 }
 .brand-panel .brand-word {
   color: #fff;
@@ -223,10 +224,10 @@ input {
 .brand-headline .hl {
   display: inline-block;
   padding: 0 12px;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 14px;
   color: var(--ink);
-  box-shadow: 0 5px 0 rgba(26, 26, 26, 0.9);
+  box-shadow: 0 3px 0 rgba(26, 26, 26, 0.9);
   background: var(--c-yellow);
   transform: rotate(-2deg);
 }
@@ -266,7 +267,7 @@ input {
   border-radius: var(--r-md);
   background: var(--surface);
   color: var(--text); /* 蓋掉 brand-panel 的白色文字 */
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   box-shadow: 0 10px 24px rgba(26, 26, 26, 0.25);
   padding: 13px;
   /* pointer parallax: drift --depth px toward the cursor (vars set by
@@ -294,14 +295,14 @@ input {
   display: inline-block;
   font-size: 10px;
   font-weight: 900;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 999px;
   padding: 1px 9px;
   white-space: nowrap;
 }
 .fc .fc-thumb {
   height: 58px;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 10px;
   margin: 9px 0 8px;
   display: flex;
@@ -333,7 +334,7 @@ input {
 }
 .fc .fc-free {
   background: var(--c-lime);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 999px;
   padding: 0 8px;
   white-space: nowrap;
@@ -357,11 +358,11 @@ input {
     rotate(var(--rot, 0deg));
 }
 .shape.sq {
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 12px;
 }
 .shape.dot {
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 50%;
 }
 .shape.glyph {
@@ -408,7 +409,7 @@ input {
   gap: 6px;
   width: max-content;
   background: var(--c-yellow);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 999px;
   font-weight: 900;
   font-size: 12px;
@@ -466,7 +467,7 @@ input {
   align-items: center;
   gap: 10px;
   background: var(--surface);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: var(--r-md);
   padding: 0 16px;
   transition:
@@ -605,7 +606,7 @@ input {
   height: 24px;
   border-radius: 8px;
   flex: none;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   background: var(--surface);
   display: grid;
   place-items: center;
@@ -645,7 +646,7 @@ input {
   font-size: inherit;
   font-weight: 900;
   color: var(--text);
-  border-bottom: 2px solid var(--c-yellow);
+  border-bottom: var(--bw) solid var(--c-yellow);
   transition: border-color 0.15s;
 }
 button.legal-link:hover {
@@ -668,7 +669,7 @@ button.legal-link:hover {
   font-weight: 900;
   color: var(--c-violet);
   text-decoration: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--bw) solid transparent;
   transition: border-color 0.15s;
 }
 .link-strong:hover {
@@ -680,7 +681,7 @@ button.legal-link:hover {
   width: 100%;
   cursor: pointer;
   text-decoration: none;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   font-family: var(--oj-font);
   font-weight: 900;
   font-size: 16px;
@@ -715,7 +716,7 @@ button.legal-link:hover {
   width: 100%;
   cursor: pointer;
   text-decoration: none;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   font-family: var(--oj-font);
   font-weight: 900;
   font-size: 15px;
@@ -789,7 +790,7 @@ button.legal-link:hover {
   gap: 6px;
   cursor: pointer;
   background: var(--surface);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 999px;
   padding: 7px 14px;
   text-decoration: none;
@@ -818,7 +819,7 @@ button.legal-link:hover {
   place-items: center;
   background: var(--c-lime);
   color: var(--ink);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   box-shadow: var(--ink-drop);
   transform: rotate(-3deg);
   animation: pop 0.42s var(--ease-pop);
@@ -853,9 +854,9 @@ button.legal-link:hover {
   margin: 6px 0 2px;
   padding: 14px 16px;
   background: var(--t-yellow);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: var(--r-md);
-  box-shadow: 0 4px 0 rgba(26, 26, 26, 0.85);
+  box-shadow: 0 2px 0 rgba(26, 26, 26, 0.85);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.7;
@@ -896,7 +897,7 @@ button.legal-link:hover {
   gap: 9px;
   margin-top: 4px;
   background: var(--surface);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 999px;
   padding: 11px 18px;
   font-family: var(--oj-display);
@@ -1029,9 +1030,9 @@ button.legal-link:hover {
   max-width: 620px;
   max-height: min(84vh, 720px);
   background: var(--surface);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: var(--r-lg);
-  box-shadow: 8px 8px 0 rgba(26, 26, 26, 0.9);
+  box-shadow: 4px 4px 0 rgba(26, 26, 26, 0.9);
   display: flex;
   flex-direction: column;
   animation: modal-in 0.34s var(--ease-pop);
@@ -1065,7 +1066,7 @@ button.legal-link:hover {
   position: relative;
   flex: none;
   padding: 24px 28px 18px;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: var(--bw) solid var(--ink);
   background: var(--bg);
   border-radius: calc(var(--r-lg) - 2px) calc(var(--r-lg) - 2px) 0 0;
 }
@@ -1076,8 +1077,8 @@ button.legal-link:hover {
   display: grid;
   place-items: center;
   color: var(--ink);
-  border: 2px solid var(--ink);
-  box-shadow: 0 4px 0 rgba(26, 26, 26, 0.85);
+  border: var(--bw) solid var(--ink);
+  box-shadow: 0 2px 0 rgba(26, 26, 26, 0.85);
   transform: rotate(-3deg);
   margin-bottom: 14px;
 }
@@ -1112,7 +1113,7 @@ button.legal-link:hover {
   height: 38px;
   border-radius: 999px;
   cursor: pointer;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   background: var(--surface);
   color: var(--ink);
   display: grid;
@@ -1179,7 +1180,7 @@ button.legal-link:hover {
   width: 8px;
   height: 8px;
   background: var(--c-pink);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 3px;
 }
 .legal-sec li:nth-child(3n + 2)::before {
@@ -1191,7 +1192,7 @@ button.legal-link:hover {
 .modal-foot {
   flex: none;
   padding: 18px 28px;
-  border-top: 2px solid var(--ink);
+  border-top: var(--bw) solid var(--ink);
   background: var(--bg);
   border-radius: 0 0 calc(var(--r-lg) - 2px) calc(var(--r-lg) - 2px);
   display: flex;
@@ -1211,11 +1212,11 @@ button.legal-link:hover {
   font-size: 15px;
   background: var(--c-yellow);
   color: var(--ink);
-  box-shadow: 0 4px 0 rgba(26, 26, 26, 0.85);
+  box-shadow: 0 2px 0 rgba(26, 26, 26, 0.85);
 }
 .modal-foot .btn-pop:hover {
   transform: translateY(-2px) rotate(0deg);
-  box-shadow: 0 6px 0 rgba(26, 26, 26, 0.85);
+  box-shadow: 0 3px 0 rgba(26, 26, 26, 0.85);
 }
 .modal-foot .btn-pop:active {
   transform: translateY(1px);
@@ -1256,7 +1257,7 @@ button.legal-link:hover {
   align-items: center;
   gap: 6px;
   padding: 7px 14px;
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
@@ -1279,7 +1280,7 @@ button.legal-link:hover {
   min-width: 170px;
   padding: 6px;
   background: var(--surface);
-  border: 2px solid var(--ink);
+  border: var(--bw) solid var(--ink);
   border-radius: var(--r-md);
   box-shadow: 0 12px 26px rgba(26, 26, 26, 0.2);
 }

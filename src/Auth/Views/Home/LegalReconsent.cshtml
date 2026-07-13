@@ -71,12 +71,12 @@
     .reconsent-docs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
     .reconsent-doc {
         display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
-        background: var(--surface); border: 2px solid var(--ink);
+        background: var(--surface); border: var(--bw) solid var(--ink);
         border-radius: var(--r-md); padding: 12px 14px; cursor: pointer; font: inherit;
         transition: transform .2s var(--ease-pop), box-shadow .2s;
     }
     .reconsent-doc:hover { transform: translateY(-2px) rotate(-.5deg); box-shadow: 0 8px 18px rgba(26, 26, 26, .15); }
-    .reconsent-doc .modal-badge { width: 42px; height: 42px; flex: none; margin-bottom: 0; box-shadow: 0 3px 0 rgba(26, 26, 26, .85); }
+    .reconsent-doc .modal-badge { width: 42px; height: 42px; flex: none; margin-bottom: 0; box-shadow: 0 2px 0 rgba(26, 26, 26, .85); }
     .reconsent-doc .rd-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
     .reconsent-doc .rd-title { font-weight: 900; font-size: 14.5px; }
     .reconsent-doc .rd-meta { font-family: var(--oj-display); font-weight: 500; font-size: 12px; color: var(--text-faint); }
