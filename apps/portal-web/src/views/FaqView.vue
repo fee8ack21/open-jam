@@ -471,7 +471,7 @@ function toggle(i: number) {
 .fs-item.open .fs-mark { background: var(--text); color: var(--c-yellow); }
 
 /* 展開答案：白色便箋（縮排對齊問題文字），只用 opacity + transform 過場 */
-.fs-a { margin: 0 24px 22px 64px; will-change: opacity, transform; }
+.fs-a { padding: 0 24px 22px 64px; will-change: opacity, transform; }
 .fs-a p {
   margin: 0; padding: 18px 22px;
   font-size: 14.5px; font-weight: 500; line-height: 1.8; color: var(--text); white-space: pre-wrap;
@@ -534,7 +534,7 @@ function toggle(i: number) {
   .fh-deco { display: none; }
   .fs-q { gap: 12px; padding: 15px 16px; }
   .fs-q-text { font-size: 15px; }
-  .fs-a { margin: 0 16px 16px; }
+  .fs-a { padding: 0 16px 16px; }
   .fc-deco { display: none; }
   .faq-cta { padding: 56px 20px; }
 }
