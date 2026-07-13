@@ -11,6 +11,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppIcon from '@/components/app-icon/AppIcon.vue';
 import { env } from '@/environment.js';
+import { hasCookie, setCookie } from '@/utils/cookies';
 
 const { t } = useI18n();
 
@@ -44,15 +45,6 @@ const veilStyle = computed(() => {
   const path = `path(evenodd, "${outer}${hole}")`;
   return { clipPath: path, WebkitClipPath: path };
 });
-
-function hasCookie(name: string): boolean {
-  return document.cookie.split('; ').some((c) => c.startsWith(name + '='));
-}
-function setCookie(name: string, value: string, days: number) {
-  const d = new Date();
-  d.setTime(d.getTime() + days * 864e5);
-  document.cookie = `${name}=${value}; expires=${d.toUTCString()}; path=/; SameSite=Lax`;
-}
 
 function measure() {
   const links = document.querySelectorAll<HTMLElement>('.nav-actions .nav-ic');
