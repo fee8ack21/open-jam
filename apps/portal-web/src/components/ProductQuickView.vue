@@ -189,8 +189,8 @@ onBeforeUnmount(() => {
 }
 /* 膠帶貼條（設計稿 dialog 頂部細節） */
 .qv-card::before {
-  content: ''; position: absolute; top: -2px; left: 50%; width: 76px; height: 14px;
-  margin-left: -38px; background: rgba(255, 222, 0, 0.9); border-radius: 0 0 3px 3px;
+  content: ''; position: absolute; top: -10px; left: 50%; width: 76px; height: 22px;
+  margin-left: -38px; background: rgba(255, 222, 0, 0.9); border-radius: 3px;
   transform: rotate(-2deg); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.15); z-index: 7;
 }
 .qv-x {
