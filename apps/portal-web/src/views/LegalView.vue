@@ -135,8 +135,11 @@ function jumpTo(n: string) {
       <!-- ============ HERO：漸層色帶（比照 FaqView / Discover hero） ============ -->
       <section class="legal-hero">
         <span class="lh-word" aria-hidden="true">LEGAL</span>
+        <i class="lh-deco lh-deco-s" aria-hidden="true">§</i>
+        <i class="lh-deco lh-deco-dot" aria-hidden="true"></i>
+        <i class="lh-deco lh-deco-sq" aria-hidden="true"></i>
         <div class="lh-inner">
-          <p class="lh-badge"><app-icon name="sparkle" :size="13" /> {{ t('legal.eyebrow') }}</p>
+          <p class="lh-badge"><app-icon name="note" :size="13" /> {{ t('legal.eyebrow') }}</p>
           <i18n-t keypath="legal.heroTitle" tag="h1" class="lh-title" scope="global">
             <template #mark><span class="hl hl-lime">{{ t('legal.heroTitleMark') }}</span></template>
           </i18n-t>
@@ -169,7 +172,7 @@ function jumpTo(n: string) {
         <article class="legal-card">
           <!-- ── 重點速覽：30 秒摘要卡片格 ── -->
           <section class="legal-tldr" :aria-label="t('legal.tldrLabel')">
-            <p class="ltd-label"><app-icon name="sparkle" :size="13" /> {{ t('legal.tldrLabel') }}</p>
+            <p class="ltd-label"><app-icon name="note" :size="13" /> {{ t('legal.tldrLabel') }}</p>
             <div class="ltd-grid">
               <div v-for="(c, i) in tldr" :key="c.t" class="ltd-card" :style="{ '--acc': accentOf(i) }">
                 <span class="ltd-title">{{ c.t }}</span>
@@ -215,21 +218,24 @@ function jumpTo(n: string) {
         </article>
       </div>
 
-      <!-- ============ 聯絡 CTA ============ -->
+      <!-- ============ 聯絡 CTA（黃色滿版帶） ============ -->
       <section class="legal-cta">
+        <i class="fc-deco fc-deco-a" aria-hidden="true"></i>
+        <i class="fc-deco fc-deco-b" aria-hidden="true"></i>
         <div class="fc-card">
-          <i class="fc-deco fc-deco-a" aria-hidden="true"></i>
-          <i class="fc-deco fc-deco-b" aria-hidden="true"></i>
-          <h2 class="fc-title">{{ t('legal.cta.title') }}</h2>
+          <i18n-t keypath="legal.cta.title" tag="h2" class="fc-title" scope="global">
+            <template #mark><span class="fc-hl">{{ t('legal.cta.titleMark') }}</span></template>
+          </i18n-t>
           <p class="fc-text">{{ t('legal.cta.text') }}</p>
           <div class="fc-actions">
-            <a class="fc-btn fc-btn-light" href="mailto:support@openjam.co">
+            <a class="fc-btn fc-btn-dark" href="mailto:support@openjam.co">
               <app-icon name="mail" :size="16" /> {{ t('legal.cta.contact') }}
             </a>
             <router-link class="fc-btn fc-btn-light" to="/faq">
-              <app-icon name="chevron" :size="15" /> {{ t('legal.cta.faq') }}
+              <app-icon name="arrow" :size="15" /> {{ t('legal.cta.faq') }}
             </router-link>
           </div>
+          <div class="fc-note">{{ t('legal.cta.note') }}</div>
         </div>
       </section>
     </main>
@@ -243,187 +249,196 @@ function jumpTo(n: string) {
 /* 頁面滿版（覆蓋 .page 左右 gutter）：hero 色帶貼齊 viewport，比照 FaqView */
 .legal-page { position: relative; max-width: none; padding: 0; }
 
-/* ── Hero 漸層色帶：滿版飽和漸層帶 + 半調網點（同 .mkt-hero 配方）────── */
-.legal-hero { position: relative; padding: clamp(48px, 7vh, 64px) clamp(20px, 3.5vw, 56px) clamp(76px, 10vh, 96px); text-align: center; }
-.legal-hero::before, .legal-hero::after {
+/* ── Hero 色帶：紫色圓點滿版帶（同 .mkt-hero 配方）────── */
+.legal-hero { position: relative; padding: clamp(52px, 8vh, 72px) clamp(20px, 3.5vw, 56px) clamp(110px, 14vh, 150px); text-align: center; }
+.legal-hero::before {
   content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
   width: 100vw; transform: translateX(-50%); z-index: 0; pointer-events: none;
-}
-.legal-hero::before {
-  background:
-    radial-gradient(620px 460px at 12% 6%, rgba(255,200,58,.40), transparent 58%),
-    radial-gradient(680px 520px at 92% 16%, rgba(255,77,157,.52), transparent 60%),
-    radial-gradient(720px 620px at 78% 98%, rgba(31,214,198,.40), transparent 62%),
-    radial-gradient(820px 720px at 16% 94%, rgba(108,76,241,.55), transparent 64%),
-    linear-gradient(150deg, #6c4cf1, #8a3df1 46%, #c33ad6);
-  border-bottom: 1.5px solid var(--text);
-}
-.legal-hero::after {
-  background-image: radial-gradient(rgba(255,255,255,.55) 1.5px, transparent 1.7px);
-  background-size: 18px 18px; opacity: .15; mix-blend-mode: soft-light;
+  background: #8a5cf6;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
+  background-size: 26px 26px;
 }
 
-/* 色帶內的縷空大字（白色微透，靠左與 nav logo 切齊、沉在置中內容後；
-   top 為距 header 固定間距，三頁一致，以本頁原間距為準） */
+/* 色帶內的縷空大字（白色微透、傾斜，沉在置中內容後） */
 .lh-word {
-  position: absolute; z-index: 1; top: 88px; left: clamp(20px, 3.5vw, 56px);
-  font-family: var(--oj-display); font-weight: 800; line-height: 1;
-  font-size: clamp(110px, 16vw, 210px); letter-spacing: .04em;
-  color: rgba(255, 255, 255, .09); pointer-events: none; user-select: none;
+  position: absolute; z-index: 1; top: 44px; left: 4%;
+  font-family: var(--oj-display); font-weight: 700; line-height: 1;
+  font-size: clamp(100px, 13vw, 140px);
+  color: rgba(255, 255, 255, .14); transform: rotate(-6deg);
+  pointer-events: none; user-select: none;
 }
+
+/* 漂浮貼紙（§ 方塊 / 圓點 / 方點） */
+.lh-deco { position: absolute; z-index: 1; font-style: normal; pointer-events: none; }
+.lh-deco-s {
+  right: 6%; top: 64px; width: 64px; height: 64px;
+  display: grid; place-items: center; font-weight: 900; font-size: 30px; color: var(--text);
+  background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(26, 26, 26, 0.25); transform: rotate(8deg);
+}
+.lh-deco-dot { right: 14%; bottom: 84px; width: 44px; height: 44px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 50%; transform: rotate(-10deg); }
+.lh-deco-sq { left: 11%; bottom: 100px; width: 40px; height: 40px; background: var(--c-pink); border: 2px solid var(--border-strong); border-radius: 12px; transform: rotate(14deg); }
 
 .lh-inner {
   position: relative; z-index: 2; max-width: 780px; margin: 0 auto;
   display: flex; flex-direction: column; align-items: center; gap: 18px;
 }
 .lh-badge {
-  display: inline-flex; align-items: center; gap: 7px; margin: 0; padding: 6px 14px;
-  font-family: var(--oj-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
-  color: #fff; background: rgba(255,255,255,.16);
-  border: 1.5px solid rgba(255,255,255,.28); border-radius: 999px; backdrop-filter: blur(4px);
+  display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 7px 18px;
+  font-family: var(--oj-font); font-size: 13px; font-weight: 900; letter-spacing: 2px;
+  color: var(--c-yellow); background: var(--text);
+  border-radius: 999px; transform: rotate(-1deg); white-space: nowrap;
 }
 .lh-title {
-  margin: 0; font-family: var(--oj-display); font-weight: 800; color: #fff;
-  font-size: clamp(28px, 4.4vw, 48px); line-height: 1.2; letter-spacing: -1.2px;
+  margin: 0; font-family: var(--oj-font); font-weight: 900; color: #fff;
+  font-size: clamp(28px, 4.4vw, 52px); line-height: 1.3;
 }
-.lh-title .hl { box-shadow: 3px 3px 0 rgba(26,22,38,.45); }
-.lh-lede { margin: 0; max-width: 54ch; font-size: 15.5px; line-height: 1.8; color: rgba(255,255,255,.88); }
+.lh-title .hl { box-shadow: var(--ink-drop); margin: 0 8px; }
+.lh-lede { margin: 0; max-width: 54ch; font-size: 16px; font-weight: 700; line-height: 1.8; color: #fff; }
 .lh-meta {
-  display: inline-flex; align-items: center; margin: 0; padding: 5px 14px;
-  font-family: var(--oj-mono); font-size: 12px; font-weight: 600; letter-spacing: .06em;
-  color: rgba(255,255,255,.9); background: rgba(26,22,38,.35);
-  border: 1.5px solid var(--border-strong); border-radius: 999px;
+  display: inline-flex; align-items: center; margin: 0; padding: 8px 20px;
+  font-family: var(--oj-display); font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  color: var(--text); background: #fff;
+  border: 2px solid var(--border-strong); border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(26, 26, 26, 0.2); white-space: nowrap;
 }
 
 /* ── 頁籤 + 內容卡：疊在色帶下緣 ────── */
-.legal-body { position: relative; z-index: 2; max-width: 1080px; margin: -36px auto 0; padding: 0 clamp(20px, 3.5vw, 56px); }
+.legal-body { position: relative; z-index: 2; max-width: 1080px; margin: -84px auto 0; padding: 0 clamp(20px, 3.5vw, 56px); }
 
-/* 分頁列：兩份文件並列，選中者向下貼合內容卡 */
-.legal-tabs { display: flex; gap: 8px; position: relative; z-index: 1; }
+/* 分頁列：兩份文件並列（未選＝紫底白字、選中＝白底貼合內容卡） */
+.legal-tabs { display: flex; gap: 10px; position: relative; z-index: 1; padding-left: 24px; }
 .legal-tab {
   display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
-  padding: 12px 20px; background: var(--surface-2);
-  border: 1.5px solid var(--border-strong); border-bottom: none;
-  border-radius: 12px 12px 0 0;
-  font-family: var(--oj-display); font-weight: 700; font-size: 14.5px; color: var(--text-soft);
-  transition: background .16s ease, color .16s ease, transform .16s ease;
+  padding: 13px 24px 15px; background: var(--c-violet);
+  border: 2px solid var(--border-strong); border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: #fff;
+  transition: background .16s ease, color .16s ease;
 }
-.legal-tab:hover { color: var(--text); transform: translateY(-1px); }
-.legal-tab.on:hover { transform: none; }
+.legal-tab:hover { background: var(--c-yellow); color: var(--text); }
 .legal-tab.on {
   background: var(--surface); color: var(--text);
-  margin-bottom: -1.5px; /* 蓋過內容卡上緣線，連成同一區塊 */
-  padding-bottom: 13.5px;
+  margin-bottom: -2px; /* 蓋過內容卡上緣線，連成同一區塊 */
+  padding-bottom: 17px;
 }
 .lt-badge {
-  width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: #fff;
-  border: 1.5px solid var(--text); flex: none;
+  width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+  color: currentColor; flex: none;
 }
-.legal-tab.terms .lt-badge { background: linear-gradient(135deg, var(--c-violet), var(--c-pink)); }
-.legal-tab.privacy .lt-badge { background: linear-gradient(135deg, var(--c-cyan), var(--c-violet)); }
 
 .legal-card {
   position: relative; z-index: 0;
-  background: var(--surface); border: 1.5px solid var(--border-strong);
-  border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg);
-  box-shadow: 6px 6px 0 var(--border-strong); padding: 34px 40px 44px;
+  background: var(--surface); border: 2px solid var(--border-strong);
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(26, 26, 26, 0.14); padding: 38px 42px 50px;
 }
 
 /* ── 重點速覽：30 秒摘要卡片格 ────── */
-.legal-tldr { margin-bottom: 34px; }
+.legal-tldr { margin-bottom: 40px; }
 .ltd-label {
-  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 12px;
-  font-family: var(--oj-mono); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--oj-primary);
+  display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px; padding: 6px 16px;
+  font-family: var(--oj-font); font-size: 13px; font-weight: 900; letter-spacing: 1px;
+  color: var(--c-yellow); background: var(--text);
+  border-radius: 999px; transform: rotate(-1deg); white-space: nowrap;
 }
-.ltd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.ltd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
 .ltd-card {
-  display: flex; flex-direction: column; gap: 8px; padding: 16px 18px;
-  background: color-mix(in srgb, var(--acc) 16%, #fffef8);
-  border: 1.5px solid var(--border-strong); border-radius: var(--r-md);
-  box-shadow: var(--pop-2);
+  display: flex; flex-direction: column; gap: 8px; padding: 20px;
+  background: color-mix(in srgb, var(--acc) 45%, #fff);
+  border: 2px solid var(--border-strong); border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(26, 26, 26, 0.1);
 }
-.ltd-title { font-family: var(--oj-display); font-weight: 800; font-size: 15px; color: var(--text); }
-.ltd-desc { font-size: 13px; line-height: 1.7; color: var(--text-soft); }
+.ltd-card:nth-child(odd) { transform: rotate(-0.8deg); }
+.ltd-card:nth-child(even) { transform: rotate(0.9deg); }
+.ltd-title { font-family: var(--oj-font); font-weight: 900; font-size: 16px; color: var(--text); }
+.ltd-desc { font-size: 13.5px; font-weight: 500; line-height: 1.7; color: var(--text); }
 
 /* ── 目錄 + 內文兩欄 ────── */
-.legal-grid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 36px; align-items: start; }
+.legal-grid { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 38px; align-items: start; }
 
 .legal-toc {
   position: sticky; top: calc(var(--nav-h) + 20px);
-  display: flex; flex-direction: column; gap: 3px; padding: 14px 12px;
-  background: var(--surface-2); border: 1.5px solid var(--border-strong); border-radius: var(--r-md);
-  box-shadow: var(--pop-2);
+  display: flex; flex-direction: column; gap: 2px; padding: 20px;
+  background: var(--bg); border: 2px solid var(--border-strong); border-radius: 18px;
+  box-shadow: 0 6px 16px rgba(26, 26, 26, 0.08);
 }
 .toc-label {
-  padding: 2px 10px 8px;
-  font-family: var(--oj-mono); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--text-faint);
+  padding: 0 0 12px;
+  font-family: var(--oj-font); font-size: 13px; font-weight: 900; letter-spacing: 1px;
+  color: var(--text);
 }
 .toc-entry {
-  display: flex; align-items: baseline; gap: 9px; padding: 7px 10px; cursor: pointer;
-  background: transparent; border: none; border-radius: 9px; text-align: left;
-  font-family: var(--oj-font); font-weight: 600; font-size: 13.5px; color: var(--text); line-height: 1.4;
-  transition: background .14s ease;
+  display: flex; align-items: baseline; gap: 8px; padding: 7px 8px; cursor: pointer;
+  background: transparent; border: none; border-radius: 10px; text-align: left;
+  font-family: var(--oj-font); font-weight: 700; font-size: 13.5px; color: var(--text); line-height: 1.4;
+  transition: background .15s ease;
 }
-.toc-entry:hover { background: var(--oj-wash); color: var(--oj-primary); }
-.toc-num { flex: none; font-family: var(--oj-mono); font-size: 11px; font-weight: 700; color: var(--oj-primary); }
+.toc-entry:hover { background: var(--c-yellow); }
+.toc-num { flex: none; font-family: var(--oj-display); font-size: 12px; font-weight: 700; color: var(--c-violet); }
 
 /* ── 內文：文件標題 + 編號章節（虛線分隔、色塊列點） ────── */
 .legal-head { padding-bottom: 20px; }
-.legal-title { font-family: var(--oj-display); font-weight: 800; font-size: 30px; letter-spacing: -1px; margin: 0; color: var(--text); }
-.legal-meta { font-family: var(--oj-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); margin: 9px 0 0; }
+.legal-title { font-family: var(--oj-font); font-weight: 900; font-size: 32px; margin: 0; color: var(--text); }
+.legal-meta { font-family: var(--oj-display); font-size: 12.5px; font-weight: 500; letter-spacing: 1px; color: var(--text-soft); margin: 9px 0 0; }
 
-.legal-sec { padding: 24px 0; border-top: 1.5px dashed rgba(26,22,38,.16); scroll-margin-top: calc(var(--nav-h) + 20px); }
+.legal-sec { padding: 26px 0 6px; border-top: 2px dashed var(--border); scroll-margin-top: calc(var(--nav-h) + 20px); }
 .legal-sec h3 {
-  display: flex; align-items: center; gap: 12px; margin: 0 0 11px;
-  font-family: var(--oj-display); font-weight: 700; font-size: 19px; color: var(--text);
+  display: flex; align-items: center; gap: 12px; margin: 0 0 14px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 21px; color: var(--text);
 }
 .legal-sec h3 .num {
-  flex: none; display: inline-block; padding: 2px 9px; transform: rotate(-2deg);
-  font-family: var(--oj-mono); font-size: 12px; font-weight: 700; color: var(--text);
-  background: color-mix(in srgb, var(--acc) 32%, #fff);
-  border: 1.5px solid var(--border-strong); border-radius: 8px;
+  flex: none; display: inline-block; padding: 2px 12px;
+  font-family: var(--oj-display); font-size: 14px; font-weight: 700; color: var(--text);
+  background: color-mix(in srgb, var(--acc) 55%, #fff);
+  border: 2px solid var(--border-strong); border-radius: 999px;
 }
-.legal-sec .sec-body { margin: 0; font-size: 15px; line-height: 1.9; color: var(--text-soft); white-space: pre-wrap; }
-.legal-sec ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.legal-sec li { display: flex; align-items: baseline; gap: 10px; font-size: 14.5px; line-height: 1.8; color: var(--text-soft); }
+.legal-sec .sec-body { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.9; color: var(--text); white-space: pre-wrap; }
+.legal-sec ul { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.legal-sec li { display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 500; line-height: 1.8; color: var(--text); }
 .li-mark {
-  flex: none; width: 8px; height: 8px; border-radius: 3px; position: relative; top: -1px;
-  background: color-mix(in srgb, var(--acc) 60%, #fff); border: 1.5px solid var(--border-strong);
+  flex: none; width: 10px; height: 10px; border-radius: 50%; position: relative; top: -1px;
+  background: var(--c-pink); border: 2px solid var(--border-strong);
 }
 
-/* ── 聯絡 CTA：漸層卡 + 便條裝飾（同 FaqView） ────── */
-.legal-cta { max-width: 1080px; margin: 44px auto 0; padding: 0 clamp(20px, 3.5vw, 56px) 72px; }
-.fc-card {
+/* ── 聯絡 CTA：黃色滿版帶 + 貼紙裝飾 + 手寫註記（同 FaqView） ────── */
+.legal-cta {
   position: relative; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
-  padding: clamp(38px, 5.5vh, 48px) 32px;
-  background:
-    radial-gradient(620px 460px at 14% 10%, rgba(255,200,58,.35), transparent 58%),
-    radial-gradient(680px 520px at 88% 90%, rgba(31,214,198,.30), transparent 60%),
-    linear-gradient(150deg, #6c4cf1, #8a3df1 46%, #c33ad6);
-  border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
-  box-shadow: 6px 6px 0 var(--border-strong);
+  margin: 56px calc(50% - 50vw) 0; padding: 80px 32px;
+  background: var(--c-yellow); border-top: 2px solid var(--border-strong);
 }
-.fc-deco { position: absolute; border: 1.5px solid var(--border-strong); }
-.fc-deco-a { top: 20px; left: 40px; width: 30px; height: 30px; border-radius: 10px; background: var(--c-lime); transform: rotate(-12deg); }
-.fc-deco-b { bottom: 24px; right: 48px; width: 26px; height: 26px; border-radius: 999px; background: var(--c-yellow); transform: rotate(8deg); }
+.fc-deco { position: absolute; border: 2px solid var(--border-strong); }
+.fc-deco-a { top: 40px; left: 8%; width: 48px; height: 48px; border-radius: 14px; background: var(--c-lime); transform: rotate(12deg); }
+.fc-deco-b { bottom: 44px; right: 10%; width: 40px; height: 40px; border-radius: 999px; background: var(--c-pink); transform: rotate(8deg); }
+.fc-card {
+  position: relative; max-width: 620px; margin: 0 auto; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
 .fc-title {
-  margin: 0; font-family: var(--oj-display); font-weight: 800; color: #fff;
-  font-size: clamp(24px, 3.2vw, 30px); letter-spacing: -.8px; text-shadow: 2px 2px 0 rgba(26,22,38,.35);
+  margin: 0; font-family: var(--oj-font); font-weight: 900; color: var(--text);
+  font-size: clamp(28px, 3.6vw, 40px); line-height: 1.35;
 }
-.fc-text { margin: 0; max-width: 44ch; font-size: 15px; line-height: 1.8; color: rgba(255,255,255,.88); }
-.fc-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 6px; }
+.fc-hl {
+  display: inline-block; background: var(--text); color: var(--c-yellow);
+  padding: 0 16px; border-radius: 14px; transform: rotate(-1.5deg); margin: 0 4px;
+}
+.fc-text { margin: 0; max-width: 44ch; font-size: 16px; font-weight: 700; line-height: 1.7; color: var(--text); }
+.fc-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 8px; }
 .fc-btn {
-  display: inline-flex; align-items: center; gap: 8px; padding: 12px 26px;
-  font-family: var(--oj-display); font-weight: 700; font-size: 15px; text-decoration: none;
-  border: 1.5px solid var(--border-strong); border-radius: 999px;
-  transition: transform .12s ease, box-shadow .12s ease;
+  display: inline-flex; align-items: center; gap: 9px; padding: 15px 34px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 16px; text-decoration: none;
+  border-radius: 999px;
+  transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.fc-btn:hover { transform: translate(-1px, -1px); text-decoration: none; }
-.fc-btn-light { background: var(--surface); color: var(--text); box-shadow: 3px 3px 0 rgba(26,22,38,.45); }
-.fc-btn-light:hover { color: var(--text); box-shadow: 4px 4px 0 rgba(26,22,38,.45); }
+.fc-btn:hover { text-decoration: none; }
+.fc-btn-dark { background: var(--text); color: var(--c-yellow); }
+.fc-btn-dark:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 12px 26px rgba(26, 26, 26, 0.3); color: var(--c-yellow); }
+.fc-btn-light { background: #fff; color: var(--text); border: 2px solid var(--border-strong); }
+.fc-btn-light:hover { transform: translateY(-3px) rotate(1deg); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.18); color: var(--text); }
+.fc-note {
+  font-family: var(--oj-hand); font-weight: 700; font-size: 24px; color: var(--text);
+  margin-top: 2px; transform: rotate(-2deg);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .legal-tab, .toc-entry, .fc-btn { transition: none; }
@@ -433,12 +448,18 @@ function jumpTo(n: string) {
 @media (max-width: 900px) {
   .legal-grid { grid-template-columns: 1fr; }
   .legal-toc { display: none; }
+  .lh-deco { display: none; }
 }
 @media (max-width: 560px) {
-  .legal-tab { padding: 10px 13px; font-size: 13.5px; }
+  .legal-hero { padding-bottom: 96px; }
+  .legal-body { margin-top: -64px; }
+  .legal-tabs { padding-left: 12px; }
+  .legal-tab { padding: 10px 14px 12px; font-size: 13.5px; }
   .legal-tab .lt-label { white-space: nowrap; }
   .legal-card { padding: 24px 20px 30px; }
   .legal-title { font-size: 25px; }
+  .ltd-card, .ltd-card:nth-child(odd), .ltd-card:nth-child(even) { transform: none; }
   .fc-deco { display: none; }
+  .legal-cta { padding: 56px 20px; }
 }
 </style>

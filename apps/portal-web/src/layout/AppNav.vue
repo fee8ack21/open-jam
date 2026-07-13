@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /* ============================================================
    AppNav — portal-web 全站頂部導覽列
-   全站一致顯示語言切換／登入／後台／登出。
+   果醬罐 logo + 工具鈕（語言 / GitHub / 文件 / 通知）+
+   登入黑色膠囊。
    ============================================================ */
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -29,18 +30,18 @@ function onSelectLang(key: string) {
 <template>
   <header class="nav">
     <div class="nav-inner">
-      <BrandLogo />
+      <BrandLogo badge />
 
       <div class="nav-spacer"></div>
 
       <div class="nav-actions">
         <n-dropdown trigger="click" :options="langOptions" :value="locale" @select="onSelectLang">
-          <a class="nav-link" href="#" :title="t('language.label')" @click.prevent>
+          <a class="nav-ic" href="#" :title="t('language.label')" @click.prevent>
             <app-icon name="globe" :size="18" />
           </a>
         </n-dropdown>
         <a
-          class="nav-link"
+          class="nav-ic"
           :href="env.GITHUB_REPO_URL"
           target="_blank"
           rel="noopener noreferrer"
@@ -49,7 +50,7 @@ function onSelectLang(key: string) {
           <app-icon name="github" :size="18" />
         </a>
         <a
-          class="nav-link"
+          class="nav-ic"
           :href="env.DOCS_URL"
           target="_blank"
           rel="noopener noreferrer"
@@ -60,8 +61,8 @@ function onSelectLang(key: string) {
         <template v-if="auth.isAuthenticated">
           <NotificationBell />
           <a class="nav-admin" href="#" :title="t('nav.workspace')" @click.prevent="goWorkspace">
-            <app-icon name="user" :size="18" />
             <span class="nav-admin-label">{{ t('nav.workspace') }}</span>
+            <app-icon name="arrow" :size="14" />
           </a>
           <a class="nav-logout" href="#" :title="t('nav.logout')" @click.prevent="auth.logout()">
             <app-icon name="logout" :size="17" />
@@ -69,8 +70,8 @@ function onSelectLang(key: string) {
         </template>
         <template v-else>
           <a class="nav-admin" href="#" :title="t('nav.login')" @click.prevent="auth.login()">
-            <app-icon name="user" :size="18" />
             <span class="nav-admin-label">{{ t('nav.login') }}</span>
+            <app-icon name="arrow" :size="14" />
           </a>
         </template>
       </div>

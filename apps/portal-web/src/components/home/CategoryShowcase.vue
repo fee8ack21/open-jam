@@ -6,7 +6,6 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CATEGORIES, type Product } from '@/data/products';
-import LandingArt from '@/components/LandingArt.vue';
 
 const props = defineProps<{ products: Product[] }>();
 const emit = defineEmits<{ pick: [catId: string] }>();
@@ -14,7 +13,7 @@ const { t } = useI18n();
 
 interface Tile {
   id: string;
-  art: string;
+  glyph: string;
   count: number;
   tops: Product[];
 }
@@ -24,7 +23,7 @@ const tiles = computed<Tile[]>(() =>
     const inCat = props.products.filter((p) => p.cat === c.id);
     return {
       id: c.id,
-      art: 'cat-' + c.id,
+      glyph: c.glyph,
       count: inCat.length,
       tops: inCat.slice().sort((a, b) => b.sales - a.sales).slice(0, 3),
     };
@@ -35,8 +34,8 @@ const tiles = computed<Tile[]>(() =>
 <template>
   <section class="sec cat-show rv">
     <div class="browse-head">
-      <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('market.cats.eyebrow') }}</p>
-      <h2 class="browse-title">{{ t('market.cats.title') }}</h2>
+      <p class="browse-eyebrow"><app-icon name="note" :size="12" /> {{ t('market.cats.eyebrow') }}</p>
+      <h2 class="browse-title">{{ t('market.cats.title') }} <span class="hand-note">{{ t('market.cats.note') }}</span></h2>
     </div>
     <div class="cat-tiles">
       <button
@@ -48,7 +47,7 @@ const tiles = computed<Tile[]>(() =>
         :aria-label="t('market.cats.tileAria', { cat: t('category.' + tile.id) })"
         @click="emit('pick', tile.id)"
       >
-        <span class="ct-art"><landing-art :name="tile.art" /></span>
+        <span class="ct-art"><app-icon :name="tile.glyph" :size="26" /></span>
         <span class="ct-text">
           <span class="ct-name">{{ t('category.' + tile.id) }}</span>
           <span class="ct-count">{{ t('market.cats.count', { count: tile.count }) }}</span>
@@ -63,7 +62,7 @@ const tiles = computed<Tile[]>(() =>
             :glyph-size="18"
           />
         </span>
-        <span class="ct-arrow"><app-icon name="chevron" :size="18" :stroke="2.4" /></span>
+        <span class="ct-arrow"><app-icon name="arrow" :size="18" /></span>
       </button>
     </div>
   </section>

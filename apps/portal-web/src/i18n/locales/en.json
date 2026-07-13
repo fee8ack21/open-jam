@@ -13,7 +13,10 @@
     "docs": "Documentation",
     "workspace": "Go to workspace",
     "login": "Sign in",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "menuAria": "Main navigation",
+    "explore": "Explore",
+    "about": "About"
   },
   "footer": {
     "links": "Footer links",
@@ -61,11 +64,13 @@
       "eyebrow": "Browse by type",
       "title": "What kind of work are you after?",
       "count": "{count} works",
-      "tileAria": "Browse {cat}"
+      "tileAria": "Browse {cat}",
+      "note": "pick your jam ↓"
     },
     "hotBanner": {
       "eyebrow": "This week's hottest",
-      "cta": "View work"
+      "cta": "View work",
+      "freeNote": "free!"
     },
     "pulse": {
       "eyebrow": "Market pulse",
@@ -85,15 +90,18 @@
       "sold": "{count} sold"
     },
     "ctaBand": {
-      "title": "Do you create too?",
+      "title": "Do you {hl} too?",
       "sub": "Bring your sheet music, photography, and e-books to Open Jam — no monthly fee, just a 3% cut when a work sells.",
-      "button": "Become a creator"
+      "button": "Become a creator",
+      "titleHl": "create",
+      "note": "no monthly fees, just jam ♡"
     },
     "featured": {
       "eyebrow": "Featured · Popular",
       "title": "Featured works",
       "prevAria": "Previous featured",
-      "nextAria": "Next featured"
+      "nextAria": "Next featured",
+      "note": "handpicked!"
     },
     "browse": {
       "eyebrow": "Explore the marketplace",
@@ -264,10 +272,12 @@
     "tldrLabel": "The gist — a 30-second read",
     "tocLabel": "Contents",
     "cta": {
-      "title": "Questions about our terms or privacy?",
+      "title": "{mark} about our terms or privacy?",
       "text": "Email us, or check the FAQ first — most questions already have answers there.",
       "contact": "Contact us",
-      "faq": "Browse the FAQ"
+      "faq": "Browse the FAQ",
+      "titleMark": "Questions",
+      "note": "the boring pages, made friendly ♡"
     }
   },
   "onboarding": {
@@ -448,7 +458,8 @@
         "title": "I'm looking for inspiration",
         "text": "No sign-up needed — buy with just an email and start exploring now.",
         "button": "Explore creators"
-      }
+      },
+      "note": "pick your side (or both!)"
     },
     "marquee": [
       "Collect",
@@ -495,10 +506,12 @@
       "clear": "Clear search"
     },
     "cta": {
-      "title": "Still can't find your answer?",
+      "title": "Still {mark} your answer?",
       "text": "Email us or ask in the GitHub discussions — we usually reply within 1–2 business days.",
       "contact": "Contact us",
-      "github": "GitHub discussions"
+      "github": "GitHub discussions",
+      "titleMark": "can't find",
+      "note": "we reply fast, promise ♡"
     },
     "items": [
       {
@@ -617,5 +630,169 @@
         "a": "Payment status always follows Stripe; if the same order re-enters checkout, the system reuses the same payment rather than charging twice. If in doubt, contact support and we can look it up by order number."
       }
     ]
+  },
+  "brand": {
+    "tagline": "Creator marketplace"
+  },
+  "notFound": {
+    "screenLabel": "404 page not found",
+    "title": "This page isn't on the playlist",
+    "text": "The address might be mistyped, or this page has been taken down.\nDon't worry — there's plenty more to find in the market.",
+    "home": "Back to home",
+    "faq": "Browse the FAQ",
+    "note": "the record skipped... let's rewind ♪"
+  },
+  "landingPage": {
+    "screenLabel": "Brand story landing",
+    "chapters": [
+      "Intro",
+      "Music",
+      "Photography",
+      "E-books",
+      "Market rules",
+      "Enter the market"
+    ],
+    "hero": {
+      "badge": "OPEN JAM · A marketplace for creators",
+      "title": "Don't just browse — {play}.",
+      "titleHl": "come play",
+      "lede": "Every card here is a creator's labor of love.\nScroll down and we'll take you inside one.",
+      "hint": "Scroll into the market",
+      "sticker1": "100%",
+      "sticker2": "indie made"
+    },
+    "cards": {
+      "music": {
+        "tag": "SCORE",
+        "title": "Midnight Jazz Piano",
+        "price": "$18",
+        "rating": "4.9"
+      },
+      "photo": {
+        "tag": "PHOTO",
+        "title": "Neon City Nights",
+        "price": "$24",
+        "rating": "4.8"
+      },
+      "ebook": {
+        "tag": "EBOOK",
+        "title": "Pricing Playbook",
+        "price": "Free",
+        "rating": "4.7"
+      },
+      "beats": {
+        "tag": "BEATS",
+        "title": "Lo-Fi Beat Pack",
+        "price": "$15",
+        "rating": "4.8"
+      }
+    },
+    "music": {
+      "eyebrow": "CHAPTER 01 · MUSIC",
+      "title": "You stepped into {mark}.",
+      "titleMark": "that card",
+      "desc": "The Midnight Jazz Piano card that just flew by lives here. Late-night improv scores, lo-fi beat packs, cinematic soundtracks — first-hand work from independent musicians.",
+      "tryLabel": "Try the keys (it really plays)",
+      "demoBtn": "Play a demo",
+      "browse": "Browse music",
+      "trackTitle": "Midnight Jazz Piano: 12 improvisations",
+      "trackMeta": "Lena Okafor · 4.9 (312)",
+      "trackPrice": "$18",
+      "note": "↑ more where that came from ♪"
+    },
+    "photo": {
+      "eyebrow": "CHAPTER 02 · PHOTOGRAPHY",
+      "title": "The piano fades, and the {mark} light comes on.",
+      "titleMark": "darkroom",
+      "desc": "Travel documentary, seasonal portraits, city street shots. Tap a print below to develop it.",
+      "hint": "Tap to develop",
+      "photos": [
+        {
+          "title": "Autumn in Kyoto · foliage collection",
+          "author": "Haru Tanaka",
+          "price": "$24"
+        },
+        {
+          "title": "Neon City Nights",
+          "author": "Diego Ramos",
+          "price": "$24"
+        },
+        {
+          "title": "Hanami · cherry blossom portraits",
+          "author": "Haru Tanaka",
+          "price": "Free"
+        }
+      ]
+    },
+    "ebook": {
+      "eyebrow": "CHAPTER 03 · E-BOOKS",
+      "title": "The prints are dry — now open a creator's {mark}.",
+      "titleMark": "notebook",
+      "desc": "Pricing playbooks, writing habits, photography guides, Notion templates — turn someone else's hard lessons into your shortcut.",
+      "bookLabel": "Flip through: The Indie Creator Pricing Playbook",
+      "prev": "Previous",
+      "next": "Next page",
+      "browse": "Browse e-books",
+      "note": "↑ it's free — just take it, shhh",
+      "pages": [
+        {
+          "title": "Chapter 1: What is your work worth?",
+          "text": "Most creators' first mistake is pricing too low — not because the work isn't good, but out of fear no one will buy. The first lesson of this book: pricing is a design decision, not an apology."
+        },
+        {
+          "title": "Chapter 2: The power of free",
+          "text": "A free work is not a loss — it is your business card. One well-crafted freebie earns ten times the trust of any ad. The key: be strategic about what you give away."
+        },
+        {
+          "title": "Chapter 3: Three-tier pricing",
+          "text": "Split your catalogue into three tiers: entry (free), signature (mid), and deep-dive (premium). Collectors will find their own level — your job is just to build the staircase."
+        }
+      ]
+    },
+    "rules": {
+      "title": "Market rules (there are only three)",
+      "sub": "After the three rooms above, you've probably guessed them already.",
+      "sticker1": "only",
+      "sticker2": "three",
+      "items": [
+        {
+          "title": "Three crafts, one market",
+          "text": "Music, photography, and e-books all live in the same market — dig through categories and tags at your own pace."
+        },
+        {
+          "title": "Buy it, own it",
+          "text": "Download instantly after payment and keep it forever. Not a subscription; it never expires."
+        },
+        {
+          "title": "Money goes to creators",
+          "text": "97% of every sale goes to the creator. The platform takes 3%, and shops are free to open."
+        }
+      ]
+    },
+    "final": {
+      "title": "All those scattered cards live in {mark}.",
+      "titleMark": "the same market",
+      "sub": "Ready to share your next jam? Turn your work into something worth collecting.",
+      "ctaJam": "Share your jam",
+      "ctaMarket": "Enter the market",
+      "note": "open 24/7, come jam with us ♡",
+      "gridCards": [
+        {
+          "tag": "SCORE",
+          "title": "Midnight Jazz Piano",
+          "price": "$18"
+        },
+        {
+          "tag": "PHOTO",
+          "title": "Neon City Nights",
+          "price": "$24"
+        },
+        {
+          "tag": "EBOOK",
+          "title": "Pricing Playbook",
+          "price": "Free"
+        }
+      ]
+    }
   }
 }

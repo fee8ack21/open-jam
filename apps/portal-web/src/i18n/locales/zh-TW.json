@@ -13,7 +13,10 @@
     "docs": "專案文件",
     "workspace": "前往後台",
     "login": "登入",
-    "logout": "登出"
+    "logout": "登出",
+    "menuAria": "主導覽",
+    "explore": "探索",
+    "about": "關於"
   },
   "footer": {
     "links": "頁尾連結",
@@ -61,11 +64,13 @@
       "eyebrow": "分類導覽",
       "title": "你想找哪一種創作？",
       "count": "{count} 件作品",
-      "tileAria": "瀏覽{cat}"
+      "tileAria": "瀏覽{cat}",
+      "note": "pick your jam ↓"
     },
     "hotBanner": {
       "eyebrow": "本週熱門",
-      "cta": "查看作品"
+      "cta": "查看作品",
+      "freeNote": "free!"
     },
     "pulse": {
       "eyebrow": "市集脈動",
@@ -85,15 +90,18 @@
       "sold": "售出 {count}"
     },
     "ctaBand": {
-      "title": "你也在創作嗎？",
+      "title": "你也在{hl}嗎？",
       "sub": "把樂譜、攝影集與電子書帶到 Open Jam——免月費開店，成功售出才收 3% 手續費。",
-      "button": "成為創作者"
+      "button": "成為創作者",
+      "titleHl": "創作",
+      "note": "no monthly fees, just jam ♡"
     },
     "featured": {
       "eyebrow": "精選 · 熱門",
       "title": "精選作品",
       "prevAria": "上一個精選",
-      "nextAria": "下一個精選"
+      "nextAria": "下一個精選",
+      "note": "handpicked!"
     },
     "browse": {
       "eyebrow": "探索市集",
@@ -264,10 +272,12 @@
     "tldrLabel": "重點速覽 — 30 秒看完",
     "tocLabel": "目錄",
     "cta": {
-      "title": "對條款或隱私有疑問？",
+      "title": "對條款或隱私{mark}？",
       "text": "寫信給我們，或先到常見問題找找，多數疑問都有現成答案。",
       "contact": "聯絡我們",
-      "faq": "前往常見問題"
+      "faq": "前往常見問題",
+      "titleMark": "有疑問",
+      "note": "the boring pages, made friendly ♡"
     }
   },
   "onboarding": {
@@ -448,7 +458,8 @@
         "title": "我想找靈感",
         "text": "免註冊、憑信箱購買，馬上開始探索市集。",
         "button": "探索創作者"
-      }
+      },
+      "note": "pick your side (or both!)"
     },
     "marquee": [
       "收藏",
@@ -495,10 +506,12 @@
       "clear": "清除搜尋"
     },
     "cta": {
-      "title": "還是沒找到答案？",
+      "title": "還是{mark}答案？",
       "text": "寫信給我們，或到 GitHub 討論區發問，通常 1–2 個工作天內回覆。",
       "contact": "聯絡我們",
-      "github": "GitHub 討論區"
+      "github": "GitHub 討論區",
+      "titleMark": "沒找到",
+      "note": "we reply fast, promise ♡"
     },
     "items": [
       {
@@ -617,5 +630,169 @@
         "a": "付款狀態一律以 Stripe 為準；同一張訂單若重複進入結帳，系統會重用同一筆付款，不會重複收費。如有疑慮請聯繫客服，我們可依訂單編號協助查詢。"
       }
     ]
+  },
+  "brand": {
+    "tagline": "創作者數位市集"
+  },
+  "notFound": {
+    "screenLabel": "404 找不到頁面",
+    "title": "這一頁不在歌單裡",
+    "text": "網址可能打錯了，或這個頁面已經下架。\n別擔心，市集其他地方還有很多好東西。",
+    "home": "回到首頁",
+    "faq": "查看常見問題",
+    "note": "the record skipped... let's rewind ♪"
+  },
+  "landingPage": {
+    "screenLabel": "品牌敘事 Landing",
+    "chapters": [
+      "入口",
+      "音樂",
+      "攝影",
+      "電子書",
+      "市集規則",
+      "進入市集"
+    ],
+    "hero": {
+      "badge": "OPEN JAM・創作者數位市集",
+      "title": "別只是逛，{play}。",
+      "titleHl": "來玩",
+      "lede": "這裡的每張卡片，都是一位創作者的心血。\n往下滾，我們帶你走進其中一張。",
+      "hint": "往下走進市集",
+      "sticker1": "100%",
+      "sticker2": "獨立創作"
+    },
+    "cards": {
+      "music": {
+        "tag": "SCORE",
+        "title": "午夜爵士鋼琴",
+        "price": "$18",
+        "rating": "4.9"
+      },
+      "photo": {
+        "tag": "PHOTO",
+        "title": "霓虹城市夜景",
+        "price": "$24",
+        "rating": "4.8"
+      },
+      "ebook": {
+        "tag": "EBOOK",
+        "title": "定價心法",
+        "price": "免費",
+        "rating": "4.7"
+      },
+      "beats": {
+        "tag": "BEATS",
+        "title": "Lo-Fi 節拍包",
+        "price": "$15",
+        "rating": "4.8"
+      }
+    },
+    "music": {
+      "eyebrow": "CHAPTER 01・音樂",
+      "title": "你走進了{mark}。",
+      "titleMark": "那張卡",
+      "desc": "剛剛飛過來的《午夜爵士鋼琴》就在這裡。深夜即興譜、Lo-Fi 節拍包、電影感配樂——來自獨立音樂人的第一手創作。",
+      "tryLabel": "試彈區（真的有聲音）",
+      "demoBtn": "聽一段 Demo",
+      "browse": "逛音樂作品",
+      "trackTitle": "午夜爵士鋼琴：12 首即興譜集",
+      "trackMeta": "Lena Okafor・4.9 (312)",
+      "trackPrice": "$18",
+      "note": "↑ more where that came from ♪"
+    },
+    "photo": {
+      "eyebrow": "CHAPTER 02・攝影",
+      "title": "琴聲慢慢淡出，{mark}的燈亮起。",
+      "titleMark": "暗房",
+      "desc": "旅行紀實、季節寫真、城市街拍。點下面的相紙，讓它顯影",
+      "hint": "點我顯影",
+      "photos": [
+        {
+          "title": "京都の秋・古都紅葉攝影集",
+          "author": "Haru Tanaka",
+          "price": "$24"
+        },
+        {
+          "title": "霓虹城市夜景",
+          "author": "Diego Ramos",
+          "price": "$24"
+        },
+        {
+          "title": "春日花見・櫻花季寫真",
+          "author": "Haru Tanaka",
+          "price": "免費"
+        }
+      ]
+    },
+    "ebook": {
+      "eyebrow": "CHAPTER 03・電子書",
+      "title": "相紙晾乾了，接著翻開創作者的{mark}。",
+      "titleMark": "筆記",
+      "desc": "定價心法、寫作習慣、攝影教學、Notion 範本——把別人踩過的坑，變成你的捷徑。",
+      "bookLabel": "隨手翻翻：《獨立創作者的定價心法》",
+      "prev": "上一頁",
+      "next": "翻下一頁",
+      "browse": "逛電子書",
+      "note": "↑ it's free — just take it, shhh",
+      "pages": [
+        {
+          "title": "第一章：你的作品值多少？",
+          "text": "大多數創作者的第一個錯誤，是把價格定得太低——不是因為作品不夠好，而是因為害怕沒人買。這本書要教你的第一件事：定價是一種設計，不是一種道歉。"
+        },
+        {
+          "title": "第二章：免費的力量",
+          "text": "免費作品不是虧本生意，而是你的名片。一件精心製作的免費作品，能帶來十倍於廣告的信任。關鍵在於：免費要免得有策略。"
+        },
+        {
+          "title": "第三章：三層定價法",
+          "text": "把你的作品分成三層：入門（免費）、招牌（中價）、深度（高價）。收藏家會自己找到適合的位置——你要做的只是把樓梯搭好。"
+        }
+      ]
+    },
+    "rules": {
+      "title": "市集規則（只有三條）",
+      "sub": "逛過上面三區，你大概已經猜到了。",
+      "sticker1": "只有",
+      "sticker2": "三條",
+      "items": [
+        {
+          "title": "三種創作，一站逛齊",
+          "text": "音樂、攝影、電子書都在同一個市集，用分類和標籤慢慢挖寶。"
+        },
+        {
+          "title": "買了就是你的",
+          "text": "付款後即時下載、永久擁有。不是訂閱，不會過期消失。"
+        },
+        {
+          "title": "錢直接給創作者",
+          "text": "每筆成交 97% 歸創作者，平台只收 3%，開店免月費。"
+        }
+      ]
+    },
+    "final": {
+      "title": "散落的卡片，其實都住在{mark}。",
+      "titleMark": "同一個市集",
+      "sub": "準備好分享你的下一個 Jam 了嗎？把你的創作，變成值得被收藏的東西。",
+      "ctaJam": "分享你的 Jam",
+      "ctaMarket": "走進市集",
+      "note": "open 24/7, come jam with us ♡",
+      "gridCards": [
+        {
+          "tag": "SCORE",
+          "title": "午夜爵士鋼琴",
+          "price": "$18"
+        },
+        {
+          "tag": "PHOTO",
+          "title": "霓虹城市夜景",
+          "price": "$24"
+        },
+        {
+          "tag": "EBOOK",
+          "title": "定價心法",
+          "price": "免費"
+        }
+      ]
+    }
   }
 }

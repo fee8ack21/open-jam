@@ -7,11 +7,12 @@ import FaqView from '@/views/FaqView.vue';
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'home', component: DiscoverView },
   { path: '/discover', redirect: '/' }, // 舊市集網址導回首頁（外部書籤相容）
+  { path: '/landing', name: 'landing', component: () => import('@/views/LandingView.vue') }, // 品牌敘事捲動頁
   { path: '/about', name: 'about', component: AboutView },
   { path: '/faq', name: 'faq', component: FaqView },
   { path: '/terms', name: 'terms', component: LegalView, props: { doc: 'terms' } },
   { path: '/privacy', name: 'privacy', component: LegalView, props: { doc: 'privacy' } },
-  { path: '/:pathMatch(.*)*', redirect: '/' },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue') },
 ];
 
 export const router = createRouter({

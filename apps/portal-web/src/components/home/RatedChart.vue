@@ -26,7 +26,7 @@ function href(p: Product): string {
 <template>
   <div class="board">
     <div class="board-head bh-rated">
-      <span class="board-ic"><app-icon name="star" :size="15" fill /></span>
+      <span class="board-ic"><app-icon name="star" :size="15" /></span>
       <h3 class="board-title">{{ t('market.rated.title') }}</h3>
       <span class="board-tag">TOP 5</span>
     </div>
@@ -40,7 +40,7 @@ function href(p: Product): string {
             <span class="brd-sub">{{ p.creator }}</span>
           </span>
           <span class="brd-side">
-            <span class="brd-main"><app-icon name="star" :size="12" fill /> {{ p.rating.toFixed(1) }}</span>
+            <span class="brd-main"><app-icon name="star" :size="12" /> {{ p.rating.toFixed(1) }}</span>
             <span class="brd-note">{{ t('market.rated.count', { count: p.ratingCount }) }}</span>
           </span>
         </a>

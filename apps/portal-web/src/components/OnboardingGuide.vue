@@ -55,7 +55,7 @@ function setCookie(name: string, value: string, days: number) {
 }
 
 function measure() {
-  const links = document.querySelectorAll<HTMLElement>('.nav-actions .nav-link');
+  const links = document.querySelectorAll<HTMLElement>('.nav-actions .nav-ic');
   if (!links.length) {
     ready.value = false;
     return;
@@ -103,15 +103,15 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 </script>
 
 <template>
-  <!-- 1) intro modal — Auth legal-modal styling -->
+  <!-- 1) intro modal — v3 條款 dialog 樣式（膠帶白卡 + 奶油 header/footer） -->
   <div v-if="step === 'modal'" class="modal-scrim" @click.self="goCoach">
     <div class="modal-card" role="dialog" aria-modal="true" :aria-label="t('onboarding.modalAria')">
       <div class="modal-head">
-        <div class="modal-badge info"><app-icon name="sparkle" :size="22" /></div>
+        <div class="modal-badge"><app-icon name="note" :size="24" /></div>
         <h3 class="modal-title">{{ t('onboarding.title') }}</h3>
         <p class="modal-meta">{{ t('onboarding.meta') }}</p>
         <button class="modal-x" :aria-label="t('onboarding.closeAria')" @click="goCoach">
-          <app-icon name="close" :size="16" :stroke="2.2" />
+          <app-icon name="close" :size="16" />
         </button>
       </div>
       <div class="modal-body">
@@ -132,8 +132,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
         </div>
       </div>
       <div class="modal-foot">
-        <button class="btn-pop violet" @click="goCoach">
-          <app-icon name="check" :size="17" :stroke="2.4" /> {{ t('onboarding.start') }}
+        <button class="btn-pop" @click="goCoach">
+          <app-icon name="check" :size="16" /> {{ t('onboarding.start') }}
         </button>
       </div>
     </div>
@@ -157,85 +157,93 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
         <span class="coach-ic"><app-icon name="book" :size="18" /></span>
         <span class="coach-txt"><b>{{ t('onboarding.coachDocsTitle') }}</b><span>{{ t('onboarding.coachDocsDesc') }}</span></span>
       </a>
-      <button class="btn-pop violet coach-done" @click="finish">
-        <app-icon name="check" :size="16" :stroke="2.4" /> {{ t('onboarding.coachDone') }}
+      <button class="btn-pop coach-done" @click="finish">
+        <app-icon name="check" :size="15" /> {{ t('onboarding.coachDone') }}
       </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* ---------- intro modal (ported from Auth legal-modal) ---------- */
+/* ---------- intro modal（v3 條款 dialog：膠帶白卡 + 奶油 header/footer） ---------- */
 .modal-scrim {
   position: fixed; inset: 0; z-index: 200;
-  background: rgba(26, 22, 38, 0.42); backdrop-filter: blur(4px);
-  display: grid; place-items: center; padding: 28px;
+  background: rgba(26, 26, 26, 0.55); backdrop-filter: blur(4px);
+  display: grid; place-items: center; padding: 40px 24px;
   animation: scrim-in 0.22s ease;
 }
 @keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
 .modal-card {
-  width: 100%; max-width: 520px; max-height: min(82vh, 720px);
-  background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--r-lg);
-  box-shadow: 8px 8px 0 var(--text), 0 40px 90px -30px rgba(20, 16, 60, 0.6);
+  position: relative;
+  width: 100%; max-width: 600px; max-height: min(82vh, 720px);
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 24px;
+  box-shadow: 8px 8px 0 rgba(26, 26, 26, 0.9);
   display: flex; flex-direction: column; overflow: hidden;
   animation: modal-in 0.34s cubic-bezier(0.2, 1.15, 0.4, 1);
+}
+/* 膠帶貼條 */
+.modal-card::before {
+  content: ''; position: absolute; top: -2px; left: 50%; width: 76px; height: 14px;
+  margin-left: -38px; background: rgba(255, 222, 0, 0.9); border-radius: 0 0 3px 3px;
+  transform: rotate(-2deg); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.15); z-index: 6;
 }
 @keyframes modal-in {
   from { opacity: 0; transform: translateY(18px) scale(0.97); }
   to { opacity: 1; transform: none; }
 }
 .modal-head {
-  position: relative; flex: none; padding: 24px 26px 18px;
-  border-bottom: 1.5px solid var(--border);
-  background: radial-gradient(300px 120px at 0% 0%, rgba(108, 76, 241, 0.1), transparent 70%), var(--surface);
+  position: relative; flex: none; padding: 24px 28px 18px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--bg);
 }
 .modal-badge {
-  width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
-  color: #fff; border: 1.5px solid var(--text); box-shadow: 3px 3px 0 var(--text); margin-bottom: 14px;
+  width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+  color: var(--text); background: var(--c-pink);
+  border: 2px solid var(--border-strong); box-shadow: var(--ink-drop-sm);
+  transform: rotate(-3deg); margin-bottom: 14px;
 }
-.modal-badge.info { background: linear-gradient(135deg, var(--c-violet), var(--c-cyan)); }
 .modal-title {
-  font-family: var(--oj-display); font-weight: 800; font-size: 25px;
-  letter-spacing: -0.7px; margin: 0; color: var(--text);
+  font-family: var(--oj-font); font-weight: 900; font-size: 26px;
+  margin: 0; color: var(--text);
 }
 .modal-meta {
-  font-family: var(--oj-mono); font-size: 11.5px; letter-spacing: 0.06em;
-  color: var(--text-faint); margin: 7px 0 0; text-transform: uppercase;
+  font-family: var(--oj-display); font-weight: 700; font-size: 12px; letter-spacing: 1px;
+  color: var(--text-soft); margin: 6px 0 0;
 }
 .modal-x {
-  position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 10px;
-  cursor: pointer; border: 1.5px solid var(--border-strong); background: var(--surface);
-  box-shadow: 2px 2px 0 var(--border-strong); color: var(--text);
-  display: grid; place-items: center; transition: transform 0.14s, box-shadow 0.14s, color 0.14s;
+  position: absolute; top: 18px; right: 20px; width: 38px; height: 38px; border-radius: 999px;
+  cursor: pointer; border: 2px solid var(--border-strong); background: var(--surface);
+  color: var(--text);
+  display: grid; place-items: center; transition: background 0.15s, transform 0.2s var(--ease-pop);
 }
-.modal-x:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--border-strong); color: var(--c-pink); }
-.modal-body { overflow-y: auto; padding: 22px 26px 8px; }
-.legal-sec { margin-bottom: 20px; }
+.modal-x:hover { background: var(--c-pink); transform: rotate(90deg); }
+.modal-body { overflow-y: auto; padding: 24px 28px 8px; }
+.legal-sec { margin-bottom: 22px; }
 .legal-sec h4 {
-  font-family: var(--oj-display); font-weight: 700; font-size: 16px; color: var(--text);
-  margin: 0 0 8px; display: flex; align-items: baseline; gap: 9px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 16px; color: var(--text);
+  margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px;
 }
-.legal-sec h4 .num { font-family: var(--oj-mono); font-size: 12px; color: var(--oj-primary); font-weight: 600; }
-.legal-sec p { margin: 0; font-size: 14.5px; line-height: 1.72; color: var(--text-soft); }
-.legal-sec p b { color: var(--text); font-weight: 700; }
+.legal-sec h4 .num { font-family: var(--oj-display); font-size: 14px; color: var(--c-violet); font-weight: 700; }
+.legal-sec p { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.9; color: #333; }
+.legal-sec p b { color: var(--text); font-weight: 900; font-family: var(--oj-display); }
 .modal-foot {
-  flex: none; padding: 16px 26px 20px; border-top: 1.5px solid var(--border);
-  display: flex; gap: 12px; align-items: center; justify-content: flex-end;
+  flex: none; padding: 18px 28px; border-top: 2px solid var(--border-strong);
+  background: var(--bg);
+  display: flex; gap: 14px; align-items: center;
 }
 
-/* ---------- shared pop button ---------- */
+/* ---------- shared pop button（黃色膠囊 + 墨色硬底影） ---------- */
 .btn-pop {
-  cursor: pointer; border: 1.5px solid var(--text);
-  font-family: var(--oj-font); font-weight: 700; font-size: 15px; color: #1a1626;
-  padding: 13px 20px; border-radius: 14px;
-  background: linear-gradient(135deg, var(--c-yellow), var(--c-orange));
-  box-shadow: 4px 4px 0 var(--text);
-  transition: transform 0.14s, box-shadow 0.14s;
-  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  flex: 1; cursor: pointer; border: 2px solid var(--border-strong);
+  font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: var(--text);
+  padding: 13px 20px; border-radius: 999px;
+  background: var(--c-yellow);
+  box-shadow: var(--ink-drop-sm);
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
-.btn-pop:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--text); }
-.btn-pop:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--text); }
-.btn-pop.violet { background: linear-gradient(135deg, var(--c-violet), var(--c-pink)); color: #fff; }
+.btn-pop:hover { transform: translateY(-2px); box-shadow: var(--ink-drop); }
+.btn-pop:active { transform: translateY(2px); box-shadow: none; }
 
 /* ---------- coach-marks ---------- */
 .coach { position: fixed; inset: 0; z-index: 210; cursor: pointer; animation: scrim-in 0.22s ease; }
@@ -244,58 +252,61 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
    highlighted icons stay sharp */
 .coach-veil {
   position: fixed; inset: 0; pointer-events: none;
-  background: rgba(20, 16, 40, 0.62);
+  background: rgba(26, 26, 26, 0.55);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
 .coach-spot {
-  position: fixed; border-radius: 14px; pointer-events: none;
+  position: fixed; border-radius: 999px; pointer-events: none;
   border: 2px solid rgba(255, 255, 255, 0.92);
   animation: spot-pulse 1.8s ease-in-out infinite;
 }
 @keyframes spot-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
-  50% { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 222, 0, 0.6); }
+  50% { box-shadow: 0 0 0 7px rgba(255, 222, 0, 0); }
 }
 .coach-card {
   position: fixed; width: 300px; max-width: calc(100vw - 32px);
-  background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--r-md);
-  box-shadow: 6px 6px 0 var(--text), 0 30px 60px -28px rgba(20, 16, 60, 0.6);
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 18px;
+  box-shadow: 6px 6px 0 rgba(26, 26, 26, 0.9);
   padding: 16px 16px 14px; cursor: default;
   animation: modal-in 0.3s cubic-bezier(0.2, 1.15, 0.4, 1);
 }
 .coach-arrow {
-  position: absolute; top: -8px; right: 26px; width: 14px; height: 14px;
+  position: absolute; top: -9px; right: 26px; width: 14px; height: 14px;
   background: var(--surface);
-  border-left: 1.5px solid var(--border-strong); border-top: 1.5px solid var(--border-strong);
+  border-left: 2px solid var(--border-strong); border-top: 2px solid var(--border-strong);
   transform: rotate(45deg);
 }
 .coach-eyebrow {
-  font-family: var(--oj-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--oj-primary); margin: 0 0 12px;
+  display: inline-block; margin: 0 0 12px; padding: 4px 12px;
+  font-family: var(--oj-font); font-size: 11px; font-weight: 900; letter-spacing: 1px;
+  color: var(--c-yellow); background: var(--text); border-radius: 999px;
+  transform: rotate(-1deg); white-space: nowrap;
 }
 .coach-row {
   display: flex; align-items: center; gap: 11px; text-decoration: none;
-  padding: 9px; border-radius: var(--r-sm); transition: background 0.14s;
+  padding: 9px; border-radius: 12px; transition: background 0.15s;
 }
-.coach-row + .coach-row { margin-top: 2px; }
-.coach-row:hover { background: var(--oj-wash); }
+.coach-row + .coach-row { margin-top: 4px; }
+.coach-row:hover { background: var(--bg); }
 .coach-ic {
-  width: 38px; height: 38px; flex: none; border-radius: 11px; display: grid; place-items: center;
-  color: var(--text); background: var(--surface);
-  border: 1.5px solid var(--border-strong); box-shadow: 2px 2px 0 var(--border-strong);
+  width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center;
+  color: var(--text); background: var(--c-cyan);
+  border: 2px solid var(--border-strong); transform: rotate(-3deg);
 }
+.coach-row + .coach-row .coach-ic { background: var(--c-lime); transform: rotate(3deg); }
 .coach-txt { display: flex; flex-direction: column; min-width: 0; }
-.coach-txt b { font-family: var(--oj-display); font-weight: 700; font-size: 14.5px; color: var(--text); letter-spacing: -0.2px; }
-.coach-txt span { font-size: 12px; color: var(--text-soft); margin-top: 1px; }
-.coach-done { width: 100%; margin-top: 14px; padding: 11px 18px; font-size: 14px; border-radius: 12px; }
+.coach-txt b { font-family: var(--oj-font); font-weight: 900; font-size: 14px; color: var(--text); }
+.coach-txt span { font-size: 12px; font-weight: 500; color: var(--text-soft); margin-top: 1px; }
+.coach-done { width: 100%; margin-top: 14px; padding: 11px 18px; font-size: 14px; }
 
 @media (max-width: 560px) {
   .modal-scrim { padding: 0; align-items: flex-end; }
   .modal-card {
     max-width: 100%; max-height: 90vh;
-    border-radius: var(--r-lg) var(--r-lg) 0 0;
-    box-shadow: 0 -8px 40px rgba(20, 16, 60, 0.4); border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(26, 26, 26, 0.4); border-bottom: 0;
   }
 }
 </style>

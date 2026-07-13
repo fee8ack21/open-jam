@@ -21,8 +21,7 @@ import AppIcon from '@/components/app-icon/AppIcon.vue';
 const { t } = useI18n();
 
 interface CollageCard {
-  cls: string; // position + rotation class (fc-1 … fc-4)
-  grad: string;
+  cls: string; // position + rotation + palette class (fc-1 … fc-4)
   cat: string;
   glyph: string;
   title: string;
@@ -32,10 +31,10 @@ interface CollageCard {
 }
 
 const cards = computed<CollageCard[]>(() => [
-  { cls: 'fc-1', grad: 'linear-gradient(135deg,#6c4cf1,#ff4d9d)', cat: 'SCORE', glyph: 'note',  title: t('collage.card1'), price: '$18', rating: '4.9' },
-  { cls: 'fc-2', grad: 'linear-gradient(135deg,#ffc83a,#ff7a2f)', cat: 'EBOOK', glyph: 'book',  title: t('collage.card2'), price: t('common.free'), free: true, rating: '5.0' },
-  { cls: 'fc-3', grad: 'linear-gradient(135deg,#ff7a2f,#ff4d9d)', cat: 'PHOTO', glyph: 'image', title: t('collage.card3'), price: '$24', rating: '4.8' },
-  { cls: 'fc-4', grad: 'linear-gradient(135deg,#1fd6c6,#6c4cf1)', cat: 'SCORE', glyph: 'note',  title: t('collage.card4'), price: '$15', rating: '4.7' },
+  { cls: 'fc-1', cat: 'SCORE', glyph: 'note',  title: t('collage.card1'), price: '$18', rating: '4.9' },
+  { cls: 'fc-2', cat: 'EBOOK', glyph: 'book',  title: t('collage.card2'), price: t('common.free'), free: true, rating: '5.0' },
+  { cls: 'fc-3', cat: 'PHOTO', glyph: 'image', title: t('collage.card3'), price: '$24', rating: '4.8' },
+  { cls: 'fc-4', cat: 'BEATS', glyph: 'beats',  title: t('collage.card4'), price: '$15', rating: '4.7' },
 ]);
 
 /* ---- pointer + scroll parallax driver ---------------------------- */
@@ -88,17 +87,12 @@ onBeforeUnmount(() => cleanup?.());
     <div v-for="c in cards" :key="c.cls" class="fc" :class="c.cls">
       <div class="fc-float">
         <div class="fc-card">
-          <div class="fc-thumb" :style="{ background: c.grad }">
-            <div class="fc-dots"></div>
-            <div class="fc-cat">{{ c.cat }}</div>
-            <div class="fc-glyph"><app-icon :name="c.glyph" :size="32" :stroke="1.6" /></div>
-          </div>
-          <div class="fc-body">
-            <div class="fc-title">{{ c.title }}</div>
-            <div class="fc-foot">
-              <span class="fc-price" :class="{ free: c.free }">{{ c.price }}</span>
-              <span class="fc-star"><app-icon name="star" :size="11" fill style="color: #f0a92b" /> {{ c.rating }}</span>
-            </div>
+          <span class="fc-cat">{{ c.cat }}</span>
+          <div class="fc-glyph"><app-icon :name="c.glyph" :size="28" /></div>
+          <div class="fc-title">{{ c.title }}</div>
+          <div class="fc-foot">
+            <span class="fc-price" :class="{ free: c.free }">{{ c.price }}</span>
+            <span class="fc-star"><app-icon name="star" :size="12" /> {{ c.rating }}</span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* ============================================================
-   AppFooter — portal-web 全站頁尾
-   品牌標誌 + 連結列 + 版權字樣。
+   AppFooter — portal-web 全站頁尾（墨黑滿版帶）
+   果醬罐標誌 + 連結列 + 版權字樣。
    ============================================================ */
 import { useI18n } from 'vue-i18n';
 import BrandLogo from '@/components/BrandLogo.vue';
@@ -17,7 +17,7 @@ function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 
 <template>
   <footer class="mkt-foot">
-    <BrandLogo />
+    <BrandLogo inverse />
     <nav class="mkt-foot-links" :aria-label="t('footer.links')">
       <a href="#" @click.prevent="goWorkspace">{{ t('footer.becomeCreator') }}</a>
       <router-link to="/about">{{ t('footer.about') }}</router-link>

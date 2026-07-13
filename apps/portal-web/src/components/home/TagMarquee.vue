@@ -31,7 +31,7 @@ const seq = computed(() => {
           tabindex="-1"
           @click="emit('pick', tag)"
         >
-          <app-icon name="sparkle" :size="13" />
+          <app-icon name="note" :size="13" />
           {{ tag }}
         </button>
       </div>

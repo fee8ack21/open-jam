@@ -16,6 +16,6 @@ export interface LegalMeta {
 }
 
 export const LEGAL_META: Record<LegalKey, LegalMeta> = {
-  terms: { key: 'terms', icon: 'note', updated: '2026-05-31' },
+  terms: { key: 'terms', icon: 'doc', updated: '2026-05-31' },
   privacy: { key: 'privacy', icon: 'shield', updated: '2026-05-31' },
 };

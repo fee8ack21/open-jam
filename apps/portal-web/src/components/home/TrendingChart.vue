@@ -23,7 +23,7 @@ function href(p: Product): string {
 <template>
   <div class="board">
     <div class="board-head bh-sales">
-      <span class="board-ic"><app-icon name="bag" :size="15" /></span>
+      <span class="board-ic"><app-icon name="mic" :size="15" /></span>
       <h3 class="board-title">{{ t('market.trending.title') }}</h3>
       <span class="board-tag">TOP 5</span>
     </div>

@@ -1,37 +1,35 @@
 <script setup lang="ts">
 /* ============================================================
-   AppIcon — simple UI line-icon set
+   AppIcon — 手繪貼紙風 icon（設計稿語彙）
    Registered globally as <app-icon> in main.ts
    ============================================================ */
 import { computed } from 'vue';
-import { ICON_PATHS } from './icon-paths';
+import { ICONS } from './icon-paths';
 
-const props = withDefaults(defineProps<{
-  name: string;
-  size?: number | string;
-  fill?: boolean;
-  stroke?: number;
-}>(), {
-  size: 20,
-  fill: false,
-  stroke: 1.8,
+const props = withDefaults(
+  defineProps<{
+    name: string;
+    size?: number | string;
+  }>(),
+  { size: 20 },
+);
+
+const def = computed(() => ICONS[props.name]);
+const vb = computed(() => def.value?.vb ?? '0 0 24 24');
+/* 非正方形 viewBox（如相機）以寬為準等比縮放 */
+const dims = computed(() => {
+  const [, , w, h] = vb.value.split(' ').map(Number);
+  const size = Number(props.size);
+  return { width: size, height: Math.round(((size * h) / w) * 100) / 100 };
 });
-
-const d = computed(() => ICON_PATHS[props.name] || '');
 </script>
 
 <template>
   <svg
-    :width="size"
-    :height="size"
-    viewBox="0 0 24 24"
-    :fill="fill ? 'currentColor' : 'none'"
-    :stroke="fill ? 'none' : 'currentColor'"
-    :stroke-width="stroke"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    :width="dims.width"
+    :height="dims.height"
+    :viewBox="vb"
     style="display: block; flex: none"
-  >
-    <path :d="d"></path>
-  </svg>
+    v-html="def?.body ?? ''"
+  ></svg>
 </template>

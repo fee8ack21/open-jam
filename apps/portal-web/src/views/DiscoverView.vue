@@ -311,7 +311,7 @@ onBeforeUnmount(() => {
       <section class="mkt-hero">
         <hero-collage />
         <div class="mkt-hero-inner">
-          <p class="hero-eyebrow"><app-icon name="sparkle" :size="14" /> {{ t('market.hero.eyebrow') }}</p>
+          <p class="hero-eyebrow"><app-icon name="note" :size="14" /> {{ t('market.hero.eyebrow') }}</p>
           <i18n-t keypath="market.hero.title" tag="h1" class="mkt-hero-title" scope="global">
             <template #collect><span class="hl hl-lime">{{ t('market.hero.collect') }}</span></template>
             <template #rotating><rotating-word :words="rotatingWords" /></template>
@@ -325,10 +325,10 @@ onBeforeUnmount(() => {
 
           <div class="hero-ctas">
             <button type="button" class="hcta hcta-main" @click="scrollToHot">
-              <app-icon name="star" :size="16" /> {{ t('market.hero.cta.hot') }}
+              <app-icon name="flame" :size="16" /> {{ t('market.hero.cta.hot') }}
             </button>
             <button type="button" class="hcta" @click="goFreeDownloads">
-              <app-icon name="download" :size="16" /> {{ t('market.hero.cta.free') }}
+              <app-icon name="arrowD" :size="16" /> {{ t('market.hero.cta.free') }}
             </button>
           </div>
 
@@ -363,15 +363,15 @@ onBeforeUnmount(() => {
       <section v-if="featured.length" class="sec featured rv" id="featured">
         <div class="feat-head">
           <div class="feat-head-text">
-            <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('market.featured.eyebrow') }}</p>
-            <h2 class="browse-title">{{ t('market.featured.title') }}</h2>
+            <p class="browse-eyebrow"><app-icon name="note" :size="12" /> {{ t('market.featured.eyebrow') }}</p>
+            <h2 class="browse-title">{{ t('market.featured.title') }} <span class="hand-note hand-pink">{{ t('market.featured.note') }}</span></h2>
           </div>
           <div class="feat-nav">
             <button type="button" class="feat-arrow prev" :disabled="!canLeft" @click="scrollFeat(-1)" :aria-label="t('market.featured.prevAria')">
-              <app-icon name="chevron" :size="20" :stroke="2.4" />
+              <app-icon name="arrowL" :size="20" />
             </button>
             <button type="button" class="feat-arrow" :disabled="!canRight" @click="scrollFeat(1)" :aria-label="t('market.featured.nextAria')">
-              <app-icon name="chevron" :size="20" :stroke="2.4" />
+              <app-icon name="arrow" :size="20" />
             </button>
           </div>
         </div>
@@ -390,12 +390,14 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <!-- ============ 本週熱門 banner + 市集儀表板（淡紫 band） ============ -->
-      <div v-if="store.products.length && hotProduct" class="band band-violet">
-        <hot-banner :product="hotProduct" />
+      <!-- ============ 本週熱門大 banner（奶油底） ============ -->
+      <hot-banner v-if="store.products.length && hotProduct" :product="hotProduct" />
+
+      <!-- ============ 市集儀表板（淡藍圓點 band） ============ -->
+      <div v-if="store.products.length" class="band band-violet">
         <section class="sec pulse rv">
           <div class="browse-head">
-            <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('market.pulse.eyebrow') }}</p>
+            <p class="browse-eyebrow"><app-icon name="note" :size="12" /> {{ t('market.pulse.eyebrow') }}</p>
             <h2 class="browse-title">{{ t('market.pulse.title') }}</h2>
           </div>
           <div class="pulse-grid">
@@ -410,7 +412,7 @@ onBeforeUnmount(() => {
       <div class="band band-mist">
       <section class="sec browse" id="browse">
         <div class="browse-head">
-          <p class="browse-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('market.browse.eyebrow') }}</p>
+          <p class="browse-eyebrow"><app-icon name="note" :size="13" /> {{ t('market.browse.eyebrow') }}</p>
           <h2 class="browse-title">{{ t('market.browse.title') }}</h2>
           <p class="browse-sub">{{ t('market.browse.sub') }}</p>
         </div>
@@ -434,7 +436,7 @@ onBeforeUnmount(() => {
           <!-- filter sidebar (Gumroad-style left rail) -->
           <aside class="browse-side">
             <div class="side-card">
-              <p class="side-title"><app-icon name="sparkle" :size="15" /> {{ t('market.browse.filter') }}</p>
+              <p class="side-title"><app-icon name="funnel" :size="15" /> {{ t('market.browse.filter') }}</p>
 
               <div class="side-group">
                 <p class="side-label">{{ t('market.browse.categoryGroup') }}</p>
@@ -478,7 +480,7 @@ onBeforeUnmount(() => {
               <span class="active-chips-lab">{{ t('market.browse.filtering') }}</span>
               <button v-for="f in activeFilters" :key="f.key" type="button" class="fchip" @click="f.clear()">
                 {{ f.label }}
-                <span class="fchip-x"><app-icon name="close" :size="13" :stroke="2.4" /></span>
+                <span class="fchip-x"><app-icon name="close" :size="13" /></span>
               </button>
               <button type="button" class="fchip-clear" @click="reset">{{ t('market.browse.clearAllShort') }}</button>
             </div>
@@ -488,7 +490,7 @@ onBeforeUnmount(() => {
             </div>
             <div v-if="hasMore" class="load-more-wrap">
               <button class="load-more-btn" @click="loadMore">
-                {{ t('market.browse.loadMore') }}
+                <app-icon name="arrowD" :size="15" /> {{ t('market.browse.loadMore') }}
                 <span class="load-more-count">{{ t('market.browse.loadMoreCount', { count: results.length - visibleCount }) }}</span>
               </button>
             </div>
@@ -512,7 +514,7 @@ onBeforeUnmount(() => {
 
     <Transition name="to-top">
       <button v-if="showToTop" class="to-top-btn" @click="scrollToTop" :aria-label="t('market.toTop')">
-        <app-icon name="chevronU" :size="22" />
+        <app-icon name="arrowU" :size="22" />
       </button>
     </Transition>
 

@@ -27,17 +27,17 @@ const initials = computed(() => props.product.creator.split(' ').map((s) => s[0]
 const tag = computed(() =>
   props.product.featured
     ? { icon: 'sparkle', label: t('card.editorPick') }
-    : { icon: 'star', label: t('card.hot') },
+    : { icon: 'flame', label: t('card.hot') },
 );
 </script>
 
 <template>
   <a class="feat-card" :href="href" @click="onClick">
     <div class="feat-media">
-      <product-thumb :product="product" hide-label />
+      <product-thumb :product="product" hide-label :glyph-size="46" />
+      <span class="feat-tag" :class="{ 'feat-tag-hot': !product.featured }"><app-icon :name="tag.icon" :size="11" /> {{ tag.label }}</span>
     </div>
     <div class="feat-info">
-      <span class="feat-tag" :class="{ 'feat-tag-hot': !product.featured }"><app-icon :name="tag.icon" :size="12" /> {{ tag.label }}</span>
       <h3 class="feat-title">{{ product.title }}</h3>
       <p class="feat-blurb">{{ product.blurb }}</p>
       <div class="feat-creator">

@@ -20,20 +20,26 @@ const href = computed(
   <section class="sec hot-sec rv" id="hot">
     <a class="hot-banner" :href="href">
       <div class="hot-info">
-        <span class="hot-eyebrow">🔥 {{ t('market.hotBanner.eyebrow') }}</span>
+        <span class="hot-eyebrow"><app-icon name="flame" :size="12" /> {{ t('market.hotBanner.eyebrow') }}</span>
         <h2 class="hot-title">{{ product.title }}</h2>
         <p class="hot-blurb">{{ product.blurb }}</p>
         <div class="hot-chips">
           <span class="hot-chip">{{ t('market.trending.sales', { count: product.sales.toLocaleString() }) }}</span>
-          <span class="hot-chip"><app-icon name="star" :size="12" fill /> {{ product.rating }}（{{ product.ratingCount }}）</span>
+          <span class="hot-chip"><app-icon name="star" :size="12" /> {{ product.rating }}（{{ product.ratingCount }}）</span>
           <span class="hot-chip">{{ product.creator }}</span>
         </div>
         <div class="hot-actions">
-          <span class="hot-cta">{{ t('market.hotBanner.cta') }} <app-icon name="chevron" :size="15" :stroke="2.6" /></span>
-          <span class="hot-price">{{ product.price === 0 ? t('common.free') : '$' + product.price }}</span>
+          <span class="hot-cta">{{ t('market.hotBanner.cta') }} <app-icon name="arrow" :size="15" /></span>
+          <span class="hot-price">{{ product.price === 0 ? t('market.hotBanner.freeNote') : '$' + product.price }}</span>
         </div>
       </div>
-      <div class="hot-media"><product-thumb :product="product" hide-label :glyph-size="80" /></div>
+      <div class="hot-media">
+        <div class="hot-polaroid">
+          <product-thumb :product="product" hide-label :show-cat="false" :glyph-size="52" />
+          <div class="hot-polaroid-title">{{ product.title }}</div>
+          <div class="hot-polaroid-author">{{ product.creator }}</div>
+        </div>
+      </div>
     </a>
   </section>
 </template>
