@@ -4,7 +4,7 @@
    果醬罐 logo + 搜尋膠囊（黃色搜尋鈕）+ 語言 / 購物車圓鈕 +
    追蹤創作者膠囊（黑色追蹤鈕）。
    ============================================================ */
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
@@ -21,10 +21,37 @@ const router = useRouter();
 const message = useMessage();
 const { t, locale } = useI18n();
 
+/* ---------- 語系下拉（觸發鈕維持圓形 icon-btn，選單同 portal-web popover） ---------- */
 const langOptions = computed(() =>
-  SUPPORTED_LOCALES.map((code) => ({ label: t(`language.${code}`), key: code })),
+  SUPPORTED_LOCALES.map((code) => ({ label: t(`language.${code}`), code })),
 );
-function onSelectLang(key: string) { setLocale(key as Locale); }
+
+const langOpen = ref(false);
+const langRoot = ref<HTMLElement | null>(null);
+
+function onDocPointer(e: PointerEvent) {
+  if (langRoot.value && !langRoot.value.contains(e.target as Node)) closeLang();
+}
+function openLang() {
+  if (langOpen.value) return;
+  langOpen.value = true;
+  document.addEventListener('pointerdown', onDocPointer, true);
+}
+function closeLang() {
+  if (!langOpen.value) return;
+  langOpen.value = false;
+  document.removeEventListener('pointerdown', onDocPointer, true);
+}
+function toggleLang() {
+  langOpen.value ? closeLang() : openLang();
+}
+function onSelectLang(code: Locale) {
+  setLocale(code);
+  closeLang();
+}
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', onDocPointer, true);
+});
 
 const followEmail = ref('');
 const emailEdited = ref(false);      // 使用者是否手動改過信箱欄位
@@ -99,11 +126,37 @@ const submitSearch = () => {
       <div class="nav-spacer"></div>
 
       <div class="nav-actions">
-        <n-dropdown trigger="click" :options="langOptions" :value="locale" @select="onSelectLang">
-          <button type="button" class="icon-btn" :title="t('language.label')">
+        <div ref="langRoot" class="lang">
+          <button
+            type="button"
+            class="icon-btn"
+            :class="{ 'lang-open': langOpen }"
+            :title="t('language.label')"
+            :aria-label="t('language.label')"
+            aria-haspopup="menu"
+            :aria-expanded="langOpen"
+            @click="toggleLang"
+          >
             <app-icon name="globe" :size="17" />
           </button>
-        </n-dropdown>
+          <transition name="lang-pop">
+            <div v-if="langOpen" class="lang-menu" role="menu">
+              <button
+                v-for="opt in langOptions"
+                :key="opt.code"
+                type="button"
+                class="lang-opt"
+                :class="{ active: opt.code === locale }"
+                role="menuitemradio"
+                :aria-checked="opt.code === locale"
+                @click="onSelectLang(opt.code)"
+              >
+                <span class="lang-opt-label">{{ opt.label }}</span>
+                <app-icon v-if="opt.code === locale" name="check" class="lang-opt-check" :size="15" />
+              </button>
+            </div>
+          </transition>
+        </div>
 
         <template v-if="!minimal">
           <button type="button" class="icon-btn nav-icon-toggle" :class="{ active: mobileSearchOpen }"
