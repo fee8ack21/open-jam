@@ -423,7 +423,15 @@
       "gridLabel": "市集精選",
       "profileLabel": "創作者主頁",
       "favLabel": "我的收藏",
+      "trackLabel": "曲目試聽",
       "follow": "追蹤"
+    },
+    "publish": {
+      "eyebrow": "想發表，就發表",
+      "title": "一本獨立誌、一份教學指南、一張一張寫下去的樂譜。",
+      "text": "不用等出版社點頭、不用經紀約、不用演算法賞臉——寫完就上架，價格自己定，粉絲直接跟你買。",
+      "tags": ["Guide 教學", "Zine 獨立誌", "PDF", "Tutorial"],
+      "badge": "寫完 → 上架 → 開賣"
     },
     "why": {
       "eyebrow": "為什麼是 Open Jam",

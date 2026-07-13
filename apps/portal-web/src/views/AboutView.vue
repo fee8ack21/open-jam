@@ -1,229 +1,96 @@
 <script setup lang="ts">
 /* ============================================================
    AboutView — 品牌故事頁（/about）
-   版面結構：Hero 漸層色帶（比照 FaqView / LegalView）→ 三特色卡
-   （疊在色帶下緣）→ 敘事區塊（GSAP ScrollTrigger 驅動）：
-   - Pinned Product Story（創作者能在這裡賣什麼？——音樂 / 攝影 / 電子書
-     三章，pin 住同一舞台，滾動推進，內容轉場而非整頁換頁）
-   - Creator Workflow（上傳 → 定價 → 開店 → 分享 → 收到支持）
-   - Consumer Experience（探索 / 追蹤 / 收藏庫 collage）
-   - Why Open Jam（平台精神四卡）
-   - 雙 CTA
-   prefers-reduced-motion: reduce 時不做 pin 與動畫，
-   三章退化為一般直向排列。
+   靜態版面（比照設計稿「Open Jam 關於我們 v3」）：
+   Hero 紫色圓點色帶 + 三承諾卡 → 創作者能賣什麼三卡 →
+   發表 spotlight（teal band）→ 品牌跑馬燈 → 創作者旅程五步
+   （深色 band）→ 給探索者 collage（丁香紫 band）→
+   我們相信的事四卡（黃 band）→ 雙 CTA。
+   已移除先前所有 GSAP ScrollTrigger 捲動特效，純靜態頁。
+   文案沿用 i18n（landing.*）；配色 / 圖示留在程式碼。
    ============================================================ */
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useShopStore } from '@/stores/shop.js';
 import { env } from '@/environment.js';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
-import LandingArt from '@/components/LandingArt.vue';
-
-import imgSilver from '@/assets/images/mock/products/390kosmbz3zg1apt8bi5sf24a3fh.webp';
-import imgAutumn from '@/assets/images/mock/products/udifsfncosj8km5jxmeif3x2y4sr.webp';
-import imgSurf from '@/assets/images/mock/products/6u49mdf7jaizziz1ts6u9smeymsi.webp';
-import imgColorful from '@/assets/images/mock/products/misi5oskyotvume2a5869wcca0f0.webp';
-import imgInterior from '@/assets/images/mock/products/ccbnhspiu9ljrv2mrf0q051xbts9.webp';
-import imgDragon from '@/assets/images/mock/products/9egb3vtgm6w1cbt814ua9modb43d.webp';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const store = useShopStore();
 const router = useRouter();
 const { t, tm, rt } = useI18n();
 
-// ----- 三章 — 圖示 / 主色留在程式碼，文案由 i18n（landing.story.<id>）提供 -----
-// v3 章節底色 = 糖果色滿版（粉 / 黃 / 綠），文字用墨色
-const CHAPTERS = [
-  { id: 'music', icon: 'note', accent: 'var(--c-pink)' },
-  { id: 'photo', icon: 'image', accent: 'var(--c-yellow)' },
-  { id: 'ebook', icon: 'book', accent: 'var(--c-lime)' },
-] as const;
-const chapterCount = CHAPTERS.length;
-
-function chipsFor(id: string): string[] {
-  return (tm(`landing.story.${id}.chips`) as string[]).map((c) => rt(c));
-}
-
-// ----- 開場介紹三特色（圖示 / 主色留在程式碼，文案由 i18n 提供） -----
-const introIcons = ['download', 'bag', 'heart'];
-const introAccents = ['var(--c-violet)', 'var(--c-pink)', 'var(--c-lime)'];
-const introFacts = computed(() =>
-  (tm('landing.intro.facts') as { title: string; text: string }[]).map((f, i) => ({
-    icon: introIcons[i],
-    accent: introAccents[i],
-    title: rt(f.title),
-    text: rt(f.text),
-  })),
-);
-
-// 攝影章：照片格與 before-after 底圖
-const photoGrid = [imgSurf, imgColorful, imgInterior];
-// Consumer collage：市集精選格 / 收藏縮圖
-const discoverGrid = [imgSilver, imgColorful, imgDragon, imgSurf];
-const favThumbs = [imgAutumn, imgInterior];
-
-// 波形條高度 — 決定性偽隨機，避免每次 render 抖動
-const WAVE_BARS = Array.from({ length: 30 }, (_, i) =>
-  Math.round(24 + 62 * Math.abs(Math.sin(i * 0.9) + 0.35 * Math.sin(i * 2.3)) / 1.35),
-);
-
-const rootEl = ref<HTMLElement | null>(null);
-const activeChapter = ref(0);
-const activeAccent = computed(() => CHAPTERS[activeChapter.value].accent);
-
-// 各步驟 / 卡片對應的手繪插畫（LandingArt name）
-const flowArt = ['upload', 'price', 'storefront', 'share', 'support'];
-const flowSteps = computed(() =>
-  (tm('landing.flow.steps') as { title: string; text: string }[]).map((s, i) => ({
-    art: flowArt[i],
-    title: rt(s.title),
-    text: rt(s.text),
-  })),
-);
-const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) => rt(w)));
-const whyArt = ['no-algo', 'focus', 'fast', 'all-crafts'];
-const whyItems = computed(() =>
-  (tm('landing.why.items') as { title: string; text: string }[]).map((s, i) => ({
-    art: whyArt[i],
-    title: rt(s.title),
-    text: rt(s.text),
-  })),
-);
-
 function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 function goMarket() { router.push('/'); }
 
-// ----- GSAP：全部動畫收在 context 內，離開頁面 revert 還原 -----
-let ctx: gsap.Context | undefined;
-let storyST: ScrollTrigger | undefined;
+// ── Hero 三承諾卡（配色 / 圖示留程式；文案取 landing.intro.facts）──
+const PROMISE = [
+  { icon: 'download', tint: 'var(--t-violet)', acc: 'var(--c-violet)', iconLight: true,  tape: 'rgba(255, 222, 0, .85)',   rot: '-1.5deg', tapeRot: '-3deg' },
+  { icon: 'home',     tint: 'var(--t-pink)',   acc: 'var(--c-pink)',   iconLight: false, tape: 'rgba(125, 217, 255, .85)', rot: '1deg',    tapeRot: '3deg' },
+  { icon: 'heart',    tint: '#c9f7e4',         acc: 'var(--c-lime)',   iconLight: false, tape: 'rgba(255, 144, 232, .85)', rot: '-0.8deg', tapeRot: '-4deg' },
+] as const;
+const promiseCards = computed(() =>
+  (tm('landing.intro.facts') as { title: string; text: string }[]).map((f, i) => ({
+    ...PROMISE[i], title: rt(f.title), text: rt(f.text),
+  })),
+);
 
-// pinned story timeline 節奏：每章停留 HOLD、章間轉場 TRANS（單位為 timeline 秒）
-const HOLD = 1;
-const TRANS = 0.6;
-const STORY_TOTAL = chapterCount * HOLD + (chapterCount - 1) * TRANS; // 4.2
+// ── 創作者能賣什麼三卡（story.music/photo/ebook）──
+const SELL = [
+  { id: 'music', tag: 'MUSIC', head: 'var(--c-pink)',   tagBg: 'var(--c-yellow)', pattern: 'stripe', icon: 'note',  big: '',   headLight: true },
+  { id: 'photo', tag: 'PHOTO', head: 'var(--c-yellow)', tagBg: 'var(--c-pink)',   pattern: 'dot',    icon: 'image', big: '',   headLight: false },
+  { id: 'ebook', tag: 'WORDS', head: 'var(--c-lime)',   tagBg: 'var(--c-cyan)',   pattern: 'lines',  icon: '',      big: 'Aa', headLight: false },
+] as const;
+const sellCards = computed(() =>
+  SELL.map((c) => ({
+    ...c,
+    title: t(`landing.story.${c.id}.title`),
+    desc: t(`landing.story.${c.id}.desc`),
+    chips: (tm(`landing.story.${c.id}.chips`) as string[]).map((x) => rt(x)),
+  })),
+);
 
-/** 讀取 nav 高度，pin 的起點須避開 sticky nav。 */
-function navH(): number {
-  const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'));
-  return Number.isFinite(v) ? v : 72;
-}
+// ── 發表 spotlight ──
+const publishTags = computed(() => (tm('landing.publish.tags') as string[]).map((x) => rt(x)));
 
-/** 章節導覽點擊：捲動到 pin 區間內對應章的位置。 */
-function goChapter(i: number) {
-  if (!storyST) return;
-  const p = [0, 0.5, 1][i];
-  window.scrollTo({ top: storyST.start + (storyST.end - storyST.start) * p, behavior: 'smooth' });
-}
+// ── 創作者旅程五步（flow.steps）──
+const STEP = [
+  { icon: 'arrowU', text: '',  bg: 'var(--c-pink)',   glow: '255, 144, 232', rot: '-3deg', iconLight: false, tilt: false },
+  { icon: '',       text: '$', bg: 'var(--c-yellow)', glow: '255, 222, 0',   rot: '3deg',  iconLight: false, tilt: false },
+  { icon: 'home',   text: '',  bg: 'var(--c-cyan)',   glow: '125, 217, 255', rot: '-3deg', iconLight: false, tilt: false },
+  { icon: 'arrow',  text: '',  bg: 'var(--c-lime)',   glow: '184, 255, 159', rot: '3deg',  iconLight: false, tilt: true },
+  { icon: 'heart',  text: '',  bg: 'var(--c-violet)', glow: '138, 92, 246',  rot: '-3deg', iconLight: true,  tilt: false },
+] as const;
+const flowSteps = computed(() =>
+  (tm('landing.flow.steps') as { title: string; text: string }[]).map((s, i) => ({
+    ...STEP[i], title: rt(s.title), text: rt(s.text),
+  })),
+);
 
-onMounted(() => {
-  ctx = gsap.context(() => {
-    const mm = gsap.matchMedia();
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      // ---- Pinned product story（同一舞台推進三章） ----
-      const stage = document.querySelector<HTMLElement>('.ls-stage');
-      stage?.classList.add('ls-anim');
+// ── 我們相信的事四卡（why.items）──
+const BELIEF = [
+  { icon: 'sparkle', bg: 'var(--c-pink)',   rot: '-3deg' },
+  { icon: 'note',    bg: 'var(--c-lime)',   rot: '3deg' },
+  { icon: 'flame',   bg: 'var(--c-cyan)',   rot: '-3deg' },
+  { icon: 'heart',   bg: 'var(--c-yellow)', rot: '3deg' },
+] as const;
+const beliefs = computed(() =>
+  (tm('landing.why.items') as { title: string; text: string }[]).map((s, i) => ({
+    ...BELIEF[i], title: rt(s.title), text: rt(s.text),
+  })),
+);
 
-      const chapters = gsap.utils.toArray<HTMLElement>('.ls-chapter');
-      const bgs = gsap.utils.toArray<HTMLElement>('.ls-bg');
-      gsap.set(chapters.slice(1), { autoAlpha: 0, y: 60 });
-      gsap.set(bgs.slice(1), { autoAlpha: 0 });
-
-      const tl = gsap.timeline({
-        defaults: { ease: 'power2.inOut' },
-        scrollTrigger: {
-          trigger: '.l-story',
-          start: () => `top ${navH()}px`,
-          end: '+=350%',
-          pin: true,
-          scrub: 0.6,
-          snap: {
-            snapTo: [0, 0.5, 1],
-            directional: false, // 就近吸附：大步捲動 / rail 點擊不會被方向拉回上一章
-            inertia: false, // 不做慣性投影：rail 點擊抵達時的速度不會把進度甩過頭
-            duration: { min: 0.25, max: 0.7 },
-            delay: 0.05,
-            ease: 'power1.inOut',
-          },
-          onUpdate(st) {
-            const tt = st.progress * STORY_TOTAL;
-            activeChapter.value = tt < 1.3 ? 0 : tt < 2.9 ? 1 : 2;
-          },
-        },
-      });
-      storyST = tl.scrollTrigger;
-
-      for (let i = 1; i < chapterCount; i++) {
-        const at = HOLD * i + TRANS * (i - 1); // 1.0, 2.6
-        tl.to(chapters[i - 1], { autoAlpha: 0, y: -46, duration: TRANS }, at)
-          .fromTo(chapters[i], { autoAlpha: 0, y: 60 }, { autoAlpha: 1, y: 0, duration: TRANS }, at + TRANS * 0.3)
-          .to(bgs[i - 1], { autoAlpha: 0, duration: TRANS, ease: 'none' }, at)
-          .to(bgs[i], { autoAlpha: 1, duration: TRANS, ease: 'none' }, at);
-      }
-      // 章內小劇場：攝影章拉 before/after 分割線、電子書章翻頁
-      tl.fromTo('.pv-ba', { '--split': '68%' }, { '--split': '26%', duration: 0.8, ease: 'power1.inOut' }, 1.85)
-        .fromTo('.ev-page', { rotationY: 0 }, { rotationY: -132, duration: 0.7, ease: 'power1.inOut', transformOrigin: 'left center' }, 3.35)
-        .to({}, { duration: 0.001 }, STORY_TOTAL); // 補滿總長，讓最後一章有停留
-
-      // ---- workflow 連接線隨捲動長出、步驟進場 ----
-      gsap.fromTo('.fl-line-fill', { scaleX: 0 }, {
-        scaleX: 1,
-        ease: 'none',
-        transformOrigin: 'left center',
-        scrollTrigger: { trigger: '.fl-steps', start: 'top 78%', end: 'bottom 55%', scrub: true },
-      });
-      gsap.from('.fl-step', {
-        y: 44,
-        autoAlpha: 0,
-        duration: 0.6,
-        stagger: 0.12,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.fl-steps', start: 'top 80%', once: true },
-      });
-
-      // ---- collage 卡片錯落進場 ----
-      gsap.from('.dc-card', {
-        y: 54,
-        autoAlpha: 0,
-        rotation: (i) => [-4, 5, -3][i] ?? 0,
-        duration: 0.7,
-        stagger: 0.15,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.dc-collage', start: 'top 78%', once: true },
-      });
-
-      // ---- 其餘區塊：進場 reveal ----
-      gsap.utils.toArray<HTMLElement>('.lrv').forEach((el) => {
-        gsap.from(el, {
-          y: 48,
-          autoAlpha: 0,
-          duration: 0.8,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: el, start: 'top 82%', once: true },
-        });
-      });
-
-      return () => {
-        stage?.classList.remove('ls-anim');
-        storyST = undefined;
-      };
-    });
-  }, rootEl.value!);
-});
-onBeforeUnmount(() => ctx?.revert());
+// ── 品牌跑馬燈 ──
+const marqueeWords = computed(() => (tm('landing.marquee') as string[]).map((w) => rt(w)));
 </script>
 
 <template>
-  <div ref="rootEl" class="oj-root" :class="'font-' + store.font" :data-screen-label="t('landing.screenLabel')">
-    <!-- ============ NAV ============ -->
+  <div class="oj-root" :class="'font-' + store.font" :data-screen-label="t('landing.screenLabel')">
     <app-nav />
 
     <main class="page about-page">
-      <!-- ============ HERO：漸層色帶（比照 FaqView / LegalView） ============ -->
+      <!-- ============ HERO：紫色圓點色帶 ============ -->
       <section class="about-hero">
         <span class="ah-word" aria-hidden="true">ABOUT</span>
         <i class="ah-deco ah-deco-sq" aria-hidden="true"></i>
@@ -238,286 +105,248 @@ onBeforeUnmount(() => ctx?.revert());
         </div>
       </section>
 
-      <!-- ============ 三特色卡（疊在色帶下緣） ============ -->
+      <!-- ============ 三承諾卡（疊在色帶下緣） ============ -->
       <ul class="about-facts">
-        <li v-for="f in introFacts" :key="f.title" class="af-card" :style="{ '--acc': f.accent }">
-          <span class="af-ic"><app-icon :name="f.icon" :size="22" /></span>
-          <h3>{{ f.title }}</h3>
-          <p>{{ f.text }}</p>
+        <li
+          v-for="c in promiseCards"
+          :key="c.title"
+          class="af-card"
+          :class="{ 'af-ic-light': c.iconLight }"
+          :style="{ '--tint': c.tint, '--acc': c.acc, '--tape': c.tape, '--rot': c.rot, '--tape-rot': c.tapeRot }"
+        >
+          <span class="af-ic"><app-icon :name="c.icon" :size="22" /></span>
+          <h3>{{ c.title }}</h3>
+          <p>{{ c.text }}</p>
         </li>
       </ul>
 
-      <!-- ============ Pinned Product Story（創作者能在這裡賣什麼？） ============ -->
-      <section class="l-story">
-        <div class="ls-stage">
-          <!-- 章節背景層（隨章節 crossfade） -->
-          <div
-            v-for="c in CHAPTERS"
-            :key="'bg-' + c.id"
-            class="ls-bg"
-            :style="{ '--accent': c.accent }"
-            aria-hidden="true"
-          ></div>
+      <!-- ============ 創作者能賣什麼 ============ -->
+      <section class="a-sell">
+        <div class="sec-head">
+          <span class="sec-eyebrow"><app-icon name="note" :size="12" /> {{ t('landing.story.eyebrow') }}</span>
+          <h2 class="sec-title">{{ t('landing.story.title') }}<span class="q">？</span></h2>
+        </div>
+        <div class="sell-grid">
+          <article
+            v-for="c in sellCards"
+            :key="c.id"
+            class="sell-card"
+            :style="{ '--head': c.head, '--tag-bg': c.tagBg }"
+          >
+            <div class="sc-head" :class="['sc-pat-' + c.pattern, { 'sc-head-light': c.headLight }]" aria-hidden="true">
+              <app-icon v-if="c.icon" :name="c.icon" :size="50" />
+              <span v-else class="sc-big">{{ c.big }}</span>
+              <span class="sc-tag">{{ c.tag }}</span>
+            </div>
+            <div class="sc-body">
+              <h3>{{ c.title }}</h3>
+              <p>{{ c.desc }}</p>
+              <ul class="sc-chips">
+                <li v-for="chip in c.chips" :key="chip">{{ chip }}</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </section>
 
-          <!-- 常駐標題：整段故事回答同一個問題 -->
-          <header class="ls-head">
-            <p class="ls-eyebrow"><app-icon name="note" :size="13" /> {{ t('landing.story.eyebrow') }}</p>
-            <h2 class="ls-title">{{ t('landing.story.title') }}</h2>
-          </header>
-
-          <div class="ls-chapters">
-            <article
-              v-for="(c, i) in CHAPTERS"
-              :key="c.id"
-              class="ls-chapter"
-              :style="{ '--accent': c.accent }"
-            >
-              <span class="l-bigword ls-bigword" aria-hidden="true">{{ c.id === 'ebook' ? 'E-BOOK' : c.id.toUpperCase() }}</span>
-              <div class="ls-inner">
-              <div class="ls-text">
-                <p class="ls-num">{{ String(i + 1).padStart(2, '0') }}</p>
-                <h3 class="ls-ch-title">{{ t(`landing.story.${c.id}.title`) }}</h3>
-                <p class="ls-desc">{{ t(`landing.story.${c.id}.desc`) }}</p>
-                <ul class="ls-chips">
-                  <li v-for="chip in chipsFor(c.id)" :key="chip">{{ chip }}</li>
-                </ul>
-              </div>
-
-              <!-- 音樂章：播放器卡 + 波形 -->
-              <div v-if="c.id === 'music'" class="ls-visual vis-music" aria-hidden="true">
-                <div class="mv-player">
-                  <div class="mv-art"><app-icon name="note" :size="40" /></div>
-                  <div class="mv-meta">
-                    <span class="mv-line w1"></span>
-                    <span class="mv-line w2"></span>
-                    <div class="mv-progress"><span class="mv-ph"></span></div>
-                  </div>
-                  <span class="mv-play"><span class="mv-tri"></span></span>
-                </div>
-                <div class="mv-wave">
-                  <span
-                    v-for="(h, j) in WAVE_BARS"
-                    :key="j"
-                    :style="{ height: h + '%', animationDelay: (j % 5) * 0.12 + 's' }"
-                  ></span>
-                </div>
-              </div>
-
-              <!-- 攝影章：before/after 分割 + 照片格 -->
-              <div v-else-if="c.id === 'photo'" class="ls-visual vis-photo" aria-hidden="true">
-                <div class="pv-ba">
-                  <img class="pv-after" :src="imgAutumn" alt="" />
-                  <div class="pv-before" :style="{ backgroundImage: `url(${imgAutumn})` }"></div>
-                  <span class="pv-handle"></span>
-                  <span class="pv-tag pv-tag-b">Before</span>
-                  <span class="pv-tag pv-tag-a">After</span>
-                </div>
-                <div class="pv-grid">
-                  <img v-for="(src, j) in photoGrid" :key="j" :src="src" alt="" />
-                </div>
-              </div>
-
-              <!-- 電子書章：書封 + 翻頁 + 章節 preview -->
-              <div v-else class="ls-visual vis-ebook" aria-hidden="true">
-                <div class="ev-book">
-                  <div class="ev-cover">
-                    <app-icon name="book" :size="34" />
-                    <span class="ev-line w1"></span>
-                    <span class="ev-line w2"></span>
-                  </div>
-                  <div class="ev-page"></div>
-                </div>
-                <div class="ev-toc">
-                  <span v-for="j in 4" :key="j" class="ev-toc-row">
-                    <b>{{ String(j).padStart(2, '0') }}</b><i :class="'w' + j"></i>
-                  </span>
-                </div>
-              </div>
-              </div>
-            </article>
+      <!-- ============ 發表 spotlight（teal band） ============ -->
+      <section class="a-publish">
+        <div class="pub-inner">
+          <div class="pub-copy">
+            <span class="sec-eyebrow" style="--pill-fg: var(--c-lime)"><app-icon name="note" :size="12" /> {{ t('landing.publish.eyebrow') }}</span>
+            <h2 class="pub-title">{{ t('landing.publish.title') }}</h2>
+            <p class="pub-text">{{ t('landing.publish.text') }}</p>
+            <ul class="pub-tags">
+              <li v-for="(tag, i) in publishTags" :key="tag" :class="'pub-tag-' + i">{{ tag }}</li>
+            </ul>
           </div>
-
-          <!-- 章節導覽（僅動畫模式顯示） -->
-          <div class="ls-rail" :style="{ '--accent': activeAccent }">
-            <button
-              v-for="(c, i) in CHAPTERS"
-              :key="'rail-' + c.id"
-              type="button"
-              class="ls-rail-item"
-              :class="{ on: activeChapter === i }"
-              :aria-label="t('landing.story.pageAria', { n: i + 1 })"
-              @click="goChapter(i)"
-            >
-              <app-icon :name="c.icon" :size="15" />
-              <span>{{ t(`landing.story.${c.id}.label`) }}</span>
-            </button>
-            <span class="ls-rail-hint">{{ t('landing.story.hint') }}</span>
+          <div class="pub-art" aria-hidden="true">
+            <div class="pub-mini pub-mini-a">
+              <span class="pub-tape"></span>
+              <div class="pub-cover pub-cover-zn">Zn</div>
+              <p class="pub-mini-title">城市漫遊者 Zine Vol.3</p>
+              <div class="pub-mini-meta"><span class="pub-price">$6</span><span class="pub-rate"><app-icon name="star" :size="11" /> 4.8</span></div>
+            </div>
+            <div class="pub-mini pub-mini-b">
+              <span class="pub-tape pub-tape-lime"></span>
+              <div class="pub-cover pub-cover-note"><app-icon name="note" :size="36" /></div>
+              <p class="pub-mini-title">手寫爵士小品譜集</p>
+              <div class="pub-mini-meta"><span class="pub-free">免費</span><span class="pub-rate"><app-icon name="star" :size="11" /> 4.9</span></div>
+            </div>
+            <span class="pub-badge">{{ t('landing.publish.badge') }} <app-icon name="note" :size="13" /></span>
           </div>
         </div>
       </section>
 
       <!-- ============ 品牌跑馬燈帶 ============ -->
-      <div class="l-marquee" aria-hidden="true">
-        <div class="l-marquee-track">
+      <div class="a-marquee" aria-hidden="true">
+        <div class="am-track">
           <template v-for="n in 2" :key="n">
-            <span v-for="(w, i) in marqueeWords" :key="n + '-' + i" class="l-marquee-item">
-              {{ w }} <app-icon name="note" :size="20" />
+            <span v-for="(w, i) in marqueeWords" :key="n + '-' + i" class="am-item">
+              <app-icon name="note" :size="12" /> {{ w }}
             </span>
           </template>
         </div>
       </div>
 
-      <!-- ============ Creator Workflow ============ -->
-      <section class="l-flow">
-        <div class="lsec-head lrv">
-          <p class="lsec-eyebrow"><app-icon name="note" :size="13" /> {{ t('landing.flow.eyebrow') }}</p>
-          <h2 class="lsec-title">{{ t('landing.flow.title') }}</h2>
-          <p class="lsec-sub">{{ t('landing.flow.sub') }}</p>
-        </div>
-        <div class="fl-steps">
-          <div class="fl-line" aria-hidden="true"><span class="fl-line-fill"></span></div>
-          <div v-for="(s, i) in flowSteps" :key="s.title" class="fl-step">
-            <span class="fl-art"><landing-art :name="s.art" /></span>
-            <p class="fl-num">{{ i + 1 }}</p>
-            <h3>{{ s.title }}</h3>
-            <p class="fl-text">{{ s.text }}</p>
+      <!-- ============ 創作者旅程五步（深色 band） ============ -->
+      <section class="a-steps">
+        <div class="stp-wrap">
+          <div class="sec-head">
+            <span class="sec-eyebrow stp-eyebrow"><app-icon name="note" :size="12" /> {{ t('landing.flow.eyebrow') }}</span>
+            <h2 class="sec-title stp-title">{{ t('landing.flow.title') }}</h2>
+            <p class="stp-sub">{{ t('landing.flow.sub') }}</p>
+          </div>
+          <div class="stp-grid">
+            <div
+              v-for="(s, i) in flowSteps"
+              :key="s.title"
+              class="stp-card"
+              :style="{ '--glow': s.glow }"
+            >
+              <span
+                class="stp-ic"
+                :class="{ 'stp-ic-light': s.iconLight, 'stp-ic-tilt': s.tilt }"
+                :style="{ background: s.bg, '--rot': s.rot }"
+              >
+                <app-icon v-if="s.icon" :name="s.icon" :size="20" />
+                <span v-else class="stp-glyph">{{ s.text }}</span>
+              </span>
+              <span class="stp-num">STEP {{ i + 1 }}</span>
+              <h3>{{ s.title }}</h3>
+              <p>{{ s.text }}</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ============ Consumer Experience ============ -->
-      <section class="l-discover">
-        <div class="dc-inner">
-          <div class="dc-copy lrv">
-            <p class="lsec-eyebrow"><app-icon name="note" :size="13" /> {{ t('landing.discover.eyebrow') }}</p>
-            <h2 class="lsec-title">{{ t('landing.discover.title') }}</h2>
-            <p class="dc-text">{{ t('landing.discover.text') }}</p>
-            <button type="button" class="dc-btn" @click="goMarket">
-              {{ t('landing.cta.buyer.button') }} <app-icon name="arrow" :size="15" />
+      <!-- ============ 給探索者 collage（丁香紫 band） ============ -->
+      <section class="a-discover">
+        <div class="dsc-inner">
+          <div class="dsc-copy">
+            <span class="sec-eyebrow" style="--pill-fg: var(--c-pink)"><app-icon name="note" :size="12" /> {{ t('landing.discover.eyebrow') }}</span>
+            <h2 class="dsc-title">{{ t('landing.discover.title') }}</h2>
+            <p class="dsc-text">{{ t('landing.discover.text') }}</p>
+            <button type="button" class="dsc-btn" @click="goMarket">
+              {{ t('landing.cta.buyer.button') }} <app-icon name="arrow" :size="14" />
             </button>
           </div>
-          <div class="dc-collage" aria-hidden="true">
-            <div class="dc-card dc-grid">
-              <p class="dc-label"><app-icon name="search" :size="13" /> {{ t('landing.discover.gridLabel') }}</p>
-              <div class="dc-grid-imgs">
-                <img v-for="(src, i) in discoverGrid" :key="i" :src="src" alt="" />
+          <div class="dsc-art" aria-hidden="true">
+            <div class="dsc-card dsc-grid">
+              <p class="dsc-label"><app-icon name="image" :size="13" /> {{ t('landing.discover.gridLabel') }}</p>
+              <div class="dsc-swatches">
+                <span style="background: var(--c-violet)"></span>
+                <span style="background: var(--c-yellow)"></span>
+                <span style="background: var(--c-pink)"></span>
+                <span style="background: var(--c-cyan)"></span>
               </div>
             </div>
-            <div class="dc-card dc-profile">
-              <p class="dc-label"><app-icon name="user" :size="13" /> {{ t('landing.discover.profileLabel') }}</p>
-              <div class="dc-profile-row">
-                <span class="dc-avatar"><app-icon name="note" :size="18" /></span>
-                <span class="dc-pl w1"></span>
-                <span class="dc-follow">{{ t('landing.discover.follow') }}</span>
+            <div class="dsc-card dsc-player">
+              <p class="dsc-label"><app-icon name="note" :size="13" /> {{ t('landing.discover.trackLabel') }}</p>
+              <div class="dsc-player-row">
+                <span class="dsc-play"><app-icon name="play" :size="13" /></span>
+                <span class="dsc-bar"><i></i></span>
+                <span class="dsc-time">0:42</span>
               </div>
-              <span class="dc-pl w2"></span>
             </div>
-            <div class="dc-card dc-fav">
-              <p class="dc-label"><app-icon name="heart" :size="13" /> {{ t('landing.discover.favLabel') }}</p>
-              <div class="dc-fav-row">
-                <img v-for="(src, i) in favThumbs" :key="i" :src="src" alt="" />
-                <span class="dc-fav-heart"><app-icon name="heart" :size="16" /></span>
+            <div class="dsc-card dsc-store">
+              <p class="dsc-label"><app-icon name="home" :size="13" /> {{ t('landing.discover.profileLabel') }}</p>
+              <div class="dsc-store-row">
+                <span class="dsc-avatar">HT</span>
+                <span class="dsc-store-meta"><b>Haru Tanaka</b><i>haru.openjam.co</i></span>
+                <span class="dsc-follow">{{ t('landing.discover.follow') }}</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ============ Why Open Jam ============ -->
-      <section class="l-why">
-        <div class="lsec-head lrv">
-          <p class="lsec-eyebrow"><app-icon name="note" :size="13" /> {{ t('landing.why.eyebrow') }}</p>
-          <h2 class="lsec-title">{{ t('landing.why.title') }}</h2>
-        </div>
-        <div class="why-grid">
-          <div v-for="(w, i) in whyItems" :key="w.title" class="why-card lrv" :class="'why-card-' + (i + 1)">
-            <span class="why-art"><landing-art :name="w.art" /></span>
-            <h3>{{ w.title }}</h3>
-            <p>{{ w.text }}</p>
+      <!-- ============ 我們相信的事（黃 band） ============ -->
+      <section class="a-beliefs">
+        <div class="blf-wrap">
+          <div class="sec-head">
+            <span class="sec-eyebrow"><app-icon name="note" :size="12" /> {{ t('landing.why.eyebrow') }}</span>
+            <h2 class="sec-title">{{ t('landing.why.title') }}</h2>
+          </div>
+          <div class="blf-grid">
+            <div v-for="b in beliefs" :key="b.title" class="blf-card">
+              <span class="blf-ic" :style="{ background: b.bg, '--rot': b.rot }"><app-icon :name="b.icon" :size="20" /></span>
+              <div>
+                <h3>{{ b.title }}</h3>
+                <p>{{ b.text }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ============ 最後區塊：CTA ============ -->
-      <section class="l-cta lrv">
-        <p class="lc-eyebrow">{{ t('landing.cta.eyebrow') }}</p>
-        <p class="lc-note">{{ t('landing.cta.note') }}</p>
-        <div class="lc-grid">
-          <div class="lc-card lc-creator">
-            <span class="lc-art"><landing-art name="sell" /></span>
+      <!-- ============ 雙 CTA ============ -->
+      <section class="a-cta">
+        <h2 class="cta-title">・{{ t('landing.cta.eyebrow') }}・</h2>
+        <p class="cta-note">{{ t('landing.cta.note') }}</p>
+        <div class="cta-grid">
+          <div class="cta-card cta-creator">
+            <span class="cta-ic cta-ic-a"><app-icon name="doc" :size="21" /></span>
             <h3>{{ t('landing.cta.creator.title') }}</h3>
             <p>{{ t('landing.cta.creator.text') }}</p>
-            <button type="button" class="lc-btn lc-btn-main" @click="goWorkspace">
-              {{ t('landing.cta.creator.button') }} <app-icon name="arrow" :size="15" />
+            <button type="button" class="cta-btn cta-btn-main" @click="goWorkspace">
+              {{ t('landing.cta.creator.button') }} <app-icon name="arrow" :size="14" />
             </button>
           </div>
-          <div class="lc-card lc-buyer">
-            <span class="lc-art"><landing-art name="explore" /></span>
+          <div class="cta-card cta-buyer">
+            <span class="cta-ic cta-ic-b"><app-icon name="search" :size="21" /></span>
             <h3>{{ t('landing.cta.buyer.title') }}</h3>
             <p>{{ t('landing.cta.buyer.text') }}</p>
-            <button type="button" class="lc-btn" @click="goMarket">
-              {{ t('landing.cta.buyer.button') }} <app-icon name="arrow" :size="15" />
+            <button type="button" class="cta-btn" @click="goMarket">
+              {{ t('landing.cta.buyer.button') }} <app-icon name="arrow" :size="14" />
             </button>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- ============ FOOTER ============ -->
     <app-footer />
   </div>
 </template>
 
 <style scoped>
-/* 頁面滿版（覆蓋 .page 左右 gutter）：hero 色帶與 Pinned story 貼齊 viewport，比照 FaqView / LegalView */
+/* 頁面滿版（覆蓋 .page 左右 gutter）：色帶貼齊 viewport，比照 FaqView / LegalView */
 .about-page { position: relative; max-width: none; padding: 0; }
 
-/* ---------- 巨型出血標題字（描邊空心，僅章節舞台使用） ---------- */
-.l-bigword {
-  position: absolute; z-index: 0; pointer-events: none; user-select: none;
-  font-family: var(--oj-display); font-weight: 700; line-height: 1; white-space: nowrap;
-  letter-spacing: -0.02em; color: transparent;
-}
-
 /* 共用區塊標頭 */
-.lsec-head { text-align: center; max-width: 760px; margin: 0 auto 44px; }
-.lsec-eyebrow {
-  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 16px; padding: 5px 14px;
+.sec-head { text-align: center; max-width: 760px; margin: 0 auto 40px; }
+.sec-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px;
   font-family: var(--oj-font); font-size: 12px; font-weight: 900; letter-spacing: 2px;
-  color: var(--c-yellow); background: var(--text); border-radius: 999px;
+  color: var(--pill-fg, var(--c-yellow)); background: var(--text); border-radius: 999px;
   transform: rotate(-2deg); white-space: nowrap;
 }
-.lsec-title {
-  margin: 0; font-family: var(--oj-font); font-weight: 900;
+.sec-title {
+  margin: 16px 0 0; font-family: var(--oj-font); font-weight: 900;
   font-size: clamp(28px, 3.6vw, 38px); color: var(--text);
 }
-.lsec-sub { margin: 14px 0 0; font-size: 15px; font-weight: 500; line-height: 1.8; color: var(--text-soft); }
+.sec-title .q { color: var(--c-violet); }
 
-/* ── Hero 色帶：紫色圓點滿版帶（同 .mkt-hero 配方）────── */
+/* ── Hero 色帶：紫色圓點滿版帶 ────── */
 .about-hero { position: relative; padding: clamp(52px, 8vh, 80px) clamp(20px, 3.5vw, 56px) clamp(64px, 9vh, 84px); text-align: center; }
 .about-hero::before {
   content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
   width: 100vw; transform: translateX(-50%); z-index: 0; pointer-events: none;
-  background: #8a5cf6;
+  background: var(--c-violet);
   background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
   background-size: 26px 26px;
   border-bottom: 2px solid var(--border-strong);
 }
-
-/* 色帶內的縷空大字（白色微透、貼齊左上，沉在置中內容後） */
 .ah-word {
   position: absolute; z-index: 1; top: 20px; left: -30px;
   font-family: var(--oj-display); font-weight: 700; line-height: 1;
   font-size: clamp(120px, 17vw, 190px); letter-spacing: -8px;
   color: rgba(255, 255, 255, .13); pointer-events: none; user-select: none;
 }
-
-/* 漂浮貼紙 */
 .ah-deco { position: absolute; z-index: 1; font-style: normal; pointer-events: none; }
 .ah-deco-sq { right: 7%; top: 48px; width: 56px; height: 56px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 16px; transform: rotate(14deg); }
 .ah-deco-dot { right: 14%; bottom: 44px; width: 44px; height: 44px; background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 50%; }
 .ah-deco-note { left: 10%; bottom: 56px; color: var(--c-yellow); transform: rotate(-8deg); }
-
 .ah-inner {
   position: relative; z-index: 2; max-width: 820px; margin: 0 auto;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
@@ -535,7 +364,7 @@ onBeforeUnmount(() => ctx?.revert());
 .ah-title .hl { box-shadow: var(--ink-drop); margin: 0 8px; }
 .ah-lede { margin: 0; max-width: 40em; font-size: 17px; font-weight: 700; line-height: 1.9; color: #fff; }
 
-/* ── 三特色卡：疊在色帶下緣（設計稿 promise cards：淡彩 + 膠帶 + 微傾） ────── */
+/* ── 三承諾卡：疊在色帶下緣（淡彩 + 膠帶 + 微傾） ────── */
 .about-facts {
   position: relative; z-index: 2; list-style: none; max-width: 1080px; margin: -44px auto 0;
   padding: 0 clamp(20px, 3.5vw, 56px);
@@ -543,442 +372,281 @@ onBeforeUnmount(() => ctx?.revert());
 }
 .af-card {
   position: relative; text-align: left; padding: 22px;
-  background: color-mix(in srgb, var(--acc) 22%, #fff);
+  background: var(--tint);
   border: 2px solid var(--border-strong); border-radius: 18px;
   box-shadow: 0 10px 24px rgba(26, 26, 26, 0.22);
+  transform: rotate(var(--rot));
 }
-.af-card:nth-child(1) { transform: rotate(-1.5deg); }
-.af-card:nth-child(2) { transform: rotate(1deg); }
-.af-card:nth-child(3) { transform: rotate(-0.8deg); }
-/* 膠帶貼條 */
 .af-card::before {
   content: ''; position: absolute; top: -12px; left: 50%; width: 60px; height: 19px;
-  margin-left: -30px; background: rgba(255, 222, 0, 0.85); border-radius: 3px;
-  transform: rotate(-3deg); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.15);
+  margin-left: -30px; background: var(--tape); border-radius: 3px;
+  transform: rotate(var(--tape-rot)); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.15);
 }
-.af-card:nth-child(2)::before { background: rgba(125, 217, 255, 0.85); transform: rotate(3deg); }
-.af-card:nth-child(3)::before { background: rgba(255, 144, 232, 0.85); transform: rotate(-4deg); }
 .af-ic {
   display: grid; place-items: center; width: 44px; height: 44px; margin: 0 0 14px;
   color: var(--text); background: var(--acc);
   border: 2px solid var(--border-strong); border-radius: 14px; transform: rotate(-3deg);
 }
-.af-card:nth-child(1) .af-ic { color: #fff; }
+.af-ic-light .af-ic { color: #fff; }
 .af-card h3 { margin: 0 0 6px; font-family: var(--oj-font); font-weight: 900; font-size: 17px; color: var(--text); }
 .af-card p { margin: 0; font-size: 13px; font-weight: 500; line-height: 1.7; color: var(--text); }
 
-/* ---------- 區塊二：Pinned Product Story ---------- */
-.l-story { margin-top: clamp(48px, 7vh, 72px); }
-.ls-stage {
-  position: relative;
-  display: flex; flex-direction: column;
-  border-top: 2px solid var(--border-strong);
+/* ---------- 創作者能賣什麼 ---------- */
+.a-sell { max-width: 1160px; margin: 0 auto; padding: clamp(56px, 8vh, 80px) clamp(20px, 3.5vw, 56px) 72px; }
+.sell-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+.sell-card {
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 20px; overflow: hidden;
+  transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-/* GSAP 啟用時鎖滿版高、章節絕對堆疊（預設一般文流退場） */
-.ls-anim { height: calc(100vh - var(--nav-h)); overflow: hidden; }
+.sell-card:nth-child(odd):hover { transform: translateY(-5px) rotate(-0.6deg); box-shadow: 0 14px 28px rgba(26, 26, 26, 0.14); }
+.sell-card:nth-child(even):hover { transform: translateY(-5px) rotate(0.6deg); box-shadow: 0 14px 28px rgba(26, 26, 26, 0.14); }
+.sc-head {
+  position: relative; height: 140px; display: grid; place-items: center;
+  background: var(--head); border-bottom: 2px solid var(--border-strong); color: var(--text);
+}
+.sc-head-light { color: #fff; }
+.sc-pat-stripe { background-image: repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(255, 255, 255, 0.16) 14px, rgba(255, 255, 255, 0.16) 16px); }
+.sc-pat-dot { background-image: radial-gradient(rgba(26, 26, 26, 0.12) 1.5px, transparent 1.5px); background-size: 20px 20px; }
+.sc-pat-lines { background-image: repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(255, 255, 255, 0.24) 14px, rgba(255, 255, 255, 0.24) 16px); }
+.sc-big { font-family: var(--oj-display); font-size: 48px; font-weight: 700; color: var(--text); }
+.sc-tag {
+  position: absolute; top: 10px; left: 10px; padding: 2px 10px;
+  background: var(--tag-bg); border: 2px solid var(--border-strong); border-radius: 999px;
+  font-family: var(--oj-display); font-weight: 700; font-size: 11px; color: var(--text);
+  transform: rotate(-3deg); white-space: nowrap;
+}
+.sc-body { padding: 24px; }
+.sc-body h3 { margin: 0; font-family: var(--oj-font); font-weight: 900; font-size: 21px; color: var(--text); }
+.sc-body > p { margin: 8px 0 0; font-size: 14px; font-weight: 500; line-height: 1.8; color: var(--text); }
+.sc-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; }
+.sc-chips li {
+  padding: 2px 12px; border: 2px solid var(--border-strong); border-radius: 999px; background: var(--bg);
+  font-family: var(--oj-font); font-weight: 700; font-size: 12px; color: var(--text); white-space: nowrap;
+}
 
-/* 每章整屏糖果色塊（v3：糖果底 + 墨點圖紋 + 墨色文字） */
-.ls-bg {
-  display: none;
-  position: absolute; inset: 0; z-index: 0;
-  background: var(--accent);
-  background-image: radial-gradient(rgba(26, 26, 26, 0.1) 1.5px, transparent 1.5px);
+/* ---------- 發表 spotlight（teal band） ---------- */
+.a-publish {
+  position: relative; overflow: hidden;
+  padding: 72px clamp(20px, 3.5vw, 56px);
+  background: #18a999;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.5px, transparent 1.5px);
   background-size: 26px 26px;
+  border-top: 2px solid var(--border-strong); border-bottom: 2px solid var(--border-strong);
 }
-.ls-anim .ls-bg { display: block; }
-
-.ls-head { position: relative; z-index: 2; text-align: center; padding: clamp(24px, 4vh, 44px) 20px 0; }
-.ls-eyebrow {
-  display: inline-flex; align-items: center; gap: 7px; margin: 0 0 12px; padding: 6px 16px;
-  font-family: var(--oj-font); font-size: 12px; font-weight: 900; letter-spacing: 2px;
-  color: #fff; background: var(--text); border-radius: 999px; transform: rotate(-1.5deg);
-  white-space: nowrap;
+.pub-inner {
+  display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(30px, 4vw, 48px); align-items: center;
+  max-width: 1100px; margin: 0 auto;
 }
-.ls-title {
-  margin: 0; font-family: var(--oj-font); font-weight: 900;
-  font-size: clamp(28px, 4vw, 44px); color: var(--text);
-}
-/* 非動畫模式（reduced-motion）：常駐標題落在奶油頁面底上 */
-.ls-stage:not(.ls-anim) .ls-head { padding-bottom: clamp(20px, 3.5vh, 36px); }
-
-.ls-chapters { position: relative; z-index: 1; flex: 1; }
-.ls-chapter {
-  position: relative;
-  display: flex; align-items: center; justify-content: center;
-  padding: 40px clamp(20px, 3.5vw, 56px) 90px;
-}
-/* 兩欄內容維持 1080 置中；大字則相對滿版章節定位以貼齊右上角 */
-.ls-inner {
-  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  align-items: center; gap: clamp(28px, 5vw, 76px);
-  width: 100%; max-width: 1080px;
-}
-.ls-stage:not(.ls-anim) .ls-chapter {
-  background: var(--accent);
-  background-image: radial-gradient(rgba(26, 26, 26, 0.1) 1.5px, transparent 1.5px);
-  background-size: 26px 26px;
-  border-top: 2px solid var(--border-strong);
-}
-.ls-anim .ls-chapter { position: absolute; inset: 0; height: 100%; will-change: transform, opacity; }
-
-.ls-bigword { top: .06em; right: 3%; font-size: clamp(96px, 15vw, 230px); -webkit-text-stroke: 2px rgba(26, 26, 26, .18); }
-
-.ls-num {
-  display: inline-block; margin: 0 0 12px; padding: 5px 16px;
-  font-family: var(--oj-font); font-size: 12px; font-weight: 900; letter-spacing: 2px;
-  color: #fff; background: var(--text); border-radius: 999px; transform: rotate(-1.5deg);
-}
-.ls-ch-title {
-  margin: 0; font-family: var(--oj-font); font-weight: 900;
-  font-size: clamp(30px, 4vw, 44px); line-height: 1.35; color: var(--text);
-}
-.ls-desc { margin: 16px 0 0; max-width: 440px; font-size: 16px; font-weight: 700; line-height: 1.8; color: var(--text); }
-.ls-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; padding: 0; }
-.ls-chips li {
+.pub-title { margin: 18px 0 16px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.4; color: #fff; }
+.pub-text { margin: 0 0 22px; font-size: 15px; font-weight: 700; line-height: 1.9; color: #fff; }
+.pub-tags { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
+.pub-tags li {
   padding: 6px 16px; border: 2px solid var(--border-strong); border-radius: 999px;
-  background: #fff;
-  font-family: var(--oj-font); font-weight: 700; font-size: 13px; color: var(--text);
+  font-family: var(--oj-font); font-weight: 900; font-size: 13px; color: var(--text); white-space: nowrap;
 }
+.pub-tag-0 { background: var(--surface); }
+.pub-tag-1 { background: var(--c-yellow); }
+.pub-tag-2 { background: var(--c-pink); }
+.pub-tag-3 { background: var(--c-lime); }
 
-/* flex column（非 grid auto track）：避免子元素原始尺寸撐開軌道把內容推出畫面 */
-.ls-visual { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; min-width: 0; }
-
-/* 音樂章視覺 */
-.vis-music { width: 100%; }
-.mv-player {
-  display: flex; align-items: center; gap: 14px; width: min(380px, 100%);
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: var(--r-md);
-  box-shadow: 0 16px 32px rgba(26, 26, 26, 0.22); padding: 14px 16px; transform: rotate(-1.5deg);
+.pub-art { position: relative; height: 320px; }
+.pub-mini {
+  position: absolute; width: 190px; padding: 16px;
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 16px;
+  box-shadow: 0 12px 26px rgba(26, 26, 26, 0.25);
 }
-.mv-art {
-  width: 64px; height: 64px; flex: none; display: grid; place-items: center; color: var(--text);
-  border: 2px solid var(--border-strong); border-radius: 12px;
-  background: var(--c-pink);
+.pub-mini-a { left: 8%; top: 20px; transform: rotate(-5deg); }
+.pub-mini-b { right: 6%; top: 64px; transform: rotate(4deg); }
+.pub-tape {
+  position: absolute; top: -12px; left: 50%; width: 60px; height: 19px; margin-left: -30px;
+  background: rgba(255, 222, 0, 0.85); border-radius: 3px; transform: rotate(-3deg);
+  box-shadow: 0 1px 3px rgba(26, 26, 26, 0.15);
 }
-.mv-meta { flex: 1; min-width: 0; }
-.mv-line { display: block; height: 9px; border-radius: 5px; background: var(--border); }
-.mv-line.w1 { width: 72%; background: var(--text); opacity: .82; }
-.mv-line.w2 { width: 46%; margin-top: 7px; }
-.mv-progress { position: relative; height: 5px; border-radius: 3px; background: var(--border); margin-top: 12px; }
-.mv-ph { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; border-radius: 3px; background: var(--c-violet); }
-.mv-play {
-  width: 44px; height: 44px; flex: none; display: grid; place-items: center;
-  border: 2px solid var(--border-strong); border-radius: 50%; background: var(--c-yellow); box-shadow: var(--ink-drop-sm);
-}
-.mv-tri {
-  width: 0; height: 0; margin-left: 3px;
-  border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 13px solid var(--text);
-}
-.mv-wave { display: flex; align-items: flex-end; gap: 5px; height: 72px; width: min(380px, 100%); }
-.mv-wave span {
-  flex: 1; border-radius: 3px 3px 0 0; transform-origin: bottom;
-  background: linear-gradient(180deg, #1a1a1a, rgba(26, 26, 26, .5));
-  animation: lh-eq 1.6s ease-in-out infinite;
-}
-/* lh-eq keyframes 供音樂章 .mv-wave 使用 */
-@keyframes lh-eq { 50% { transform: scaleY(.45); } }
-
-/* 攝影章視覺 */
-.vis-photo { width: 100%; }
-.pv-ba {
-  --split: 50%;
-  position: relative; width: min(400px, 100%); aspect-ratio: 16 / 10; overflow: hidden;
-  border: 2px solid var(--border-strong); border-radius: var(--r-md);
-  box-shadow: 0 16px 32px rgba(26, 26, 26, 0.22);
-  transform: rotate(1.5deg);
-}
-.pv-after { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.pv-before {
-  position: absolute; top: 0; bottom: 0; left: 0; width: var(--split);
-  background-size: cover; background-position: left center;
-  filter: grayscale(.92) contrast(.82) brightness(1.05);
-  border-right: 2px solid #fff;
-}
-.pv-handle {
-  position: absolute; top: 50%; left: var(--split); transform: translate(-50%, -50%);
-  width: 30px; height: 30px; border-radius: 50%;
-  background: var(--surface); border: 2px solid var(--border-strong);
-}
-.pv-handle::before { content: '‹›'; display: grid; place-items: center; height: 100%; font-size: 14px; font-weight: 700; color: var(--text); }
-.pv-tag {
-  position: absolute; bottom: 8px; padding: 2px 10px; border-radius: 999px;
-  border: 2px solid var(--border-strong); font-family: var(--oj-display); font-size: 10.5px; font-weight: 700;
-}
-.pv-tag-b { left: 8px; background: var(--surface); color: var(--text); }
-.pv-tag-a { right: 8px; background: var(--c-lime); color: var(--text); }
-.pv-grid { display: flex; gap: 10px; width: min(400px, 100%); }
-.pv-grid img {
-  flex: 1 1 0; width: 0; min-width: 0; aspect-ratio: 1; object-fit: cover;
+.pub-tape-lime { background: rgba(184, 255, 159, 0.85); transform: rotate(3deg); }
+.pub-cover {
+  height: 110px; display: grid; place-items: center;
   border: 2px solid var(--border-strong); border-radius: 12px;
 }
-
-/* 電子書章視覺 */
-.vis-ebook { width: 100%; }
-.ev-book { position: relative; width: min(240px, 52%); aspect-ratio: 3 / 4; perspective: 900px; }
-.ev-cover {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
-  color: var(--text); border: 2px solid var(--border-strong); border-radius: 6px 14px 14px 6px;
-  background:
-    linear-gradient(90deg, rgba(0,0,0,.14) 0, transparent 14px),
-    var(--c-violet);
-  box-shadow: 0 14px 28px rgba(26, 26, 26, 0.25);
-  transform: rotate(-2deg); color: #fff;
+.pub-cover-zn { background: var(--c-violet); color: #fff; font-family: var(--oj-display); font-weight: 700; font-size: 38px; }
+.pub-cover-note { background: var(--c-yellow); color: var(--text); }
+.pub-mini-title { margin: 10px 0 0; font-family: var(--oj-font); font-weight: 900; font-size: 14px; color: var(--text); }
+.pub-mini-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-weight: 700; font-size: 12px; color: var(--text); }
+.pub-price { font-family: var(--oj-display); }
+.pub-free { padding: 0 8px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 999px; }
+.pub-rate { display: inline-flex; align-items: center; gap: 3px; color: var(--text); }
+.pub-rate :deep(svg) { color: var(--c-yellow); }
+.pub-badge {
+  position: absolute; left: 30%; bottom: 0; display: inline-flex; align-items: center; gap: 6px;
+  padding: 11px 20px; background: var(--text); color: var(--c-yellow);
+  border-radius: 999px; box-shadow: 0 8px 18px rgba(26, 26, 26, 0.3);
+  font-family: var(--oj-font); font-weight: 900; font-size: 14px; transform: rotate(-2deg); white-space: nowrap;
 }
-.ev-line { display: block; height: 8px; border-radius: 4px; background: rgba(255,255,255,.85); }
-.ev-line.w1 { width: 56%; }
-.ev-line.w2 { width: 34%; opacity: .7; }
-.ev-page {
-  position: absolute; inset: 4% 2% 4% 50%;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 0 10px 10px 0;
-  transform-origin: left center; will-change: transform;
-  background-image: repeating-linear-gradient(var(--surface) 0 14px, var(--border) 14px 16px);
-  background-clip: content-box; padding: 12px 10px;
-}
-.ev-toc {
-  width: min(230px, 44%); display: flex; flex-direction: column; gap: 10px;
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: var(--r-md);
-  box-shadow: 0 8px 20px rgba(26, 26, 26, 0.12); padding: 16px; transform: rotate(2deg);
-}
-.ev-toc-row { display: flex; align-items: center; gap: 10px; }
-.ev-toc-row b { font-family: var(--oj-display); font-size: 11px; font-weight: 700; color: var(--c-violet); }
-.ev-toc-row i { display: block; height: 8px; border-radius: 4px; background: var(--border); }
-.ev-toc-row i.w1 { width: 78%; }
-.ev-toc-row i.w2 { width: 62%; }
-.ev-toc-row i.w3 { width: 70%; }
-.ev-toc-row i.w4 { width: 48%; }
-@media (min-width: 861px) {
-  .vis-ebook { flex-direction: row; justify-content: center; gap: 26px; }
-}
-
-/* 章節導覽 rail */
-.ls-rail {
-  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 2;
-  display: none; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
-}
-.ls-anim .ls-rail { display: flex; }
-.ls-rail-item {
-  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-  padding: 7px 15px; border: 2px solid var(--border-strong); border-radius: 999px;
-  background: var(--surface); font-family: var(--oj-font); font-weight: 700; font-size: 13px; color: var(--text);
-  transition: background .2s, color .2s, transform .2s var(--ease-pop);
-}
-.ls-rail-item.on { background: var(--text); color: var(--c-yellow); transform: translateY(-2px); font-weight: 900; }
-.ls-rail-hint { margin-left: 6px; font-family: var(--oj-hand); font-weight: 700; font-size: 18px; color: var(--text); transform: rotate(-2deg); }
 
 /* ---------- 品牌跑馬燈帶 ---------- */
-.l-marquee {
-  position: relative; z-index: 1; overflow: hidden;
-  background: var(--text); color: #fff;
-  padding: 14px 0;
+.a-marquee { overflow: hidden; background: var(--text); padding: 14px 0; }
+.am-track { display: inline-flex; align-items: center; gap: 32px; width: max-content; animation: am-run 26s linear infinite; }
+.am-item {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: #fff;
 }
-.l-marquee-track {
-  display: inline-flex; align-items: center; gap: 32px; width: max-content;
-  animation: l-marquee-run 26s linear infinite;
-}
-.l-marquee-item {
-  display: inline-flex; align-items: center; gap: 32px; white-space: nowrap;
-  font-family: var(--oj-font); font-weight: 900; font-size: 15px;
-}
-.l-marquee-item:nth-child(5n+1) { color: var(--c-yellow); }
-.l-marquee-item:nth-child(5n+2) { color: var(--c-pink); }
-.l-marquee-item:nth-child(5n+4) { color: var(--c-lime); }
-.l-marquee-item:nth-child(5n) { color: var(--c-cyan); }
-.l-marquee-item :deep(svg) { color: currentColor; flex: none; }
-@keyframes l-marquee-run { to { transform: translateX(-50%); } }
+.am-item:nth-child(6n+1) { color: var(--c-yellow); }
+.am-item:nth-child(6n+3) { color: var(--c-pink); }
+.am-item:nth-child(6n+5) { color: var(--c-lime); }
+.am-item:nth-child(6n) { color: var(--c-cyan); }
+.am-item :deep(svg) { color: currentColor; flex: none; }
+@keyframes am-run { to { transform: translateX(-50%); } }
 
-/* ---------- 區塊三：Creator Workflow（深色滿版 band） ---------- */
-.l-flow {
+/* ---------- 創作者旅程五步（深色 band） ---------- */
+.a-steps {
   position: relative; overflow: hidden;
-  padding: 96px clamp(20px, 3.5vw, 56px) 88px;
+  padding: 72px clamp(20px, 3.5vw, 56px);
   background: #1a1626;
   background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px);
   background-size: 26px 26px;
   border-bottom: 2px solid var(--border-strong);
 }
-.l-flow .lsec-head { position: relative; z-index: 1; }
-.l-flow .lsec-eyebrow { background: var(--c-yellow); color: var(--text); border: 2px solid var(--border-strong); }
-.l-flow .lsec-title { color: #fff; }
-.l-flow .lsec-sub { color: #bbb; }
-.fl-steps { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; }
-.fl-line {
-  position: absolute; top: 26px; left: 6%; right: 6%; height: 3px; z-index: 0;
-  background: repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 8px, transparent 8px 16px);
-  opacity: .35;
-}
-.fl-line-fill {
-  position: absolute; inset: 0; display: block;
-  background: linear-gradient(90deg, var(--c-lime), var(--c-cyan), var(--c-pink));
-}
-/* v3：步驟改為白色墨線卡（插畫保留），各卡糖果色光暈 */
-.fl-step {
-  position: relative; z-index: 1; text-align: center; padding: 20px 14px 22px;
-  background: #fff; border: 2px solid var(--border-strong); border-radius: 18px;
+.stp-wrap { max-width: 1160px; margin: 0 auto; }
+.stp-eyebrow { background: var(--c-yellow); color: var(--text); border: 2px solid var(--border-strong); }
+.stp-title { color: #fff; }
+.stp-sub { margin: 10px 0 0; font-size: 15px; font-weight: 500; color: #bbb; }
+.stp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+.stp-card {
+  text-align: center; padding: 20px 14px 22px;
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(var(--glow), 0.28);
   transition: transform .2s var(--ease-pop);
 }
-.fl-step:nth-child(2) { box-shadow: 0 10px 22px rgba(255, 144, 232, 0.25); }
-.fl-step:nth-child(3) { box-shadow: 0 10px 22px rgba(255, 222, 0, 0.25); }
-.fl-step:nth-child(4) { box-shadow: 0 10px 22px rgba(125, 217, 255, 0.25); }
-.fl-step:nth-child(5) { box-shadow: 0 10px 22px rgba(184, 255, 159, 0.25); }
-.fl-step:nth-child(6) { box-shadow: 0 10px 22px rgba(138, 92, 246, 0.3); }
-.fl-step:hover { transform: translateY(-4px) rotate(-1deg); }
-.fl-art { display: block; width: 80px; margin: 0 auto 12px; }
-.fl-art :deep(.lart) { filter: drop-shadow(3px 4px 0 rgba(26, 26, 26, .2)); }
-.fl-num {
-  display: inline-block; margin: 0 0 6px; padding: 2px 10px;
-  font-family: var(--oj-font); font-size: 10px; font-weight: 900; letter-spacing: 1px;
+.stp-card:nth-child(odd):hover { transform: translateY(-4px) rotate(-1deg); }
+.stp-card:nth-child(even):hover { transform: translateY(-4px) rotate(1deg); }
+.stp-ic {
+  display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto;
+  border: 2px solid var(--border-strong); border-radius: 16px; color: var(--text);
+  transform: rotate(var(--rot));
+}
+.stp-ic-light { color: #fff; }
+.stp-ic-tilt :deep(svg) { transform: rotate(-45deg); }
+.stp-glyph { font-family: var(--oj-display); font-weight: 700; font-size: 22px; }
+.stp-num {
+  display: inline-block; margin: 12px 0 0; padding: 2px 10px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 10px; letter-spacing: 1px;
   color: #fff; background: var(--text); border-radius: 999px;
 }
-.fl-step h3 { margin: 0 0 6px; font-family: var(--oj-font); font-weight: 900; font-size: 16px; color: var(--text); }
-.fl-text { margin: 0; font-size: 12px; font-weight: 500; line-height: 1.7; color: #444; }
+.stp-card h3 { margin: 8px 0 0; font-family: var(--oj-font); font-weight: 900; font-size: 16px; color: var(--text); }
+.stp-card p { margin: 6px 0 0; font-size: 12px; font-weight: 500; line-height: 1.7; color: #444; }
 
-/* ---------- 區塊四：Consumer Experience（丁香紫 band） ---------- */
-.l-discover {
+/* ---------- 給探索者 collage（丁香紫 band） ---------- */
+.a-discover {
   position: relative; overflow: hidden;
-  padding: 88px clamp(20px, 3.5vw, 56px);
+  padding: 72px clamp(20px, 3.5vw, 56px);
   background: var(--t-violet);
   background-image: radial-gradient(rgba(26, 26, 26, 0.08) 1.2px, transparent 1.2px);
   background-size: 24px 24px;
   border-bottom: 2px solid var(--border-strong);
 }
-.dc-inner {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  align-items: center; gap: clamp(30px, 5vw, 76px);
-  max-width: 1120px; margin: 0 auto;
-}
-.dc-copy .lsec-eyebrow { background: var(--text); color: var(--c-pink); }
-.dc-copy .lsec-title { text-align: left; }
-.dc-copy { text-align: left; }
-.dc-text { margin: 16px 0 0; font-size: 15px; font-weight: 500; line-height: 1.9; color: var(--text); max-width: 440px; }
-.dc-btn {
-  display: inline-flex; align-items: center; gap: 7px; margin-top: 26px; cursor: pointer;
-  font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: var(--c-yellow);
-  background: var(--text); border: 0; border-radius: 999px;
-  padding: 14px 30px; transition: transform .2s var(--ease-pop), box-shadow .2s;
-}
-.dc-btn:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.3); }
-.dc-btn:active { transform: translateY(0); }
-
-.dc-collage { position: relative; display: flex; flex-direction: column; gap: 16px; align-items: center; }
-.dc-card {
-  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 16px;
-  box-shadow: 0 12px 26px rgba(26, 26, 26, 0.16); padding: 16px;
-}
-.dc-label {
-  display: flex; align-items: center; gap: 6px; margin: 0 0 10px;
-  font-family: var(--oj-font); font-size: 12px; font-weight: 900; color: var(--text);
-}
-.dc-grid { width: min(360px, 100%); transform: rotate(-2deg); }
-.dc-grid-imgs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.dc-grid-imgs img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 2px solid var(--border-strong); border-radius: 8px; }
-.dc-profile { width: min(320px, 100%); transform: rotate(2deg) translateX(8%); }
-.dc-profile-row { display: flex; align-items: center; gap: 10px; }
-.dc-avatar {
-  width: 38px; height: 38px; flex: none; display: grid; place-items: center; color: var(--text);
-  border: 2px solid var(--border-strong); border-radius: 50%;
-  background: var(--c-yellow);
-}
-.dc-pl { display: block; height: 9px; border-radius: 5px; background: var(--border); }
-.dc-pl.w1 { flex: 1; background: var(--text); opacity: .8; }
-.dc-pl.w2 { width: 62%; margin-top: 10px; }
-.dc-follow {
-  padding: 4px 14px; border: 2px solid var(--border-strong); border-radius: 999px;
-  background: var(--c-lime);
-  font-family: var(--oj-font); font-weight: 900; font-size: 12px; color: var(--text); white-space: nowrap;
-}
-.dc-fav { width: min(300px, 100%); transform: rotate(-1.4deg) translateX(-6%); }
-.dc-fav-row { display: flex; align-items: center; gap: 8px; }
-.dc-fav-row img { width: 54px; aspect-ratio: 1; object-fit: cover; border: 2px solid var(--border-strong); border-radius: 8px; }
-.dc-fav-heart {
-  width: 34px; height: 34px; display: grid; place-items: center; margin-left: auto;
-  border: 2px solid var(--border-strong); border-radius: 50%; background: var(--c-pink); color: var(--text);
-}
-
-/* ---------- 區塊五：Why Open Jam（滿版黃 band） ---------- */
-.l-why {
-  position: relative; overflow: hidden;
-  padding: 88px clamp(20px, 3.5vw, 56px) 80px;
-  background: #ffc01f;
-  border-bottom: 2px solid var(--border-strong);
-}
-.l-why .lsec-head { position: relative; z-index: 1; }
-.why-grid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px; max-width: 1020px; margin: 0 auto; }
-.why-card {
-  display: flex; gap: 18px; align-items: flex-start;
-  padding: 26px; border: 2px solid var(--border-strong); border-radius: var(--r-lg);
-  background: var(--surface); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.12);
+.dsc-inner { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(30px, 4vw, 48px); align-items: center; max-width: 1100px; margin: 0 auto; }
+.dsc-title { margin: 18px 0 16px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 3.4vw, 40px); line-height: 1.35; color: var(--text); }
+.dsc-text { margin: 0 0 26px; max-width: 440px; font-size: 15px; font-weight: 500; line-height: 1.9; color: var(--text); }
+.dsc-btn {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer; border: 0;
+  padding: 14px 30px; border-radius: 999px; background: var(--text); color: var(--c-yellow);
+  font-family: var(--oj-font); font-weight: 900; font-size: 15px;
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.why-card:nth-child(odd):hover { transform: translateY(-4px) rotate(-.5deg); box-shadow: 0 16px 30px rgba(26, 26, 26, 0.16); }
-.why-card:nth-child(even):hover { transform: translateY(-4px) rotate(.5deg); box-shadow: 0 16px 30px rgba(26, 26, 26, 0.16); }
-.why-art { display: block; width: 84px; flex: none; }
-.why-art :deep(.lart) { filter: drop-shadow(3px 4px 0 rgba(26, 26, 26, .2)); }
-.why-card h3 { margin: 0 0 8px; font-family: var(--oj-font); font-weight: 900; font-size: 19px; color: var(--text); }
-.why-card p { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.8; color: var(--text); }
+.dsc-btn:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.3); }
+.dsc-btn:active { transform: translateY(0); box-shadow: none; }
 
-/* ---------- 最後區塊：CTA ---------- */
-.l-cta { position: relative; overflow: hidden; padding: 80px clamp(20px, 3.5vw, 56px) 88px; text-align: center; }
-.lc-eyebrow {
-  position: relative; z-index: 1;
-  margin: 0 0 8px;
-  font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 4vw, 42px);
-  color: var(--text); text-align: center;
+.dsc-art { position: relative; height: 340px; }
+.dsc-card {
+  position: absolute; padding: 16px;
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 16px;
+  box-shadow: 0 12px 26px rgba(26, 26, 26, 0.16);
 }
-.lc-note {
-  position: relative; z-index: 1; margin: 0 0 36px;
-  font-family: var(--oj-hand); font-weight: 700; font-size: 26px; color: var(--c-violet);
-  transform: rotate(-2deg);
+.dsc-label { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; font-family: var(--oj-font); font-weight: 900; font-size: 12px; color: var(--text); }
+.dsc-grid { left: 0; top: 10px; width: 320px; transform: rotate(-2deg); }
+.dsc-swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.dsc-swatches span { height: 54px; border: 2px solid var(--border-strong); border-radius: 8px; }
+.dsc-player { right: 0; top: 130px; width: 300px; transform: rotate(2deg); }
+.dsc-player-row { display: flex; align-items: center; gap: 10px; }
+.dsc-play { display: grid; place-items: center; width: 36px; height: 36px; flex: none; background: var(--c-violet); color: #fff; border: 2px solid var(--border-strong); border-radius: 50%; }
+.dsc-bar { position: relative; flex: 1; height: 10px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 999px; overflow: hidden; }
+.dsc-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 60%; background: var(--c-pink); }
+.dsc-time { font-family: var(--oj-display); font-weight: 700; font-size: 11px; color: var(--text); }
+.dsc-store { left: 40px; bottom: 0; width: 280px; transform: rotate(-1deg); }
+.dsc-store-row { display: flex; align-items: center; gap: 10px; }
+.dsc-avatar { display: grid; place-items: center; width: 34px; height: 34px; flex: none; background: var(--c-yellow); border: 2px solid var(--border-strong); border-radius: 50%; font-family: var(--oj-font); font-weight: 900; font-size: 11px; color: var(--text); }
+.dsc-store-meta { flex: 1; min-width: 0; }
+.dsc-store-meta b { display: block; font-family: var(--oj-font); font-weight: 900; font-size: 13px; color: var(--text); }
+.dsc-store-meta i { display: block; font-style: normal; font-weight: 500; font-size: 11px; color: var(--text-soft); }
+.dsc-follow { padding: 3px 12px; background: var(--c-lime); border: 2px solid var(--border-strong); border-radius: 999px; font-family: var(--oj-font); font-weight: 900; font-size: 11px; color: var(--text); white-space: nowrap; }
+
+/* ---------- 我們相信的事（黃 band） ---------- */
+.a-beliefs {
+  position: relative; overflow: hidden;
+  padding: 72px clamp(20px, 3.5vw, 56px);
+  background: #ffc01f; border-bottom: 2px solid var(--border-strong);
 }
-.lc-grid { position: relative; z-index: 1; text-align: left; }
-.lc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 1020px; margin: 0 auto; }
-.lc-card {
+.blf-wrap { max-width: 1020px; margin: 0 auto; }
+.blf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.blf-card {
+  display: flex; gap: 18px; align-items: flex-start; padding: 26px;
+  background: var(--surface); border: 2px solid var(--border-strong); border-radius: 20px;
+  box-shadow: 0 10px 22px rgba(26, 26, 26, 0.12);
+  transition: transform .2s var(--ease-pop), box-shadow .2s;
+}
+.blf-card:nth-child(odd):hover { transform: translateY(-4px) rotate(-0.5deg); box-shadow: 0 16px 30px rgba(26, 26, 26, 0.16); }
+.blf-card:nth-child(even):hover { transform: translateY(-4px) rotate(0.5deg); box-shadow: 0 16px 30px rgba(26, 26, 26, 0.16); }
+.blf-ic { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border: 2px solid var(--border-strong); border-radius: 16px; color: var(--text); transform: rotate(var(--rot)); }
+.blf-card h3 { margin: 0; font-family: var(--oj-font); font-weight: 900; font-size: 19px; color: var(--text); }
+.blf-card p { margin: 6px 0 0; font-size: 14px; font-weight: 500; line-height: 1.8; color: var(--text); }
+
+/* ---------- 雙 CTA ---------- */
+.a-cta { max-width: 1020px; margin: 0 auto; padding: 80px clamp(20px, 3.5vw, 56px) 88px; text-align: center; }
+.cta-title { margin: 0 0 12px; font-family: var(--oj-font); font-weight: 900; font-size: clamp(28px, 4vw, 42px); color: var(--text); }
+.cta-note { margin: 0 0 36px; font-family: var(--oj-hand); font-weight: 700; font-size: 26px; color: var(--c-violet); transform: rotate(-2deg); }
+.cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; text-align: left; }
+.cta-card {
   padding: 32px; border: 2px solid var(--border-strong); border-radius: 22px;
   box-shadow: 0 12px 26px rgba(26, 26, 26, 0.12);
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.lc-card:hover { transform: translateY(-5px); box-shadow: 0 18px 34px rgba(26, 26, 26, 0.16); }
-.lc-creator { background: var(--t-violet); }
-.lc-buyer { background: #c9f7e4; }
-.lc-art { display: block; width: 92px; margin: 0 0 18px; }
-.lc-art :deep(.lart) { filter: drop-shadow(3px 4px 0 rgba(26, 26, 26, .2)); }
-.lc-card h3 { margin: 0; font-family: var(--oj-font); font-weight: 900; font-size: 23px; color: var(--text); }
-.lc-card p { margin: 8px 0 22px; font-size: 14px; font-weight: 500; line-height: 1.8; color: var(--text); }
-.lc-btn {
-  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
-  font-family: var(--oj-font); font-weight: 900; font-size: 15px; color: var(--c-yellow);
-  background: var(--text); border: 0; border-radius: 999px;
-  padding: 13px 26px; transition: transform .2s var(--ease-pop), box-shadow .2s;
+.cta-creator { background: var(--t-violet); }
+.cta-buyer { background: #c9f7e4; }
+.cta-card:nth-child(odd):hover { transform: translateY(-5px) rotate(-0.6deg); box-shadow: 0 18px 34px rgba(26, 26, 26, 0.16); }
+.cta-card:nth-child(even):hover { transform: translateY(-5px) rotate(0.6deg); box-shadow: 0 18px 34px rgba(26, 26, 26, 0.16); }
+.cta-ic { display: grid; place-items: center; width: 56px; height: 56px; background: var(--surface); border: 2px solid var(--border-strong); border-radius: 18px; color: var(--text); }
+.cta-ic-a { transform: rotate(-4deg); }
+.cta-ic-b { transform: rotate(4deg); }
+.cta-card h3 { margin: 18px 0 0; font-family: var(--oj-font); font-weight: 900; font-size: 23px; color: var(--text); }
+.cta-card p { margin: 8px 0 20px; font-size: 14px; font-weight: 500; line-height: 1.8; color: var(--text); }
+.cta-btn {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer; border: 0;
+  padding: 13px 26px; border-radius: 999px; background: var(--text); color: var(--c-yellow);
+  font-family: var(--oj-font); font-weight: 900; font-size: 15px;
+  transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.lc-btn-main { background: var(--c-violet); color: #fff; }
-.lc-btn:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.3); }
-.lc-btn-main:hover { box-shadow: 0 10px 22px rgba(138, 92, 246, 0.4); }
-.lc-btn:active { transform: translateY(0); box-shadow: none; }
+.cta-btn-main { background: var(--c-violet); color: #fff; }
+.cta-btn:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.3); }
+.cta-btn-main:hover { box-shadow: 0 10px 22px rgba(138, 92, 246, 0.4); }
+.cta-btn:active { transform: translateY(0); box-shadow: none; }
 
 /* ---------- RWD ---------- */
 @media (max-width: 980px) {
-  .fl-steps { grid-template-columns: repeat(2, 1fr); gap: 26px 18px; }
-  .fl-line { display: none; }
+  .sell-grid { grid-template-columns: repeat(2, 1fr); }
+  .stp-grid { grid-template-columns: repeat(2, 1fr); gap: 26px 18px; }
 }
 @media (max-width: 860px) {
-  .ls-inner { grid-template-columns: 1fr; gap: 22px; }
-  .ls-chapter { padding-bottom: 110px; }
-  .ls-visual { order: -1; }
-  .mv-player, .mv-wave, .pv-ba, .pv-grid { width: min(340px, 100%); }
-  .ev-book { width: min(170px, 40%); }
-  .dc-inner { grid-template-columns: 1fr; }
-  .lc-grid { grid-template-columns: 1fr; }
-  .why-grid { grid-template-columns: 1fr; }
+  .pub-inner, .dsc-inner { grid-template-columns: 1fr; }
+  .pub-art, .dsc-art { height: 300px; }
+  .blf-grid, .cta-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .about-facts { margin-top: -36px; }
-}
-@media (max-width: 560px) {
-  .fl-steps { grid-template-columns: 1fr; }
-  .ls-chapter { padding-bottom: 128px; }
-  .ls-chips li { font-size: 12.5px; padding: 6px 11px; }
+  .sell-grid { grid-template-columns: 1fr; }
+  .stp-grid { grid-template-columns: 1fr; }
 }
 
-/* reduced-motion：停用裝飾動畫（pin / 轉場由 matchMedia 控制不啟用） */
+/* reduced-motion：停用跑馬燈動畫 */
 @media (prefers-reduced-motion: reduce) {
-  .mv-wave span, .l-marquee-track { animation: none; }
+  .am-track { animation: none; }
 }
 </style>

@@ -423,7 +423,15 @@
       "gridLabel": "Marketplace picks",
       "profileLabel": "Creator profile",
       "favLabel": "My library",
+      "trackLabel": "Track preview",
       "follow": "Follow"
+    },
+    "publish": {
+      "eyebrow": "Want to publish? Just publish.",
+      "title": "An indie zine, a how-to guide, a score written one line at a time.",
+      "text": "No publisher's nod, no agent contract, no algorithm to please — finish it, list it, set your own price, and let fans buy straight from you.",
+      "tags": ["Guide", "Zine", "PDF", "Tutorial"],
+      "badge": "Write → List → Sell"
     },
     "why": {
       "eyebrow": "Why Open Jam",
