@@ -270,7 +270,9 @@
 /* 直式精選卡（封面上、資訊下），carousel 保持橫向捲動 */
 .feat-track {
   display: grid; grid-auto-flow: column; grid-auto-columns: min(285px, 88%); gap: 24px;
-  overflow-x: auto; scroll-snap-type: x proximity; padding: 10px 4px 14px; scrollbar-width: none;
+  overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
+  /* 大 padding + 等量負 margin：讓卡片 hover 陰影有空間、不被 scroll container 截斷 */
+  padding: 14px 24px 48px; margin: -4px -24px -34px;
   cursor: grab;
 }
 .feat-track::-webkit-scrollbar { display: none; }
