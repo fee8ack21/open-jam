@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="LegalReconsent.PageTitle" xml:space="preserve"><value>Open Jam · 條款更新</value></data>
-  <data name="LegalReconsent.BrandHeadline" xml:space="preserve"><value>條款有<br/><span class="hl hl-lime">新版本</span>了</value></data>
+  <data name="LegalReconsent.BrandHeadline" xml:space="preserve"><value><![CDATA[條款有<br/><span class="hl hl-lime">新版本</span>了]]></value></data>
   <data name="LegalReconsent.BrandSub" xml:space="preserve"><value>為了保障你的權益，請閱讀並同意最新版本後繼續使用 Open Jam。</value></data>
   <data name="LegalReconsent.Eyebrow" xml:space="preserve"><value>條款更新</value></data>
   <data name="LegalReconsent.Title" xml:space="preserve"><value>請確認最新條款</value></data>

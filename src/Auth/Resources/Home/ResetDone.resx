@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="ResetDone.PageTitle" xml:space="preserve"><value>Open Jam · 密碼已更新</value></data>
-  <data name="Reset.BrandHeadline" xml:space="preserve"><value>設定一組<br/><span class="hl hl-lime">新密碼</span>。</value></data>
+  <data name="Reset.BrandHeadline" xml:space="preserve"><value><![CDATA[設定一組<br/><span class="hl hl-lime">新密碼</span>。]]></value></data>
   <data name="Reset.BrandSub" xml:space="preserve"><value>選一組夠強的密碼，好好保護你的創作資產。</value></data>
   <data name="ResetDone.Title" xml:space="preserve"><value>密碼已更新 🎉</value></data>
   <data name="ResetDone.Sub" xml:space="preserve"><value>你的密碼已成功重置，現在可以用新密碼登入 Open Jam 了。</value></data>

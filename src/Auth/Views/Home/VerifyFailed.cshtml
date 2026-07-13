@@ -9,10 +9,7 @@
     })
     <main class="form-panel">
         <div class="mobile-brand">
-            <span class="brand-mark" style="background:linear-gradient(135deg,var(--c-violet),var(--c-pink))">
-                <span style="color:#fff;display:grid;place-items:center">@IconHelper.BrandMark(18)</span>
-            </span>
-            <span class="brand-name">Open Jam</span>
+            @await Html.PartialAsync("_BrandLockup")
         </div>
         <div class="form-wrap">
             <div class="screen">

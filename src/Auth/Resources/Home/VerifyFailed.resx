@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="VerifyFailed.PageTitle" xml:space="preserve"><value>Open Jam · 驗證連結無效</value></data>
-  <data name="VerifyFailed.BrandHeadline" xml:space="preserve"><value>連結<br/><span class="hl hl-pink">已失效</span>。</value></data>
+  <data name="VerifyFailed.BrandHeadline" xml:space="preserve"><value><![CDATA[連結<br/><span class="hl hl-pink">已失效</span>。]]></value></data>
   <data name="VerifyFailed.BrandSub" xml:space="preserve"><value>驗證連結可能已過期或使用過，請重新申請。</value></data>
   <data name="VerifyFailed.Eyebrow" xml:space="preserve"><value>連結問題</value></data>
   <data name="VerifyFailed.Title" xml:space="preserve"><value>驗證連結無效</value></data>

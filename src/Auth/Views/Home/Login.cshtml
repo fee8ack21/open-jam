@@ -11,19 +11,16 @@
     })
     <main class="form-panel">
         <div class="mobile-brand">
-            <span class="brand-mark" style="background:linear-gradient(135deg,var(--c-violet),var(--c-pink))">
-                <span style="color:#fff;display:grid;place-items:center">@IconHelper.BrandMark(18)</span>
-            </span>
-            <span class="brand-name">Open Jam</span>
+            @await Html.PartialAsync("_BrandLockup")
         </div>
         <div class="form-wrap">
             <div class="screen">
                 <div class="screen-head">
-                    <p class="form-eyebrow">@IconHelper.Render("sparkle", 13) @T["Login.Eyebrow"]</p>
                     <a href="@AppOptions.Value.PortalUrl" class="back-link">
-                        @IconHelper.Render("arrowLeft", 16) @T["Login.BackLink"]
+                        @IconHelper.Render("arrowLeft", 13) @T["Login.BackLink"]
                     </a>
                 </div>
+                <p class="form-eyebrow">@IconHelper.Render("sparkle", 11) @T["Login.Eyebrow"]</p>
                 <h2 class="form-title">@T["Login.Title"]</h2>
                 <p class="form-sub">@T["Login.Sub"]</p>
                 <form asp-action="Login" method="post" novalidate>
@@ -63,7 +60,7 @@
                         <div class="form-row">
                             <div class="checkbox @(Model.Remember ? "on" : "")" data-checkbox="Remember"
                                  role="checkbox" aria-checked="@(Model.Remember ? "true" : "false")" tabindex="0">
-                                <span class="box">@IconHelper.Render("check", 13, 2.6)</span>
+                                <span class="box">@IconHelper.Render("check", 13)</span>
                                 <span>@T["Login.Remember"]</span>
                             </div>
                             <input asp-for="Remember"
@@ -76,6 +73,7 @@
                     </div>
                 </form>
                 <p class="form-foot">@T["Login.NoAccount"] <a asp-action="Register" asp-route-login_challenge="@Model.Challenge" class="link-strong">@T["Login.SignUp"]</a></p>
+                <p class="form-hand">@T["Login.HandNote"]</p>
             </div>
         </div>
     </main>

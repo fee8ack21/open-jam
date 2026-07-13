@@ -3,22 +3,18 @@
   var $ = window.jQuery;
 
   // ---- icon helper (used by strength meter, pw-toggle, resend) ----
-  var PATHS = {
-    check:   'M5 12.5l4.5 4.5L19 7',
-    alert:   'M12 8v5M12 16.5v.5 M10.3 3.8 2.4 18a1.9 1.9 0 0 0 1.7 2.9h15.8a1.9 1.9 0 0 0 1.7-2.9L13.7 3.8a1.9 1.9 0 0 0-3.4 0z',
-    eye:     'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
-    eyeOff:  'M3 3l18 18 M10.6 10.6a3 3 0 0 0 4 4 M9.4 5.2A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a16 16 0 0 1-3.3 4 M6.3 6.3A16 16 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.3-.6',
+  // v3 貼紙 icon：完整 inner markup（筆觸內建），與 IconHelper.cs 同一套語彙
+  var ICONS = {
+    check:  '<path d="M4.5 12.5 l5 5 10 -11" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"></path>',
+    eye:    '<path d="M2.5 12 c2.5 -4.6 5.7 -6.9 9.5 -6.9 s7 2.3 9.5 6.9 c-2.5 4.6 -5.7 6.9 -9.5 6.9 s-7 -2.3 -9.5 -6.9 z" fill="#FFFFFF" stroke="currentColor" stroke-width="2"></path><circle cx="12" cy="12" r="3" fill="currentColor"></circle>',
+    eyeOff: '<path d="M2.5 12 c2.5 -4.6 5.7 -6.9 9.5 -6.9 s7 2.3 9.5 6.9 c-2.5 4.6 -5.7 6.9 -9.5 6.9 s-7 -2.3 -9.5 -6.9 z" fill="#FFFFFF" stroke="currentColor" stroke-width="2"></path><circle cx="12" cy="12" r="3" fill="currentColor"></circle><path d="M4.5 20.5 L19.5 3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path>',
   };
   function icon(name, opts) {
     opts = opts || {};
-    var size   = opts.size   == null ? 20 : opts.size;
-    var stroke = opts.stroke == null ? 1.9 : opts.stroke;
-    var d = PATHS[name] || '';
+    var size = opts.size == null ? 20 : opts.size;
     return (
       '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" ' +
-      'fill="none" stroke="currentColor" stroke-width="' + stroke + '" ' +
-      'stroke-linecap="round" stroke-linejoin="round" style="display:block;flex:none;">' +
-      '<path d="' + d + '"></path></svg>'
+      'style="display:block;flex:none;">' + (ICONS[name] || '') + '</svg>'
     );
   }
   function esc(s) {
@@ -33,7 +29,7 @@
     var s = window.scorePassword(value);
     var bars = '';
     for (var i = 0; i < 4; i++) {
-      bars += '<div class="pw-bar" style="background:' + (i < s.level ? s.color : 'var(--border)') + '"></div>';
+      bars += '<div class="pw-bar" style="background:' + (i < s.level ? s.color : 'var(--surface)') + '"></div>';
     }
     return '<div class="pw-strength"><div class="pw-bars">' + bars + '</div>' +
       '<div class="pw-meta"><span class="pw-label" style="color:' + s.color + '">' + s.text + '</span>' +
@@ -167,6 +163,7 @@
       var showing = $input.attr('type') === 'text';
       $input.attr('type', showing ? 'password' : 'text');
       $btn.attr('title', showing ? '顯示密碼' : '隱藏密碼')
+          .toggleClass('showing', !showing)
           .html(icon(showing ? 'eye' : 'eyeOff', { size: 18 }));
     });
 

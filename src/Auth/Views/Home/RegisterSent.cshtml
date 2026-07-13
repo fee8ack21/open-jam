@@ -10,10 +10,7 @@
     })
     <main class="form-panel">
         <div class="mobile-brand">
-            <span class="brand-mark" style="background:linear-gradient(135deg,var(--c-violet),var(--c-pink))">
-                <span style="color:#fff;display:grid;place-items:center">@IconHelper.BrandMark(18)</span>
-            </span>
-            <span class="brand-name">Open Jam</span>
+            @await Html.PartialAsync("_BrandLockup")
         </div>
         <div class="form-wrap">
             <div class="screen">
@@ -24,7 +21,7 @@
                 <p class="form-sub" style="margin-top:18px">@T["RegisterSent.Instruction"]</p>
                 <div class="form-body">
                     <a class="btn-pop" asp-action="Login">
-                        @IconHelper.Render("check", 18, 2.4) @T["RegisterSent.VerifyDone"]
+                        @IconHelper.Render("check", 18) @T["RegisterSent.VerifyDone"]
                     </a>
                 </div>
                 <p class="resend" style="text-align:center" data-resend-screen="register-sent" data-resend-email="@email">

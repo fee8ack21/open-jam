@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Register.PageTitle" xml:space="preserve"><value>Open Jam · Create Account</value></data>
-  <data name="Register.BrandHeadline" xml:space="preserve"><value>Turn your work<br/>into <span class="hl hl-yellow">income</span>.</value></data>
+  <data name="Register.BrandHeadline" xml:space="preserve"><value><![CDATA[Turn your work<br/>into <span class="hl hl-yellow">income</span>.]]></value></data>
   <data name="Register.BrandSub" xml:space="preserve"><value>Join 12,400+ creators and start selling your digital products on Open Jam today.</value></data>
   <data name="Register.Eyebrow" xml:space="preserve"><value>Start Creating</value></data>
   <data name="Register.Title" xml:space="preserve"><value>Create Account</value></data>
@@ -25,4 +25,5 @@
   <data name="Register.Login" xml:space="preserve"><value>Go to Log In</value></data>
   <data name="Login.ShowPassword" xml:space="preserve"><value>Show password</value></data>
   <data name="Register.MustReadLegal" xml:space="preserve"><value>Please open and read the Terms of Service and Privacy Policy first</value></data>
+  <data name="Register.HandNote" xml:space="preserve"><value>let's make something ♡</value></data>
 </root>

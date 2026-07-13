@@ -9,14 +9,11 @@
     })
     <main class="form-panel">
         <div class="mobile-brand">
-            <span class="brand-mark" style="background:linear-gradient(135deg,var(--c-violet),var(--c-pink))">
-                <span style="color:#fff;display:grid;place-items:center">@IconHelper.BrandMark(18)</span>
-            </span>
-            <span class="brand-name">Open Jam</span>
+            @await Html.PartialAsync("_BrandLockup")
         </div>
         <div class="form-wrap">
             <div class="screen">
-                <div class="success-ring">@IconHelper.Render("check", 46, 2.6)</div>
+                <div class="success-ring">@IconHelper.Render("check", 42)</div>
                 <h2 class="form-title">@T["ResetDone.Title"]</h2>
                 <p class="form-sub">@T["ResetDone.Sub"]</p>
                 <div class="form-body">

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="~/favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="~/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="~/apple-touch-icon.png">
     <link rel="stylesheet" href="~/css/site.css">
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 </head>
@@ -13,16 +17,16 @@
         <form class="lang-switch" action="/set-language" method="get">
             <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString">
             <button type="button" class="lang-trigger" data-langtoggle>
-                @IconHelper.Render("globe", 16) <span class="lang-label">@(System.Globalization.CultureInfo.CurrentUICulture.Name switch { "en" => "English", _ => "繁體中文" })</span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg>
+                @IconHelper.Render("globe", 15) <span class="lang-label">@(System.Globalization.CultureInfo.CurrentUICulture.Name switch { "en" => "English", _ => "繁體中文" })</span>
+                @IconHelper.Render("chevronDown", 10)
             </button>
             <div class="lang-menu" data-langmenu>
                 <button type="submit" name="culture" value="zh-Hant" class="lang-opt @(System.Globalization.CultureInfo.CurrentUICulture.Name == "zh-Hant" ? "on" : "")">
-                    <span class="lang-opt-check">@IconHelper.Render("check", 14, 2.6)</span>
+                    <span class="lang-opt-check">@IconHelper.Render("check", 14)</span>
                     <span>繁體中文</span>
                 </button>
                 <button type="submit" name="culture" value="en" class="lang-opt @(System.Globalization.CultureInfo.CurrentUICulture.Name == "en" ? "on" : "")">
-                    <span class="lang-opt-check">@IconHelper.Render("check", 14, 2.6)</span>
+                    <span class="lang-opt-check">@IconHelper.Render("check", 14)</span>
                     <span>English</span>
                 </button>
             </div>

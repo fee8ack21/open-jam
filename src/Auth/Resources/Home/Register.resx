@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Register.PageTitle" xml:space="preserve"><value>Open Jam · 建立帳號</value></data>
-  <data name="Register.BrandHeadline" xml:space="preserve"><value>把作品<br/>變成 <span class="hl hl-yellow">收入</span>。</value></data>
+  <data name="Register.BrandHeadline" xml:space="preserve"><value><![CDATA[把作品<br/>變成 <span class="hl hl-yellow">收入</span>。]]></value></data>
   <data name="Register.BrandSub" xml:space="preserve"><value>加入 12,400+ 創作者，今天就開始在 Open Jam 上架你的數位作品。</value></data>
   <data name="Register.Eyebrow" xml:space="preserve"><value>開始創作</value></data>
   <data name="Register.Title" xml:space="preserve"><value>建立帳號</value></data>
@@ -25,4 +25,5 @@
   <data name="Register.Login" xml:space="preserve"><value>前往登入</value></data>
   <data name="Login.ShowPassword" xml:space="preserve"><value>顯示密碼</value></data>
   <data name="Register.MustReadLegal" xml:space="preserve"><value>請先點擊閱讀服務條款與隱私權政策</value></data>
+  <data name="Register.HandNote" xml:space="preserve"><value>let's make something ♡</value></data>
 </root>

@@ -9,28 +9,28 @@
   //   8–20 chars · uppercase · lowercase · digit · special char · no whitespace
   window.scorePassword = function (pw) {
     pw = pw || '';
-    if (!pw) return { level: 0, color: 'var(--border)', text: '', hint: '' };
+    if (!pw) return { level: 0, color: 'var(--surface)', text: '', hint: '' };
 
     if (pw.length > 20)
-      return { level: 0, color: '#ff4d9d', text: '過長',  hint: '密碼最多 20 個字元' };
+      return { level: 0, color: '#d6479b', text: '過長',  hint: '密碼最多 20 個字元' };
     if (pw.length < 8)
-      return { level: 0, color: 'var(--border)', text: '太短', hint: '至少 8 個字元' };
+      return { level: 0, color: 'var(--surface)', text: '太短', hint: '至少 8 個字元' };
     if (/\s/.test(pw))
-      return { level: 0, color: '#ff4d9d', text: '無效',  hint: '不得含空白字元' };
+      return { level: 0, color: '#d6479b', text: '無效',  hint: '不得含空白字元' };
 
     var hasUpper   = /[A-Z]/.test(pw);
     var hasLower   = /[a-z]/.test(pw);
     var hasDigit   = /[0-9]/.test(pw);
     var hasSpecial = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(pw);
 
-    if (!hasUpper)   return { level: 1, color: '#ff4d9d', text: '弱',    hint: '缺少大寫字母 (A–Z)' };
-    if (!hasLower)   return { level: 1, color: '#ff4d9d', text: '弱',    hint: '缺少小寫字母 (a–z)' };
-    if (!hasDigit)   return { level: 2, color: '#ff7a2f', text: '普通',  hint: '缺少數字 (0–9)' };
-    if (!hasSpecial) return { level: 2, color: '#ff7a2f', text: '普通',  hint: '缺少特殊符號（例如 !@#$）' };
+    if (!hasUpper)   return { level: 1, color: '#d6479b', text: '弱',    hint: '缺少大寫字母 (A–Z)' };
+    if (!hasLower)   return { level: 1, color: '#d6479b', text: '弱',    hint: '缺少小寫字母 (a–z)' };
+    if (!hasDigit)   return { level: 2, color: '#ff6b35', text: '普通',  hint: '缺少數字 (0–9)' };
+    if (!hasSpecial) return { level: 2, color: '#ff6b35', text: '普通',  hint: '缺少特殊符號（例如 !@#$）' };
 
     return pw.length >= 16
-      ? { level: 4, color: '#11a36a', text: '很強',   hint: '安全 👍' }
-      : { level: 3, color: '#ffc83a', text: '符合規則', hint: '加長密碼可更安全' };
+      ? { level: 4, color: '#2e9e5b', text: '很強',   hint: '安全 👍' }
+      : { level: 3, color: '#ffb020', text: '符合規則', hint: '加長密碼可更安全' };
   };
 
   // ---- custom validation methods ----

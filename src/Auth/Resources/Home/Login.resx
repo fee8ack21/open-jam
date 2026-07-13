@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Login.PageTitle" xml:space="preserve"><value>Open Jam · 登入</value></data>
-  <data name="Login.BrandHeadline" xml:space="preserve"><value>歡迎回來，<br/>繼續 <span class="hl hl-lime">創作</span>。</value></data>
+  <data name="Login.BrandHeadline" xml:space="preserve"><value><![CDATA[歡迎回來，<br/>繼續 <span class="hl hl-lime">創作</span>。]]></value></data>
   <data name="Login.BrandSub" xml:space="preserve"><value>登入 Open Jam，管理你的作品、追蹤銷售，與全球創作者一起發光。</value></data>
   <data name="Login.Eyebrow" xml:space="preserve"><value>歡迎回來</value></data>
   <data name="Login.BackLink" xml:space="preserve"><value>返回平台</value></data>
@@ -21,4 +21,5 @@
   <data name="Login.Submit" xml:space="preserve"><value>登入</value></data>
   <data name="Login.NoAccount" xml:space="preserve"><value>還沒有帳號？</value></data>
   <data name="Login.SignUp" xml:space="preserve"><value>免費註冊</value></data>
+  <data name="Login.HandNote" xml:space="preserve"><value>good to see you again ♡</value></data>
 </root>
