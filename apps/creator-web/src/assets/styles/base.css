@@ -634,6 +634,7 @@ body {
   .nav-inner { flex-wrap: wrap; height: auto; padding: 11px 16px; gap: 12px; }
   .nav-spacer { display: none; }
   .brand { flex: 1; }
+  .nav-actions { gap: 6px; }
   .nav-actions .nav-icon-toggle { display: grid; }
   .nav-actions .icon-btn { width: 38px; height: 38px; }
 
@@ -654,6 +655,15 @@ body {
 
   .result-card { padding: 36px 24px; }
   .result-deco { display: none; }
+
+  .breadcrumb { margin-top: 14px; }
+}
+@media (max-width: 380px) {
+  .nav-inner { padding: 11px 12px; gap: 8px; }
+  .brand { gap: 8px; }
+  .brand-name { font-size: 17px; }
+  .nav-actions { gap: 4px; }
+  .nav-actions .icon-btn { width: 34px; height: 34px; }
 }
 @media (max-width: 560px) {
   .field-grid.two { grid-template-columns: 1fr; }
