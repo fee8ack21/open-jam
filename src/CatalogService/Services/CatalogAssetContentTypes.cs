@@ -39,7 +39,11 @@ public static class CatalogAssetContentTypes
         }
     }
 
-    /// <summary>由可下載檔案的 ContentType 推導 StorageService 媒體分類。</summary>
+    /// <summary>
+    /// 由可下載檔案的 ContentType 推導 StorageService 媒體分類。
+    /// 下載檔為買家授權後取得的商品內容，不限格式（ZIP / 音訊 / 設計檔等皆可）；
+    /// 已知可預覽類型（圖片 / 影片 / PDF）回對應分類供日後預覽生成，其餘一律歸為 <see cref="StorageFileType.Other"/>。
+    /// </summary>
     public static StorageFileType ResolveDownloadable(string contentType)
     {
         if (Images.Contains(contentType))
@@ -49,6 +53,6 @@ public static class CatalogAssetContentTypes
         if (string.Equals(contentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
             return StorageFileType.Pdf;
 
-        throw new ValidationException($"不支援的下載檔案類型：{contentType}");
+        return StorageFileType.Other;
     }
 }

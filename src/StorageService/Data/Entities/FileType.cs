@@ -11,4 +11,7 @@ public enum FileType
 
     /// <summary>PDF 文件（支援預覽頁生成）。</summary>
     Pdf,
+
+    /// <summary>其他二進位下載檔（ZIP / 音訊 / 設計檔等），不做轉碼或預覽處理，僅供買家授權下載。</summary>
+    Other,
 }

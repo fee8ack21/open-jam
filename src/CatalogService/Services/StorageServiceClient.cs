@@ -105,7 +105,7 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
     }
 }
 
-/// <summary>對應 StorageService <c>FileType</c> enum（Video=0, Image=1, Pdf=2）。</summary>
+/// <summary>對應 StorageService <c>FileType</c> enum（Video=0, Image=1, Pdf=2, Other=3）。</summary>
 public enum StorageFileType
 {
     /// <summary>影片。</summary>
@@ -116,6 +116,9 @@ public enum StorageFileType
 
     /// <summary>PDF 文件。</summary>
     Pdf = 2,
+
+    /// <summary>其他二進位下載檔（ZIP / 音訊 / 設計檔等），不做處理。</summary>
+    Other = 3,
 }
 
 /// <summary>StorageService <c>POST /v1/files/upload-url</c> 回應。</summary>
