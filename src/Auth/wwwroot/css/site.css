@@ -955,7 +955,9 @@ button.legal-link:hover {
     max-width: 460px;
   }
   .auth-shell {
-    grid-template-columns: 1fr;
+    /* minmax(0, …)：1fr 的隱含最小寬為 auto，會被表單內容的
+       min-content 撐爆卡片，input 遭 overflow:hidden 截斷 */
+    grid-template-columns: minmax(0, 1fr);
     max-width: 460px;
     min-height: auto;
     border-radius: var(--r-lg);
