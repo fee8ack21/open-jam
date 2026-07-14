@@ -7,7 +7,7 @@
     <UserSecretsId>dotnet-QuotaService-2b7e4c9a-1d6f-4a83-9c52-8e0b3f7d6a41</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>0.0.3</Version>
+    <Version>0.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>

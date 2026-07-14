@@ -157,7 +157,7 @@ auth:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
-    tag: v0.0.20
+    tag: v0.0.21
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -172,7 +172,7 @@ logService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/log-service
-    tag: v0.0.7
+    tag: v0.0.8
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -202,7 +202,7 @@ storageService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/storage-service
-    tag: v0.0.10
+    tag: v0.0.11
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -217,7 +217,7 @@ storeService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/store-service
-    tag: v0.0.6
+    tag: v0.0.7
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -232,7 +232,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.7
+    tag: v0.0.8
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -247,7 +247,7 @@ quotaService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/quota-service
-    tag: v0.0.3
+    tag: v0.0.4
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -262,7 +262,7 @@ paymentService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/payment-service
-    tag: v0.0.4
+    tag: v0.0.5
     pullPolicy: IfNotPresent
   replicaCount: 1
   stripe:
@@ -284,7 +284,7 @@ orderService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
-    tag: v0.0.4
+    tag: v0.0.5
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -299,7 +299,7 @@ notificationService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/notification-service
-    tag: v0.0.2
+    tag: v0.0.3
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -314,7 +314,7 @@ contentService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/content-service
-    tag: v0.0.1
+    tag: v0.0.2
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:

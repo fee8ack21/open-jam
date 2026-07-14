@@ -7,7 +7,7 @@
     <UserSecretsId>dotnet-NotificationService-4c9d2e7f-8a51-4b6e-9d24-6e3f1a8b7c02</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
