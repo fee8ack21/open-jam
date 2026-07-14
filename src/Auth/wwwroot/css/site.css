@@ -495,7 +495,8 @@ input {
   border: 0;
   outline: 0;
   background: transparent;
-  font-size: 15px;
+  /* 不可低於 16px：iOS Safari 聚焦 <16px 的 input 會自動放大頁面且不復原 */
+  font-size: 16px;
   font-weight: 500;
   color: var(--text);
   padding: 14px 0;
