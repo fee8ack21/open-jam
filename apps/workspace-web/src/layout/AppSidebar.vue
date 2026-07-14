@@ -19,6 +19,7 @@ const NAV = {
     { view: 'upload', labelKey: 'route.upload', icon: 'upload' },
     { view: 'orders', labelKey: 'route.orders', icon: 'receipt' },
     { view: 'announcements', labelKey: 'route.announcements', icon: 'bell' },
+    { view: 'payouts', labelKey: 'route.payouts', icon: 'wallet' },
     { view: 'store-settings', labelKey: 'route.storeSettings', icon: 'gear' },
   ],
   buy: [

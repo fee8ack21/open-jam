@@ -261,6 +261,34 @@
     "msgSaved": "Store info updated.",
     "msgSaveFailed": "Update failed"
   },
+  "payouts": {
+    "statusTitle": "Payout status",
+    "statusDesc": "Get paid through Stripe. Once your Stripe account is set up, payments for paid products are automatically transferred to you after the platform fee is deducted.",
+    "state": {
+      "none": "Payouts not set up",
+      "pending": "Setup in progress",
+      "ready": "Ready to receive payments"
+    },
+    "hint": {
+      "none": "You haven't connected a Stripe account yet. Paid products can only be published after payouts are set up; free products are unaffected.",
+      "pending": "Stripe is reviewing your information, or some details are still missing. Click the button below to continue.",
+      "ready": "All set! Payments for your paid products will be transferred to your Stripe account automatically."
+    },
+    "stepAccount": "Create Stripe account",
+    "stepDetails": "Submit account details",
+    "stepCharges": "Able to accept payments",
+    "stepPayouts": "Able to receive payouts",
+    "actionStart": "Set up payouts with Stripe",
+    "actionContinue": "Continue Stripe setup",
+    "actionUpdate": "Update details on Stripe",
+    "aboutTitle": "How payouts work",
+    "aboutDesc": "How money flows and how the platform fee works.",
+    "aboutBody1": "When a buyer pays, the platform splits the payment automatically through Stripe: after the platform fee is deducted, the remainder is transferred to your Stripe account and paid out to your bank on Stripe's payout schedule.",
+    "aboutBody2": "Free products skip payment entirely — buyers can download right after placing an order, and no payout setup is required.",
+    "msgLoadFailed": "Failed to load payout status",
+    "msgLinkFailed": "Could not get the Stripe setup link. Please try again later.",
+    "msgLinkExpired": "The Stripe setup link has expired. Please click the button to try again."
+  },
   "catalogCategories": {
     "searchPlaceholder": "Search category name or slug",
     "childSub": "Manage the subcategories under this top-level category",
@@ -479,6 +507,7 @@
     "upload": "Upload new work",
     "orders": "Orders",
     "storeSettings": "Store settings",
+    "payouts": "Payouts",
     "purchases": "Purchases",
     "wishlist": "Wishlist",
     "announcements": "Announcements",

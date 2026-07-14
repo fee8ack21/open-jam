@@ -1,0 +1,202 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PaymentService",
+    "version": "v1"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "PaymentService"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/connect/accounts/{storeId}/onboarding-link": {
+      "post": {
+        "tags": [
+          "ConnectAccounts"
+        ],
+        "summary": "為商店建立（或重用）Stripe Express 帳戶並簽發 onboarding Account Link。僅商店 Owner 可操作。",
+        "operationId": "CreateOnboardingLink",
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountLinkResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountLinkResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountLinkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/connect/accounts/{storeId}": {
+      "get": {
+        "tags": [
+          "ConnectAccounts"
+        ],
+        "summary": "查詢商店連接帳戶狀態。僅商店 Owner 可操作；refresh 時向 Stripe 取即時狀態。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "是否向 Stripe 取得即時狀態並回寫（onboarding 導回頁使用）。",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectAccountStatusResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectAccountStatusResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectAccountStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/connect/accounts/{storeId}/status": {
+      "get": {
+        "tags": [
+          "ConnectAccounts"
+        ],
+        "summary": "查詢商店收款狀態（僅布林旗標）。匿名公開，供 CatalogService 上架閘門與前端顯示。",
+        "operationId": "GetStatus",
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectAccountStatusResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectAccountStatusResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectAccountStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountLinkResponse": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Stripe 託管 onboarding 頁 URL（短效，前端直接導向）。",
+            "nullable": true,
+            "example": "https://connect.stripe.com/setup/e/acct_xxx/yyy"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Stripe Connect onboarding Account Link 回應。"
+      },
+      "ConnectAccountStatusResponse": {
+        "type": "object",
+        "properties": {
+          "hasAccount": {
+            "type": "boolean",
+            "description": "商店是否已建立 Stripe 連接帳戶。",
+            "example": true
+          },
+          "detailsSubmitted": {
+            "type": "boolean",
+            "description": "創作者是否已提交 onboarding 資料。",
+            "example": true
+          },
+          "chargesEnabled": {
+            "type": "boolean",
+            "description": "帳戶是否可承接款項（付費商品上架與分帳的閘門依據）。",
+            "example": true
+          },
+          "payoutsEnabled": {
+            "type": "boolean",
+            "description": "帳戶是否可提領出金。",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "商店 Stripe Connect 帳戶狀態。"
+      }
+    }
+  }
+}

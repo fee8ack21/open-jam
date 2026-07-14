@@ -261,6 +261,34 @@
     "msgSaved": "商店資料已更新。",
     "msgSaveFailed": "更新失敗"
   },
+  "payouts": {
+    "statusTitle": "收款狀態",
+    "statusDesc": "透過 Stripe 收款。完成 Stripe 帳戶設定後，付費商品的款項會在扣除平台服務費後自動撥入你的帳戶。",
+    "state": {
+      "none": "尚未設定收款",
+      "pending": "設定進行中",
+      "ready": "已可收款"
+    },
+    "hint": {
+      "none": "你尚未連結 Stripe 帳戶。完成收款設定後才能上架付費商品；免費商品不受影響。",
+      "pending": "Stripe 正在審核你的資料，或仍有資料待補齊。點擊下方按鈕繼續完成設定。",
+      "ready": "一切就緒！你的付費商品款項將自動撥入 Stripe 帳戶。"
+    },
+    "stepAccount": "建立 Stripe 帳戶",
+    "stepDetails": "提交帳戶資料",
+    "stepCharges": "可承接款項",
+    "stepPayouts": "可提領出金",
+    "actionStart": "前往 Stripe 設定收款",
+    "actionContinue": "繼續完成 Stripe 設定",
+    "actionUpdate": "前往 Stripe 更新資料",
+    "aboutTitle": "分帳說明",
+    "aboutDesc": "款項如何流動、平台如何抽成。",
+    "aboutBody1": "買家付款後，款項由平台透過 Stripe 自動分帳：扣除平台服務費後，其餘全數轉入你的 Stripe 帳戶，再依 Stripe 的出金排程撥入你的銀行帳戶。",
+    "aboutBody2": "免費商品不經過金流，買家送出訂單即可直接下載，無需完成收款設定。",
+    "msgLoadFailed": "收款狀態載入失敗",
+    "msgLinkFailed": "無法取得 Stripe 設定連結，請稍後再試。",
+    "msgLinkExpired": "Stripe 設定連結已失效，請重新點擊按鈕前往。"
+  },
   "catalogCategories": {
     "searchPlaceholder": "搜尋分類名稱或 slug",
     "childSub": "管理此頂層分類底下的子分類",
@@ -479,6 +507,7 @@
     "upload": "上架新作品",
     "orders": "訂單管理",
     "storeSettings": "商店設定",
+    "payouts": "收款設定",
     "purchases": "購買紀錄",
     "wishlist": "Wishlist",
     "announcements": "公告通知",

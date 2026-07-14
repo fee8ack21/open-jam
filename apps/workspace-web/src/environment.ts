@@ -15,6 +15,7 @@ class AppEnv {
   STORAGE_API_URL = "https://api.openjam.co/storage-service";
   NOTIFICATION_API_URL = "https://api.openjam.co/notification-service";
   CONTENT_API_URL = "https://api.openjam.co/content-service";
+  PAYMENT_API_URL = "https://api.openjam.co/payment-service";
 
   constructor() {
     Object.keys(this).forEach((key) => {
