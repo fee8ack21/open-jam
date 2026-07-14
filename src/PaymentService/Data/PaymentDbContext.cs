@@ -12,6 +12,7 @@ public class PaymentDbContext(DbContextOptions<PaymentDbContext> options, ICurre
     public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
     public DbSet<ProviderEvent> ProviderEvents => Set<ProviderEvent>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<ConnectedAccount> ConnectedAccounts => Set<ConnectedAccount>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -23,6 +24,8 @@ public class PaymentDbContext(DbContextOptions<PaymentDbContext> options, ICurre
             e.Property(p => p.Email).HasMaxLength(320).IsRequired();
             e.Property(p => p.ProviderPaymentId).HasMaxLength(100);
             e.Property(p => p.ProviderCheckoutId).HasMaxLength(100);
+            e.Property(p => p.DestinationAccountId).HasMaxLength(100);
+            e.HasIndex(p => p.StoreId);
             e.HasIndex(p => p.OrderId, "ix_payments_order_id");
             e.HasIndex(p => p.ProviderCheckoutId);
             e.HasIndex(p => p.ProviderPaymentId);
@@ -56,6 +59,15 @@ public class PaymentDbContext(DbContextOptions<PaymentDbContext> options, ICurre
         {
             e.HasKey(o => o.Id);
             e.HasIndex(o => o.ProcessedAt);
+        });
+
+        model.Entity<ConnectedAccount>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.Property(a => a.StripeAccountId).HasMaxLength(100).IsRequired();
+            // 一店一 Stripe 帳戶；帳戶 ID 也唯一，webhook 以 acct_xxx 反查。
+            e.HasIndex(a => a.StoreId).IsUnique();
+            e.HasIndex(a => a.StripeAccountId).IsUnique();
         });
 
         base.OnModelCreating(model);

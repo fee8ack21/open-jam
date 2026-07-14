@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using PaymentService.Data;
 using PaymentService.Data.Entities;
 using PaymentService.Options;
+using PaymentService.Services.Connect;
 using Shared.Events;
 using Stripe;
 
@@ -16,11 +17,16 @@ public class StripeWebhookHandler(
 {
     /// <summary>驗證簽章並落地原始事件後立即返回，業務處理交由 <c>StripeWebhookProcessorService</c> 非同步執行，
     /// 避免服務在處理過程中掛掉導致 webhook 遺失（事件已落地，重啟後仍會被排程處理）。</summary>
-    public async Task<string> ReceiveAsync(string body, string signature, CancellationToken ct)
-    {
-        var opts = stripeOptions.Value;
+    public Task<string> ReceiveAsync(string body, string signature, CancellationToken ct) =>
+        ReceiveCoreAsync(body, signature, stripeOptions.Value.WebhookSecret, ct);
 
-        var evt = EventUtility.ConstructEvent(body, signature, opts.WebhookSecret);
+    /// <summary>接收 Connect webhook（account.updated 等連接帳戶事件），簽章密鑰與平台端點不同。</summary>
+    public Task<string> ReceiveConnectAsync(string body, string signature, CancellationToken ct) =>
+        ReceiveCoreAsync(body, signature, stripeOptions.Value.ConnectWebhookSecret, ct);
+
+    private async Task<string> ReceiveCoreAsync(string body, string signature, string secret, CancellationToken ct)
+    {
+        var evt = EventUtility.ConstructEvent(body, signature, secret);
         var eventId = evt.Id;
         var eventType = evt.Type;
 
@@ -71,6 +77,9 @@ public class StripeWebhookHandler(
                 break;
             case "payment_intent.payment_failed":
                 await HandlePaymentFailedAsync(evt, ct);
+                break;
+            case "account.updated":
+                await HandleAccountUpdatedAsync(evt, ct);
                 break;
             default:
                 logger.LogInformation("Unhandled webhook type: {EventType}", evt.Type);
@@ -209,6 +218,26 @@ public class StripeWebhookHandler(
         });
 
         logger.LogInformation("Payment failed: {PaymentId} {PaymentIntentId}", payment.Id, intent.Id);
+    }
+
+    private async Task HandleAccountUpdatedAsync(Event evt, CancellationToken ct)
+    {
+        var stripeAccount = evt.Data.Object as Account;
+        if (stripeAccount == null) return;
+
+        var account = await db.ConnectedAccounts
+            .FirstOrDefaultAsync(a => a.StripeAccountId == stripeAccount.Id, ct);
+        if (account == null)
+        {
+            logger.LogWarning("收到未知連接帳戶的 account.updated：{StripeAccountId}", stripeAccount.Id);
+            return;
+        }
+
+        ConnectAccountService.ApplyStripeAccount(account, stripeAccount);
+
+        logger.LogInformation(
+            "Connected account updated: {StripeAccountId} charges={ChargesEnabled} payouts={PayoutsEnabled}",
+            stripeAccount.Id, account.ChargesEnabled, account.PayoutsEnabled);
     }
 
     private static Guid? GetPaymentId(Stripe.Checkout.Session session)

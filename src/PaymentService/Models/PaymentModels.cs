@@ -8,6 +8,10 @@ public class CreateCheckoutSessionRequest
     /// <summary>商品訂單 ID。</summary>
     public Guid OrderId { get; set; }
 
+    /// <summary>賣方商店 ID，用於查找分帳目的地 Stripe 帳戶。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid StoreId { get; set; }
+
     /// <summary>購買者使用者 ID；null 表示匿名購買。由 OrderService 帶入（呼叫者為內部服務，非買家本人）。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? UserId { get; set; }
@@ -43,10 +47,13 @@ public class PaymentResponse
 {
     public Guid Id { get; set; }
     public Guid OrderId { get; set; }
+    public Guid StoreId { get; set; }
     public Guid? UserId { get; set; }
     public string Email { get; set; } = "";
     public string Provider { get; set; } = "";
     public long Amount { get; set; }
+    public long ApplicationFeeAmount { get; set; }
+    public string? DestinationAccountId { get; set; }
     public string Currency { get; set; } = "";
     public PaymentStatus Status { get; set; }
     public string? ProviderPaymentId { get; set; }

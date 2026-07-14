@@ -5,6 +5,7 @@ using PaymentService.Data;
 using PaymentService.Options;
 using PaymentService.Services;
 using PaymentService.Services.Background;
+using PaymentService.Services.Connect;
 using PaymentService.Services.Payments;
 using Shared.Auth;
 using Shared.Data;
@@ -37,8 +38,15 @@ builder.Services.Configure<StripeOptions>(builder.Configuration.GetSection("Stri
 builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
 
 builder.Services.AddScoped<IPaymentManager, PaymentManager>();
+builder.Services.AddScoped<IConnectAccountService, ConnectAccountService>();
 builder.Services.AddScoped<StripeWebhookHandler>();
 builder.Services.AddScoped<AuditLogPublisher>();
+
+// Connect onboarding 端點需向 StoreService 驗證商店 Owner 身分（轉發呼叫者 Bearer token）。
+var services = builder.Configuration.GetSection("Services").Get<ServiceOptions>() ?? new ServiceOptions();
+var storeBaseUrl = (services.StoreService.BaseUrl ?? "http://localhost:5172").TrimEnd('/') + "/";
+builder.Services.AddHttpClient("store", client => client.BaseAddress = new Uri(storeBaseUrl));
+builder.Services.AddScoped<StoreServiceClient>();
 
 builder.Services.AddHostedService<OutboxRelayService>();
 builder.Services.AddHostedService<StripeWebhookProcessorService>();

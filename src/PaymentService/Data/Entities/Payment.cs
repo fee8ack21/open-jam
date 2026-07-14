@@ -10,6 +10,9 @@ public class Payment : ICreatedAt, IUpdatedAt
     /// <summary>對應的商品訂單 ID（由 CatalogService 產生）。</summary>
     public Guid OrderId { get; set; }
 
+    /// <summary>賣方商店 ID，分帳目的地帳戶的查找依據。</summary>
+    public Guid StoreId { get; set; }
+
     /// <summary>購買者使用者 ID（已登入用戶）；null 表示以 Email 匿名購買。</summary>
     public Guid? UserId { get; set; }
 
@@ -27,6 +30,12 @@ public class Payment : ICreatedAt, IUpdatedAt
 
     /// <summary>付款狀態。</summary>
     public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
+
+    /// <summary>分帳目的地 Stripe 帳戶 ID（acct_xxx，建立 Session 當下的快照）。</summary>
+    public string? DestinationAccountId { get; set; }
+
+    /// <summary>平台抽成金額（最低貨幣單位，Stripe application fee，建立 Session 當下的快照）。</summary>
+    public long ApplicationFeeAmount { get; set; }
 
     /// <summary>第三方金流的付款編號（Stripe PaymentIntent ID）。</summary>
     public string? ProviderPaymentId { get; set; }

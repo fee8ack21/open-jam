@@ -42,15 +42,30 @@ public class PaymentManager(
         var opts = stripeOptions.Value;
         StripeConfiguration.ApiKey = opts.SecretKey;
 
+        // 分帳目的地：商店須已完成 Stripe onboarding 且可承接款項（上架閘門的最後防線，
+        // 涵蓋上架後帳戶被 Stripe 停用等狀態回退情境）。
+        var connectedAccount = await db.ConnectedAccounts
+            .FirstOrDefaultAsync(a => a.StoreId == request.StoreId, ct);
+
+        if (connectedAccount is not { ChargesEnabled: true })
+            throw new ValidationException("此商店尚未完成收款設定，暫時無法接受付款。");
+
+        // 平台抽成（application fee）：百分比取自設定，四捨五入至最低貨幣單位。
+        var applicationFee = (long)Math.Round(
+            request.Amount * opts.PlatformFeePercent / 100m, MidpointRounding.AwayFromZero);
+
         var payment = new Payment
         {
             Id = Guid.NewGuid(),
             OrderId = request.OrderId,
+            StoreId = request.StoreId,
             UserId = request.UserId,
             Email = request.Email,
             Amount = request.Amount,
             Currency = request.Currency.ToLowerInvariant(),
             Status = PaymentStatus.Pending,
+            DestinationAccountId = connectedAccount.StripeAccountId,
+            ApplicationFeeAmount = applicationFee,
         };
 
         var options = new SessionCreateOptions
@@ -79,6 +94,15 @@ public class PaymentManager(
             {
                 ["payment_id"] = payment.Id.ToString(),
                 ["order_id"] = request.OrderId.ToString(),
+            },
+            // destination charge 分帳：款項自動轉入商店的連接帳戶，平台留下 application fee。
+            PaymentIntentData = new SessionPaymentIntentDataOptions
+            {
+                TransferData = new SessionPaymentIntentDataTransferDataOptions
+                {
+                    Destination = connectedAccount.StripeAccountId,
+                },
+                ApplicationFeeAmount = applicationFee > 0 ? applicationFee : null,
             },
         };
 

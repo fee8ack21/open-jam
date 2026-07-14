@@ -13,7 +13,18 @@ public class WebhookController(StripeWebhookHandler handler) : ControllerBase
     [HttpPost("stripe")]
     [AllowAnonymous]
     [ApiExplorerSettings(IgnoreApi = true)]
-    public async Task<IActionResult> Stripe(CancellationToken ct)
+    public Task<IActionResult> Stripe(CancellationToken ct) =>
+        ReceiveAsync(handler.ReceiveAsync, ct);
+
+    /// <summary>Connect webhook 端點（account.updated 等連接帳戶事件），與平台端點分屬不同簽章密鑰。</summary>
+    [HttpPost("stripe/connect")]
+    [AllowAnonymous]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public Task<IActionResult> StripeConnect(CancellationToken ct) =>
+        ReceiveAsync(handler.ReceiveConnectAsync, ct);
+
+    private async Task<IActionResult> ReceiveAsync(
+        Func<string, string, CancellationToken, Task<string>> receive, CancellationToken ct)
     {
         using var reader = new StreamReader(Request.Body);
         var body = await reader.ReadToEndAsync(ct);
@@ -21,7 +32,7 @@ public class WebhookController(StripeWebhookHandler handler) : ControllerBase
 
         try
         {
-            var type = await handler.ReceiveAsync(body, signature, ct);
+            var type = await receive(body, signature, ct);
             return Ok(new { received = true, type });
         }
         catch (Exception ex)
