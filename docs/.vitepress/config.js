@@ -69,6 +69,7 @@ export default defineConfig({
           { text: '信件 Email', link: '/email' },
           { text: '配額 Quota', link: '/quota' },
           { text: '日誌 Log', link: '/log' },
+          { text: '平台內容 Content', link: '/content' },
         ],
       },
       {
