@@ -119,7 +119,7 @@ mailpit:
   image: axllent/mailpit:latest
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 64Mi
     limits:
       cpu: 200m
@@ -162,7 +162,7 @@ auth:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -177,7 +177,7 @@ logService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -192,7 +192,7 @@ emailService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -207,7 +207,7 @@ storageService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -222,7 +222,7 @@ storeService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -237,7 +237,7 @@ catalogService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -252,7 +252,7 @@ quotaService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -274,7 +274,7 @@ paymentService:
     connectReturnUrl: "https://workspace.openjam.co/payouts?return=1"
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -289,7 +289,7 @@ orderService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -304,7 +304,7 @@ notificationService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m
@@ -319,7 +319,7 @@ contentService:
   replicaCount: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 128Mi
     limits:
       cpu: 300m

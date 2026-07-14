@@ -233,12 +233,15 @@ jobs:
       # helm upgrade 不會重跑（現況已是如此，非本次變更引入）
       - name: Helm upgrade
         run: |
+          # 單節點叢集 CPU 吃緊：多服務同時 Recreate 時，新 pod 需等舊 pod（含 GKE NEG
+          # detach 造成的延遲）釋放 CPU 後才逐一排程，5m 內常收斂不完而逾時回滾。拉長 timeout
+          # 讓逐一替換有時間完成。根本解為擴充節點 CPU（autoscaling / 較大機型）。
           helm upgrade --install open-jam infra/helm/open-jam \
             --namespace open-jam \
             -f infra/helm/open-jam/values.prod.yaml \
             -f "$RUNNER_TEMP/secrets.yaml" \
             ${{ steps.set-args.outputs.args }} \
-            --atomic --timeout 5m
+            --atomic --timeout 15m
 
       - if: always()
         name: Discord notify (deploy)
