@@ -265,9 +265,12 @@ paymentService:
     pullPolicy: IfNotPresent
   replicaCount: 1
   stripe:
-    # secretKey / publishableKey / webhookSecret → 機密 overlay
+    # secretKey / publishableKey / webhookSecret / connectWebhookSecret → 機密 overlay
+    platformFeePercent: 10
     successUrl: "https://openjam.co/checkout/success?session_id={CHECKOUT_SESSION_ID}"
     cancelUrl: "https://openjam.co/checkout/cancel"
+    connectRefreshUrl: "https://workspace.openjam.co/payouts?refresh=1"
+    connectReturnUrl: "https://workspace.openjam.co/payouts?return=1"
   resources:
     requests:
       cpu: 50m

@@ -61,6 +61,10 @@ spec:
               value: {{ include "open-jam.storeServiceUrl" . | quote }}
             - name: Services__QuotaService__BaseUrl
               value: {{ include "open-jam.quotaServiceUrl" . | quote }}
+            - name: Services__PaymentService__BaseUrl
+              value: {{ include "open-jam.paymentServiceUrl" . | quote }}
+            - name: Services__OrderService__BaseUrl
+              value: {{ include "open-jam.orderServiceUrl" . | quote }}
             - name: Hydra__Issuer
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: Hydra__MetadataAddress
