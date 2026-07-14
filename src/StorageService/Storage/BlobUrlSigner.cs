@@ -18,15 +18,16 @@ public class BlobUrlSigner(IOptions<StorageOptions> options)
     /// <param name="method">HTTP 方法（"PUT" / "GET"），大小寫不敏感。</param>
     /// <param name="key">物件鍵值（路徑）。</param>
     /// <param name="expiresUnix">到期時間（Unix 秒）。</param>
-    public string Sign(string method, string key, long expiresUnix)
+    /// <param name="maxBytes">上傳大小上限（bytes）；綁入簽章使其不可竄改。下載（GET）等無大小語意者傳 0。</param>
+    public string Sign(string method, string key, long expiresUnix, long maxBytes = 0)
     {
-        var payload = $"{method.ToUpperInvariant()}\n{key}\n{expiresUnix}";
+        var payload = $"{method.ToUpperInvariant()}\n{key}\n{expiresUnix}\n{maxBytes}";
         var hash = HMACSHA256.HashData(_key, Encoding.UTF8.GetBytes(payload));
         return Base64UrlEncode(hash);
     }
 
     /// <summary>驗證簽章是否有效且未過期（固定時間比較，避免時序攻擊）。</summary>
-    public bool Verify(string method, string key, long expiresUnix, string? signature)
+    public bool Verify(string method, string key, long expiresUnix, string? signature, long maxBytes = 0)
     {
         if (string.IsNullOrEmpty(signature))
             return false;
@@ -34,7 +35,7 @@ public class BlobUrlSigner(IOptions<StorageOptions> options)
         if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiresUnix)
             return false;
 
-        var expected = Sign(method, key, expiresUnix);
+        var expected = Sign(method, key, expiresUnix, maxBytes);
         return CryptographicOperations.FixedTimeEquals(
             Encoding.UTF8.GetBytes(expected),
             Encoding.UTF8.GetBytes(signature));

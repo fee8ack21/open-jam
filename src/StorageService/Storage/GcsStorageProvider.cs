@@ -20,8 +20,9 @@ public class GcsStorageProvider(
     public async Task<string> GenerateUploadUrlAsync(string key, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default)
     {
         // 簽入 Content-Type；上傳端送出的 Content-Type header 須與此一致，否則簽章驗證失敗。
-        // maxBytes 無法以 signed PUT URL 強制（需改用 POST policy 的 content-length-range），
-        // 配額把關交由上游功能 API。
+        // maxBytes 已於簽發入口（FileService）以宣稱大小擋下超過上限者；simple signed PUT URL
+        // 無法在 GCS 端硬性強制實際 content-length（需 POST policy 的 content-length-range），
+        // 殘餘超量由 confirm 階段的配額檢查（超單檔上限回 422、不建 reference）與孤兒清理兜底。
         var template = UrlSigner.RequestTemplate
             .FromBucket(_opts.BucketFor(key))
             .WithObjectName(key)

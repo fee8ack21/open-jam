@@ -21,6 +21,19 @@ public class StorageOptions
     /// <summary>公開讀取物件（`public/*`）的對外存取網址前綴，例如 "http://localhost:5171/v1/files/blob"。</summary>
     public string PublicBaseUrl { get; set; } = "";
 
+    /// <summary>
+    /// 單一上傳檔案大小上限（bytes）。簽發上傳 URL 階段即擋（宣稱大小超過回 422）；
+    /// 地端 blob 端點另以簽章綁定並於接收時強制，防止超量直傳。預設 2 GiB。
+    /// </summary>
+    public long MaxUploadBytes { get; set; } = 2147483648;
+
+    /// <summary>
+    /// 單一租戶「待確認」（已上傳但尚未 reference、不計配額）的位元組總量上限。
+    /// 簽發上傳 URL 前檢查，超過回 409，避免無限暫存堆積（正常誤操作不受影響——移除或逾期清理即釋放）。
+    /// 預設 50 GiB。
+    /// </summary>
+    public long MaxPendingBytes { get; set; } = 53687091200;
+
     /// <summary>上傳簽章 URL 有效秒數；預設 1 小時。</summary>
     public int UploadUrlExpirySeconds { get; set; } = 3600;
 
@@ -33,8 +46,8 @@ public class StorageOptions
     /// <summary>軟刪除後保留天數，到期才從儲存後端永久刪除；預設 30 天。</summary>
     public int SoftDeleteRetentionDays { get; set; } = 30;
 
-    /// <summary>商品檔上傳完成後未被使用（未建立 reference）的保留天數，逾期由清理排程軟刪除；預設 7 天。</summary>
-    public int UnreferencedRetentionDays { get; set; } = 7;
+    /// <summary>商品檔上傳完成後未被使用（未建立 reference）的保留天數，逾期由清理排程軟刪除；預設 1 天（積極回收暫存孤兒）。</summary>
+    public int UnreferencedRetentionDays { get; set; } = 1;
 
     /// <summary>依物件鍵值前綴（`public/`）判定其所屬 bucket。</summary>
     /// <param name="key">物件鍵值，例如 "public/{creatorId}/{fileId}/avatar.png"。</param>

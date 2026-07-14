@@ -23,17 +23,33 @@ public class BlobController(
     /// <param name="key">物件鍵值（catch-all 路徑）。</param>
     /// <param name="expires">URL 到期時間（Unix 秒）。</param>
     /// <param name="sig">HMAC 簽章。</param>
+    /// <param name="max">上傳大小上限（bytes）；由簽發端綁入簽章，接收時強制。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpPut("{**key}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     public async Task<IActionResult> UploadAsync(
-        string key, [FromQuery] long expires, [FromQuery] string? sig, CancellationToken ct)
+        string key, [FromQuery] long expires, [FromQuery] string? sig, [FromQuery] long max, CancellationToken ct)
     {
-        if (!signer.Verify("PUT", key, expires, sig))
+        // max 一併驗章：竄改 max 會使簽章驗證失敗，無法放寬上限。
+        if (!signer.Verify("PUT", key, expires, sig, max))
             return Forbid();
 
-        var size = await fileStore.SaveAsync(key, Request.Body, ct);
+        // 有 Content-Length 且已超過上限者，直接拒絕、不落地。
+        if (max > 0 && Request.ContentLength is > 0 && Request.ContentLength > max)
+            return StatusCode(StatusCodes.Status413PayloadTooLarge);
+
+        long size;
+        try
+        {
+            // 接收時強制上限（涵蓋未帶 / 謊報 Content-Length 的情形）；超過即中止並清掉部分寫入。
+            size = await fileStore.SaveAsync(key, Request.Body, ct, max);
+        }
+        catch (InvalidOperationException)
+        {
+            return StatusCode(StatusCodes.Status413PayloadTooLarge);
+        }
 
         // 本地直傳完成後，直接觸發與 webhook 等價的處理流程（掃毒 / 轉碼 / 標記 Ready）。
         await storageEvents.HandleObjectCreatedAsync(key, size, ct);

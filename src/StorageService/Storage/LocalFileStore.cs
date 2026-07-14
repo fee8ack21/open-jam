@@ -14,15 +14,37 @@ public class LocalFileStore(IOptions<StorageOptions> options)
     /// <summary>確保根目錄存在。</summary>
     public void EnsureRoot() => Directory.CreateDirectory(_root);
 
-    /// <summary>將內容串流寫入鍵值對應的檔案（建立必要的子目錄），回傳寫入的位元組數。</summary>
-    public async Task<long> SaveAsync(string key, Stream content, CancellationToken ct)
+    /// <summary>
+    /// 將內容串流寫入鍵值對應的檔案（建立必要的子目錄），回傳寫入的位元組數。
+    /// <paramref name="maxBytes"/> 大於 0 時強制大小上限：超過即中止並刪除部分寫入的檔案、拋
+    /// <see cref="InvalidOperationException"/>，避免超量直傳落地（即使 client 未帶或謊報 Content-Length）。
+    /// </summary>
+    public async Task<long> SaveAsync(string key, Stream content, CancellationToken ct, long maxBytes = 0)
     {
         var path = Resolve(key);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
-        await using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-        await content.CopyToAsync(fs, ct);
-        return fs.Length;
+        try
+        {
+            await using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            var buffer = new byte[81920];
+            long total = 0;
+            int read;
+            while ((read = await content.ReadAsync(buffer, ct)) > 0)
+            {
+                total += read;
+                if (maxBytes > 0 && total > maxBytes)
+                    throw new InvalidOperationException($"上傳內容超過大小上限（{maxBytes} bytes）。");
+                await fs.WriteAsync(buffer.AsMemory(0, read), ct);
+            }
+            return total;
+        }
+        catch
+        {
+            // 超量 / 失敗時清掉部分寫入的檔案，不留半截孤兒。
+            if (File.Exists(path)) File.Delete(path);
+            throw;
+        }
     }
 
     /// <summary>開啟鍵值對應檔案的唯讀串流；檔案不存在時拋 <see cref="FileNotFoundException"/>。</summary>

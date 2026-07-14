@@ -17,7 +17,7 @@ public class LocalStorageProvider(
 
     /// <inheritdoc/>
     public Task<string> GenerateUploadUrlAsync(string key, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default) =>
-        Task.FromResult(BuildSignedUrl("PUT", key, expiry));
+        Task.FromResult(BuildSignedUrl("PUT", key, expiry, maxBytes));
 
     /// <inheritdoc/>
     public Task<string> GenerateDownloadUrlAsync(string key, TimeSpan expiry, CancellationToken ct = default) =>
@@ -43,16 +43,18 @@ public class LocalStorageProvider(
         return Task.CompletedTask;
     }
 
-    /// <summary>組合指向本服務 blob 端點、帶 HMAC 簽章與到期時間的 URL。</summary>
-    private string BuildSignedUrl(string method, string key, TimeSpan expiry)
+    /// <summary>組合指向本服務 blob 端點、帶 HMAC 簽章與到期時間的 URL。上傳（PUT）另綁大小上限。</summary>
+    private string BuildSignedUrl(string method, string key, TimeSpan expiry, long maxBytes = 0)
     {
         var expiresUnix = DateTimeOffset.UtcNow.Add(expiry).ToUnixTimeSeconds();
-        var sig = signer.Sign(method, key, expiresUnix);
+        var sig = signer.Sign(method, key, expiresUnix, maxBytes);
         var baseUrl = _local.BaseUrl.TrimEnd('/');
 
         // 逐段 URL 編碼但保留路徑分隔符，避免檔名含空白 / 特殊字元時 URL 失效。
         var encodedKey = string.Join('/', key.Split('/').Select(Uri.EscapeDataString));
 
-        return $"{baseUrl}/v1/files/blob/{encodedKey}?expires={expiresUnix}&sig={sig}";
+        var url = $"{baseUrl}/v1/files/blob/{encodedKey}?expires={expiresUnix}&sig={sig}";
+        // PUT 才帶大小上限；blob 端點驗章時一併驗 max，並於接收時強制。
+        return maxBytes > 0 ? $"{url}&max={maxBytes}" : url;
     }
 }

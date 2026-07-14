@@ -23,6 +23,24 @@ public class FileService(
         RequestUploadUrlRequest request, CancellationToken ct)
     {
         var opts      = storageOptions.Value;
+
+        // 單檔大小上限於簽發階段即擋（涵蓋所有 provider 的單一收斂點）；
+        // 地端另於 blob 端點以簽章綁定強制，GCS 殘餘超量由 confirm 配額檢查與孤兒清理兜底。
+        if (request.SizeBytes > opts.MaxUploadBytes)
+            throw new ValidationException($"檔案大小超過單檔上限（{opts.MaxUploadBytes} bytes）。");
+
+        // 待確認量護欄：已上傳但尚未 reference（不計配額）的暫存量不得無限堆積。
+        var pendingBytes = await db.StoredFiles
+            .Where(f => f.CreatorId == request.CreatorId
+                     && f.ReferencedAt == null
+                     && (f.Status == FileStatus.Uploading
+                      || f.Status == FileStatus.Processing
+                      || f.Status == FileStatus.Ready))
+            .SumAsync(f => f.SizeBytes ?? 0, ct);
+        if (pendingBytes + request.SizeBytes > opts.MaxPendingBytes)
+            throw new ConflictException(
+                $"待確認上傳量已達上限（{opts.MaxPendingBytes} bytes）；請先完成或移除既有未確認上傳。");
+
         var expiry    = TimeSpan.FromSeconds(opts.UploadUrlExpirySeconds);
         var expiresAt = DateTimeOffset.UtcNow.Add(expiry);
 
