@@ -16,7 +16,8 @@ const { t } = useI18n();
 onMounted(store.loadCatalog);
 
 // ----- hero: creator profile（設計稿 Shop profile） -----
-// 店家於後台設定的橫幅：有設定時渲染為封面條（頭像疊在下緣）；未設定則直接顯示檔案帶
+// 店家於後台上傳的橫幅：有上傳時渲染為封面圖（頭像疊在下緣）；
+// 未上傳則以平台預設標語封面補位（靜態，參考 portal-web 首頁 hero）
 const bannerUrl = computed(() => store.storefront.bannerUrl);
 const heroDesc = computed(() => store.storefront.description || t('list.heroSub'));
 const avatarInitial = computed(() => (store.storefront.storeName || 'O').trim().charAt(0));
@@ -98,10 +99,19 @@ const activeChips = computed(() => {
   <div class="page page-pad" :data-screen-label="t('list.screenLabel')">
     <!-- 創作者 Hero：主角是創作者，不是平台 -->
     <section class="hero">
-      <!-- 店家自訂橫幅（後台有設定才顯示），頭像疊在下緣 -->
-      <div v-if="bannerUrl" class="hero-cover"
-           :style="{ backgroundImage: `url(${bannerUrl})` }"
-           role="img" :aria-label="t('list.bannerAlt', { store: store.storefront.storeName })"></div>
+      <!-- 店家自訂橫幅：後台有上傳顯示封面圖；未上傳退回平台預設標語封面（同 portal-web 首頁 hero 語彙） -->
+      <div class="hero-cover" :class="{ 'is-default': !bannerUrl }"
+           :style="bannerUrl ? { backgroundImage: `url(${bannerUrl})` } : undefined"
+           :role="bannerUrl ? 'img' : undefined"
+           :aria-label="bannerUrl ? t('list.bannerAlt', { store: store.storefront.storeName }) : undefined">
+        <div v-if="!bannerUrl" class="hero-cover-copy">
+          <p class="hero-cover-eyebrow"><app-icon name="sparkle" :size="13" /> {{ t('list.bannerEyebrow') }}</p>
+          <i18n-t keypath="list.bannerTitle" tag="p" class="hero-cover-title" scope="global">
+            <template #collect><span class="hl hl-lime">{{ t('list.bannerCollect') }}</span></template>
+            <template #works><span class="hl hl-yellow">{{ t('list.bannerWorks') }}</span></template>
+          </i18n-t>
+        </div>
+      </div>
 
       <div class="hero-band">
         <span class="hero-avatar">

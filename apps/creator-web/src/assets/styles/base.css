@@ -294,6 +294,7 @@ body {
 .hl-lime { background: var(--c-lime); }
 .hl-pink { background: var(--c-pink); transform: rotate(1.5deg); }
 .hl-cyan { background: var(--c-cyan); }
+.hl-yellow { background: var(--c-yellow); transform: rotate(1deg); }
 
 /* ---------- hero（店家檔案帶，設計稿 Shop profile） ---------- */
 .hero { position: relative; padding: 0 0 8px; }
@@ -320,10 +321,11 @@ body {
 .hero-stat-sep { width: 6px; height: 6px; border-radius: 50%; background: var(--c-pink); flex: none; }
 .hero-stat-sep:nth-of-type(4) { background: var(--c-yellow); }
 
-/* 店家自訂橫幅（後台有設定才顯示）：滿版 + 墨線下緣，頭像疊下緣 */
+/* 店家橫幅（後台上傳的封面圖；未上傳退回 is-default 標語封面）：滿版 + 墨線下緣，頭像疊下緣 */
 .hero-cover {
   position: relative; overflow: hidden;
   width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+  margin-top: -22px;   /* 抵銷 .page-pad 上邊距，封面貼齊 header */
   height: clamp(150px, 22vw, 232px);
   border-bottom: var(--bw) solid var(--border-strong);
   background-size: cover; background-position: center;
@@ -331,7 +333,28 @@ body {
 }
 .hero-cover + .hero-band { margin-top: -52px; }
 .hero-cover + .hero-band .hero-avatar { border: 3px solid var(--surface); position: relative; z-index: 1; }
-.hero-cover + .hero-band .hero-main { padding-top: 60px; }
+.hero-cover + .hero-band .hero-main { padding-top: 84px; }  /* 店名與封面下緣保留一段呼吸距離 */
+
+/* 平台預設標語封面（未上傳橫幅時補位）：紫底白點點 + 墨丸 eyebrow + 反白標語，同 portal-web 首頁 hero */
+.hero-cover.is-default {
+  display: grid; place-items: center;
+  height: auto; min-height: clamp(150px, 22vw, 232px);  /* 小螢幕標語較高時隨內容撐開，避免文案貼齊上緣 */
+  background-color: var(--c-violet);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
+  background-size: 26px 26px;
+}
+.hero-cover-copy { text-align: center; padding: 18px 24px 26px; }  /* 底部留白避開疊上來的頭像 */
+.hero-cover-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--oj-font); font-size: 12px; font-weight: 900; letter-spacing: .14em;
+  color: var(--c-yellow); background: var(--text);
+  padding: 5px 14px; border-radius: 999px; margin: 0 0 14px;
+}
+.hero-cover-title {
+  margin: 0; color: #fff;
+  font-size: clamp(24px, 3.6vw, 40px); font-weight: 900; line-height: 1.35;
+}
+.hero-cover-title .hl { box-shadow: var(--ink-drop); margin: 0 4px; padding: 0 12px; border-radius: 12px; }
 
 /* ---------- 店長精選 spotlight（設計稿 Featured banner：墨黑卡） ---------- */
 .spotlight {
@@ -706,7 +729,10 @@ body {
   .page { padding: 0 16px; }
   .hero-avatar { width: 76px; height: 76px; font-size: 30px; }
   .hero-cover + .hero-band { margin-top: -40px; }
-  .hero-cover + .hero-band .hero-main { padding-top: 0; }
+  /* 店名固定換行到頭像下方，避免與封面重疊（僅頭像疊在封面下緣） */
+  .hero-cover + .hero-band .hero-main { padding-top: 0; flex-basis: 100%; min-width: 0; }
+  .hero-cover-copy { padding-bottom: 14px; }
+  .hero-cover-eyebrow { font-size: 10.5px; letter-spacing: .1em; margin-bottom: 8px; }
   .spot-body { padding: 28px 24px; }
   .result-cta-row { flex-direction: column; }
 }
