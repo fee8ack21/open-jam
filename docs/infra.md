@@ -50,6 +50,21 @@
   - `open-jam-public`：公開讀取資產（商店 Avatar/Banner、商品縮圖等 `public/*` 物件），對 `public/*` 前綴開匿名讀取（StorageService 啟動時由 `EnsurePublicReadPolicyAsync` 套用 IAM 條件式繫結）。
   - `open-jam-private`：私有付費檔，僅透過短效 signed URL 授權存取。
   - 兩個 bucket 皆須啟用 **uniform bucket-level access**（IAM 條件式繫結的前提）。StorageService 由 `StorageOptions.BucketFor(key)` 依 key 前綴 `public/` 自動選 bucket。
+  - **CORS（必設，否則瀏覽器上傳全失敗）**：前端（workspace-web）以 StorageService 簽發的 signed URL **從瀏覽器直接 HTTP PUT 到 `storage.googleapis.com`**，屬跨源請求，bucket 未設 CORS 時瀏覽器會擋下 PUT（preflight 被拒、`net::ERR_FAILED`）。伺服器端呼叫不受 CORS 限制，故僅真實瀏覽器上傳會踩到。兩個 bucket 都須套用下列 CORS：
+
+    ```jsonc
+    // cors.json — 上傳只從 workspace-web 發起（下載檔進 private、頭像/橫幅/縮圖進 public）；
+    // 買家下載私有檔以 <a href target="_blank"> 導向 signed GET URL（非 fetch），不受 CORS，故下載端免設定。
+    // 注意：GCS CORS 的 origin 為精確比對、不支援萬用子網域（*.openjam.co 無效），新增上傳來源須逐一列入。
+    [{ "origin": ["https://workspace.openjam.co"], "method": ["PUT", "GET", "HEAD"],
+       "responseHeader": ["Content-Type", "ETag"], "maxAgeSeconds": 3600 }]
+    ```
+
+    ```bash
+    gcloud storage buckets update gs://open-jam-public  --cors-file=cors.json
+    gcloud storage buckets update gs://open-jam-private --cors-file=cors.json
+    # 驗證：gcloud storage buckets describe gs://open-jam-private --format="value(cors_config)"
+    ```
 - **GCP Cloud CDN**：與 GCS 原生整合，原生支援 **signed URL / signed cookie**（對應 [[Storage]] 付費內容與 HLS 串流授權）。`Storage:PublicBaseUrl` 指向公開資產對外網址（MVP 直接用 `https://storage.googleapis.com/open-jam-public`，未來換 CDN 網域如 `assets.openjam.co`）。
 
 ## 平台服務元件
