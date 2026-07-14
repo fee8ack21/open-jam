@@ -78,6 +78,7 @@ export default defineConfig({
           { text: 'CI 建置與推送', link: '/ci' },
           { text: '初始化 Bootstrap', link: '/bootstrap' },
           { text: '開發慣例 Develop', link: '/develop' },
+          { text: '視覺設計準則 Design', link: '/design' },
         ],
       },
     ],

@@ -116,7 +116,7 @@ function goToMarket() { window.location.href = env.PORTAL_PAGE_URL }
         </transition>
       </div>
       <button class="icon-btn" @click="goToMarket" :title="t('header.backToMarket')" :aria-label="t('header.backToMarket')">
-        <app-icon name="bag" :size="20" />
+        <app-icon name="home" :size="20" />
       </button>
       <NotificationBell />
       <div class="user-menu">
