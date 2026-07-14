@@ -7,7 +7,7 @@
     <UserSecretsId>dotnet-PaymentService-3a8f5b7c-2e4d-4f91-a53c-9e1b2d8a6c43</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>0.0.3</Version>
+    <Version>0.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
