@@ -14,6 +14,7 @@ import i18n from '@/i18n';
 import { env } from '@/environment';
 import { categoryKeyResolver, toProduct, toStore, hueColor, type StoreInfo } from '@/data/mapCatalog';
 import type { CatalogCategoryDto } from '@/api/catalog-service';
+import { OrderStatus } from '@/api/order-service';
 
 type Theme = 'light' | 'dark';
 type SortKey = 'popular' | 'newest' | 'price-asc' | 'price-desc' | 'rating';
@@ -307,8 +308,9 @@ export const useShopStore = defineStore('shop', () => {
    * 結帳：於 OrderService 建立訂單，由 OrderService 向 PaymentService 建立 Stripe Checkout Session，
    * 建單回應直接帶回應導向的 Stripe 付款頁 URL（由呼叫端 `window.location.href` 跳轉填寫信用卡資訊）。
    * 金額一律以最低貨幣單位（cents）送出。
+   * 免費訂單（總額 0）後端跳過金流、建單即完成，回傳 null，由呼叫端直接導向結帳成功頁。
    */
-  async function checkout(buyer: Buyer): Promise<string> {
+  async function checkout(buyer: Buyer): Promise<string | null> {
     if (!cartProducts.value.length) throw new Error(i18n.global.t('checkout.emptyTitle'));
     checkingOut.value = true;
     try {
@@ -332,7 +334,11 @@ export const useShopStore = defineStore('shop', () => {
       save('pendingOrder', pendingOrder.value);
 
       const url = created.checkoutUrl;
-      if (!url) throw new Error('無法取得付款頁面網址');
+      if (!url) {
+        // 免費訂單：後端已直接完成履約（Completed），無付款頁可導
+        if (created.status === OrderStatus.Completed) return null;
+        throw new Error('無法取得付款頁面網址');
+      }
       return url;
     } finally {
       checkingOut.value = false;

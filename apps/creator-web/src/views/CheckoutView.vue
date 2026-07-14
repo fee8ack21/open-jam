@@ -45,8 +45,13 @@ const pay = async () => {
   processing.value = true;
   try {
     const url = await store.checkout({ name: model.name, email: model.email });
-    // 整頁導向 Stripe 託管的付款頁（卡號 / 有效期限 / CVC 一律在 Stripe 上輸入）。
-    window.location.href = url;
+    if (url) {
+      // 整頁導向 Stripe 託管的付款頁（卡號 / 有效期限 / CVC 一律在 Stripe 上輸入）。
+      window.location.href = url;
+      return;
+    }
+    // 免費訂單：後端跳過金流、訂單已完成，直接進結帳成功頁（沿用 Stripe 導回的還原流程）。
+    router.push({ name: 'checkout-success' });
   } catch (e) {
     processing.value = false;
     message.error(e instanceof Error ? e.message : t('checkout.msgError'));
