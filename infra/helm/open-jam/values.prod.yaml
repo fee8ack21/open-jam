@@ -202,7 +202,7 @@ storageService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/storage-service
-    tag: v0.0.12
+    tag: v0.0.13
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -232,7 +232,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.8
+    tag: v0.0.9
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -359,7 +359,7 @@ workspaceWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/workspace-web
-    tag: v0.0.29
+    tag: v0.0.30
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
