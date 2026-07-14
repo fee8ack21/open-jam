@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useDashboardStore } from '@/stores/dashboard'
@@ -37,8 +37,18 @@ const F = JFmt
 const tagDraft = ref('')
 const dragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
-// 真實待上傳檔案（File 物件無法序列化，故不存入 dashboard draft）
-const files = ref<File[]>([])
+
+// 選檔即時上傳：每個項目在加入當下就簽 URL 直傳（不 confirm、不計配額），
+// 送出時才對 uploaded 的資產 confirm。File 物件無法序列化，不存入 dashboard draft。
+interface UploadEntry {
+  key: string
+  file: File
+  assetId: string | null
+  status: 'uploading' | 'uploaded' | 'error'
+}
+const entries = ref<UploadEntry[]>([])
+const uploadedEntries = computed(() => entries.value.filter(e => e.status === 'uploaded'))
+const anyUploading = computed(() => entries.value.some(e => e.status === 'uploading'))
 
 const step = computed(() => store.wizardStep)
 const d = computed(() => store.draft)
@@ -62,9 +72,9 @@ const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
 const suggestedTags = computed(() =>
   catMeta(d.value.cat).tags.filter(t => !d.value.tags.includes(t)).slice(0, 6),
 )
-const totalBytes = computed(() => files.value.reduce((s, f) => s + f.size, 0))
+const totalBytes = computed(() => entries.value.reduce((s, e) => s + e.file.size, 0))
 const totalSize = computed(() => store.fmtBytes(totalBytes.value) || '—')
-const fileFormats = computed(() => [...new Set(files.value.map(f => fileType(f.name)))])
+const fileFormats = computed(() => [...new Set(entries.value.map(e => fileType(e.file.name)))])
 const previewProduct = computed(() => ({
   cat: catMeta(d.value.cat).thumb, hue: d.value.coverHue,
   title: d.value.title || t('upload.previewTitlePlaceholder'),
@@ -76,13 +86,16 @@ const previewProduct = computed(() => ({
   totalSize: totalSize.value,
 }))
 const step1Valid = computed(() => d.value.title.trim().length >= 2)
-const step2Valid = computed(() => files.value.length > 0)
+// 至少一個檔案成功上傳才可離開 step 2（上傳中 / 失敗的不算）。
+const step2Valid = computed(() => uploadedEntries.value.length > 0)
 const hueOptions = [256, 320, 28, 168, 44, 198, 142, 226]
 // 色票預覽：與 ProductThumb 相同的 hue → 便條淡彩對應
 const HUE_PASTELS = ['#dff5d3', '#e4f6ff', '#ffe3f6', '#fff3c4', '#ede6ff']
 function huePastel(h: number) { return HUE_PASTELS[Math.abs(h) % HUE_PASTELS.length] }
 
 onMounted(async () => {
+  // 每次開啟精靈都從乾淨的 Draft 上傳狀態開始（未送出的舊草稿留在後端為 Draft）。
+  catalog.resetDraftUpload()
   await catalog.loadCategories()
   // draft 預設 / localStorage 殘留可能不是有效 slug，載入後對齊到第一個分類。
   const slugs = cats.value.map(c => c.slug)
@@ -93,18 +106,56 @@ function fileType(name: string) { return (name.split('.').pop() || 'FILE').toUpp
 function typeColor(t: string) { return TYPE_COLOR[t] || 'var(--c-violet)' }
 function addTag() { if (tagDraft.value.trim()) { store.addDraftTag(tagDraft.value); tagDraft.value = '' } }
 
+// step-1 欄位快照，供建立 Draft catalog 與送出時同步。
+function draftMeta() {
+  return {
+    storeId: storeId.value,
+    name: d.value.title,
+    categorySlug: d.value.cat || null,
+    summary: d.value.blurb,
+    coverHue: d.value.coverHue,
+    price: d.value.free ? 0 : d.value.price,
+    tags: d.value.tags,
+  }
+}
+
+async function startUpload(entry: UploadEntry) {
+  entry.status = 'uploading'
+  const assetId = await catalog.uploadDraftAsset(draftMeta(), entry.file)
+  if (assetId) {
+    entry.assetId = assetId
+    entry.status = 'uploaded'
+  } else {
+    entry.status = 'error'
+    message.error(catalog.error ?? t('upload.msgUploadFailed', { name: entry.file.name }))
+  }
+}
+
+function addFiles(list: File[]) {
+  if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
+  for (const file of list) {
+    const entry = reactive<UploadEntry>({ key: `${Date.now()}-${Math.random().toString(36).slice(2)}`, file, assetId: null, status: 'uploading' })
+    entries.value.push(entry)
+    void startUpload(entry)
+  }
+}
+
 function pickFiles() { fileInput.value?.click() }
 function onFiles(e: Event) {
   const list = (e.target as HTMLInputElement).files
-  if (list) files.value.push(...Array.from(list))
+  if (list) addFiles(Array.from(list))
   if (fileInput.value) fileInput.value.value = ''
 }
 function onDrop(e: DragEvent) {
   dragging.value = false
   const list = e.dataTransfer?.files
-  if (list) files.value.push(...Array.from(list))
+  if (list) addFiles(Array.from(list))
 }
-function removeFile(i: number) { files.value.splice(i, 1) }
+// 移除：僅從清單移除。已上傳但未 confirm 的檔案不計配額，逾期由 StorageService 清理。
+function removeFile(entry: UploadEntry) {
+  const i = entries.value.indexOf(entry)
+  if (i >= 0) entries.value.splice(i, 1)
+}
 
 function goNext() {
   if (step.value === 1 && !step1Valid.value) return
@@ -115,23 +166,15 @@ function goNext() {
 async function submit(publish: boolean) {
   if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
   if (!step1Valid.value) { message.warning(t('upload.msgNeedTitle')); return }
-  if (!files.value.length) { message.warning(t('upload.msgNeedFile')); return }
+  if (anyUploading.value) { message.warning(t('upload.msgUploadInProgress')); return }
+  const assetIds = uploadedEntries.value.map(e => e.assetId!).filter(Boolean)
+  if (!assetIds.length) { message.warning(t('upload.msgNeedFile')); return }
 
-  const created = await catalog.createProduct({
-    storeId: storeId.value,
-    name: d.value.title,
-    categorySlug: d.value.cat || null,
-    summary: d.value.blurb,
-    coverHue: d.value.coverHue,
-    price: d.value.free ? 0 : d.value.price,
-    tags: d.value.tags,
-    files: files.value,
-    publish,
-  })
+  const created = await catalog.finalizeDraft(draftMeta(), assetIds, publish)
 
   if (created) {
     message.success(publish ? t('upload.msgPublished') : t('upload.msgDrafted'))
-    files.value = []
+    entries.value = []
     store.resetDraft()
     store.go('products')
   } else {
@@ -235,14 +278,22 @@ async function submit(publish: boolean) {
               <div class="dz-sub">{{ t('upload.dropzoneSub') }}</div>
             </div>
 
-            <div class="upload-list" v-if="files.length">
-              <div v-for="(f, i) in files" :key="i" class="upload-row">
-                <span class="file-ic" :style="{ background: typeColor(fileType(f.name)) }">{{ fileType(f.name) }}</span>
+            <div class="upload-list" v-if="entries.length">
+              <div v-for="e in entries" :key="e.key" class="upload-row" :class="'st-' + e.status">
+                <span class="file-ic" :style="{ background: typeColor(fileType(e.file.name)) }">{{ fileType(e.file.name) }}</span>
                 <div class="ur-body">
-                  <div class="ur-name">{{ f.name }}</div>
-                  <div class="ur-meta">{{ store.fmtBytes(f.size) }}</div>
+                  <div class="ur-name">{{ e.file.name }}</div>
+                  <div class="ur-meta">
+                    {{ store.fmtBytes(e.file.size) }}
+                    <span class="ur-status" :class="e.status">
+                      <template v-if="e.status === 'uploading'"><span class="ur-spin"></span> {{ t('upload.statusUploading') }}</template>
+                      <template v-else-if="e.status === 'uploaded'"><app-icon name="check" :size="12" :stroke="2.8" /> {{ t('upload.statusUploaded') }}</template>
+                      <template v-else>{{ t('upload.statusError') }}</template>
+                    </span>
+                  </div>
                 </div>
-                <button class="ic-act danger" @click="removeFile(i)"><app-icon name="trash" :size="16" /></button>
+                <button v-if="e.status === 'error'" class="ic-act" :title="t('upload.retryUpload')" @click="startUpload(e)"><app-icon name="refresh" :size="16" /></button>
+                <button class="ic-act danger" :disabled="e.status === 'uploading'" @click="removeFile(e)"><app-icon name="trash" :size="16" /></button>
               </div>
             </div>
           </div>
@@ -271,7 +322,7 @@ async function submit(publish: boolean) {
               <div class="rev-row"><span class="rev-k">{{ t('upload.revCategory') }}</span><span class="rev-v">{{ cats.find(c => c.slug === d.cat)?.label || '—' }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revTags') }}</span><span class="rev-v">{{ d.tags.length ? d.tags.join('、') : '—' }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revPrice') }}</span><span class="rev-v">{{ d.free ? t('common.free') : '$' + d.price }}</span></div>
-              <div class="rev-row"><span class="rev-k">{{ t('upload.revFiles') }}</span><span class="rev-v">{{ t('upload.revFilesValue', { count: files.length, size: totalSize }) }}</span></div>
+              <div class="rev-row"><span class="rev-k">{{ t('upload.revFiles') }}</span><span class="rev-v">{{ t('upload.revFilesValue', { count: uploadedEntries.length, size: totalSize }) }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revBlurb') }}</span><span class="rev-v" style="max-width:280px;">{{ d.blurb || '—' }}</span></div>
             </div>
           </div>
@@ -286,12 +337,12 @@ async function submit(publish: boolean) {
             <app-icon name="arrowLeft" :size="16" /> {{ step > 1 ? t('upload.prevStep') : t('upload.cancel') }}
           </button>
           <div style="display:flex; gap:10px; align-items:center;">
-            <n-button v-if="step === 3" size="large" :disabled="catalog.creating" @click="submit(false)">{{ t('upload.saveDraft') }}</n-button>
+            <n-button v-if="step === 3" size="large" :disabled="catalog.creating || anyUploading" @click="submit(false)">{{ t('upload.saveDraft') }}</n-button>
             <n-button v-if="step < 3" type="primary" size="large" :disabled="(step===1 && !step1Valid) || (step===2 && !step2Valid)" @click="goNext">
               {{ t('upload.nextStep') }}
               <template #icon><app-icon name="arrowRight" :size="17" /></template>
             </n-button>
-            <n-button v-else type="primary" size="large" :loading="catalog.creating" :disabled="catalog.creating" @click="submit(true)">
+            <n-button v-else type="primary" size="large" :loading="catalog.creating" :disabled="catalog.creating || anyUploading" @click="submit(true)">
               <template #icon><app-icon name="rocket" :size="17" /></template>
               {{ t('upload.publish') }}
             </n-button>

@@ -45,8 +45,8 @@ interface CatalogSource {
 
 const PAGE_SIZE = 10;
 
-/** 建立新商品所需的草稿資料。 */
-export interface NewCatalogInput {
+/** 上架精靈的商品中繼資料快照（step-1 欄位，不含檔案）。 */
+export interface DraftMeta {
   storeId: string;
   name: string;
   /** 分類 slug（music / photography / ebook…），會對應成 categoryId。 */
@@ -56,10 +56,6 @@ export interface NewCatalogInput {
   coverHue?: number;
   price: number;
   tags?: string[];
-  /** 買家付款後可下載的檔案。 */
-  files: File[];
-  /** true 立即送審上架；false 留為草稿。 */
-  publish: boolean;
 }
 
 /**
@@ -278,53 +274,123 @@ export const useCatalogStore = defineStore('catalog', () => {
     if (!res.ok) throw new Error(i18n.global.t('storeError.fileUploadFailed', { status: res.status, name: file.name }));
   }
 
+  // ── 上架精靈：選檔即時上傳（Draft catalog + 版本承載，送出時才 confirm 計配額）─────
+  // 使用者於 step 2 加入檔案時即簽 URL 直傳，但「不 confirm」——後端此時不建立資產
+  // reference、不扣配額（未 reference 的暫存檔逾期由 StorageService 清理）。送出時才
+  // 同步 step-1 欄位、逐一 confirm（此刻扣配額並建立 reference）並視需要上架。
+  const draftCatalogId = ref<string | null>(null);
+  const draftVersionId = ref<string | null>(null);
+  // 單飛旗標：多檔同時加入時只建立一次 Draft catalog / 版本。
+  let draftInit: Promise<{ catalogId: string; versionId: string } | null> | null = null;
+
+  /** 清除目前的 Draft 上傳狀態（開啟精靈 / 送出成功後呼叫，重新開始）。 */
+  function resetDraftUpload() {
+    draftCatalogId.value = null;
+    draftVersionId.value = null;
+    draftInit = null;
+  }
+
+  /** 確保 Draft catalog 與版本存在（並發呼叫共用同一次建立）。 */
+  async function ensureDraft(meta: DraftMeta): Promise<{ catalogId: string; versionId: string } | null> {
+    if (draftCatalogId.value && draftVersionId.value)
+      return { catalogId: draftCatalogId.value, versionId: draftVersionId.value };
+    if (draftInit) return draftInit;
+    draftInit = (async () => {
+      try {
+        await loadCategories();
+        const categoryId = meta.categorySlug
+          ? categories.value.find((c) => c.slug === meta.categorySlug)?.id ?? null
+          : null;
+        const created = await catalogApi.catalogs.create({
+          storeId: meta.storeId,
+          name: meta.name.trim(),
+          slug: slugify(meta.name),
+          summary: meta.summary?.trim() || null,
+          description: meta.description?.trim() || null,
+          coverHue: meta.coverHue,
+          categoryId,
+          price: meta.price,
+          tags: meta.tags?.length ? meta.tags : null,
+        });
+        const catalogId = created.data.id!;
+        const version = await catalogApi.catalogVersions.create(catalogId, {
+          version: '1.0.0',
+          releaseNote: i18n.global.t('storeError.firstRelease'),
+        });
+        draftCatalogId.value = catalogId;
+        draftVersionId.value = version.data.id!;
+        return { catalogId, versionId: draftVersionId.value };
+      } catch (err) {
+        error.value = messageOf(err, i18n.global.t('storeError.createProductFailed'));
+        draftInit = null; // 允許重試
+        return null;
+      }
+    })();
+    return draftInit;
+  }
+
   /**
-   * 建立新商品的完整流程：
-   *   1. 建立商品（Draft）
-   *   2. 建立版本 1.0.0 並設為目前版本
-   *   3. 逐一申請版本檔案簽章 URL、直傳並確認（confirm 時後端才建立資產並扣配額）
-   *   4. 視需要送審上架
-   * 成功回傳建立後的 CatalogDto；失敗將訊息寫入 error 並回傳 null。
+   * 即時上傳單一下載檔到 Draft 版本：簽 URL + 直傳，但不 confirm（不計配額）。
+   * 首檔會順帶建立 Draft catalog / 版本。成功回傳 assetId，失敗回傳 null。
    */
-  async function createProduct(input: NewCatalogInput): Promise<CatalogDto | null> {
+  async function uploadDraftAsset(meta: DraftMeta, file: File): Promise<string | null> {
+    error.value = null;
+    const draft = await ensureDraft(meta);
+    if (!draft) return null;
+    try {
+      const urlRes = await catalogApi.catalogVersions.requestAssetUploadUrl(draft.catalogId, draft.versionId, {
+        fileName: file.name,
+        contentType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+      });
+      if (urlRes.data.uploadUrl) await putFile(urlRes.data.uploadUrl, file);
+      return urlRes.data.assetId ?? null;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.createProductFailed'));
+      return null;
+    }
+  }
+
+  /**
+   * 送出：以目前 step-1 欄位同步 Draft catalog（草稿建立後可能已編輯），
+   * 逐一 confirm 已上傳資產（此時才扣配額並建立 reference），視需要上架。
+   * 成功回傳 CatalogDto 並清空 Draft 狀態；失敗將訊息寫入 error 並回傳 null。
+   */
+  async function finalizeDraft(meta: DraftMeta, assetIds: string[], publish: boolean): Promise<CatalogDto | null> {
+    const catalogId = draftCatalogId.value;
+    const versionId = draftVersionId.value;
+    if (!catalogId || !versionId) {
+      error.value = i18n.global.t('storeError.createProductFailed');
+      return null;
+    }
     creating.value = true;
     error.value = null;
     try {
       await loadCategories();
-      const categoryId = input.categorySlug
-        ? categories.value.find((c) => c.slug === input.categorySlug)?.id ?? null
+      const categoryId = meta.categorySlug
+        ? categories.value.find((c) => c.slug === meta.categorySlug)?.id ?? null
         : null;
 
-      const created = await catalogApi.catalogs.create({
-        storeId: input.storeId,
-        name: input.name.trim(),
-        slug: slugify(input.name),
-        summary: input.summary?.trim() || null,
-        description: input.description?.trim() || null,
-        coverHue: input.coverHue,
-        categoryId,
-        price: input.price,
-        tags: input.tags?.length ? input.tags : null,
+      // 同步 step-1 欄位（slug 於建立時已定，維持不變以免草稿代稱漂移）。
+      await catalogApi.catalogs.update(catalogId, {
+        name: meta.name.trim(),
+        summary: meta.summary?.trim() || '',
+        coverHue: meta.coverHue,
+        price: meta.price,
       });
-      const catalogId = created.data.id!;
+      await catalogApi.catalogs.setCategory(catalogId, { categoryId });
+      await catalogApi.catalogs.setTags(catalogId, { tags: meta.tags ?? [] });
 
-      const version = await catalogApi.catalogVersions.create(catalogId, { version: '1.0.0', releaseNote: i18n.global.t('storeError.firstRelease') });
-      const versionId = version.data.id!;
-
-      for (const file of input.files) {
-        const urlRes = await catalogApi.catalogVersions.requestAssetUploadUrl(catalogId, versionId, {
-          fileName: file.name,
-          contentType: file.type || 'application/octet-stream',
-          sizeBytes: file.size,
-        });
-        if (urlRes.data.uploadUrl) await putFile(urlRes.data.uploadUrl, file);
-        // 直傳完成後確認：後端此時才建立資產 reference 並扣儲存配額。
-        await catalogApi.catalogVersions.confirmAsset(catalogId, versionId, urlRes.data.assetId!);
+      // confirm 已上傳資產（冪等；此刻扣配額並建立 reference）。
+      for (const assetId of assetIds) {
+        await catalogApi.catalogVersions.confirmAsset(catalogId, versionId, assetId);
       }
 
-      if (input.publish) await catalogApi.catalogs.publish(catalogId);
+      if (publish) await catalogApi.catalogs.publish(catalogId);
 
-      return created.data;
+      const dto = await catalogApi.catalogs.get(catalogId);
+      resetDraftUpload();
+      return dto.data;
     } catch (err) {
       error.value = messageOf(err, i18n.global.t('storeError.createProductFailed'));
       return null;
@@ -358,6 +424,9 @@ export const useCatalogStore = defineStore('catalog', () => {
     setStoreFeatured,
     listStoreFeatured,
     reorderStoreFeatured,
-    createProduct,
+    draftCatalogId,
+    resetDraftUpload,
+    uploadDraftAsset,
+    finalizeDraft,
   };
 });

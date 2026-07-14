@@ -175,7 +175,7 @@
     "blurbLabel": "一句話簡介",
     "blurbPlaceholder": "用一句話打動買家…",
     "uploadLabel": "上傳檔案",
-    "uploadSub": "支援 ZIP、PDF、JPG/PNG、WAV/MP3、PSD 等格式，單檔最大 5 GB。",
+    "uploadSub": "支援 ZIP、PDF、JPG/PNG、WAV/MP3、PSD 等格式，單檔最大 2 GB。",
     "dropzoneTitle": "拖曳檔案到這裡，或點擊選擇",
     "dropzoneSub": "買家付款後即可下載這些檔案",
     "coverHueLabel": "封面色調",
@@ -206,7 +206,13 @@
     "msgNeedFile": "請至少加入一個可下載檔案。",
     "msgPublished": "已送出上架。",
     "msgDrafted": "已存成草稿。",
-    "msgCreateFailed": "建立商品失敗"
+    "msgCreateFailed": "建立商品失敗",
+    "msgUploadInProgress": "檔案上傳中，請稍候再送出。",
+    "msgUploadFailed": "檔案上傳失敗：{name}",
+    "statusUploading": "上傳中",
+    "statusUploaded": "已上傳",
+    "statusError": "上傳失敗",
+    "retryUpload": "重試上傳"
   },
   "appStatus": {
     "pending": "審核中",

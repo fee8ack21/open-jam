@@ -175,7 +175,7 @@
     "blurbLabel": "One-line summary",
     "blurbPlaceholder": "Win buyers over in one line…",
     "uploadLabel": "Upload files",
-    "uploadSub": "Supports ZIP, PDF, JPG/PNG, WAV/MP3, PSD and more — up to 5 GB per file.",
+    "uploadSub": "Supports ZIP, PDF, JPG/PNG, WAV/MP3, PSD and more — up to 2 GB per file.",
     "dropzoneTitle": "Drag files here, or click to choose",
     "dropzoneSub": "Buyers can download these files after payment",
     "coverHueLabel": "Cover hue",
@@ -206,7 +206,13 @@
     "msgNeedFile": "Please add at least one downloadable file.",
     "msgPublished": "Submitted for publishing.",
     "msgDrafted": "Saved as draft.",
-    "msgCreateFailed": "Failed to create product"
+    "msgCreateFailed": "Failed to create product",
+    "msgUploadInProgress": "Files are still uploading — please wait before submitting.",
+    "msgUploadFailed": "Upload failed: {name}",
+    "statusUploading": "Uploading",
+    "statusUploaded": "Uploaded",
+    "statusError": "Upload failed",
+    "retryUpload": "Retry upload"
   },
   "appStatus": {
     "pending": "In review",

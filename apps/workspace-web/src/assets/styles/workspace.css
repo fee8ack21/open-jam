@@ -434,6 +434,13 @@
 .upload-row .ur-body { flex: 1; min-width: 0; }
 .upload-row .ur-name { font-weight: 900; font-size: 14px; }
 .upload-row .ur-meta { font-family: var(--oj-display); font-size: 11.5px; color: var(--text-faint); margin-top: 3px; }
+.upload-row .ur-status { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; font-weight: 800; }
+.upload-row .ur-status.uploading { color: var(--text-faint); }
+.upload-row .ur-status.uploaded { color: var(--c-green, #3aa657); }
+.upload-row .ur-status.error { color: var(--c-pink-deep); }
+.upload-row.st-error { border-color: var(--c-pink-deep); }
+.upload-row .ur-spin { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--border-strong); border-top-color: transparent; display: inline-block; animation: ur-spin .7s linear infinite; }
+@keyframes ur-spin { to { transform: rotate(360deg); } }
 .progress { height: 12px; border-radius: var(--r-pill); background: var(--bg); border: var(--bw) solid var(--border-strong); overflow: hidden; margin-top: 8px; }
 .progress > i { display: block; height: 100%; background: var(--c-pink); border-right: var(--bw) solid var(--border-strong); transition: width .4s; }
 
