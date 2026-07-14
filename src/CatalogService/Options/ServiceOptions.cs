@@ -14,6 +14,9 @@ public class ServiceOptions
 
     /// <summary>OrderService（訂單 API，用於評論購買驗證）端點設定。</summary>
     public ServiceEndpointOptions OrderService { get; set; } = new();
+
+    /// <summary>PaymentService（金流 API，用於付費商品上架的收款狀態閘門）端點設定。</summary>
+    public ServiceEndpointOptions PaymentService { get; set; } = new();
 }
 
 /// <summary>單一外部服務端點設定。</summary>

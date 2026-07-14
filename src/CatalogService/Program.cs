@@ -76,6 +76,10 @@ var orderBaseUrl = (services.OrderService.BaseUrl ?? "http://localhost:5179").Tr
 builder.Services.AddHttpClient("order", client => client.BaseAddress = new Uri(orderBaseUrl));
 builder.Services.AddScoped<OrderServiceClient>();
 
+var paymentBaseUrl = (services.PaymentService.BaseUrl ?? "http://localhost:5178").TrimEnd('/') + "/";
+builder.Services.AddHttpClient("payment", client => client.BaseAddress = new Uri(paymentBaseUrl));
+builder.Services.AddScoped<PaymentServiceClient>();
+
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）
 builder.Services.AddScoped<AuditLogPublisher>();
 builder.Services.AddScoped<CatalogEventPublisher>();

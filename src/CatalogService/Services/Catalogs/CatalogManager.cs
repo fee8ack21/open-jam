@@ -19,6 +19,7 @@ public class CatalogManager(
     StorageServiceClient storageClient,
     StoreServiceClient storeClient,
     QuotaServiceClient quotaClient,
+    PaymentServiceClient paymentClient,
     AuditLogPublisher auditLog,
     CatalogEventPublisher eventPublisher,
     IMapper mapper) : ICatalogManager
@@ -190,7 +191,13 @@ public class CatalogManager(
             catalog.CoverHue = coverHue;
 
         if (request.Price is { } price)
+        {
+            // 已上架商品由免費改為付費時，比照上架閘門確認商店已完成收款設定。
+            if (price > 0 && catalog.Price == 0 && catalog.Status == CatalogStatus.Published)
+                await paymentClient.EnsurePayoutReadyAsync(catalog.StoreId, ct);
+
             catalog.Price = price;
+        }
 
         if (request.Currency is not null)
             catalog.Currency = NormalizeCurrency(request.Currency);
@@ -239,6 +246,10 @@ public class CatalogManager(
             throw new ValidationException("商品已上架。");
         if (catalog.CurrentVersionId is null)
             throw new ValidationException("上架前須先建立至少一個版本。");
+
+        // 付費商品上架閘門：商店須已完成 Stripe Connect 收款設定（免費商品不受限）。
+        if (catalog.Price > 0)
+            await paymentClient.EnsurePayoutReadyAsync(catalog.StoreId, ct);
 
         // 先佔用上架商品數額度（超上限拋 409）；若後續儲存失敗則補償回退。
         await quotaClient.ChangeProductCountAsync(1, ct);
