@@ -168,7 +168,7 @@ REST API，管理開店申請、店家與追蹤。Controller（`StoreApplication
 
 REST API，管理數位商品（`Catalog`）、版本（`CatalogVersion`）、平台分類（`CatalogCategory`，以 `ParentId` 自我參照多層子分類）、標籤（`CatalogTag`，名稱強制小寫、維護 `UsageCount`）、評論（`CatalogReview`）與收藏（`CatalogFavorite`）。Controller（`Catalogs` / `CatalogVersions` / `CatalogCategories` / `CatalogTags` / `CatalogReviews` / `CatalogFavorites`）僅轉接，業務在 `Services/<Feature>/` 的 `ICatalogManager` / `ICatalogVersionService` / `ICatalogCategoryService` / `ICatalogTagService` / `ICatalogReviewService` / `ICatalogFavoriteService`。
 
-- **商品狀態**：`Draft → Published`（需先有版本）↔ `Archived`；`Suspended` 由 Admin 停權 / 解除。`CatalogStatus` 索引化以利瀏覽過濾。上 / 下架時呼叫 QuotaService `POST /v1/products/count` ±1 檢查上架商品數上限；首次上架經 Outbox 發 `CatalogPublishedEvent`（`IsFirstPublish`，觸發追蹤者通知）。
+- **商品狀態**：`Draft → Published`（需先有版本）↔ `Archived`；`Suspended` 由 Admin 停權 / 解除。`CatalogStatus` 索引化以利瀏覽過濾。上 / 下架時呼叫 QuotaService `POST /v1/products/count` ±1 檢查上架商品數上限；首次上架經 Outbox 發 `CatalogPublishedEvent`（`IsFirstPublish`，觸發追蹤者通知）。**付費商品上架閘門**：`Price > 0` 上架（及已上架商品免費改付費）時以 `PaymentServiceClient`（named `"payment"`）匿名查 PaymentService `GET /v1/connect/accounts/{storeId}/status`，商店未完成 Stripe Connect 收款設定（`ChargesEnabled=false`）回 422；免費商品不受限。
 - **資產分兩類**：展示型 `CatalogAsset`（縮圖 / 截圖 / 預覽影音，公開讀取，`public/` 前綴）；版本可下載檔 `CatalogVersionAsset`（買家實際取得內容，私有，須授權簽發下載 URL）。Asset `Id` 與 StorageService 簽發的 `FileId` 同值。
 - **資產 confirm 管線（配額扣量）**：簽上傳 URL 不計配額；使用者提交確認時依序——StorageService `POST /v1/files/{id}/confirm`（確保 Ready、取實際大小）→ QuotaService `POST /v1/charges`（`ChargeId = FileId` 冪等扣量，超額 409 / 超上限 422 擋下）→ 建立資產 reference → StorageService `POST /v1/files/{id}/reference` 標記已使用。每步冪等，前端重試安全。
 - **計數與策展**：`SalesCount`（`OrderCompletedConsumer` 消費 `OrderCompletedEvent` 原子累加，`ProcessedEvent` 去重）、`ViewCount`（`POST /v1/catalogs/{id}/view`，前端以 localStorage 時間窗去重）、`RatingAverage` / `RatingCount`（隨評論維護）、`IsFeatured`（Admin `POST /{id}/feature` / `/unfeature`，首頁精選 × 熱門混合策展）。列表 API 支援排序與價格篩選。
@@ -190,12 +190,14 @@ REST API，租戶（創作者）資源配額計量與扣量。Controller（`Char
 
 ## PaymentService（`src/PaymentService/`）
 
-REST API，Stripe Checkout 金流整合。Controller（`Payments` / `Webhook`）僅轉接，業務在 `Services/Payments/` 的 `IPaymentManager` / `StripeWebhookHandler`。
+REST API，Stripe Checkout 金流整合與 Stripe Connect 分帳。Controller（`Payments` / `ConnectAccounts` / `Webhook`）僅轉接，業務在 `Services/Payments/` 的 `IPaymentManager` / `StripeWebhookHandler` 與 `Services/Connect/` 的 `IConnectAccountService`。
 
 - **建立 Checkout Session**：`POST /v1/payments/checkout-session` 掛 `"InternalService"` policy，僅限 OrderService 以 service token 呼叫（買家不直接接觸本服務）。以 `OrderId` 建 Stripe Checkout Session（`payment_id` / `order_id` 放 Session metadata）；同訂單已有未過期 `Pending` 付款時直接重用既有 Session（含並發 unique violation 時重用勝者），避免重複建立。`GET /v1/payments/{id}`（Admin）查詢付款。
+- **Stripe Connect 分帳（destination charge）**：request 帶 `StoreId`，查本地 `ConnectedAccount`（一店一 Stripe Express 帳戶；無帳戶或 `ChargesEnabled=false` 回 422，為上架閘門的最後防線）。Session 帶 `PaymentIntentData.TransferData.Destination` 與 `ApplicationFeeAmount`（`Stripe:PlatformFeePercent` 百分比抽成，四捨五入），款項自動入創作者帳戶、平台留抽成，Stripe 手續費從平台抽成中吸收。`Payment` 快照 `StoreId` / `DestinationAccountId` / `ApplicationFeeAmount`。
+- **Connect onboarding**：`POST /v1/connect/accounts/{storeId}/onboarding-link`（Owner，經 `StoreServiceClient` 轉發 Bearer token 驗證）建立（或重用，並發 unique violation 重用勝者）Express 帳戶（僅請求 `transfers` capability）並簽發 Account Link；`GET /v1/connect/accounts/{storeId}`（Owner，`?refresh=true` 向 Stripe 取即時狀態回寫，供 onboarding 導回頁不等 webhook）；`GET /v1/connect/accounts/{storeId}/status`（匿名，僅布林旗標，供 CatalogService 上架閘門）。`account.updated`（Connect webhook 端點 `POST /v1/webhook/stripe/connect`，簽章密鑰 `Stripe:ConnectWebhookSecret` 與平台端點分開）同步 `DetailsSubmitted` / `ChargesEnabled` / `PayoutsEnabled` 旗標。
 - **付款狀態**：`Payment` `Pending → Succeeded` / `Failed` / `Expired`；每次轉移寫一筆 `PaymentTransaction`（`Created` / `Success` / `Fail` / `Expired`，留 Stripe raw payload）。
 - **Webhook 兩段式處理**：`POST /v1/webhook/stripe` 驗簽後僅將原始事件落地 `ProviderEvent`（以 Stripe event id 去重）即回 200，避免處理中掛掉遺失 webhook；`StripeWebhookProcessorService`（`IHostedService`）排程處理未完成事件——`checkout.session.completed` / `async_payment_succeeded` → `Succeeded` 並經 Outbox 發 `PaymentSucceededEvent`；`async_payment_failed` / `payment_intent.payment_failed` → `Failed`；`checkout.session.expired` → 僅 `Pending` 轉 `Expired`。
-- **設定**：`Stripe`（`SecretKey` / `PublishableKey` / `WebhookSecret` / `SuccessUrl` / `CancelUrl`，成功 / 取消頁導回前端 checkout result 頁）。
+- **設定**：`Stripe`（`SecretKey` / `PublishableKey` / `WebhookSecret` / `ConnectWebhookSecret` / `PlatformFeePercent` / `SuccessUrl` / `CancelUrl` / `ConnectRefreshUrl` / `ConnectReturnUrl`，成功 / 取消頁導回前端 checkout result 頁，Connect 導回 URL 指向 workspace-web `/payouts`）、`Services:StoreService`（Owner 驗證）。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`（`payment.checkout.created` 等）。
 
 ## OrderService（`src/OrderService/`）
@@ -209,7 +211,7 @@ REST API，管理商品訂單（`Order`）、訂單項目（`OrderItem`）與狀
 - **購買驗證與取消**：`GET /v1/orders/purchased/{catalogId}` 查登入使用者是否已有該商品的完成訂單（供 CatalogService 評論 / 買家下載授權）；`POST /v1/orders/{id}/cancel` 取消未付款訂單（具名買家僅本人，匿名訂單憑訂單 ID）。
 - **`StoreServiceClient`**（named `"store"` HttpClient，BaseUrl 由 `ServiceOptions` 設定）：轉發呼叫者 Bearer token 至 StoreService `GET /v1/stores/me`，驗證賣家視角查詢者為該商店 Owner。
 - **訂單編號**：`OrderNumberGenerator` 產生人類可讀且全域唯一的 `OrderNumber`（格式 `OJ-yyyyMMdd-XXXXXXXX`）。
-- **金流整合**：結帳單一入口 `POST /v1/orders`——訂單先建立（`Pending`），OrderService 隨即以 **`PaymentServiceClient`**（named `"payment"` HttpClient，帶 `ServiceTokenClient` 取得的 service token）呼叫 PaymentService 以 `OrderId` 建立 Stripe Checkout Session（該端點掛 `"InternalService"` policy 僅限內部服務呼叫，買家 `UserId` 由 request body 帶入），付款頁 URL 以 `OrderResponse.CheckoutUrl` 隨建單回應交給前端導向（前端不直接呼叫 PaymentService）；Session 建立失敗訂單保留 `Pending`。付款成功後 `PaymentSucceededConsumer` 消費 `PaymentSucceededEvent`（`Shared/Events/`）→ `CompleteFromPaymentAsync` 履約完成訂單（以訂單既有狀態做冪等判斷，搭配 MassTransit 指數退避重試），並經 Outbox 發 `OrderCompletedEvent`（CatalogService 消費以累加銷量；下載授權由 CatalogService 於下載當下以購買紀錄即時驗證），同交易內另發 `EmailRequestedEvent`（模板 `order.completed`）寄訂單完成信給買家，信中下載頁連結由 `Order:DownloadUrlPattern`（`{storeSlug}` / `{orderId}` 佔位符，store slug 以 `StoreServiceClient.GetStoreAsync` 匿名查得）組出；商店資訊查詢失敗僅記 log 略過寄信，不阻擋履約。
+- **金流整合**：結帳單一入口 `POST /v1/orders`——訂單先建立（`Pending`），OrderService 隨即以 **`PaymentServiceClient`**（named `"payment"` HttpClient，帶 `ServiceTokenClient` 取得的 service token）呼叫 PaymentService 以 `OrderId` 建立 Stripe Checkout Session（該端點掛 `"InternalService"` policy 僅限內部服務呼叫，買家 `UserId` 與賣方 `StoreId`——分帳目的地查找依據——由 request body 帶入），付款頁 URL 以 `OrderResponse.CheckoutUrl` 隨建單回應交給前端導向（前端不直接呼叫 PaymentService）；Session 建立失敗訂單保留 `Pending`。**免費訂單**（`TotalAmount == 0`，Stripe 不接受 0 元 Checkout）不呼叫 PaymentService，建單後直接履約完成（與付款成功共用 `FulfillAsync`：轉 `Completed`、發 `OrderCompletedEvent` 與完成信），`CheckoutUrl` 為 null，前端據此直接導向結帳成功頁。付款成功後 `PaymentSucceededConsumer` 消費 `PaymentSucceededEvent`（`Shared/Events/`）→ `CompleteFromPaymentAsync` 履約完成訂單（以訂單既有狀態做冪等判斷，搭配 MassTransit 指數退避重試），並經 Outbox 發 `OrderCompletedEvent`（CatalogService 消費以累加銷量；下載授權由 CatalogService 於下載當下以購買紀錄即時驗證），同交易內另發 `EmailRequestedEvent`（模板 `order.completed`）寄訂單完成信給買家，信中下載頁連結由 `Order:DownloadUrlPattern`（`{storeSlug}` / `{orderId}` 佔位符，store slug 以 `StoreServiceClient.GetStoreAsync` 匿名查得）組出；商店資訊查詢失敗僅記 log 略過寄信，不阻擋履約。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`（`order.create` / `order.cancel` / `order.complete`）。
 
 ## NotificationService（`src/NotificationService/`）
@@ -285,14 +287,15 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
 {
   "Services": { "StorageService": { "BaseUrl": "http://localhost:5171" } }
 }
-// CatalogService 額外需要（簽發資產上傳 URL + Owner 驗證 + 配額扣量 + 購買驗證）
+// CatalogService 額外需要（簽發資產上傳 URL + Owner 驗證 + 配額扣量 + 購買驗證 + 付費商品上架閘門）
 {
   "Storage": { "PublicBaseUrl": "http://localhost:5171/v1/files/blob" },  // 展示型資產公開讀取前綴
   "Services": {
     "StorageService": { "BaseUrl": "http://localhost:5171" },
     "StoreService": { "BaseUrl": "http://localhost:5172" },
     "QuotaService": { "BaseUrl": "http://localhost:5177" },
-    "OrderService": { "BaseUrl": "http://localhost:5179" }
+    "OrderService": { "BaseUrl": "http://localhost:5179" },
+    "PaymentService": { "BaseUrl": "http://localhost:5178" }
   }
 }
 // QuotaService 額外需要（固定額度 + 每日對帳查 StorageService 用量）
@@ -305,13 +308,20 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
   },
   "Services": { "StorageService": { "BaseUrl": "http://localhost:5171" } }
 }
-// PaymentService 額外需要（Stripe 金鑰與導回頁；正式以 Secret 覆蓋）
+// PaymentService 額外需要（Stripe 金鑰、分帳與導回頁；正式以 Secret 覆蓋）
 {
   "Stripe": {
     "SecretKey": "sk_test_...", "PublishableKey": "pk_test_...", "WebhookSecret": "whsec_...",
+    "ConnectWebhookSecret": "whsec_...",   // Connect webhook 端點（account.updated）簽章密鑰
+    "PlatformFeePercent": 10,              // 平台抽成百分比（destination charge application fee）
     "SuccessUrl": "http://localhost:5174/checkout/success?session_id={CHECKOUT_SESSION_ID}",
-    "CancelUrl": "http://localhost:5174/checkout/cancel"
-  }
+    "CancelUrl": "http://localhost:5174/checkout/cancel",
+    // Stripe Connect onboarding 導回 workspace-web 收款設定頁
+    "ConnectRefreshUrl": "http://localhost:5175/payouts?refresh=1",
+    "ConnectReturnUrl": "http://localhost:5175/payouts?return=1"
+  },
+  // Connect onboarding 端點驗證商店 Owner 身分
+  "Services": { "StoreService": { "BaseUrl": "http://localhost:5172" } }
 }
 // OrderService 額外需要（賣家視角訂單查詢驗證商店 Owner 身分 + 結帳核價 + 建立 Checkout Session + 訂單完成信）
 {
