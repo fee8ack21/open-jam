@@ -16,7 +16,7 @@ public class CatalogCategoriesController(ICatalogCategoryService categoryService
     /// <param name="ct">Cancellation token。</param>
     [HttpGet]
     [ProducesResponseType<List<CatalogCategoryDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<CatalogCategoryDto>>> ListAsync(CancellationToken ct) =>
+    public async Task<ActionResult<List<CatalogCategoryDto>>> List(CancellationToken ct) =>
         Ok(await categoryService.ListAsync(ct));
 
     /// <summary>查詢單一分類（公開）。</summary>
@@ -24,7 +24,7 @@ public class CatalogCategoriesController(ICatalogCategoryService categoryService
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("{id:guid}")]
     [ProducesResponseType<CatalogCategoryDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogCategoryDto>> GetAsync(Guid id, CancellationToken ct) =>
+    public async Task<ActionResult<CatalogCategoryDto>> Get(Guid id, CancellationToken ct) =>
         Ok(await categoryService.GetAsync(id, ct));
 
     /// <summary>建立分類。僅 Admin 可操作。</summary>
@@ -33,10 +33,10 @@ public class CatalogCategoriesController(ICatalogCategoryService categoryService
     [HttpPost]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType<CatalogCategoryDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<CatalogCategoryDto>> CreateAsync([FromBody] CreateCatalogCategoryRequest request, CancellationToken ct)
+    public async Task<ActionResult<CatalogCategoryDto>> Create([FromBody] CreateCatalogCategoryRequest request, CancellationToken ct)
     {
         var category = await categoryService.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetAsync), new { id = category.Id, version = "1.0" }, category);
+        return CreatedAtAction(nameof(Get), new { id = category.Id, version = "1.0" }, category);
     }
 
     /// <summary>更新分類。僅 Admin 可操作。</summary>
@@ -46,7 +46,7 @@ public class CatalogCategoriesController(ICatalogCategoryService categoryService
     [HttpPatch("{id:guid}")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType<CatalogCategoryDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogCategoryDto>> UpdateAsync(Guid id, [FromBody] UpdateCatalogCategoryRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<CatalogCategoryDto>> Update(Guid id, [FromBody] UpdateCatalogCategoryRequest request, CancellationToken ct) =>
         Ok(await categoryService.UpdateAsync(id, request, ct));
 
     /// <summary>刪除分類（不可有子分類或被商品引用）。僅 Admin 可操作。</summary>
@@ -55,7 +55,7 @@ public class CatalogCategoriesController(ICatalogCategoryService categoryService
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await categoryService.DeleteAsync(id, ct);
         return NoContent();

@@ -20,7 +20,7 @@ public class CatalogReviewsController(ICatalogReviewService reviewService) : Con
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType<ListReviewsResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ListReviewsResponse>> ListAsync(
+    public async Task<ActionResult<ListReviewsResponse>> List(
         Guid catalogId, [FromQuery] ListReviewsRequest request, CancellationToken ct) =>
         Ok(await reviewService.ListAsync(catalogId, request, ct));
 
@@ -30,7 +30,7 @@ public class CatalogReviewsController(ICatalogReviewService reviewService) : Con
     [HttpGet("mine")]
     [ProducesResponseType<CatalogReviewDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult<CatalogReviewDto>> GetMineAsync(Guid catalogId, CancellationToken ct)
+    public async Task<ActionResult<CatalogReviewDto>> GetMine(Guid catalogId, CancellationToken ct)
     {
         var review = await reviewService.GetMineAsync(catalogId, ct);
         return review is null ? NoContent() : Ok(review);
@@ -42,7 +42,7 @@ public class CatalogReviewsController(ICatalogReviewService reviewService) : Con
     /// <param name="ct">Cancellation token。</param>
     [HttpPut("mine")]
     [ProducesResponseType<CatalogReviewDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogReviewDto>> UpsertMineAsync(
+    public async Task<ActionResult<CatalogReviewDto>> UpsertMine(
         Guid catalogId, [FromBody] UpsertReviewRequest request, CancellationToken ct) =>
         Ok(await reviewService.UpsertAsync(catalogId, request, ct));
 
@@ -51,7 +51,7 @@ public class CatalogReviewsController(ICatalogReviewService reviewService) : Con
     /// <param name="ct">Cancellation token。</param>
     [HttpDelete("mine")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteMineAsync(Guid catalogId, CancellationToken ct)
+    public async Task<IActionResult> DeleteMine(Guid catalogId, CancellationToken ct)
     {
         await reviewService.DeleteMineAsync(catalogId, ct);
         return NoContent();

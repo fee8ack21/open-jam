@@ -17,6 +17,6 @@ public class CatalogTagsController(ICatalogTagService tagService) : ControllerBa
     /// <param name="ct">Cancellation token。</param>
     [HttpGet]
     [ProducesResponseType<ListCatalogTagsResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ListCatalogTagsResponse>> ListAsync([FromQuery] ListCatalogTagsRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<ListCatalogTagsResponse>> List([FromQuery] ListCatalogTagsRequest request, CancellationToken ct) =>
         Ok(await tagService.ListAsync(request, ct));
 }

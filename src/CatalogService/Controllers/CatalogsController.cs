@@ -19,7 +19,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType<ListCatalogsResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ListCatalogsResponse>> ListAsync([FromQuery] ListCatalogsRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<ListCatalogsResponse>> List([FromQuery] ListCatalogsRequest request, CancellationToken ct) =>
         Ok(await catalogManager.ListAsync(request, publishedOnly: true, ct));
 
     /// <summary>查詢登入使用者（商店 Owner）的商品列表，含未上架商品。</summary>
@@ -27,7 +27,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("mine")]
     [ProducesResponseType<ListCatalogsResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ListCatalogsResponse>> ListMineAsync([FromQuery] ListCatalogsRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<ListCatalogsResponse>> ListMine([FromQuery] ListCatalogsRequest request, CancellationToken ct) =>
         Ok(await catalogManager.ListAsync(request, publishedOnly: false, ct));
 
     /// <summary>查詢指定商店的全部商品（含草稿 / 已下架 / 已停權）。僅 Admin 可操作。</summary>
@@ -37,7 +37,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpGet("by-store/{storeId:guid}")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType<ListCatalogsResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ListCatalogsResponse>> ListByStoreAsync(
+    public async Task<ActionResult<ListCatalogsResponse>> ListByStore(
         Guid storeId, [FromQuery] ListCatalogsRequest request, CancellationToken ct)
     {
         request.StoreId = storeId;
@@ -50,7 +50,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
     [ProducesResponseType<CatalogDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogDto>> GetAsync(Guid id, CancellationToken ct) =>
+    public async Task<ActionResult<CatalogDto>> Get(Guid id, CancellationToken ct) =>
         Ok(await catalogManager.GetAsync(id, ct));
 
     /// <summary>建立商品（草稿）。僅商店 Owner 可操作。</summary>
@@ -58,10 +58,10 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPost]
     [ProducesResponseType<CatalogDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<CatalogDto>> CreateAsync([FromBody] CreateCatalogRequest request, CancellationToken ct)
+    public async Task<ActionResult<CatalogDto>> Create([FromBody] CreateCatalogRequest request, CancellationToken ct)
     {
         var catalog = await catalogManager.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetAsync), new { id = catalog.Id, version = "1.0" }, catalog);
+        return CreatedAtAction(nameof(Get), new { id = catalog.Id, version = "1.0" }, catalog);
     }
 
     /// <summary>更新商品基本資料。僅 Owner 可操作。</summary>
@@ -70,7 +70,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPatch("{id:guid}")]
     [ProducesResponseType<CatalogDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogDto>> UpdateAsync(Guid id, [FromBody] UpdateCatalogRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<CatalogDto>> Update(Guid id, [FromBody] UpdateCatalogRequest request, CancellationToken ct) =>
         Ok(await catalogManager.UpdateAsync(id, request, ct));
 
     /// <summary>設定 / 移除商品分類。僅 Owner 可操作。</summary>
@@ -79,7 +79,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPut("{id:guid}/category")]
     [ProducesResponseType<CatalogDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogDto>> SetCategoryAsync(Guid id, [FromBody] SetCatalogCategoryRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<CatalogDto>> SetCategory(Guid id, [FromBody] SetCatalogCategoryRequest request, CancellationToken ct) =>
         Ok(await catalogManager.SetCategoryAsync(id, request, ct));
 
     /// <summary>全量覆蓋商品標籤。僅 Owner 可操作。</summary>
@@ -88,7 +88,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPut("{id:guid}/tags")]
     [ProducesResponseType<List<string>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<string>>> SetTagsAsync(Guid id, [FromBody] SetCatalogTagsRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<List<string>>> SetTags(Guid id, [FromBody] SetCatalogTagsRequest request, CancellationToken ct) =>
         Ok(await catalogManager.SetTagsAsync(id, request, ct));
 
     /// <summary>上架商品（Draft/Archived → Published）。需已有目前版本。僅 Owner 可操作。</summary>
@@ -96,7 +96,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/publish")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> PublishAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Publish(Guid id, CancellationToken ct)
     {
         await catalogManager.PublishAsync(id, ct);
         return NoContent();
@@ -107,7 +107,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/archive")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> ArchiveAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Archive(Guid id, CancellationToken ct)
     {
         await catalogManager.ArchiveAsync(id, ct);
         return NoContent();
@@ -119,7 +119,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpPost("{id:guid}/suspend")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> SuspendAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Suspend(Guid id, CancellationToken ct)
     {
         await catalogManager.SuspendAsync(id, ct);
         return NoContent();
@@ -131,7 +131,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpPost("{id:guid}/unsuspend")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> UnsuspendAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Unsuspend(Guid id, CancellationToken ct)
     {
         await catalogManager.UnsuspendAsync(id, ct);
         return NoContent();
@@ -143,7 +143,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpPost("{id:guid}/view")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> IncrementViewAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> IncrementView(Guid id, CancellationToken ct)
     {
         await catalogManager.IncrementViewAsync(id, ct);
         return NoContent();
@@ -155,7 +155,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpPost("{id:guid}/feature")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> FeatureAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Feature(Guid id, CancellationToken ct)
     {
         await catalogManager.SetFeaturedAsync(id, featured: true, ct);
         return NoContent();
@@ -167,7 +167,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [HttpPost("{id:guid}/unfeature")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> UnfeatureAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Unfeature(Guid id, CancellationToken ct)
     {
         await catalogManager.SetFeaturedAsync(id, featured: false, ct);
         return NoContent();
@@ -178,7 +178,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/store-feature")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> StoreFeatureAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> StoreFeature(Guid id, CancellationToken ct)
     {
         await catalogManager.SetStoreFeaturedAsync(id, featured: true, ct);
         return NoContent();
@@ -189,7 +189,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/store-unfeature")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> StoreUnfeatureAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> StoreUnfeature(Guid id, CancellationToken ct)
     {
         await catalogManager.SetStoreFeaturedAsync(id, featured: false, ct);
         return NoContent();
@@ -200,7 +200,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPut("store-featured/order")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> ReorderStoreFeaturedAsync([FromBody] ReorderStoreFeaturedRequest request, CancellationToken ct)
+    public async Task<IActionResult> ReorderStoreFeatured([FromBody] ReorderStoreFeaturedRequest request, CancellationToken ct)
     {
         await catalogManager.ReorderStoreFeaturedAsync(request, ct);
         return NoContent();
@@ -212,7 +212,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/assets/upload-url")]
     [ProducesResponseType<CatalogAssetUploadUrlResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogAssetUploadUrlResponse>> RequestAssetUploadUrlAsync(
+    public async Task<ActionResult<CatalogAssetUploadUrlResponse>> RequestAssetUploadUrl(
         Guid id, [FromBody] RequestCatalogAssetUploadUrlRequest request, CancellationToken ct) =>
         Ok(await catalogManager.RequestAssetUploadUrlAsync(id, request, ct));
 
@@ -225,7 +225,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     [ProducesResponseType<CatalogAssetDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<ActionResult<CatalogAssetDto>> ConfirmAssetAsync(
+    public async Task<ActionResult<CatalogAssetDto>> ConfirmAsset(
         Guid id, Guid assetId, [FromBody] ConfirmCatalogAssetRequest request, CancellationToken ct) =>
         Ok(await catalogManager.ConfirmAssetAsync(id, assetId, request, ct));
 
@@ -235,7 +235,7 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     [HttpDelete("{id:guid}/assets/{assetId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteAssetAsync(Guid id, Guid assetId, CancellationToken ct)
+    public async Task<IActionResult> DeleteAsset(Guid id, Guid assetId, CancellationToken ct)
     {
         await catalogManager.DeleteAssetAsync(id, assetId, ct);
         return NoContent();

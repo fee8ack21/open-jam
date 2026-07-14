@@ -23,7 +23,7 @@ public class FaqsController(IFaqService faqService) : ControllerBase
     /// <returns>符合條件的項目分頁結果。</returns>
     [HttpGet]
     [ProducesResponseType<ListFaqItemsResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ListFaqItemsResponse>> ListAsync([FromQuery] ListFaqItemsRequest request, CancellationToken ct)
+    public async Task<ActionResult<ListFaqItemsResponse>> List([FromQuery] ListFaqItemsRequest request, CancellationToken ct)
         => Ok(await faqService.ListAsync(request, ct));
 
     /// <summary>取得已發布的常見問題（匿名公開，依分類與排序）。</summary>
@@ -33,7 +33,7 @@ public class FaqsController(IFaqService faqService) : ControllerBase
     [HttpGet("published")]
     [AllowAnonymous]
     [ProducesResponseType<List<FaqItemDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<FaqItemDto>>> GetPublishedAsync([FromQuery] Guid? categoryId, CancellationToken ct)
+    public async Task<ActionResult<List<FaqItemDto>>> GetPublished([FromQuery] Guid? categoryId, CancellationToken ct)
         => Ok(await faqService.GetPublishedAsync(categoryId, ct));
 
     /// <summary>取得單筆常見問題。</summary>
@@ -43,7 +43,7 @@ public class FaqsController(IFaqService faqService) : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType<FaqItemDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FaqItemDto>> GetAsync(Guid id, CancellationToken ct)
+    public async Task<ActionResult<FaqItemDto>> Get(Guid id, CancellationToken ct)
         => Ok(await faqService.GetAsync(id, ct));
 
     /// <summary>建立常見問題項目。</summary>
@@ -52,10 +52,10 @@ public class FaqsController(IFaqService faqService) : ControllerBase
     /// <returns>建立完成的項目。</returns>
     [HttpPost]
     [ProducesResponseType<FaqItemDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<FaqItemDto>> CreateAsync([FromBody] CreateFaqItemRequest request, CancellationToken ct)
+    public async Task<ActionResult<FaqItemDto>> Create([FromBody] CreateFaqItemRequest request, CancellationToken ct)
     {
         var dto = await faqService.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetAsync), new { id = dto.Id, version = "1" }, dto);
+        return CreatedAtAction(nameof(Get), new { id = dto.Id, version = "1" }, dto);
     }
 
     /// <summary>更新常見問題項目。</summary>
@@ -66,7 +66,7 @@ public class FaqsController(IFaqService faqService) : ControllerBase
     [HttpPut("{id:guid}")]
     [ProducesResponseType<FaqItemDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FaqItemDto>> UpdateAsync(Guid id, [FromBody] UpdateFaqItemRequest request, CancellationToken ct)
+    public async Task<ActionResult<FaqItemDto>> Update(Guid id, [FromBody] UpdateFaqItemRequest request, CancellationToken ct)
         => Ok(await faqService.UpdateAsync(id, request, ct));
 
     /// <summary>刪除常見問題項目。</summary>
@@ -75,7 +75,7 @@ public class FaqsController(IFaqService faqService) : ControllerBase
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await faqService.DeleteAsync(id, ct);
         return NoContent();

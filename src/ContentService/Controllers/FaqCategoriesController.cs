@@ -20,7 +20,7 @@ public class FaqCategoriesController(IFaqCategoryService categoryService) : Cont
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType<List<FaqCategoryDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<FaqCategoryDto>>> ListAsync(CancellationToken ct) =>
+    public async Task<ActionResult<List<FaqCategoryDto>>> List(CancellationToken ct) =>
         Ok(await categoryService.ListAsync(ct));
 
     /// <summary>查詢單一分類。僅 Admin 可存取。</summary>
@@ -30,7 +30,7 @@ public class FaqCategoriesController(IFaqCategoryService categoryService) : Cont
     [Authorize(Policy = "Admin")]
     [ProducesResponseType<FaqCategoryDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FaqCategoryDto>> GetAsync(Guid id, CancellationToken ct) =>
+    public async Task<ActionResult<FaqCategoryDto>> Get(Guid id, CancellationToken ct) =>
         Ok(await categoryService.GetAsync(id, ct));
 
     /// <summary>建立分類。僅 Admin 可操作。</summary>
@@ -39,10 +39,10 @@ public class FaqCategoriesController(IFaqCategoryService categoryService) : Cont
     [HttpPost]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType<FaqCategoryDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<FaqCategoryDto>> CreateAsync([FromBody] CreateFaqCategoryRequest request, CancellationToken ct)
+    public async Task<ActionResult<FaqCategoryDto>> Create([FromBody] CreateFaqCategoryRequest request, CancellationToken ct)
     {
         var category = await categoryService.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetAsync), new { id = category.Id, version = "1.0" }, category);
+        return CreatedAtAction(nameof(Get), new { id = category.Id, version = "1.0" }, category);
     }
 
     /// <summary>更新分類。僅 Admin 可操作。</summary>
@@ -52,7 +52,7 @@ public class FaqCategoriesController(IFaqCategoryService categoryService) : Cont
     [HttpPatch("{id:guid}")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType<FaqCategoryDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<FaqCategoryDto>> UpdateAsync(Guid id, [FromBody] UpdateFaqCategoryRequest request, CancellationToken ct) =>
+    public async Task<ActionResult<FaqCategoryDto>> Update(Guid id, [FromBody] UpdateFaqCategoryRequest request, CancellationToken ct) =>
         Ok(await categoryService.UpdateAsync(id, request, ct));
 
     /// <summary>刪除分類（不可仍被常見問題項目引用）。僅 Admin 可操作。</summary>
@@ -61,7 +61,7 @@ public class FaqCategoriesController(IFaqCategoryService categoryService) : Cont
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await categoryService.DeleteAsync(id, ct);
         return NoContent();

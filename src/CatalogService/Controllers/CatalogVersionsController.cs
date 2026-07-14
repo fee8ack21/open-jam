@@ -19,7 +19,7 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     /// <param name="ct">Cancellation token。</param>
     [HttpGet]
     [ProducesResponseType<List<CatalogVersionDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<CatalogVersionDto>>> ListAsync(Guid catalogId, CancellationToken ct) =>
+    public async Task<ActionResult<List<CatalogVersionDto>>> List(Guid catalogId, CancellationToken ct) =>
         Ok(await versionService.ListAsync(catalogId, ct));
 
     /// <summary>建立新版本，並設為商品的目前版本。</summary>
@@ -28,10 +28,10 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     /// <param name="ct">Cancellation token。</param>
     [HttpPost]
     [ProducesResponseType<CatalogVersionDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<CatalogVersionDto>> CreateAsync(Guid catalogId, [FromBody] CreateCatalogVersionRequest request, CancellationToken ct)
+    public async Task<ActionResult<CatalogVersionDto>> Create(Guid catalogId, [FromBody] CreateCatalogVersionRequest request, CancellationToken ct)
     {
         var version = await versionService.CreateAsync(catalogId, request, ct);
-        return CreatedAtAction(nameof(ListAsync), new { catalogId, version = "1.0" }, version);
+        return CreatedAtAction(nameof(List), new { catalogId, version = "1.0" }, version);
     }
 
     /// <summary>申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額、不建資產。</summary>
@@ -41,7 +41,7 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{versionId:guid}/assets/upload-url")]
     [ProducesResponseType<VersionAssetUploadUrlResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<VersionAssetUploadUrlResponse>> RequestAssetUploadUrlAsync(
+    public async Task<ActionResult<VersionAssetUploadUrlResponse>> RequestAssetUploadUrl(
         Guid catalogId, Guid versionId, [FromBody] RequestVersionAssetUploadUrlRequest request, CancellationToken ct) =>
         Ok(await versionService.RequestAssetUploadUrlAsync(catalogId, versionId, request, ct));
 
@@ -54,7 +54,7 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     [ProducesResponseType<CatalogVersionAssetDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<ActionResult<CatalogVersionAssetDto>> ConfirmAssetAsync(
+    public async Task<ActionResult<CatalogVersionAssetDto>> ConfirmAsset(
         Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct) =>
         Ok(await versionService.ConfirmAssetAsync(catalogId, versionId, assetId, ct));
 
@@ -65,7 +65,7 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("{versionId:guid}/assets/{assetId:guid}/download-url")]
     [ProducesResponseType<StorageDownloadUrlResult>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<StorageDownloadUrlResult>> GetAssetDownloadUrlAsync(
+    public async Task<ActionResult<StorageDownloadUrlResult>> GetAssetDownloadUrl(
         Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct) =>
         Ok(await versionService.GetAssetDownloadUrlAsync(catalogId, versionId, assetId, ct));
 
@@ -77,7 +77,7 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     [HttpGet("{versionId:guid}/downloads")]
     [AllowAnonymous]
     [ProducesResponseType<List<PurchasedVersionAssetDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<PurchasedVersionAssetDto>>> ListPurchasedDownloadsAsync(
+    public async Task<ActionResult<List<PurchasedVersionAssetDto>>> ListPurchasedDownloads(
         Guid catalogId, Guid versionId, [FromQuery] Guid? orderId, CancellationToken ct) =>
         Ok(await versionService.ListPurchasedDownloadsAsync(catalogId, versionId, orderId, ct));
 
@@ -88,7 +88,7 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
     /// <param name="ct">Cancellation token。</param>
     [HttpDelete("{versionId:guid}/assets/{assetId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteAssetAsync(Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct)
+    public async Task<IActionResult> DeleteAsset(Guid catalogId, Guid versionId, Guid assetId, CancellationToken ct)
     {
         await versionService.DeleteAssetAsync(catalogId, versionId, assetId, ct);
         return NoContent();

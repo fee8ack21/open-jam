@@ -25,7 +25,7 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     /// <returns>符合條件的文件分頁結果（不含完整內容）。</returns>
     [HttpGet]
     [ProducesResponseType<ListLegalDocumentsResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ListLegalDocumentsResponse>> ListAsync([FromQuery] ListLegalDocumentsRequest request, CancellationToken ct)
+    public async Task<ActionResult<ListLegalDocumentsResponse>> List([FromQuery] ListLegalDocumentsRequest request, CancellationToken ct)
         => Ok(await legalDocumentService.ListAsync(request, ct));
 
     /// <summary>取得目前啟用中的法律文件內容（匿名公開）。</summary>
@@ -35,7 +35,7 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     [HttpGet("active")]
     [AllowAnonymous]
     [ProducesResponseType<List<LegalDocumentDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<LegalDocumentDto>>> GetActiveAsync([FromQuery] LegalDocumentType? type, CancellationToken ct)
+    public async Task<ActionResult<List<LegalDocumentDto>>> GetActive([FromQuery] LegalDocumentType? type, CancellationToken ct)
         => Ok(await legalDocumentService.GetActiveAsync(type, ct));
 
     /// <summary>取得單筆法律文件完整內容。</summary>
@@ -45,7 +45,7 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     [HttpGet("{id:guid}")]
     [ProducesResponseType<LegalDocumentDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<LegalDocumentDto>> GetAsync(Guid id, CancellationToken ct)
+    public async Task<ActionResult<LegalDocumentDto>> Get(Guid id, CancellationToken ct)
         => Ok(await legalDocumentService.GetAsync(id, ct));
 
     /// <summary>建立法律文件草稿；版本序號由伺服器依同類型現有最大版本 +1 產生。</summary>
@@ -54,10 +54,10 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     /// <returns>建立完成的草稿。</returns>
     [HttpPost]
     [ProducesResponseType<LegalDocumentDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<LegalDocumentDto>> CreateAsync([FromBody] CreateLegalDocumentRequest request, CancellationToken ct)
+    public async Task<ActionResult<LegalDocumentDto>> Create([FromBody] CreateLegalDocumentRequest request, CancellationToken ct)
     {
         var dto = await legalDocumentService.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetAsync), new { id = dto.Id, version = "1" }, dto);
+        return CreatedAtAction(nameof(Get), new { id = dto.Id, version = "1" }, dto);
     }
 
     /// <summary>更新法律文件草稿的標題與內容；僅 Draft 狀態可更新。</summary>
@@ -69,7 +69,7 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     [ProducesResponseType<LegalDocumentDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<LegalDocumentDto>> UpdateAsync(Guid id, [FromBody] UpdateLegalDocumentRequest request, CancellationToken ct)
+    public async Task<ActionResult<LegalDocumentDto>> Update(Guid id, [FromBody] UpdateLegalDocumentRequest request, CancellationToken ct)
         => Ok(await legalDocumentService.UpdateAsync(id, request, ct));
 
     /// <summary>啟用文件（Draft / Inactive → Active）；同類型既有啟用版本自動轉為 Inactive。</summary>
@@ -79,7 +79,7 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     [HttpPost("{id:guid}/activate")]
     [ProducesResponseType<LegalDocumentDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<LegalDocumentDto>> ActivateAsync(Guid id, CancellationToken ct)
+    public async Task<ActionResult<LegalDocumentDto>> Activate(Guid id, CancellationToken ct)
         => Ok(await legalDocumentService.ActivateAsync(id, ct));
 
     /// <summary>停用啟用中的文件（Active → Inactive）。</summary>
@@ -90,6 +90,6 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     [ProducesResponseType<LegalDocumentDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<LegalDocumentDto>> DeactivateAsync(Guid id, CancellationToken ct)
+    public async Task<ActionResult<LegalDocumentDto>> Deactivate(Guid id, CancellationToken ct)
         => Ok(await legalDocumentService.DeactivateAsync(id, ct));
 }

@@ -103,7 +103,8 @@ hydra:
   oidc:
     subjectIdentifiers: "pairwise,public"
   cors:
-    allowedOrigins: "https://workspace.openjam.co,https://openjam.co,http://localhost:5173,http://localhost:5174,http://localhost:5175"
+    # 創作者店面為 <slug>.openjam.co 動態子網域，需以萬用樣式放行（Ory Hydra 採 rs/cors，支援 https://*.openjam.co）
+    allowedOrigins: "https://workspace.openjam.co,https://openjam.co,https://*.openjam.co,http://localhost:5173,http://localhost:5174,http://localhost:5175"
   resources:
     requests:
       cpu: 100m

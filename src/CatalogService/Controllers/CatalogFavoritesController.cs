@@ -17,7 +17,7 @@ public class CatalogFavoritesController(ICatalogFavoriteService favoriteService)
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("favorites")]
     [ProducesResponseType<CatalogFavoritesResponse>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CatalogFavoritesResponse>> ListMineAsync(CancellationToken ct) =>
+    public async Task<ActionResult<CatalogFavoritesResponse>> ListMine(CancellationToken ct) =>
         Ok(await favoriteService.ListMineAsync(ct));
 
     /// <summary>收藏商品。已收藏則 no-op。</summary>
@@ -25,7 +25,7 @@ public class CatalogFavoritesController(ICatalogFavoriteService favoriteService)
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/favorite")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> AddAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Add(Guid id, CancellationToken ct)
     {
         await favoriteService.AddAsync(id, ct);
         return NoContent();
@@ -36,7 +36,7 @@ public class CatalogFavoritesController(ICatalogFavoriteService favoriteService)
     /// <param name="ct">Cancellation token。</param>
     [HttpDelete("{id:guid}/favorite")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> RemoveAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Remove(Guid id, CancellationToken ct)
     {
         await favoriteService.RemoveAsync(id, ct);
         return NoContent();

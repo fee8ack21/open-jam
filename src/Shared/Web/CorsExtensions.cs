@@ -65,29 +65,58 @@ public static class CorsExtensions
 
         foreach (var pattern in patterns)
         {
-            if (!Uri.TryCreate(pattern, UriKind.Absolute, out var allowed))
-                continue;
-
-            if (!string.Equals(uri.Scheme, allowed.Scheme, StringComparison.OrdinalIgnoreCase))
-                continue;
-            if (uri.Port != allowed.Port)
-                continue;
-
-            var allowedHost = allowed.Host;
-            if (allowedHost.StartsWith("*.", StringComparison.Ordinal))
-            {
-                // 萬用子網域：比對基底網域本身（example.com）與其子網域（a.example.com）
-                var baseHost = allowedHost[2..];
-                if (string.Equals(uri.Host, baseHost, StringComparison.OrdinalIgnoreCase) ||
-                    uri.Host.EndsWith("." + baseHost, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-            else if (string.Equals(uri.Host, allowedHost, StringComparison.OrdinalIgnoreCase))
-            {
+            if (MatchesPattern(uri, pattern))
                 return true;
-            }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// 比對單一來源與單一允許樣式。樣式以字串拆解 scheme / host[:port]，
+    /// <b>不透過 <see cref="Uri.TryCreate(string, UriKind, out Uri?)"/></b>——因萬用字元樣式
+    /// （如 <c>https://*.openjam.co</c>）中的 <c>*</c> 會令 Uri 解析失敗而被整段略過。
+    /// </summary>
+    private static bool MatchesPattern(Uri origin, string pattern)
+    {
+        var schemeSep = pattern.IndexOf("://", StringComparison.Ordinal);
+        if (schemeSep < 0)
+            return false;
+
+        var scheme = pattern[..schemeSep];
+        if (!string.Equals(origin.Scheme, scheme, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var hostPort = pattern[(schemeSep + 3)..];
+
+        // 拆出 host 與 port（未指定 port 時取 scheme 預設值）。
+        string host;
+        int port;
+        var portSep = hostPort.LastIndexOf(':');
+        if (portSep >= 0 && int.TryParse(hostPort[(portSep + 1)..], out var parsedPort))
+        {
+            host = hostPort[..portSep];
+            port = parsedPort;
+        }
+        else
+        {
+            host = hostPort;
+            port = string.Equals(scheme, "https", StringComparison.OrdinalIgnoreCase) ? 443
+                 : string.Equals(scheme, "http", StringComparison.OrdinalIgnoreCase) ? 80
+                 : -1;
+        }
+
+        if (origin.Port != port)
+            return false;
+
+        if (host.StartsWith("*.", StringComparison.Ordinal))
+        {
+            // 萬用子網域：比對基底網域本身（example.com）與其子網域（a.example.com）。
+            var baseHost = host[2..];
+            return string.Equals(origin.Host, baseHost, StringComparison.OrdinalIgnoreCase) ||
+                   origin.Host.EndsWith("." + baseHost, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return string.Equals(origin.Host, host, StringComparison.OrdinalIgnoreCase);
     }
 }
