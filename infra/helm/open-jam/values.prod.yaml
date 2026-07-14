@@ -156,7 +156,7 @@ auth:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
-    tag: v0.0.19
+    tag: v0.0.20
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -325,7 +325,7 @@ creatorWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/creator-web
-    tag: v0.0.15
+    tag: v0.0.16
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
