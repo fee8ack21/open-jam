@@ -447,13 +447,18 @@
 /* top-right bookmark ribbon（直書文字）— 熱賣 / 新上架 / 精選 */
 .mc-mark {
   position: absolute; top: 0; right: 12px; z-index: 4;
-  /* clip-path 無法吃 border，改以四向硬 drop-shadow 疊出 1.5px 墨線（不加底影） */
-  filter:
-    drop-shadow(1.5px 0 0 var(--border-strong)) drop-shadow(-1.5px 0 0 var(--border-strong))
-    drop-shadow(0 1.5px 0 var(--border-strong)) drop-shadow(0 -1.5px 0 var(--border-strong));
+}
+/* clip-path 無法吃 border，以底層放大 var(--bw) 的同形剪影疊出墨線。
+   不可改用 filter: drop-shadow——WebKit（iOS Safari）不會對含 filter 的
+   子元素套用 overflow:hidden 裁切，書籤會衝出卡片圓角。 */
+.mc-mark::before {
+  content: ""; position: absolute;
+  top: 0; bottom: calc(var(--bw) * -1); left: calc(var(--bw) * -1); right: calc(var(--bw) * -1);
+  background: var(--border-strong);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%);
 }
 .mc-mark-in {
-  display: block;
+  display: block; position: relative;
   font-family: var(--oj-font); font-weight: 900; font-size: 11px; color: var(--text);
   writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: .14em;
   white-space: nowrap; padding: 9px 6px 15px;
