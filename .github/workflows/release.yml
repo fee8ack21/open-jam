@@ -160,13 +160,12 @@ jobs:
           path: ${{ matrix.image }}.json
 
   # ── 3. Helm 直接部署到 GKE ──
-  #      ArgoCD 尚未 bootstrap（見 infra/argocd/README.md 前置需求），此為過渡方案：
   #      values.prod.yaml（已挖除機密）進 git；機密整份存於 GCP Secret Manager
   #      的 open-jam-helm-secrets（內容即本地的 values.prod.secrets.yaml），
   #      部署時以 gcloud 取出疊上。Secret Manager 為機密唯一真相（可讀回、有版本）。
   #      不寫回 values 檔，只在本次 helm upgrade 用 --set 覆寫這次 release
   #      清單內服務的 image tag，其餘沿用 values.prod.yaml 既有值。
-  #      --atomic：失敗自動回滾（沒有 ArgoCD selfHeal 兜底，靠此把關）。
+  #      --atomic：失敗自動回滾（宣告式同步 / self-heal 屬未來 GitOps 方向，目前靠此把關）。
   deploy:
     needs: [setup, build]
     if: needs.setup.outputs.is_release == 'true' && needs.build.result == 'success'

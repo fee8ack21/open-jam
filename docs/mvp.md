@@ -82,7 +82,7 @@
 ### 平台與維運
 
 - [ ] **Redis**：快取 / Session / 配額計數（compose 已就緒，尚未使用）。
-- [ ] **Argo CD GitOps**：以 Argo CD 接管部署（`infra/argocd/` 已備，尚未 bootstrap）；GitHub Actions release build / push + helm 部署 GKE 已上線（見 [[CI]]），接手後移除 CI 直接 helm 步驟。
+- [ ] **Argo CD GitOps（未來可考慮，短期不做）**：目前 CD 為 GitHub Actions release build / push + 直接 `helm upgrade` 部署 GKE（見 [[CI]]），運作正常。未來若要宣告式同步 / self-heal，可評估改由 Argo CD 接管、移除 CI 直接 helm 步驟。
 - [ ] **可觀測性**：Loki + Promtail（Application Log）、OpenTelemetry / Tempo 整合。
 - [ ] **多商店成員**：StoreMember 角色擴充（如 Staff），目前僅 Owner。
 

@@ -80,8 +80,9 @@
 ## CI / CD
 
 - **CI**：GitHub Actions 於 release（推 `chore(release)` commit 到 `main`）時建置映像，推送至 **GCP Artifact Registry**，並將結果彙整推播 Discord。詳細流程（Workflow Identity 設定、由 commit 訊息清單決定建置範圍、完整 workflow）見 [[CI]]。
-- **CD**：**Argo CD**（GitOps）+ **Helm Umbrella Chart**。
-- 流程：CI build / push image → 更新 git 中的 manifest / Helm values → Argo CD 自動同步至 GKE。
+- **CD**：**GitHub Actions + Helm Umbrella Chart**。同一個 release workflow 於映像建置成功後，直接以 `helm upgrade --install open-jam ... --atomic` 部署至 GKE（`--atomic` 失敗自動回滾）。
+- 流程：CI build / push image → helm 以本次 release 清單的 image tag 覆寫（`--set`）+ `values.prod.yaml` 疊上 Secret Manager 機密 → 部署 GKE。
+- 未來可考慮改採 **Argo CD（GitOps）** 接管部署（見「後續待辦」）。
 
 ## TLS 憑證
 
@@ -280,3 +281,4 @@ kubectl get ns
 
 - `api.openjam.co`：目前已新增 `/store-service`、`/log-service`、`/storage-service` path 路由分別至 StoreService、LogService、StorageService（見 `infra/helm/infra/values.prod.yaml`）。其餘 path（其他「功能 API」服務）待對應 Helm chart / Service 就緒後再依需求新增。
 - 將 Cloudflare API Token 與其他正式環境機密改由 External Secrets Operator 從 GCP Secret Manager 同步，避免明文存於 git（見上方「Secrets 管理」）。
+- **（未來可考慮）Argo CD GitOps**：改以 Argo CD 接管部署（宣告式同步 / self-heal），取代目前 release workflow 直接跑 `helm upgrade` 的方式。短期不實作。

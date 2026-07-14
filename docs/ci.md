@@ -1,6 +1,6 @@
 # CI：映像建置與推送
 
-本頁描述 **GitHub Actions** 的持續整合流程：發布（release）時自動建置 Docker 映像、推送至 **GCP Artifact Registry**，並將成功 / 失敗結果彙整推播至 **Discord**。基礎架構全貌與 CD（Argo CD / Helm）見 [[Infra]]。
+本頁描述 **GitHub Actions** 的持續整合流程：發布（release）時自動建置 Docker 映像、推送至 **GCP Artifact Registry**，並將成功 / 失敗結果彙整推播至 **Discord**。基礎架構全貌與 CD（Helm 部署 GKE）見 [[Infra]]。
 
 ## 目標
 
@@ -364,7 +364,7 @@ git push origin main
 
 > 一般 feature / fix commit 推上 `main` 也會觸發 workflow，但 `setup` 判定非 release commit 後即結束，`build` / `notify` 不執行、不建任何映像。
 
-推送完成後的部署（更新 `values.prod.yaml` 的 tag、Argo CD 同步）見 [[Infra]] 的「部署流程（Runbook）」。
+推送完成後的部署（更新 `values.prod.yaml` 的 tag、helm upgrade 至 GKE）見 [[Infra]] 的「部署流程（Runbook）」。
 
 ## 設計取捨
 

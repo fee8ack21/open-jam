@@ -11,7 +11,7 @@ Bootstrap 負責**預建平台運行所需的資料**。因架構採 **DB per se
 
 ## 執行模型
 
-- 以 **K8s Job / Argo CD hook** 在部署時自動執行（見 [[Infra]]）。
+- 以 **K8s Job**（Helm post-install hook）在部署時自動執行（見 [[Infra]]）。
 - **冪等**：已存在則跳過，可安全重跑。
 - seed 比照 **migration 版本控管**，可增量套用（保留字、分類、方案等會演進）。
 
@@ -35,5 +35,5 @@ Bootstrap 負責**預建平台運行所需的資料**。因架構採 **DB per se
 
 ## 技術與架構
 
-- 部署方式（Argo hook / Job）見 [[Infra]]。
+- 部署方式（Helm post-install hook / K8s Job）見 [[Infra]]。
 - 各服務的 migration 與 seed 慣例見 [[Develop]]。
