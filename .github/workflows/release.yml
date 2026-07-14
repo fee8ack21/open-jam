@@ -188,7 +188,7 @@ jobs:
       # 否則此步驟會 403（目前該 SA 可能只有 Artifact Registry 寫入權限）
       - uses: google-github-actions/get-gke-credentials@v2
         with:
-          cluster_name: open-jam
+          cluster_name: open-jam-cluster-1
           location: asia-east1-a
           project_id: open-jam-498418
 
