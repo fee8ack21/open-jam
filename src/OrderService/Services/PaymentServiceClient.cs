@@ -13,6 +13,7 @@ public class PaymentServiceClient(IHttpClientFactory httpClientFactory, ServiceT
 {
     /// <summary>為指定訂單建立（或重用）Checkout Session，回傳 Stripe 付款頁 URL。</summary>
     /// <param name="orderId">訂單 ID。</param>
+    /// <param name="storeId">賣方商店 ID（PaymentService 據此查找分帳目的地帳戶）。</param>
     /// <param name="buyerUserId">購買者使用者 ID；null 表示匿名購買。</param>
     /// <param name="email">購買者電子信箱。</param>
     /// <param name="amount">付款金額（最低貨幣單位，如 cents）。</param>
@@ -20,8 +21,8 @@ public class PaymentServiceClient(IHttpClientFactory httpClientFactory, ServiceT
     /// <param name="productName">顯示於 Stripe Checkout 頁面的商品名稱。</param>
     /// <param name="ct">Cancellation token。</param>
     public async Task<CheckoutSessionResult> CreateCheckoutSessionAsync(
-        Guid orderId, Guid? buyerUserId, string email, long amount, string currency, string productName,
-        CancellationToken ct)
+        Guid orderId, Guid storeId, Guid? buyerUserId, string email, long amount, string currency,
+        string productName, CancellationToken ct)
     {
         var client = httpClientFactory.CreateClient("payment");
 
@@ -30,6 +31,7 @@ public class PaymentServiceClient(IHttpClientFactory httpClientFactory, ServiceT
             Content = JsonContent.Create(new
             {
                 OrderId = orderId,
+                StoreId = storeId,
                 UserId = buyerUserId,
                 Email = email,
                 Amount = amount,

@@ -73,10 +73,19 @@ public class OrderManager(
 
         await db.SaveChangesAsync(ct);
 
+        // 免費訂單（總額 0）：Stripe 不接受 0 元 Checkout，跳過金流直接履約完成，
+        // CheckoutUrl 維持 null，前端據此不導向付款頁、直接進入訂單（下載）頁。
+        if (order.TotalAmount == 0)
+        {
+            await FulfillAsync(order, DateTimeOffset.UtcNow, "Free order", ct);
+            return await GetAsync(order.Id, ct);
+        }
+
         // 訂單落地後向 PaymentService 建立 Checkout Session，付款頁 URL 隨建單回應交給前端導向。
         // 失敗時訂單保留 Pending（不回滾），由前端重試結帳；PaymentService 以 OrderId 去重重用既有 Session。
         var session = await paymentClient.CreateCheckoutSessionAsync(
-            order.Id, userId, order.BuyerEmail, order.TotalAmount, currency, BuildProductName(order), ct);
+            order.Id, order.StoreId, userId, order.BuyerEmail, order.TotalAmount, currency,
+            BuildProductName(order), ct);
 
         var response = await GetAsync(order.Id, ct);
         response.CheckoutUrl = session.Url;
@@ -174,8 +183,14 @@ public class OrderManager(
         if (order.Status is not (OrderStatus.Pending or OrderStatus.Paid))
             return;
 
-        order.CompletedAt = paidAt;
-        TransitionTo(order, OrderStatus.Completed, "Payment succeeded");
+        await FulfillAsync(order, paidAt, "Payment succeeded", ct);
+    }
+
+    /// <summary>履約完成訂單：轉移狀態、發出完成事件與訂單完成信（付款成功與免費訂單共用）。</summary>
+    private async Task FulfillAsync(Order order, DateTimeOffset completedAt, string reason, CancellationToken ct)
+    {
+        order.CompletedAt = completedAt;
+        TransitionTo(order, OrderStatus.Completed, reason);
         auditLog.Add(order.BuyerUserId, "order.complete", "Order", order.Id, tenant: null);
         // 同一 transaction 內發出履約完成事件（攜帶商品明細，供 CatalogService 累加銷量等）。
         orderEvents.AddOrderCompleted(order);
