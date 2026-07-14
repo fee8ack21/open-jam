@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+// 僅 iOS 加上 maximum-scale=1：關閉聚焦 input 時的自動放大（頁面放大後不會自行復原）。
+// iOS 10+ 的手動雙指縮放不受 maximum-scale 限制，無障礙不受影響；Android 不套用以免鎖縮放。
+if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+  document.querySelector('meta[name=viewport]')
+    .setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+}
+</script>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/favicon.ico" sizes="any">

@@ -672,9 +672,11 @@ body {
   /* collapse search & follow; reveal as full-width rows when toggled */
   .nav-search { display: none; }
   .nav-search.is-open { display: block; order: 3; flex-basis: 100%; max-width: none; }
-  /* iOS Safari 對 font-size < 16px 的 input 聚焦時會自動放大頁面，
-     導致展開的搜尋列超出可視視窗，故手機版輸入字級固定 16px */
-  .search-input, .follow-input { font-size: 16px; }
+  /* iOS Safari 對 font-size < 16px 的 input 聚焦時會自動放大頁面且不復原，
+     故手機版所有文字輸入（含結帳 / 評論的 naive-ui 輸入）字級固定 16px */
+  .search-input, .follow-input,
+  .oj-root .n-input__input-el,
+  .oj-root .n-input__textarea-el { font-size: 16px; }
 
   .nav-follow { display: none; order: 4; flex-basis: 100%; }
   .nav-follow.is-open { display: block; }
