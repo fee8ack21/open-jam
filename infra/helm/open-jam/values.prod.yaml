@@ -1,0 +1,404 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# ── 全域 URL 設定 ─────────────────────────────────────────────────────────────
+config:
+  externalUrl: "https://openjam.co/"
+  hydraPublicUrl: "https://hydra.openjam.co/"
+  authPageUrl: "https://auth.openjam.co/"
+  portalPageUrl: "https://openjam.co/"
+  workspaceUrl: "https://workspace.openjam.co/"
+  creatorBaseUrl: "https://<store-slug>.openjam.co"
+  storeApiUrl: "https://api.openjam.co/store-service"
+  oidcClientId: "open-jam-web"
+  storagePublicBaseUrl: "https://assets.openjam.co"
+
+# 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
+dbNamePrefix: open_jam
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+# 真實機密不放本檔（本檔進 git）：本地部署疊 values.prod.secrets.yaml（gitignored，
+# 唯一真相在 GCP Secret Manager 的 open-jam-helm-secrets），CI 部署時以 gcloud
+# 取出疊上（見 release.yml deploy job）。
+secrets:
+  # postgres.password / redis.password / rabbitmq.password /
+  # hydra.systemSecret / hydra.pairwiseSalt / sendgrid.apiKey → 機密 overlay
+  smtp:
+    username: ""
+    password: ""
+  storage:
+    # Provider 為 Gcs 時不使用，僅供 Minio 切換時參考
+    accessKey: ""
+    secretKey: ""
+
+# ── Hydra OIDC Clients（Web redirectUris 沿用 base values）──────────────────────
+hydraClients:
+  service:
+    clientId: "open-jam-service"
+    # clientSecret → 機密 overlay
+
+# ── Infrastructure ────────────────────────────────────────────────────────────
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  user: postgres
+  persistence:
+    enabled: true
+    storageClass: "standard-rwo"
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+  persistence:
+    enabled: true
+    storageClass: "standard-rwo"
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+rabbitmq:
+  enabled: true
+  image: rabbitmq:3.13-management-alpine
+  user: guest
+  virtualHost: /
+  persistence:
+    enabled: true
+    storageClass: "standard-rwo"
+    size: 2Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+hydra:
+  enabled: true
+  image: oryd/hydra:v2.2
+  dev: false
+  migrateJob:
+    enabled: true
+    ttlSecondsAfterFinished: 300
+    backoffLimit: 10
+  # GCLB / GFE 的來源 IP range，用於 SERVE_TLS_ALLOW_TERMINATION_FROM
+  tlsTerminationFrom: "130.211.0.0/22,35.191.0.0/16"
+  ttl:
+    authCode: "10m"
+    loginConsentRequest: "10m"
+  oidc:
+    subjectIdentifiers: "pairwise,public"
+  cors:
+    allowedOrigins: "https://workspace.openjam.co,https://openjam.co,http://localhost:5173,http://localhost:5174,http://localhost:5175"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Mailpit：本地 / Staging 用；Production 請設 enabled: false 並配置外部 SMTP
+mailpit:
+  enabled: false
+  image: axllent/mailpit:latest
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+smtp:
+  # 若 mailpit.enabled=true 則以下設定自動被 mailpit service 覆蓋
+  host: ""
+  port: 1025
+  enableSsl: false
+  fromAddress: "noreply@openjam.co"
+
+sendgrid:
+  fromAddress: "noreply@openjam.co"
+
+email:
+  maxRetryAttempts: 5
+  retryIntervalMinutes: 2
+
+# 檔案儲存後端：正式環境採用 GCS，signed URL 透過 GKE Workload Identity 簽章
+storage:
+  provider: Gcs
+  # 公開讀取資產（Avatar/Banner、商品縮圖，public/* 前綴）所屬 bucket
+  publicBucket: open-jam-public
+  # 私有資產（買家授權下載的版本檔）所屬 bucket
+  privateBucket: open-jam-private
+  softDeleteRetentionDays: 30
+  gcs:
+    # 留空走 ADC / GKE Workload Identity
+    credentialsPath: ""
+
+# ── Application Services ──────────────────────────────────────────────────────
+
+auth:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
+    tag: v0.0.18
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+logService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/log-service
+    tag: v0.0.7
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+emailService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/email-service
+    tag: v0.0.6
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+storageService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/storage-service
+    tag: v0.0.10
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+storeService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/store-service
+    tag: v0.0.6
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+catalogService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
+    tag: v0.0.6
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+quotaService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/quota-service
+    tag: v0.0.3
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+paymentService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/payment-service
+    tag: v0.0.3
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  stripe:
+    # secretKey / publishableKey / webhookSecret → 機密 overlay
+    successUrl: "https://openjam.co/checkout/success?session_id={CHECKOUT_SESSION_ID}"
+    cancelUrl: "https://openjam.co/checkout/cancel"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+orderService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
+    tag: v0.0.3
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+notificationService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/notification-service
+    tag: v0.0.2
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+contentService:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/content-service
+    tag: v0.0.1
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+creatorWeb:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/creator-web
+    tag: v0.0.14
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+portalWeb:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/portal-web
+    tag: v0.0.29
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+workspaceWeb:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/workspace-web
+    tag: v0.0.27
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+docs:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/docs
+    tag: v0.0.10
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ── One-time Seed Job ─────────────────────────────────────────────────────────
+
+bootstrap:
+  enabled: true
+  image:
+    repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/bootstrap
+    tag: v0.0.14
+    pullPolicy: IfNotPresent
+  ttlSecondsAfterFinished: 300
+  # seed 平台管理員（password → 機密 overlay）
+  adminUser:
+    email: "admin@openjam.co"
+  # 正式環境不 seed 假帳號 / 假店家
+  seedMockData: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi

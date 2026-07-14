@@ -507,7 +507,9 @@ infra/docker/volumes/storage/files/
 infra/docker/volumes/minio/
 
 # Helm 正式環境機敏設定值，不納入版控
-infra/helm/open-jam/values.prod.yaml
+# （values.prod.yaml 已挖除機密進版控；機密拆至 values.prod.secrets.yaml，
+#   唯一真相在 GCP Secret Manager 的 open-jam-helm-secrets，CI 部署時取出疊上）
+infra/helm/open-jam/values.prod.secrets.yaml
 infra/helm/infra/values.prod.yaml
 
 .claude

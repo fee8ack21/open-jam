@@ -159,8 +159,101 @@ jobs:
           name: result-${{ matrix.image }}
           path: ${{ matrix.image }}.json
 
-  # ── 3a. setup 階段失敗（未知 image key／清單為空／前置工具錯誤）也要通知 ──
-  #        此時 build / notify 皆不會執行，需獨立 job 補發，避免「紅了卻無聲」。
+  # ── 3. Helm 直接部署到 GKE ──
+  #      ArgoCD 尚未 bootstrap（見 infra/argocd/README.md 前置需求），此為過渡方案：
+  #      values.prod.yaml（已挖除機密）進 git；機密整份存於 GCP Secret Manager
+  #      的 open-jam-helm-secrets（內容即本地的 values.prod.secrets.yaml），
+  #      部署時以 gcloud 取出疊上。Secret Manager 為機密唯一真相（可讀回、有版本）。
+  #      不寫回 values 檔，只在本次 helm upgrade 用 --set 覆寫這次 release
+  #      清單內服務的 image tag，其餘沿用 values.prod.yaml 既有值。
+  #      --atomic：失敗自動回滾（沒有 ArgoCD selfHeal 兜底，靠此把關）。
+  deploy:
+    needs: [setup, build]
+    if: needs.setup.outputs.is_release == 'true' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    environment: prod        # 無 secrets，純當部署閘門（deployment branches 限定 main）+ 部署歷史
+    permissions:
+      contents: read
+      id-token: write        # WIF 需要
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      # GCP_SA_EMAIL 需具備 open-jam 叢集的 roles/container.developer，
+      # 否則此步驟會 403（目前該 SA 可能只有 Artifact Registry 寫入權限）
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: open-jam
+          location: asia-east1-a
+          project_id: open-jam-498418
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.15.0
+
+      # 從 Secret Manager 取機密 values（auth 步驟已讓 runner 預裝的 gcloud
+      # 帶上 WIF 憑證）；SA 需該 secret 的 roles/secretmanager.secretAccessor
+      - name: Fetch secrets values
+        run: |
+          gcloud secrets versions access latest \
+            --secret=open-jam-helm-secrets \
+            --project=open-jam-498418 \
+            > "$RUNNER_TEMP/secrets.yaml"
+          if [ ! -s "$RUNNER_TEMP/secrets.yaml" ]; then
+            echo "::error::open-jam-helm-secrets 取回內容為空"
+            exit 1
+          fi
+
+      # 把 setup 階段解析好的 matrix（kebab-case image key + version）
+      # 轉成 helm --set 覆寫參數；key 對應 values.prod.yaml 的 camelCase 區塊名
+      - id: set-args
+        env:
+          MATRIX: ${{ needs.setup.outputs.matrix }}
+        run: |
+          MAP='{
+            "auth":"auth","log-service":"logService","email-service":"emailService",
+            "storage-service":"storageService","store-service":"storeService",
+            "catalog-service":"catalogService","quota-service":"quotaService",
+            "payment-service":"paymentService","order-service":"orderService",
+            "notification-service":"notificationService","content-service":"contentService",
+            "bootstrap":"bootstrap","portal-web":"portalWeb","creator-web":"creatorWeb",
+            "workspace-web":"workspaceWeb","docs":"docs"
+          }'
+          ARGS=$(jq -rn --argjson matrix "$MATRIX" --argjson map "$MAP" \
+            '$matrix.include[] | "--set " + $map[.image] + ".image.tag=" + .version' \
+            | tr '\n' ' ')
+          echo "args=$ARGS" >> "$GITHUB_OUTPUT"
+
+      # bootstrap 為 post-install hook，僅在 helm install 首次觸發，
+      # helm upgrade 不會重跑（現況已是如此，非本次變更引入）
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install open-jam infra/helm/open-jam \
+            --namespace open-jam \
+            -f infra/helm/open-jam/values.prod.yaml \
+            -f "$RUNNER_TEMP/secrets.yaml" \
+            ${{ steps.set-args.outputs.args }} \
+            --atomic --timeout 5m
+
+      - if: always()
+        name: Discord notify (deploy)
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR=3066993; TITLE="✅ 部署完成"
+          else
+            COLOR=15158332; TITLE="❌ 部署失敗（--atomic 已自動回滾）"
+          fi
+          curl -sf -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"Open Jam Deploy — $TITLE\",\"color\":$COLOR,\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}"
+
+  # ── 4a. setup 階段失敗（未知 image key／清單為空／前置工具錯誤）也要通知 ──
+  #        此時 build / deploy / notify 皆不會執行，需獨立 job 補發，避免「紅了卻無聲」。
   notify-setup-failure:
     needs: setup
     if: always() && needs.setup.result == 'failure'
@@ -172,7 +265,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"embeds\":[{\"title\":\"Open Jam Release — ❌ 設定階段失敗\",\"description\":\"release commit 清單解析或前置步驟失敗（未知 image key／清單為空／工具錯誤），未進入建置。請查看 Actions log。\",\"color\":15158332,\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}]}"
 
-  # ── 3b. 彙整所有結果，發一則 Discord ──
+  # ── 4b. 彙整所有建置結果，發一則 Discord（部署結果由 deploy job 另發一則）──
   notify:
     needs: [setup, build]
     if: always() && needs.setup.outputs.is_release == 'true'
