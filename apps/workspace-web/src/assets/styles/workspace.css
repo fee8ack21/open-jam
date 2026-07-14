@@ -50,10 +50,28 @@
 }
 
 .side-brand { flex: none; display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 2px 6px 18px; cursor: pointer; user-select: none; }
-.side-brand .brand-jar { flex: none; display: block; margin-left: 8px; }
-/* hover：罐蓋彈開（同 portal-web BrandLogo 語彙的簡化版） */
-.side-brand .oj-lid { transition: transform .32s var(--ease-pop); transform-origin: 24px 8px; }
-.side-brand:hover .oj-lid { transform: translate(1px, -4px) rotate(8deg); }
+.side-brand .brand-jar { flex: none; display: block; margin-left: 8px; overflow: visible; }
+/* hover：罐蓋彈開、果醬噴濺、Jam 抹上果醬印（同 portal-web base.css 的 .brand 區塊） */
+.side-brand .oj-lid { transition: transform .32s var(--ease-pop); transform-origin: 38px 8px; }
+.side-brand:hover .oj-lid { transform: translate(2px, -6px) rotate(10deg); }
+.side-brand .oj-splash {
+  opacity: 0; transform: translateY(8px) scale(.3); transform-origin: 24px 8px;
+  transition: transform .38s var(--ease-pop) .06s, opacity .18s .06s;
+}
+.side-brand:hover .oj-splash { opacity: 1; transform: translateY(0) scale(1); }
+.side-brand .oj-smear {
+  transition: transform .42s var(--ease-pop) .1s, opacity .2s .1s;
+  transform-origin: center center; transform: scale(.2) rotate(-1.5deg); opacity: 0;
+}
+.side-brand:hover .oj-smear { transform: scale(1) rotate(-1.5deg); opacity: 1; }
+.side-brand .brand-word { position: relative; display: inline-block; }
+/* 墨黑側欄字為白色，果醬印抹上時 Jam 轉墨色維持辨識（portal 淺底字恆為墨色） */
+.side-brand .brand-word > span { position: relative; transition: color .2s .1s; }
+.side-brand:hover .brand-word > span { color: var(--text); }
+@media (prefers-reduced-motion: reduce) {
+  .side-brand .oj-lid, .side-brand .oj-splash, .side-brand .oj-smear,
+  .side-brand .brand-word > span { transition: none; }
+}
 .side-brand .brand-name {
   font-family: var(--oj-display); font-weight: 700; font-size: 19px; letter-spacing: .5px;
   color: #fff; line-height: 1.1;
