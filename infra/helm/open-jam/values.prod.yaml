@@ -355,7 +355,7 @@ workspaceWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/workspace-web
-    tag: v0.0.27
+    tag: v0.0.28
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -370,7 +370,7 @@ docs:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/docs
-    tag: v0.0.10
+    tag: v0.0.11
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
