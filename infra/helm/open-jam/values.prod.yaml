@@ -360,7 +360,7 @@ workspaceWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/workspace-web
-    tag: v0.0.32
+    tag: v0.0.33
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
