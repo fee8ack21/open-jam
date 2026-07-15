@@ -1,4 +1,6 @@
+using System.Net;
 using System.Net.Http.Json;
+using Shared.Exceptions;
 
 namespace StoreService.Services;
 
@@ -34,6 +36,10 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
     }
 
     /// <summary>確認資產已直傳完成，觸發 StorageService 標記檔案 Ready。</summary>
+    /// <remarks>
+    /// StorageService 以 422 表示物件尚未直傳完成、404 表示查無檔案紀錄；兩者皆為呼叫端
+    /// 可修正的情況，轉為對應的 <see cref="AppException"/> 子類，避免以 500 外漏給前端。
+    /// </remarks>
     /// <param name="fileId">StorageService 簽發的檔案 ID（= Asset ID）。</param>
     /// <param name="ct">Cancellation token。</param>
     public async Task ConfirmUploadAsync(Guid fileId, CancellationToken ct)
@@ -42,7 +48,16 @@ public class StorageServiceClient(IHttpClientFactory httpClientFactory)
 
         var response = await client.PostAsync($"v1/files/{fileId}/confirm", content: null, ct);
 
-        response.EnsureSuccessStatusCode();
+        if (response.IsSuccessStatusCode)
+            return;
+
+        throw response.StatusCode switch
+        {
+            HttpStatusCode.UnprocessableEntity => new ValidationException("圖片尚未上傳完成，請重新上傳。"),
+            HttpStatusCode.NotFound => new NotFoundException("找不到圖片檔案。"),
+            _ => new InvalidOperationException(
+                $"StorageService confirm 失敗（HTTP {(int)response.StatusCode}）。"),
+        };
     }
 
     /// <summary>對應 StorageService <c>FileType</c> enum（Video=0, Image=1, Pdf=2）。</summary>

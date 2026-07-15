@@ -17,7 +17,10 @@ config:
   githubRepoUrl: "https://github.com/fee8ack21/open-jam"
   docsUrl: "https://docs.openjam.co"
   oidcClientId: "open-jam-web"
-  storagePublicBaseUrl: "https://assets.openjam.co"
+  # 公開資產（Avatar / Banner / 商品縮圖，public/* 前綴）對外讀取網址前綴。
+  # 必須指向真正提供 bucket 物件的來源：MVP 直接用 GCS 公開網址；未來若上 Cloud CDN
+  # 再換成 assets.openjam.co（需先替該網域建好 CDN／bucket backend，否則資產全數 404）。
+  storagePublicBaseUrl: "https://storage.googleapis.com/open-jam-public"
 
 hydraClients:
   web:

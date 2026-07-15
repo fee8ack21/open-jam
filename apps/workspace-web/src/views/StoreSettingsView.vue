@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
@@ -24,9 +24,23 @@ const bannerInput = ref<HTMLInputElement | null>(null)
 // 名稱 / 描述採本機草稿，載入或儲存後與後端對齊
 const form = ref({ storeName: '', description: '' })
 
+// 選檔後的本機預覽（object URL）：上傳與 confirm 期間先顯示使用者選的圖，
+// 成功後改由後端 URL 接手、失敗則還原原圖（後端於 confirm 才綁定，失敗不會動到商店）。
+const preview = ref<Record<'avatar' | 'banner', string>>({ avatar: '', banner: '' })
+
+function setPreview(kind: 'avatar' | 'banner', file: File | null) {
+  const prev = preview.value[kind]
+  if (prev) URL.revokeObjectURL(prev)
+  preview.value = { ...preview.value, [kind]: file ? URL.createObjectURL(file) : '' }
+}
+
+onBeforeUnmount(() => {
+  Object.values(preview.value).forEach((url) => url && URL.revokeObjectURL(url))
+})
+
 const slug = computed(() => primaryStore.value?.storeSlug ?? '')
-const avatarUrl = computed(() => primaryStore.value?.avatarUrl ?? '')
-const bannerUrl = computed(() => primaryStore.value?.bannerUrl ?? '')
+const avatarUrl = computed(() => preview.value.avatar || primaryStore.value?.avatarUrl || '')
+const bannerUrl = computed(() => preview.value.banner || primaryStore.value?.bannerUrl || '')
 const dirty = computed(() =>
   form.value.storeName.trim() !== (primaryStore.value?.storeName ?? '') ||
   form.value.description.trim() !== (primaryStore.value?.description ?? ''),
@@ -50,6 +64,16 @@ function pick(kind: 'avatar' | 'banner') {
   ;(kind === 'avatar' ? avatarInput : bannerInput).value?.click()
 }
 
+/** 等圖片載入完成（載入失敗也視為結束，不卡住交接）。 */
+function preload(url?: string | null): Promise<void> {
+  if (!url) return Promise.resolve()
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = img.onerror = () => resolve()
+    img.src = url
+  })
+}
+
 async function onPick(e: Event, kind: 'avatar' | 'banner') {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
@@ -58,7 +82,13 @@ async function onPick(e: Event, kind: 'avatar' | 'banner') {
   if (!ALLOWED.includes(file.type)) { message.error(t('storeSettings.msgInvalidType')); return }
   if (file.size > MAX_BYTES) { message.error(t('storeSettings.msgTooLarge')); return }
 
+  setPreview(kind, file)   // 立即預覽，不等後端往返
   const ok = await storeApp.uploadStoreImage(file, kind)
+
+  // 成功：等後端新圖載入完成再撤預覽，避免交接時閃一下空白；失敗：直接撤，還原原本的圖
+  if (ok) await preload(kind === 'avatar' ? primaryStore.value?.avatarUrl : primaryStore.value?.bannerUrl)
+  setPreview(kind, null)
+
   if (ok) message.success(kind === 'avatar' ? t('storeSettings.msgAvatarUpdated') : t('storeSettings.msgBannerUpdated'))
   else message.error(storeApp.error ?? t('storeSettings.msgUploadFailed'))
 }

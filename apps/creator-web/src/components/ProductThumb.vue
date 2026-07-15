@@ -58,7 +58,12 @@ const catLabel = computed((): string => {
   const map: Record<string, string> = { music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' };
   return map[props.product.cat] ?? '';
 });
-const autoLabel = computed(() => props.label || `${props.product.formats[0]} · ${props.product.totalSize}`);
+// 後端商品列表不提供檔案格式 / 總大小（formats 為空、totalSize 為 '—' 佔位），
+// 缺值時整段略過，避免顯示 "undefined · —"。
+const autoLabel = computed(() =>
+  props.label || [props.product.formats[0], props.product.totalSize]
+    .filter((part) => part && part !== '—')
+    .join(' · '));
 </script>
 
 <template>
@@ -71,7 +76,7 @@ const autoLabel = computed(() => props.label || `${props.product.formats[0]} · 
       <div class="thumb-glyph">
         <app-icon :name="catGlyph" :size="glyphSize" />
       </div>
-      <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
+      <div v-if="!hideLabel && autoLabel" class="thumb-label">{{ autoLabel }}</div>
     </template>
   </div>
 </template>

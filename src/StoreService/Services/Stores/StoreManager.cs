@@ -180,11 +180,8 @@ public class StoreManager(
         };
         db.Assets.Add(asset);
 
-        if (isAvatar)
-            store.AvatarAssetId = asset.Id;
-        else
-            store.BannerAssetId = asset.Id;
-
+        // 此處僅登記 Asset，不綁定到商店：物件尚未上傳，先綁會讓直傳失敗的商店
+        // 指向不存在的物件而永久破圖。綁定移至 ConfirmAssetUploadAsync（確認物件存在後）。
         await db.SaveChangesAsync(ct);
 
         return new AssetUploadUrlResponse
@@ -207,12 +204,23 @@ public class StoreManager(
 
         await StoreAuthorization.EnsureOwnerAsync(db, id, userId, ct);
 
-        // 確認欲確認的 Asset 確實為該商店目前掛載的 Avatar/Banner。
-        var expectedAssetId = isAvatar ? store.AvatarAssetId : store.BannerAssetId;
-        if (expectedAssetId != request.AssetId)
-            throw new ValidationException("Asset 與商店目前的資產不符。");
+        // 資產須為本人稍早以上傳簽章 URL 登記者，避免綁定他人或不存在的資產。
+        var asset = await db.Assets.AsNoTracking().FirstOrDefaultAsync(a => a.Id == request.AssetId, ct)
+            ?? throw new NotFoundException("找不到資產。");
 
+        if (asset.CreatedBy != userId)
+            throw new ForbiddenException("無權使用此資產。");
+
+        // 先向 StorageService 確認物件確實已直傳完成（不存在會拋錯），確認後才綁定；
+        // 直傳失敗時商店維持原本的頭像 / 橫幅，不會被換成破圖。
         await storageClient.ConfirmUploadAsync(request.AssetId, ct);
+
+        if (isAvatar)
+            store.AvatarAssetId = asset.Id;
+        else
+            store.BannerAssetId = asset.Id;
+
+        await db.SaveChangesAsync(ct);
 
         return await ToDtoAsync(store, ct);
     }

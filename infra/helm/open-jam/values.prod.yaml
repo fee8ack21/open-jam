@@ -11,7 +11,8 @@ config:
   creatorBaseUrl: "https://<store-slug>.openjam.co"
   storeApiUrl: "https://api.openjam.co/store-service"
   oidcClientId: "open-jam-web"
-  storagePublicBaseUrl: "https://assets.openjam.co"
+  # 指向 GCS 公開 bucket（assets.openjam.co 尚無 CDN／bucket backend，指過去會全數 404）
+  storagePublicBaseUrl: "https://storage.googleapis.com/open-jam-public"
 
 # 資料庫名稱前綴（對應 docker-compose 的 DB_NAME_PREFIX）
 dbNamePrefix: open_jam

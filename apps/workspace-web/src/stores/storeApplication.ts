@@ -124,8 +124,9 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
   }
 
   /**
-   * 上傳商店頭像 / 橫幅：申請簽章 URL（後端即綁定該資產到商店）→ 直傳 bytes → 重新載入。
-   * 成功回傳 true。
+   * 上傳商店頭像 / 橫幅：申請簽章 URL（後端即綁定該資產到商店）→ 直傳 bytes →
+   * confirm（後端轉呼叫 StorageService 驗證物件存在並標記 Ready）→ 重新載入。
+   * confirm 為 GCS 模式下唯一觸發處理 pipeline 的路徑，不可省略。成功回傳 true。
    */
   async function uploadStoreImage(file: File, kind: 'avatar' | 'banner') {
     const id = primaryStore.value?.id;
@@ -144,8 +145,20 @@ export const useStoreApplicationStore = defineStore('storeApplication', () => {
       const res = kind === 'avatar'
         ? await storeApi.stores.requestAvatarUploadUrl(id, payload)
         : await storeApi.stores.requestBannerUploadUrl(id, payload);
-      if (res.data.uploadUrl) await putFile(res.data.uploadUrl, file);
-      await load();
+
+      const { uploadUrl, assetId } = res.data;
+      if (!uploadUrl || !assetId) throw new Error(i18n.global.t('storeError.uploadImageFailed'));
+
+      await putFile(uploadUrl, file);
+
+      const confirmed = kind === 'avatar'
+        ? await storeApi.stores.confirmAvatarUpload(id, { assetId })
+        : await storeApi.stores.confirmBannerUpload(id, { assetId });
+
+      // confirm 回傳更新後的 StoreDto，直接就地更新避免多一次往返。
+      const i = stores.value.findIndex((s) => s.store?.id === id);
+      if (i >= 0) stores.value[i] = { ...stores.value[i], store: confirmed.data };
+      else await load();
       return true;
     } catch (err) {
       error.value = messageOf(err, i18n.global.t('storeError.uploadImageFailed'));
