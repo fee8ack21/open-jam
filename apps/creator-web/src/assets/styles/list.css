@@ -108,8 +108,12 @@
 }
 
 /* top-right bookmark ribbon（直書文字）— 熱賣 / 新上架 / 精選，同 portal-web */
+/* width 不可省：WebKit（iOS Safari）對 writing-mode 直書子元素的 shrink-to-fit 會算成近 0，
+   導致 ::before 墨線剪影遠窄於黃底——墨線只剩左側、缺角 V 偏左，書籤並衝出卡片右緣。
+   直書寬度只取決於行高（16px）+ 左右 padding（6px×2），與標籤字數無關，故可寫死。 */
 .mc-mark {
   position: absolute; top: 0; right: 12px; z-index: 4;
+  width: 28px;
 }
 /* clip-path 無法吃 border，以底層放大 var(--bw) 的同形剪影疊出墨線。
    不可改用 filter: drop-shadow——WebKit（iOS Safari）不會對含 filter 的
@@ -139,15 +143,7 @@
 }
 @media (max-width: 600px) {
   .browse-main .grid { grid-template-columns: 1fr; }
-  /* sort pill-tabs → native select to save width */
+  /* sort pill-tabs → 下拉選單（JamSelect）以節省寬度 */
   .sort-lab, .sort-tabs .sort-tab { display: none; }
-  .sort-select {
-    appearance: none; -webkit-appearance: none; display: block;
-    min-width: 160px; height: 40px; padding: 0 38px 0 14px;
-    font-family: var(--oj-font); font-size: 14px; font-weight: 700; color: var(--text);
-    background-color: var(--surface);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='5 9 12 16 19 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 14px center;
-    border: var(--bw) solid var(--border-strong); border-radius: 999px; cursor: pointer;
-  }
+  .sort-select { display: block; min-width: 160px; }
 }

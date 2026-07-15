@@ -6,6 +6,7 @@ import { useShopStore } from '@/stores/shop';
 import { CATEGORIES, TAGS, type Product } from '@/data/products';
 import ProductCard from '@/components/ProductCard.vue';
 import ProductThumb from '@/components/ProductThumb.vue';
+import JamSelect from '@/components/JamSelect.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
@@ -183,9 +184,8 @@ const activeChips = computed(() => {
                   :class="{ on: s.sort === o.value }" :aria-pressed="s.sort === o.value" @click="s.sort = o.value">
             {{ o.label }}
           </button>
-          <select class="sort-select" v-model="s.sort" :aria-label="t('list.sortAria')">
-            <option v-for="o in sortOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-          </select>
+          <jam-select class="sort-select" v-model="s.sort" :options="sortOptions"
+                      :aria-label="t('list.sortAria')" />
         </div>
       </div>
 

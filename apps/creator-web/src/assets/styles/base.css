@@ -219,6 +219,48 @@ body {
 .lang-pop-leave-active { transition: opacity .12s, transform .12s ease; }
 .lang-pop-enter-from,
 .lang-pop-leave-to { opacity: 0; transform: translateY(-6px) scale(.97); }
+
+/* ---------- JamSelect：通用下拉（與上方語系下拉同一套視覺） ---------- */
+.jsel { position: relative; flex: none; }
+/* 不設 display：由使用端（如 .sort-select）決定顯示與否 */
+.jsel.is-block { width: 100%; }
+.jsel-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 12px 0 14px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 13px; color: var(--text);
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 999px;
+  cursor: pointer;
+  transition: transform .15s var(--ease-pop), background .15s, box-shadow .15s;
+}
+.jsel.is-block .jsel-btn { display: flex; width: 100%; justify-content: space-between; }
+.jsel-btn:hover { background: var(--c-yellow); transform: translateY(-2px); box-shadow: var(--pop-1); }
+.jsel-btn:active { transform: translateY(0); box-shadow: none; }
+.jsel-btn.open { background: var(--c-yellow); box-shadow: var(--pop-1); }
+.jsel-val { line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jsel-caret { opacity: .7; flex: none; }
+
+.jsel-menu {
+  position: absolute; top: calc(100% + 10px); z-index: 60;
+  min-width: 100%; padding: 6px;
+  background: var(--surface);
+  border: var(--bw) solid var(--border-strong); border-radius: var(--r-md);
+  box-shadow: var(--pop-1-h);
+}
+.jsel-menu.a-right { right: 0; }
+.jsel-menu.a-left { left: 0; }
+.jsel-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; padding: 9px 12px;
+  font-family: var(--oj-font); font-weight: 700; font-size: 13.5px; color: var(--text);
+  text-align: left; background: transparent; border: 0; border-radius: 10px;
+  cursor: pointer; white-space: nowrap;
+  transition: background .13s, transform .13s var(--ease-pop);
+}
+.jsel-opt + .jsel-opt { margin-top: 2px; }
+.jsel-opt:hover { background: var(--c-yellow); transform: translateX(2px); }
+.jsel-opt.active { background: var(--c-pink); }
+.jsel-opt.active:hover { background: var(--c-pink); }
+.jsel-opt-check { color: var(--c-pink-deep); flex: none; }
 .cart-badge {
   position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px;
   border-radius: 999px; background: var(--c-pink); color: var(--text); font-size: 11px; font-weight: 900;
@@ -693,15 +735,20 @@ body {
   .nav-actions .icon-btn { width: 38px; height: 38px; }
 
   /* collapse search & follow; reveal as full-width rows when toggled */
+  /* min-width: 0 不可省：.nav-search / .nav-follow 是 .nav-inner 的 flex item，
+     預設 min-width: auto 會把自動最小尺寸撐到 min-content。WebKit（iOS Safari）算
+     min-content 時不理會內層 input 的 min-width: 0，整列被撐到約 500px（> 可用的
+     370px）而衝出畫面，搜尋 / 追蹤鈕被切掉；Chromium 不會。內層 input 已有
+     min-width: 0，但外層 flex item 也必須各自宣告才擋得住。 */
   .nav-search { display: none; }
-  .nav-search.is-open { display: block; order: 3; flex-basis: 100%; max-width: none; }
+  .nav-search.is-open { display: block; order: 3; flex-basis: 100%; max-width: none; min-width: 0; }
   /* iOS Safari 對 font-size < 16px 的 input 聚焦時會自動放大頁面且不復原，
      故手機版所有文字輸入（含結帳 / 評論的 naive-ui 輸入）字級固定 16px */
   .search-input, .follow-input,
   .oj-root .n-input__input-el,
   .oj-root .n-input__textarea-el { font-size: 16px; }
 
-  .nav-follow { display: none; order: 4; flex-basis: 100%; }
+  .nav-follow { display: none; order: 4; flex-basis: 100%; min-width: 0; }
   .nav-follow.is-open { display: block; }
   .nav-follow:has(.follow-done) { display: block; }
   .nav-follow .follow-form { width: 100%; }

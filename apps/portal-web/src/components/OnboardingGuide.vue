@@ -16,6 +16,10 @@ import { hasCookie, setCookie } from '@/utils/cookies';
 const { t } = useI18n();
 
 const COOKIE = 'oj_market_onboarded';
+/* 與 market.css 的 nav burger 斷點一致：此寬度以下 .nav-actions 收進 burger 選單，
+   量不到被指引的 icon，故略過 coach 步驟 */
+const MOBILE_QUERY = '(max-width: 860px)';
+const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
 
 type Step = 'hidden' | 'modal' | 'coach';
 const step = ref<Step>('hidden');
@@ -73,6 +77,10 @@ function measure() {
 }
 
 function goCoach() {
+  if (isMobile()) {
+    finish();
+    return;
+  }
   step.value = 'coach';
   nextTick(measure);
 }
@@ -83,7 +91,12 @@ function finish() {
 }
 
 function onResize() {
-  if (step.value === 'coach') measure();
+  if (step.value !== 'coach') return;
+  if (isMobile()) {
+    finish();
+    return;
+  }
+  measure();
 }
 
 onMounted(() => {

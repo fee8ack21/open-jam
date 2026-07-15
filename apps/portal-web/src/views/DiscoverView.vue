@@ -13,6 +13,7 @@ import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
 import FeaturedCard from '@/components/FeaturedCard.vue';
 import ProductQuickView from '@/components/ProductQuickView.vue';
+import JamSelect from '@/components/JamSelect.vue';
 import RotatingWord from '@/components/home/RotatingWord.vue';
 import TagMarquee from '@/components/home/TagMarquee.vue';
 import CategoryShowcase from '@/components/home/CategoryShowcase.vue';
@@ -111,6 +112,17 @@ const priceOptions = computed(() => [
   { v: 'low', l: t('market.price.low') },
   { v: 'mid', l: t('market.price.mid') },
   { v: 'high', l: t('market.price.high') },
+]);
+
+/* 窄螢幕下拉（JamSelect）選項：桌機 pill tabs / 側欄按鈕的同源資料換成 label / value 形狀 */
+const sortMenuOptions = computed(() => sortOptions.value.map((o) => ({ label: o.l, value: o.v })));
+const priceMenuOptions = computed(() => priceOptions.value.map((o) => ({ label: o.l, value: o.v })));
+const categoryMenuOptions = computed(() => [
+  { value: 'all', label: t('market.browse.optionCount', { label: t('market.browse.allWorks'), count: catCount('all') }) },
+  ...cats.map((c) => ({
+    value: c.id,
+    label: t('market.browse.optionCount', { label: t('category.' + c.id), count: catCount(c.id) }),
+  })),
 ]);
 
 function inBand(price: number): boolean {
@@ -426,9 +438,8 @@ onBeforeUnmount(() => {
           <div class="sort-tabs">
             <span class="sort-lab">{{ t('market.browse.sortLabel') }}</span>
             <button type="button" v-for="o in sortOptions" :key="o.v" class="sort-tab" :class="{ on: sort === o.v }" :aria-pressed="sort === o.v" @click="sort = o.v">{{ o.l }}</button>
-            <select class="m-select sort-select" v-model="sort" :aria-label="t('market.browse.sortAria')">
-              <option v-for="o in sortOptions" :key="o.v" :value="o.v">{{ o.l }}</option>
-            </select>
+            <jam-select class="sort-select" v-model="sort" :options="sortMenuOptions"
+                        :aria-label="t('market.browse.sortAria')" />
           </div>
         </div>
 
@@ -452,10 +463,8 @@ onBeforeUnmount(() => {
                     <span class="so-count">{{ catCount(c.id) }}</span>
                   </button>
                 </div>
-                <select class="m-select side-select" v-model="category" :aria-label="t('market.browse.categoryAria')">
-                  <option value="all">{{ t('market.browse.optionCount', { label: t('market.browse.allWorks'), count: catCount('all') }) }}</option>
-                  <option v-for="c in cats" :key="c.id" :value="c.id">{{ t('market.browse.optionCount', { label: t('category.' + c.id), count: catCount(c.id) }) }}</option>
-                </select>
+                <jam-select class="side-select" v-model="category" :options="categoryMenuOptions"
+                            align="left" block :aria-label="t('market.browse.categoryAria')" />
               </div>
 
               <div class="side-group">
@@ -465,9 +474,8 @@ onBeforeUnmount(() => {
                     <span class="so-name">{{ o.l }}</span>
                   </button>
                 </div>
-                <select class="m-select side-select" v-model="priceBand" :aria-label="t('market.browse.priceAria')">
-                  <option v-for="o in priceOptions" :key="o.v" :value="o.v">{{ o.l }}</option>
-                </select>
+                <jam-select class="side-select" v-model="priceBand" :options="priceMenuOptions"
+                            align="left" block :aria-label="t('market.browse.priceAria')" />
               </div>
 
               <button v-if="activeFilters.length" type="button" class="side-reset" @click="reset">{{ t('market.browse.clearAll') }}</button>

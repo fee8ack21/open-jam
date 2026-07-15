@@ -98,6 +98,48 @@
 .lang-pop-enter-from,
 .lang-pop-leave-to { opacity: 0; transform: translateY(-6px) scale(.97); }
 
+/* ---------- JamSelect：通用下拉（與上方語系下拉同一套視覺） ---------- */
+.jsel { position: relative; flex: none; }
+/* 不設 display：由使用端（如 .side-select / .sort-select）決定顯示與否 */
+.jsel.is-block { width: 100%; }
+.jsel-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 12px 0 14px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 13px; color: var(--text);
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 999px;
+  cursor: pointer;
+  transition: transform .15s var(--ease-pop), background .15s, box-shadow .15s;
+}
+.jsel.is-block .jsel-btn { display: flex; width: 100%; justify-content: space-between; }
+.jsel-btn:hover { background: var(--c-yellow); transform: translateY(-2px); box-shadow: var(--pop-1); }
+.jsel-btn:active { transform: translateY(0); box-shadow: none; }
+.jsel-btn.open { background: var(--c-yellow); box-shadow: var(--pop-1); }
+.jsel-val { line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jsel-caret { opacity: .7; flex: none; }
+
+.jsel-menu {
+  position: absolute; top: calc(100% + 10px); z-index: 60;
+  min-width: 100%; padding: 6px;
+  background: var(--surface);
+  border: var(--bw) solid var(--border-strong); border-radius: var(--r-md);
+  box-shadow: var(--pop-1-h);
+}
+.jsel-menu.a-right { right: 0; }
+.jsel-menu.a-left { left: 0; }
+.jsel-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; padding: 9px 12px;
+  font-family: var(--oj-font); font-weight: 700; font-size: 13.5px; color: var(--text);
+  text-align: left; background: transparent; border: 0; border-radius: 10px;
+  cursor: pointer; white-space: nowrap;
+  transition: background .13s, transform .13s var(--ease-pop);
+}
+.jsel-opt + .jsel-opt { margin-top: 2px; }
+.jsel-opt:hover { background: var(--c-yellow); transform: translateX(2px); }
+.jsel-opt.active { background: var(--c-pink); }
+.jsel-opt.active:hover { background: var(--c-pink); }
+.jsel-opt-check { color: var(--c-pink-deep); flex: none; }
+
 /* ---------- hero（紫色圓點滿版帶 + 黑色波浪收邊） ---------- */
 .mkt-hero { position: relative; padding: 84px 0 118px; text-align: center; }
 .mkt-hero::before, .mkt-hero::after {
@@ -379,17 +421,6 @@
 }
 .side-reset:hover { background: var(--c-pink); }
 .side-select { display: none; }
-.m-select {
-  appearance: none; -webkit-appearance: none;
-  width: 100%; height: 44px; padding: 0 40px 0 16px;
-  font-family: var(--oj-font); font-size: 14px; font-weight: 700; color: var(--text);
-  background-color: var(--surface);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 15px center;
-  border: var(--bw) solid var(--border-strong); border-radius: 999px;
-  cursor: pointer;
-}
-.m-select:focus { outline: none; box-shadow: var(--pop-1); }
 
 .browse-count { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 22px; }
 .browse-count b { font-family: var(--oj-display); color: var(--text); font-weight: 700; }
@@ -445,8 +476,12 @@
 }
 
 /* top-right bookmark ribbon（直書文字）— 熱賣 / 新上架 / 精選 */
+/* width 不可省：WebKit（iOS Safari）對 writing-mode 直書子元素的 shrink-to-fit 會算成近 0，
+   導致 ::before 墨線剪影遠窄於黃底——墨線只剩左側、缺角 V 偏左，書籤並衝出卡片右緣。
+   直書寬度只取決於行高（16px）+ 左右 padding（6px×2），與標籤字數無關，故可寫死。 */
 .mc-mark {
   position: absolute; top: 0; right: 12px; z-index: 4;
+  width: 28px;
 }
 /* clip-path 無法吃 border，以底層放大 var(--bw) 的同形剪影疊出墨線。
    不可改用 filter: drop-shadow——WebKit（iOS Safari）不會對含 filter 的
@@ -556,9 +591,9 @@
   .side-select { display: block; }
   .side-reset { width: 100%; margin-top: 2px; }
 
-  /* sort tabs → native select */
+  /* sort tabs → 下拉選單（JamSelect） */
   .sort-lab, .sort-tabs .sort-tab { display: none; }
-  .sort-select { display: block; width: auto; min-width: 160px; height: 40px; }
+  .sort-select { display: block; min-width: 160px; }
 
   /* footer：Logo 一行、連結一行，皆水平置中 */
   .mkt-foot { flex-direction: column; gap: 18px; justify-content: center; text-align: center; }

@@ -1,4 +1,4 @@
-name: Release build & push
+name: Release
 
 # 觸發策略：push 到 main，且 HEAD 為 chore(release) commit。
 # commit body 的 `- <image-key>@<version>` 清單即宣告要建哪些映像與版本，

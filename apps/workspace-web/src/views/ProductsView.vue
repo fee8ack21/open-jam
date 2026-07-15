@@ -228,7 +228,7 @@ onMounted(load)
                       @click="toggleFeatured(p)">
                       <app-icon name="star" :size="17" :fill="!!p.isStoreFeatured" />
                     </button>
-                    <button class="ic-act" :title="t('products.viewReviews')" @click="openReviews(p)"><app-icon name="star" :size="17" /></button>
+                    <button class="ic-act" :title="t('products.viewReviews')" @click="openReviews(p)"><app-icon name="chat" :size="17" /></button>
                     <button class="ic-act" :title="t('common.edit')" @click="dashboard.go('upload')"><app-icon name="edit" :size="17" /></button>
                   </div>
                 </td>
