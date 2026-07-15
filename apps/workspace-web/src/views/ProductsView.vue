@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
@@ -22,6 +23,7 @@ function statusOf(s?: CatalogStatus) {
 }
 
 const dashboard = useDashboardStore()
+const router = useRouter()
 const message = useMessage()
 const catalog = useCatalogStore()
 const storeApp = useStoreApplicationStore()
@@ -38,6 +40,10 @@ const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
 // 評論檢視 drawer
 const reviewing = ref<CatalogSummaryDto | null>(null)
 function openReviews(p: CatalogSummaryDto) { reviewing.value = p }
+
+function openEdit(p: CatalogSummaryDto) {
+  if (p.id) router.push({ name: 'product-edit', params: { id: p.id } })
+}
 
 // 只有已上架商品可設為店長精選
 function canFeature(p: CatalogSummaryDto) {
@@ -229,7 +235,7 @@ onMounted(load)
                       <app-icon name="star" :size="17" :fill="!!p.isStoreFeatured" />
                     </button>
                     <button class="ic-act" :title="t('products.viewReviews')" @click="openReviews(p)"><app-icon name="chat" :size="17" /></button>
-                    <button class="ic-act" :title="t('common.edit')" @click="dashboard.go('upload')"><app-icon name="edit" :size="17" /></button>
+                    <button class="ic-act" :title="t('common.edit')" @click="openEdit(p)"><app-icon name="edit" :size="17" /></button>
                   </div>
                 </td>
               </tr>

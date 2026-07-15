@@ -72,7 +72,12 @@ function count(key?: string) {
 }
 function nav(view: string) { store.go(view); emit('navigate') }
 function pickMode(m: string) { store.setMode(m) }
-function isActive(view: string) { return route.name === view }
+// 內頁（無自身選單項）由所屬選單項代表，停留其上時仍維持高亮
+const NAV_PARENT: Record<string, string> = { 'product-edit': 'products' }
+function isActive(view: string) {
+  const name = route.name as string | undefined
+  return name === view || (!!name && NAV_PARENT[name] === view)
+}
 
 /** 應用程式版本號（Vite build 時由 package.json 的 version 注入），顯示於選單下方。 */
 const appVersion = __APP_VERSION__
