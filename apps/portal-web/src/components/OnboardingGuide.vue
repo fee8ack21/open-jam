@@ -183,14 +183,15 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
   width: 100%; max-width: 600px; max-height: min(82vh, 720px);
   background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 24px;
   box-shadow: 4px 4px 0 rgba(26, 26, 26, 0.9);
-  display: flex; flex-direction: column; overflow: hidden;
+  display: flex; flex-direction: column;
   animation: modal-in 0.34s cubic-bezier(0.2, 1.15, 0.4, 1);
+  /* 不用 overflow:hidden（會截掉頂部膠帶貼條），改為各自圓角內側角落（同 ProductQuickView） */
 }
-/* 膠帶貼條 */
+/* 膠帶貼條（同 ProductQuickView / AboutView：懸在卡片上緣外側） */
 .modal-card::before {
-  content: ''; position: absolute; top: -2px; left: 50%; width: 76px; height: 14px;
-  margin-left: -38px; background: rgba(255, 222, 0, 0.9); border-radius: 0 0 3px 3px;
-  transform: rotate(-2deg); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.15); z-index: 6;
+  content: ''; position: absolute; top: -10px; left: 50%; width: 76px; height: 22px;
+  margin-left: -38px; background: rgba(255, 222, 0, 0.9); border-radius: 3px;
+  transform: rotate(-2deg); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.15); z-index: 7;
 }
 @keyframes modal-in {
   from { opacity: 0; transform: translateY(18px) scale(0.97); }
@@ -200,6 +201,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
   position: relative; flex: none; padding: 24px 28px 18px;
   border-bottom: var(--bw) solid var(--border-strong);
   background: var(--bg);
+  border-radius: 22px 22px 0 0;
 }
 .modal-badge {
   width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
@@ -234,6 +236,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
 .modal-foot {
   flex: none; padding: 18px 28px; border-top: var(--bw) solid var(--border-strong);
   background: var(--bg);
+  border-radius: 0 0 22px 22px;
   display: flex; gap: 14px; align-items: center;
 }
 
@@ -313,5 +316,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize));
     border-radius: 24px 24px 0 0;
     box-shadow: 0 -8px 32px rgba(26, 26, 26, 0.25); border-bottom: 0;
   }
+  /* 底部貼齊視窗，不需圓角內側 */
+  .modal-foot { border-radius: 0; }
 }
 </style>
