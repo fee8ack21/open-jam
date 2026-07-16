@@ -561,6 +561,33 @@ public class CatalogManager(
     }
 
     /// <inheritdoc/>
+    public async Task ReorderPreviewMediaAsync(Guid id, ReorderPreviewMediaRequest request, CancellationToken ct)
+    {
+        var catalog = await LoadOwnedCatalogAsync(id, ct);
+
+        // 該商品目前的預覽媒體全集。
+        var assets = await db.CatalogAssets
+            .Where(a => a.CatalogId == catalog.Id && PreviewMediaTypes.Contains(a.Type))
+            .ToListAsync(ct);
+
+        var requestedIds = request.AssetIds;
+
+        // 請求須完整涵蓋現有預覽媒體集合（不多不少、不重複），避免遺漏項目排序未定義。
+        if (requestedIds.Count != requestedIds.Distinct().Count())
+            throw new ValidationException("預覽媒體資產 ID 不可重複。");
+
+        var assetIds = assets.Select(a => a.Id).ToHashSet();
+        if (requestedIds.Count != assetIds.Count || !requestedIds.All(assetIds.Contains))
+            throw new ValidationException("須完整涵蓋且僅包含目前的預覽媒體。");
+
+        var byId = assets.ToDictionary(a => a.Id);
+        for (var i = 0; i < requestedIds.Count; i++)
+            byId[requestedIds[i]].SortOrder = i;
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <inheritdoc/>
     public async Task DeleteAssetAsync(Guid id, Guid assetId, CancellationToken ct)
     {
         var catalog = await LoadOwnedCatalogAsync(id, ct);

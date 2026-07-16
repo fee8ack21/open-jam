@@ -64,6 +64,9 @@ public interface ICatalogManager
     Task<CatalogAssetDto> AddExternalVideoAssetAsync(
         Guid id, AddExternalVideoAssetRequest request, CancellationToken ct);
 
+    /// <summary>重排預覽媒體的顯示順序（全量覆蓋）。僅 Owner 可操作。</summary>
+    Task ReorderPreviewMediaAsync(Guid id, ReorderPreviewMediaRequest request, CancellationToken ct);
+
     /// <summary>刪除展示型資產（同步軟刪儲存端檔案；外部嵌入僅移除紀錄）。僅 Owner 可操作。</summary>
     Task DeleteAssetAsync(Guid id, Guid assetId, CancellationToken ct);
 }

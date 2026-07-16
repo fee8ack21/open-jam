@@ -252,6 +252,20 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
         Guid id, [FromBody] AddExternalVideoAssetRequest request, CancellationToken ct) =>
         Ok(await catalogManager.AddExternalVideoAssetAsync(id, request, ct));
 
+    /// <summary>重排預覽媒體的顯示順序（全量覆蓋）。僅 Owner 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="request">依顯示順序排列的預覽媒體資產 ID 清單。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPut("{id:guid}/assets/preview-media/order")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> ReorderPreviewMedia(
+        Guid id, [FromBody] ReorderPreviewMediaRequest request, CancellationToken ct)
+    {
+        await catalogManager.ReorderPreviewMediaAsync(id, request, ct);
+        return NoContent();
+    }
+
     /// <summary>刪除展示型資產。僅 Owner 可操作。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="assetId">資產 ID。</param>

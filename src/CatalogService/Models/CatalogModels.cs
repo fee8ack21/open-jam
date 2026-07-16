@@ -434,6 +434,14 @@ public class AddExternalVideoAssetRequest
     public string Url { get; set; } = "";
 }
 
+/// <summary>重排預覽媒體顯示順序的請求（全量覆蓋）。</summary>
+public class ReorderPreviewMediaRequest
+{
+    /// <summary>依顯示順序排列的預覽媒體資產 ID 清單（須完整涵蓋該商品目前的預覽媒體）。</summary>
+    /// <example>["3fa85f64-5717-4562-b3fc-2c963f66afa6"]</example>
+    public List<Guid> AssetIds { get; set; } = [];
+}
+
 /// <summary>確認展示型資產上傳完成的請求（使用者提交確認時呼叫，此時才扣配額並建立資產）。</summary>
 public class ConfirmCatalogAssetRequest
 {

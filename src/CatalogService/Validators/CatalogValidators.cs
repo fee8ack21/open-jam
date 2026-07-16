@@ -116,6 +116,17 @@ public class RequestCatalogAssetUploadUrlRequestValidator : AbstractValidator<Re
     }
 }
 
+/// <summary>重排預覽媒體順序請求驗證：資產 ID 清單。</summary>
+public class ReorderPreviewMediaRequestValidator : AbstractValidator<ReorderPreviewMediaRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public ReorderPreviewMediaRequestValidator()
+    {
+        RuleForEach(x => x.AssetIds)
+            .NotEmpty().WithMessage("資產 ID 不得為空。");
+    }
+}
+
 /// <summary>加入外部影片嵌入請求驗證：YouTube 網址格式。</summary>
 public class AddExternalVideoAssetRequestValidator : AbstractValidator<AddExternalVideoAssetRequest>
 {
