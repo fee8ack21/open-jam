@@ -1,15 +1,11 @@
 import { defineStore } from 'pinia';
 import { catalogApi, storeApi } from '@/api';
 import { categoryKeyResolver, toProduct } from '@/data/mapCatalog';
-import { PRODUCTS, type Product } from '@/data/products';
+import type { Product } from '@/data/products';
 import type { CatalogCategoryDto } from '@/api/catalog-service';
 import type { StoreDto } from '@/api/store-service';
 
 type Font = 'sora' | 'grotesk';
-
-// 開發期示範模式：市集一律呈現示範資料、不打後端 API。
-// 後端資料就緒後改回 false 即恢復 CatalogService 載入流程。
-const DEMO_ONLY = true;
 
 const load = (k: string, fb: Font): Font => {
   try {
@@ -23,7 +19,7 @@ const load = (k: string, fb: Font): Font => {
 export const useShopStore = defineStore('shop', {
   state: () => ({
     font: load('font', 'sora'),
-    // 市集商品（由 CatalogService 載入；後端尚未可用時退回示範資料）
+    // 市集商品（由 CatalogService 載入）
     products: [] as Product[],
     categories: [] as CatalogCategoryDto[],
     loading: false,
@@ -38,11 +34,6 @@ export const useShopStore = defineStore('shop', {
     /** 載入全站已上架商品；每筆補上所屬商店資訊（店名 / slug / 頭像）。 */
     async loadCatalog(): Promise<void> {
       if (this.loaded || this.loading) return;
-      if (DEMO_ONLY) {
-        this.products = PRODUCTS.slice();
-        this.loaded = true;
-        return;
-      }
       this.loading = true;
       try {
         const [catRes, listRes] = await Promise.all([
@@ -52,13 +43,6 @@ export const useShopStore = defineStore('shop', {
         this.categories = catRes.data ?? [];
         const catKeyOf = categoryKeyResolver(this.categories);
         const items = listRes.data.items ?? [];
-
-        // 後端可連線但尚無上架商品：先以示範資料填充市集，待後端有資料即自動改用實際商品
-        if (!items.length) {
-          this.products = PRODUCTS.slice();
-          this.loaded = true;
-          return;
-        }
 
         // 依 storeId 去重後逐一補商店資訊（公開端點）
         const storeIds = [...new Set(items.map((p) => p.storeId).filter((v): v is string => !!v))];
@@ -78,8 +62,7 @@ export const useShopStore = defineStore('shop', {
         );
         this.loaded = true;
       } catch {
-        // 後端尚未可用：退回示範資料，市集不致空白
-        if (!this.products.length) this.products = PRODUCTS.slice();
+        // 後端暫時不可用：保留空市集（各版位已有空狀態），loaded 未設定可於下次進頁重試
       } finally {
         this.loading = false;
       }
