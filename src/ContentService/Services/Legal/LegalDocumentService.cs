@@ -74,11 +74,12 @@ public class LegalDocumentService(
 
         var doc = new LegalDocument
         {
-            Type    = request.Type,
-            Version = maxVersion + 1,
-            Title   = request.Title.Trim(),
-            Content = request.Content,
-            Status  = LegalDocumentStatus.Draft,
+            Type       = request.Type,
+            Version    = maxVersion + 1,
+            Title      = request.Title.Trim(),
+            Content    = request.Content,
+            Highlights = (request.Highlights ?? "").Trim(),
+            Status     = LegalDocumentStatus.Draft,
         };
 
         db.LegalDocuments.Add(doc);
@@ -97,8 +98,9 @@ public class LegalDocumentService(
         if (doc.Status != LegalDocumentStatus.Draft)
             throw new ConflictException("僅草稿狀態的文件可編輯；已啟用或停用的版本為歷史紀錄，不可修改");
 
-        doc.Title   = request.Title.Trim();
-        doc.Content = request.Content;
+        doc.Title      = request.Title.Trim();
+        doc.Content    = request.Content;
+        doc.Highlights = (request.Highlights ?? "").Trim();
         audit.Add(currentUser.UserId, "legal.update", "LegalDocument", doc.Id);
         await db.SaveChangesAsync(ct);
 

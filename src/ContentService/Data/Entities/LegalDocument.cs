@@ -24,6 +24,9 @@ public class LegalDocument : ICreatedAt, IUpdatedAt, IUpdatedBy, IDeletedAt, IDe
     /// <summary>文件內容（純文字；「## 」開頭為章節標題、「- 」開頭為列點）。</summary>
     public string Content { get; set; } = "";
 
+    /// <summary>重點速覽（純文字；每行一則，以第一個「|」分隔標題與描述）；空字串表示此版本無速覽。</summary>
+    public string Highlights { get; set; } = "";
+
     /// <summary>文件狀態。</summary>
     public LegalDocumentStatus Status { get; set; } = LegalDocumentStatus.Draft;
 

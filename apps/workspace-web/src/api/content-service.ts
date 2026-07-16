@@ -93,6 +93,11 @@ export interface CreateLegalDocumentRequest {
    * @example "## 歡迎加入 Open Jam"
    */
   content?: string | null;
+  /**
+   * 重點速覽（純文字；每行一則，以第一個「|」分隔標題與描述）；可留空表示無速覽。
+   * @example "作品永遠是你的|上架不轉移著作權，你只授權平台展示與銷售你的作品。"
+   */
+  highlights?: string | null;
 }
 
 /** 常見問題主題分類回應。 */
@@ -231,6 +236,11 @@ export interface LegalDocumentDto {
    * @example "## 歡迎加入 Open Jam"
    */
   content?: string | null;
+  /**
+   * 重點速覽（純文字；每行一則，以第一個「|」分隔標題與描述）；空字串表示此版本無速覽。
+   * @example "作品永遠是你的|上架不轉移著作權，你只授權平台展示與銷售你的作品。"
+   */
+  highlights?: string | null;
 }
 
 /** 法律文件摘要（列表用，不含完整內容）。 */
@@ -378,6 +388,11 @@ export interface UpdateLegalDocumentRequest {
    * @example "## 歡迎加入 Open Jam"
    */
   content?: string | null;
+  /**
+   * 重點速覽（純文字；每行一則，以第一個「|」分隔標題與描述）；可留空表示無速覽。
+   * @example "作品永遠是你的|上架不轉移著作權，你只授權平台展示與銷售你的作品。"
+   */
+  highlights?: string | null;
 }
 
 export type QueryParamsType = Record<string | number, any>;

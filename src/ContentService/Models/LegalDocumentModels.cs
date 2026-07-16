@@ -64,6 +64,10 @@ public class LegalDocumentDto : LegalDocumentSummaryDto
     /// <summary>文件內容（純文字；「## 」開頭為章節標題、「- 」開頭為列點）。</summary>
     /// <example>## 歡迎加入 Open Jam</example>
     public string Content { get; set; } = "";
+
+    /// <summary>重點速覽（純文字；每行一則，以第一個「|」分隔標題與描述）；空字串表示此版本無速覽。</summary>
+    /// <example>作品永遠是你的|上架不轉移著作權，你只授權平台展示與銷售你的作品。</example>
+    public string Highlights { get; set; } = "";
 }
 
 /// <summary>法律文件分頁查詢回應。</summary>
@@ -91,6 +95,10 @@ public class CreateLegalDocumentRequest
     /// <summary>文件內容（純文字；「## 」開頭為章節標題、「- 」開頭為列點）。</summary>
     /// <example>## 歡迎加入 Open Jam</example>
     public string Content { get; set; } = "";
+
+    /// <summary>重點速覽（純文字；每行一則，以第一個「|」分隔標題與描述）；可留空表示無速覽。</summary>
+    /// <example>作品永遠是你的|上架不轉移著作權，你只授權平台展示與銷售你的作品。</example>
+    public string Highlights { get; set; } = "";
 }
 
 /// <summary>更新法律文件草稿請求；僅 Draft 狀態可更新。</summary>
@@ -103,4 +111,8 @@ public class UpdateLegalDocumentRequest
     /// <summary>文件內容（純文字；「## 」開頭為章節標題、「- 」開頭為列點）。</summary>
     /// <example>## 歡迎加入 Open Jam</example>
     public string Content { get; set; } = "";
+
+    /// <summary>重點速覽（純文字；每行一則，以第一個「|」分隔標題與描述）；可留空表示無速覽。</summary>
+    /// <example>作品永遠是你的|上架不轉移著作權，你只授權平台展示與銷售你的作品。</example>
+    public string Highlights { get; set; } = "";
 }

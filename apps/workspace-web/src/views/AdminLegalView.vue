@@ -98,6 +98,7 @@ const form = reactive({
   type: LegalDocumentType.TermsOfService as LegalDocumentType,
   title: '',
   content: '',
+  highlights: '',
 })
 
 // ── 即時預覽：與 Auth（LegalContentHelper）/ portal-web（LegalView）同一套
@@ -130,13 +131,29 @@ function parseSections(content: string): PreviewSection[] {
   return sections
 }
 
+// ── 重點速覽：每行一則、以第一個「|」分隔標題與描述（與 portal-web LegalView 同一套慣例） ──
+function parseHighlights(text?: string | null): { t: string; d: string }[] {
+  return (text ?? '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.includes('|'))
+    .map((l) => {
+      const i = l.indexOf('|')
+      return { t: l.slice(0, i).trim(), d: l.slice(i + 1).trim() }
+    })
+    .filter((h) => h.t && h.d)
+}
+
 const previewSections = computed(() => parseSections(form.content))
+const previewHighlights = computed(() => parseHighlights(form.highlights))
 
 function openCreate() {
   editing.value = null
   form.type = LegalDocumentType.TermsOfService
   form.title = ''
   form.content = ''
+  form.highlights = ''
   modalOpen.value = true
 }
 
@@ -148,6 +165,7 @@ async function openEdit(row: LegalDocumentSummaryDto) {
     form.type = res.data.type ?? LegalDocumentType.TermsOfService
     form.title = res.data.title ?? ''
     form.content = res.data.content ?? ''
+    form.highlights = res.data.highlights ?? ''
     modalOpen.value = true
   } catch (err) {
     message.error(messageOf(err, t('legalDocs.msgLoadFailed')))
@@ -158,14 +176,20 @@ async function save() {
   const title = form.title.trim()
   if (!title) { message.warning(t('legalDocs.valTitleRequired')); return }
   if (!form.content.trim()) { message.warning(t('legalDocs.valContentRequired')); return }
+  const highlights = form.highlights.trim()
+  const highlightLines = highlights ? highlights.replace(/\r\n/g, '\n').split('\n').map((l) => l.trim()).filter(Boolean) : []
+  if (highlightLines.length !== parseHighlights(highlights).length) {
+    message.warning(t('legalDocs.valHighlightsFormat'))
+    return
+  }
 
   saving.value = true
   try {
     if (editing.value?.id) {
-      await contentApi.legalDocuments.update(editing.value.id, { title, content: form.content })
+      await contentApi.legalDocuments.update(editing.value.id, { title, content: form.content, highlights })
       message.success(t('legalDocs.msgUpdated'))
     } else {
-      await contentApi.legalDocuments.create({ type: form.type, title, content: form.content })
+      await contentApi.legalDocuments.create({ type: form.type, title, content: form.content, highlights })
       message.success(t('legalDocs.msgCreated'))
     }
     modalOpen.value = false
@@ -180,6 +204,7 @@ async function save() {
 // ── 檢視內容（任一狀態，唯讀，供歷史版本比對）───────────────
 const viewOpen = ref(false)
 const viewing = ref<LegalDocumentDto | null>(null)
+const viewingHighlights = computed(() => parseHighlights(viewing.value?.highlights))
 
 async function openView(row: LegalDocumentSummaryDto) {
   if (!row.id) return
@@ -360,6 +385,15 @@ onMounted(load)
           <label class="field-label">{{ t('legalDocs.titleLabel') }}</label>
           <n-input v-model:value="form.title" maxlength="200" show-count :placeholder="t('legalDocs.titlePlaceholder')" />
         </div>
+        <div>
+          <label class="field-label">{{ t('legalDocs.highlightsLabel') }}</label>
+          <n-input
+            v-model:value="form.highlights"
+            type="textarea"
+            :autosize="{ minRows: 3, maxRows: 8 }"
+            :placeholder="t('legalDocs.highlightsPlaceholder')" />
+          <div style="font-size:12px; color:var(--text-faint); margin-top:6px;">{{ t('legalDocs.highlightsHint') }}</div>
+        </div>
         <div class="editor-split">
           <div>
             <label class="field-label">{{ t('legalDocs.contentLabel') }}</label>
@@ -373,7 +407,13 @@ onMounted(load)
           <div>
             <label class="field-label">{{ t('legalDocs.previewLabel') }}</label>
             <div class="legal-preview">
-              <div v-if="!previewSections.length" class="legal-preview-empty">{{ t('legalDocs.previewEmpty') }}</div>
+              <div v-if="!previewSections.length && !previewHighlights.length" class="legal-preview-empty">{{ t('legalDocs.previewEmpty') }}</div>
+              <div v-if="previewHighlights.length" class="preview-tldr">
+                <div v-for="h in previewHighlights" :key="h.t" class="preview-tldr-card">
+                  <span class="pt-title">{{ h.t }}</span>
+                  <span class="pt-desc">{{ h.d }}</span>
+                </div>
+              </div>
               <section v-for="s in previewSections" :key="s.n" class="legal-sec">
                 <h4 v-if="s.h"><span class="num">{{ s.n }}</span> {{ s.h }}</h4>
                 <p style="white-space: pre-wrap;">{{ s.p }}</p>
@@ -402,6 +442,12 @@ onMounted(load)
           <n-tag :type="statusOf(viewing?.status).type" size="small" round>{{ t(statusOf(viewing?.status).labelKey) }}</n-tag>
         </div>
       </template>
+      <div v-if="viewingHighlights.length" class="preview-tldr" style="margin-bottom:16px;">
+        <div v-for="h in viewingHighlights" :key="h.t" class="preview-tldr-card">
+          <span class="pt-title">{{ h.t }}</span>
+          <span class="pt-desc">{{ h.d }}</span>
+        </div>
+      </div>
       <div class="legal-content-view">{{ viewing?.content }}</div>
     </n-modal>
   </div>
@@ -575,5 +621,35 @@ onMounted(load)
   line-height: 1.7;
   color: var(--text-soft);
   margin-bottom: 4px;
+}
+
+/* 重點速覽卡片（編輯預覽 / 檢視 modal 共用），呼應 portal-web 條款頁頂部摘要卡 */
+.preview-tldr {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.preview-tldr-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: var(--bw) solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.preview-tldr-card .pt-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.preview-tldr-card .pt-desc {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-soft);
 }
 </style>

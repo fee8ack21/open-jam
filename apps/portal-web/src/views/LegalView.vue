@@ -7,8 +7,9 @@
    （/terms ↔ /privacy）供分享與外部書籤相容。
    內容撈取 ContentService「目前啟用中」的法律文件版本
    （GET /v1/legal-documents/active，後台可編輯 / 換版）；
-   撈取失敗時退回 i18n 靜態文案。重點速覽為頁面層摘要，一律取
-   i18n 靜態文案（legal.<doc>.tldr），不隨後台內容變動。
+   撈取失敗時退回 i18n 靜態文案。重點速覽亦隨版本管理
+   （highlights 欄位，每行一則「標題|描述」），後台留空或
+   撈取失敗時退回 i18n 靜態文案（legal.<doc>.tldr）。
    ============================================================ */
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -114,10 +115,26 @@ const sections = computed<Section[]>(() => {
   );
 });
 
-// 重點速覽（i18n 靜態摘要，不隨後台內容變動）
-const tldr = computed<{ t: string; d: string }[]>(() =>
-  (tm(`legal.${props.doc}.tldr`) as { t: string; d: string }[]).map((c) => ({ t: rt(c.t), d: rt(c.d) })),
-);
+/** 將重點速覽純文字解析為卡片：每行一則、以第一個「|」分隔標題與描述。 */
+function parseHighlights(text: string): { t: string; d: string }[] {
+  return text
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.includes('|'))
+    .map((l) => {
+      const i = l.indexOf('|');
+      return { t: l.slice(0, i).trim(), d: l.slice(i + 1).trim() };
+    })
+    .filter((c) => c.t && c.d);
+}
+
+// 重點速覽：優先用啟用中版本的 highlights，後台留空或撈取失敗則退回 i18n（legal.<doc>.tldr）
+const tldr = computed<{ t: string; d: string }[]>(() => {
+  const fromDoc = parseHighlights(activeDoc.value?.highlights ?? '');
+  if (fromDoc.length) return fromDoc;
+  return (tm(`legal.${props.doc}.tldr`) as { t: string; d: string }[]).map((c) => ({ t: rt(c.t), d: rt(c.d) }));
+});
 
 // 目錄：取有標題的章節；點擊捲至對應章節
 const toc = computed(() => sections.value.filter((s) => s.h));

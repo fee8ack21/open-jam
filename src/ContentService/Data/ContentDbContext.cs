@@ -32,6 +32,7 @@ public class ContentDbContext(DbContextOptions<ContentDbContext> options, ICurre
             e.HasKey(d => d.Id);
             e.Property(d => d.Title).HasMaxLength(200).IsRequired();
             e.Property(d => d.Content).IsRequired();
+            e.Property(d => d.Highlights).HasMaxLength(2000).IsRequired();
 
             // 同一類型版本序號唯一
             e.HasIndex(d => new { d.Type, d.Version }).IsUnique();
