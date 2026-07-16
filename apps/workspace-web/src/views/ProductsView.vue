@@ -133,6 +133,13 @@ function coverStyle(hue?: number) {
   const n = Math.abs(hue ?? 256)
   return { background: COVER_PASTELS[n % COVER_PASTELS.length] }
 }
+// 無縮圖時以頂層分類 glyph 補位（同上架精靈的分類圖示；未分類 fallback 為 tag）
+const CAT_GLYPHS: Record<string, string> = { music: 'note', photography: 'image', ebook: 'book' }
+function coverGlyph(p: CatalogSummaryDto) {
+  let cat = catalog.categories.find((c) => c.id === p.categoryId)
+  while (cat?.parentId) cat = catalog.categories.find((c) => c.id === cat!.parentId)
+  return CAT_GLYPHS[cat?.slug ?? ''] ?? 'tag'
+}
 // 只有 Published / Archived 可用開關切換上下架；Draft 需先補版本後於精靈上架，Suspended 僅 Admin 可解
 function canToggle(p: CatalogSummaryDto) {
   return p.status === CatalogStatus.Published || p.status === CatalogStatus.Archived
@@ -150,7 +157,7 @@ async function toggle(p: CatalogSummaryDto) {
 
 async function load() {
   if (!storeApp.stores.length) await storeApp.load()
-  await catalog.load(storeId.value)
+  await Promise.all([catalog.load(storeId.value), catalog.loadCategories()])
 }
 
 onMounted(load)
@@ -228,6 +235,7 @@ onMounted(load)
                   <div class="prod-cell">
                     <span class="prod-cover" :style="coverStyle(p.coverHue)">
                       <img v-if="p.thumbnailUrl" :src="p.thumbnailUrl" alt="" />
+                      <app-icon v-else :name="coverGlyph(p)" :size="20" :stroke="1.8" />
                     </span>
                     <div style="min-width:0;">
                       <div class="pc-title">{{ p.name }}</div>
@@ -294,6 +302,7 @@ onMounted(load)
             <span class="feat-idx">{{ i + 1 }}</span>
             <span class="prod-cover" :style="coverStyle(p.coverHue)">
               <img v-if="p.thumbnailUrl" :src="p.thumbnailUrl" alt="" />
+              <app-icon v-else :name="coverGlyph(p)" :size="20" :stroke="1.8" />
             </span>
             <span class="feat-name">{{ p.name }}</span>
             <span class="feat-moves">
