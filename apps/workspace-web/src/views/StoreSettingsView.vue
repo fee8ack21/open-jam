@@ -4,13 +4,15 @@ import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
+import ImageCropDialog from '@/components/ImageCropDialog.vue'
 import { JFmt } from '@/utils/format'
 
 const { t } = useI18n()
 
 // 與後端 RequestAssetUploadUrlRequestValidator 對齊的允許圖片類型
-const ACCEPT = 'image/png,image/jpeg,image/gif,image/webp'
-const ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+// （不含 GIF：前端 canvas 裁切無法保留動畫，avatar / banner 一律禁用）
+const ACCEPT = 'image/png,image/jpeg,image/webp'
+const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES = 5 * 1024 * 1024   // 單檔上限 5 MB
 
 const message = useMessage()
@@ -74,12 +76,27 @@ function preload(url?: string | null): Promise<void> {
   })
 }
 
-async function onPick(e: Event, kind: 'avatar' | 'banner') {
+// 裁切視窗：選檔通過驗證後先進裁切，「套用」才進上傳流程
+const cropShow = ref(false)
+const cropFile = ref<File | null>(null)
+const cropKind = ref<'avatar' | 'banner'>('avatar')
+
+function onPick(e: Event, kind: 'avatar' | 'banner') {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
   if (!file) return
   if (!ALLOWED.includes(file.type)) { message.error(t('storeSettings.msgInvalidType')); return }
+  if (file.size > MAX_BYTES) { message.error(t('storeSettings.msgTooLarge')); return }
+
+  cropFile.value = file
+  cropKind.value = kind
+  cropShow.value = true
+}
+
+async function onCropped(file: File) {
+  const kind = cropKind.value
+  // 裁切輸出理論上只會更小，仍防呆再驗一次上限
   if (file.size > MAX_BYTES) { message.error(t('storeSettings.msgTooLarge')); return }
 
   setPreview(kind, file)   // 立即預覽，不等後端往返
@@ -113,6 +130,9 @@ async function onSave() {
         <input ref="avatarInput" type="file" :accept="ACCEPT" style="display:none" @change="e => onPick(e, 'avatar')" />
         <input ref="bannerInput" type="file" :accept="ACCEPT" style="display:none" @change="e => onPick(e, 'banner')" />
 
+        <!-- 選檔後先裁切（avatar 圓形 1:1 / banner 4:1 + 安全區），套用才上傳 -->
+        <ImageCropDialog v-model:show="cropShow" :file="cropFile" :kind="cropKind" @cropped="onCropped" />
+
         <!-- 店面外觀：橫幅 + 頭像即時預覽 -->
         <div class="card-pad set-card">
           <div class="set-grid">
@@ -121,14 +141,14 @@ async function onSave() {
               <div class="sgk-d">{{ t('storeSettings.appearanceDesc') }}</div>
             </div>
             <div>
-              <div class="banner" :class="{ empty: !bannerUrl }"
+              <div class="banner" :class="{ 'is-empty': !bannerUrl }"
                    :style="bannerUrl ? { backgroundImage: `url(${bannerUrl})` } : {}"
                    @click="pick('banner')">
                 <div class="img-hint"><app-icon name="image" :size="18" /> {{ t('storeSettings.changeBanner') }}</div>
               </div>
 
               <div class="identity">
-                <div class="st-avatar" :class="{ empty: !avatarUrl }"
+                <div class="st-avatar" :class="{ 'is-empty': !avatarUrl }"
                      :style="avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : {}"
                      @click="pick('avatar')">
                   <span v-if="!avatarUrl" class="st-avatar-initials">{{ F.initials(form.storeName || t('storeSettings.storeInitial')) }}</span>
@@ -200,7 +220,8 @@ async function onSave() {
   overflow: hidden;
   transition: filter .15s;
 }
-.banner.empty {
+/* 命名 is-empty 避免撞 base.css 全域 .empty（空狀態佔位，padding 80px 會撐爆固定尺寸方塊） */
+.banner.is-empty {
   background-color: var(--t-violet);
   background-image: radial-gradient(rgba(26,26,26,0.08) 1.5px, transparent 1.5px);
   background-size: 18px 18px;
@@ -230,7 +251,6 @@ async function onSave() {
   position: relative;
   box-sizing: border-box;
   width: 84px; height: 84px;
-  min-height: 84px; max-height: 84px;  /* 硬性固定高度，避免在 flex 列中被撐高（aspect-ratio 交互 bug） */
   flex: 0 0 auto;          /* 固定尺寸的 flex 子項：永不被列高拉伸 */
   align-self: center;       /* 與名稱垂直置中，不受容器 align 影響 */
   cursor: pointer;

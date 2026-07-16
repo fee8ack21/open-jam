@@ -31,10 +31,10 @@ public class UpdateStoreRequestValidator : AbstractValidator<UpdateStoreRequest>
 /// <summary>Avatar / Banner 上傳簽章 URL 申請請求驗證：檔名、允許的圖片 MIME 類型與檔案大小。</summary>
 public class RequestAssetUploadUrlRequestValidator : AbstractValidator<RequestAssetUploadUrlRequest>
 {
-    /// <summary>允許的圖片 MIME 類型白名單。</summary>
+    /// <summary>允許的圖片 MIME 類型白名單（不含 GIF：前端裁切流程無法保留動畫）。</summary>
     public static readonly IReadOnlySet<string> AllowedImageContentTypes = new HashSet<string>
     {
-        "image/jpeg", "image/png", "image/gif", "image/webp",
+        "image/jpeg", "image/png", "image/webp",
     };
 
     /// <summary>建立驗證規則。</summary>

@@ -264,7 +264,7 @@
   },
   "storeSettings": {
     "appearanceTitle": "店面外觀",
-    "appearanceDesc": "橫幅與頭像會顯示在你的商店頁。點擊圖片即可更換，支援 JPG / PNG / GIF / WebP，單檔 5 MB 以內。",
+    "appearanceDesc": "橫幅與頭像會顯示在你的商店頁。點擊圖片即可更換，支援 JPG / PNG / WebP，單檔 5 MB 以內。",
     "changeBanner": "更換橫幅",
     "storeInitial": "店",
     "unnamedStore": "未命名商店",
@@ -276,13 +276,23 @@
     "description": "商店描述",
     "descriptionPlaceholder": "向買家介紹你的商店、作品風格與特色…",
     "save": "儲存變更",
-    "msgInvalidType": "僅支援 JPG / PNG / GIF / WebP 圖片。",
+    "msgInvalidType": "僅支援 JPG / PNG / WebP 圖片。",
     "msgTooLarge": "圖片大小不可超過 5 MB。",
     "msgAvatarUpdated": "已更新頭像。",
     "msgBannerUpdated": "已更新橫幅。",
     "msgUploadFailed": "上傳失敗",
     "msgSaved": "商店資料已更新。",
     "msgSaveFailed": "更新失敗"
+  },
+  "cropDialog": {
+    "titleAvatar": "裁切頭像",
+    "titleBanner": "裁切橫幅",
+    "hintAvatar": "拖曳與縮放調整擷取範圍，圓形區域即為店面實際顯示的頭像。",
+    "hintBanner": "拖曳與縮放調整擷取範圍。手機與大螢幕只會顯示中央區域，重點內容請置於虛線框內。",
+    "apply": "套用",
+    "cancel": "取消",
+    "loadError": "圖片載入失敗，請改用其他圖片。",
+    "cropError": "裁切失敗，請重試。"
   },
   "payouts": {
     "statusTitle": "收款狀態",

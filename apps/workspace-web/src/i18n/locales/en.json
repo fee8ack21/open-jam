@@ -264,7 +264,7 @@
   },
   "storeSettings": {
     "appearanceTitle": "Storefront appearance",
-    "appearanceDesc": "Your banner and avatar appear on your store page. Click an image to replace it — JPG / PNG / GIF / WebP, up to 5 MB each.",
+    "appearanceDesc": "Your banner and avatar appear on your store page. Click an image to replace it — JPG / PNG / WebP, up to 5 MB each.",
     "changeBanner": "Change banner",
     "storeInitial": "S",
     "unnamedStore": "Unnamed store",
@@ -276,13 +276,23 @@
     "description": "Store description",
     "descriptionPlaceholder": "Tell buyers about your store, style, and what makes it special…",
     "save": "Save changes",
-    "msgInvalidType": "Only JPG / PNG / GIF / WebP images are supported.",
+    "msgInvalidType": "Only JPG / PNG / WebP images are supported.",
     "msgTooLarge": "Image must not exceed 5 MB.",
     "msgAvatarUpdated": "Avatar updated.",
     "msgBannerUpdated": "Banner updated.",
     "msgUploadFailed": "Upload failed",
     "msgSaved": "Store info updated.",
     "msgSaveFailed": "Update failed"
+  },
+  "cropDialog": {
+    "titleAvatar": "Crop avatar",
+    "titleBanner": "Crop banner",
+    "hintAvatar": "Drag and zoom to choose the visible area — the circle is exactly what your store shows.",
+    "hintBanner": "Drag and zoom to choose the visible area. Phones and large screens only show the centre — keep key content inside the dashed box.",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "loadError": "Couldn’t load this image — please pick another file.",
+    "cropError": "Cropping failed. Please try again."
   },
   "payouts": {
     "statusTitle": "Payout status",
