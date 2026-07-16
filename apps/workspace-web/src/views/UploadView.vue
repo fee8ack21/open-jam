@@ -7,7 +7,7 @@ import { useCatalogStore } from '@/stores/catalog'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
 import ImageCropDialog from '@/components/ImageCropDialog.vue'
 import { JFmt } from '@/utils/format'
-import { TAGS, ME } from '@/data/products'
+import { TAGS } from '@/data/products'
 
 const { t } = useI18n()
 
@@ -98,7 +98,9 @@ const fileFormats = computed(() => [...new Set(entries.value.map(e => fileType(e
 const previewProduct = computed(() => ({
   cat: catMeta(d.value.cat).thumb, hue: d.value.coverHue,
   title: d.value.title || t('upload.previewTitlePlaceholder'),
-  creator: ME.name, avatar: ME.avatar,
+  // 店家資訊套用實際商店（router guard 已先載入開店資料）
+  creator: storeApp.primaryStore?.storeName ?? '',
+  avatarUrl: storeApp.primaryStore?.avatarUrl ?? '',
   tags: d.value.tags.length ? d.value.tags : [t('upload.tagPlaceholder')],
   price: d.value.free ? 0 : d.value.price,
   rating: 0,
@@ -476,7 +478,12 @@ async function submit(publish: boolean) {
           <div class="card-body">
             <h3 class="card-title">{{ previewProduct.title }}</h3>
             <div class="card-creator">
-              <span class="avatar" :style="{ background: previewProduct.avatar }">{{ F.initials(previewProduct.creator) }}</span>
+              <span class="avatar"
+                    :style="previewProduct.avatarUrl
+                      ? { backgroundImage: `url(${previewProduct.avatarUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                      : { background: '#8a5cf6' }">
+                <template v-if="!previewProduct.avatarUrl">{{ F.initials(previewProduct.creator) }}</template>
+              </span>
               {{ previewProduct.creator }}
             </div>
             <div class="tagrow">
