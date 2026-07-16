@@ -207,6 +207,22 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     }
   }
 
+  /** 重排預覽媒體顯示順序（assetIds 須完整涵蓋該商品目前的預覽媒體）。 */
+  async function reorderPreviewMedia(id: string, assetIds: string[]) {
+    busy.value = true;
+    error.value = null;
+    try {
+      await catalogApi.catalogs.reorderPreviewMedia(id, { assetIds });
+      await refreshCatalog(id);
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.reorderMediaFailed'));
+      return false;
+    } finally {
+      busy.value = false;
+    }
+  }
+
   /** 刪除預覽媒體。 */
   async function deletePreviewMedia(id: string, assetId: string) {
     busy.value = true;
@@ -307,6 +323,7 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     removeCover,
     uploadPreviewMedia,
     addExternalVideo,
+    reorderPreviewMedia,
     deletePreviewMedia,
     createVersion,
     uploadVersionFile,

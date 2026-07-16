@@ -459,6 +459,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     publish: boolean,
     coverAssetId?: string | null,
     previewMedia?: { assetId: string; type: CatalogAssetType }[],
+    previewOrder?: string[],
   ): Promise<CatalogDto | null> {
     const catalogId = draftCatalogId.value;
     const versionId = draftVersionId.value;
@@ -494,6 +495,11 @@ export const useCatalogStore = defineStore('catalog', () => {
       // 預覽媒體逐一 confirm（YouTube 嵌入建立當下已完成，不在此列）。
       for (const media of previewMedia ?? []) {
         await catalogApi.catalogs.confirmAsset(catalogId, media.assetId, { type: media.type });
+      }
+      // 以使用者於精靈中排定的最終順序覆蓋（含 YouTube 嵌入；嵌入建立時間早於
+      // 檔案 confirm，不重排會固定偏前）。
+      if (previewOrder && previewOrder.length > 1) {
+        await catalogApi.catalogs.reorderPreviewMedia(catalogId, { assetIds: previewOrder });
       }
 
       if (publish) await catalogApi.catalogs.publish(catalogId);

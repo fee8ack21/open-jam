@@ -12,6 +12,8 @@ export const ICON_PATHS: Record<string, string> = {
   lock: 'M6 11V8a6 6 0 0 1 12 0v3M5 11h14v9H5z',
   download: 'M12 3v12M7 11l5 4 5-4M5 21h14',
   chevron: 'M9 6l6 6-6 6',
+  chevronL: 'M15 6l-6 6 6 6',
+  chevronR: 'M9 6l6 6-6 6',
   chevronD: 'M6 9l6 6 6-6',
   chevronU: 'M6 15l6-6 6 6',
   file: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5',

@@ -80,8 +80,10 @@ interface MediaEntry {
   file: File | null
   assetId: string | null
   status: 'uploading' | 'uploaded' | 'error'
-  /** image 為本地 object URL；youtube 為 ytimg 縮圖 URL；video 不設（深色磚 + 檔名） */
+  /** image / video 為本地 object URL（video 僅供放大檢視播放）；youtube 為 ytimg 縮圖 URL */
   preview: string
+  /** YouTube 影片 ID（放大檢視 embed 用，僅 kind = 'youtube'） */
+  ytId?: string
 }
 const mediaEntries = ref<MediaEntry[]>([])
 const mediaInput = ref<HTMLInputElement | null>(null)
@@ -298,12 +300,16 @@ function onMediaPick(e: Event) {
       file,
       assetId: null,
       status: 'uploading',
-      preview: isVideo ? '' : URL.createObjectURL(file),
+      preview: URL.createObjectURL(file),
     })
     mediaEntries.value.push(entry)
     void startMediaUpload(entry)
   }
 }
+
+// 點擊媒體磚放大檢視（大圖 / 影片播放 / YouTube 嵌入）
+const mediaViewer = ref<MediaEntry | null>(null)
+const ytEmbedUrl = (id: string) => `https://www.youtube-nocookie.com/embed/${id}`
 
 // YouTube 嵌入：貼上連結即在 Draft catalog 建立
 const youtubeModal = ref(false)
@@ -339,8 +345,17 @@ async function onAddYoutube() {
     assetId,
     status: 'uploaded',
     preview: id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : '',
+    ytId: id ?? undefined,
   }))
   youtubeModal.value = false
+}
+
+/** 前移 / 後移預覽媒體（本地排序，送出時以最終順序呼叫 reorder）。 */
+function moveMedia(i: number, dir: -1 | 1) {
+  const j = i + dir
+  if (j < 0 || j >= mediaEntries.value.length) return
+  const arr = mediaEntries.value
+  ;[arr[i], arr[j]] = [arr[j], arr[i]]
 }
 
 // 移除預覽媒體：檔案僅本地移除（未 confirm 不計配額）；YouTube 已建立於後端，需同步刪除。
@@ -349,7 +364,7 @@ async function removeMedia(entry: MediaEntry) {
     const ok = await catalog.deleteDraftAsset(entry.assetId)
     if (!ok) { message.error(catalog.error ?? t('upload.msgMediaFailed')); return }
   }
-  if (entry.kind === 'image' && entry.preview) URL.revokeObjectURL(entry.preview)
+  if (entry.kind !== 'youtube' && entry.preview) URL.revokeObjectURL(entry.preview)
   const i = mediaEntries.value.indexOf(entry)
   if (i >= 0) mediaEntries.value.splice(i, 1)
 }
@@ -357,7 +372,7 @@ async function removeMedia(entry: MediaEntry) {
 /** 釋放預覽媒體的本地 object URL 並清空清單。 */
 function clearMediaEntries() {
   for (const m of mediaEntries.value)
-    if (m.kind === 'image' && m.preview) URL.revokeObjectURL(m.preview)
+    if (m.kind !== 'youtube' && m.preview) URL.revokeObjectURL(m.preview)
   mediaEntries.value = []
 }
 
@@ -389,7 +404,11 @@ async function submit(publish: boolean) {
       type: e.kind === 'video' ? CatalogAssetType.PreviewVideo : CatalogAssetType.Screenshot,
     }))
 
-  const created = await catalog.finalizeDraft(draftMeta(), assetIds, publish, cover.value?.assetId ?? null, previewMedia)
+  // 使用者於精靈中排定的最終順序（含 YouTube 嵌入）。
+  const previewOrder = uploadedMedia.value.map(e => e.assetId!).filter(Boolean)
+
+  const created = await catalog.finalizeDraft(
+    draftMeta(), assetIds, publish, cover.value?.assetId ?? null, previewMedia, previewOrder)
 
   if (created) {
     message.success(publish ? t('upload.msgPublished') : t('upload.msgDrafted'))
@@ -560,16 +579,23 @@ async function submit(publish: boolean) {
             <p class="fb-sub">{{ t('upload.mediaSub') }}</p>
             <input ref="mediaInput" type="file" :accept="MEDIA_ACCEPT" multiple style="display:none" @change="onMediaPick" />
             <div class="shot-grid">
-              <div v-for="m in mediaEntries" :key="m.key" class="shot-box"
+              <div v-for="(m, i) in mediaEntries" :key="m.key" class="shot-box shot-clickable"
                    :class="{ 'shot-media': m.kind !== 'image', 'shot-error': m.status === 'error' }"
-                   :style="m.preview ? { backgroundImage: `url(${m.preview})` } : undefined">
+                   :style="m.kind !== 'video' && m.preview ? { backgroundImage: `url(${m.preview})` } : undefined"
+                   @click="mediaViewer = m">
                 <span v-if="m.kind !== 'image'" class="shot-play"><app-icon name="play" :size="15" /></span>
                 <span v-if="m.kind === 'video'" class="shot-name">{{ m.file?.name }}</span>
                 <span v-if="m.status === 'uploading'" class="shot-veil"><span class="ur-spin"></span></span>
-                <button v-if="m.status === 'error'" class="ic-act shot-retry" :title="t('upload.retryUpload')" @click="startMediaUpload(m)">
+                <span class="shot-moves">
+                  <button class="ic-act" :title="t('upload.mediaMoveForward')" :disabled="i === 0"
+                          @click.stop="moveMedia(i, -1)"><app-icon name="chevronL" :size="14" /></button>
+                  <button class="ic-act" :title="t('upload.mediaMoveBackward')" :disabled="i === mediaEntries.length - 1"
+                          @click.stop="moveMedia(i, 1)"><app-icon name="chevronR" :size="14" /></button>
+                </span>
+                <button v-if="m.status === 'error'" class="ic-act shot-retry" :title="t('upload.retryUpload')" @click.stop="startMediaUpload(m)">
                   <app-icon name="refresh" :size="15" />
                 </button>
-                <button class="ic-act danger shot-del" :disabled="m.status === 'uploading'" @click="removeMedia(m)">
+                <button class="ic-act danger shot-del" :disabled="m.status === 'uploading'" @click.stop="removeMedia(m)">
                   <app-icon name="trash" :size="15" />
                 </button>
               </div>
@@ -638,6 +664,21 @@ async function submit(publish: boolean) {
           </div>
         </div>
       </div>
+
+      <!-- 預覽媒體放大檢視 -->
+      <n-modal :show="!!mediaViewer" preset="card" style="max-width:720px;"
+               :title="mediaViewer?.kind === 'video' ? (mediaViewer?.file?.name ?? '') : t('upload.mediaLabel')"
+               @update:show="(v: boolean) => { if (!v) mediaViewer = null }">
+        <template v-if="mediaViewer">
+          <img v-if="mediaViewer.kind === 'image'" class="media-viewer" :src="mediaViewer.preview" alt="" />
+          <video v-else-if="mediaViewer.kind === 'video'" class="media-viewer" :src="mediaViewer.preview"
+                 controls autoplay preload="metadata"></video>
+          <iframe v-else-if="mediaViewer.ytId" class="media-viewer media-viewer-frame"
+                  :src="ytEmbedUrl(mediaViewer.ytId)"
+                  title="YouTube video player" frameborder="0" allowfullscreen
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+        </template>
+      </n-modal>
 
       <!-- 加入 YouTube 連結（同商品編輯頁） -->
       <n-modal v-model:show="youtubeModal" preset="card" style="max-width:460px;" :title="t('upload.youtubeModalTitle')">
@@ -771,6 +812,22 @@ async function submit(publish: boolean) {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   pointer-events: none;
 }
+/* 左下移動鈕（前移 / 後移）；影片磚檔名讓位給移動鈕 */
+.shot-moves {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  gap: 4px;
+}
+.shot-moves .ic-act { background: var(--bg); }
+.shot-media .shot-name { left: 70px; }
+/* 點擊放大檢視 */
+.shot-clickable { cursor: zoom-in; }
+.media-viewer { display: block; width: 100%; max-height: 70vh; object-fit: contain; border-radius: var(--r-md); background: #1a1a1a; }
+img.media-viewer { background: transparent; }
+.media-viewer-frame { aspect-ratio: 16 / 9; border: 0; }
+
 /* 上傳中遮罩與失敗框線 */
 .shot-veil {
   position: absolute; inset: 0; display: grid; place-items: center;

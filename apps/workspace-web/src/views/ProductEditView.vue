@@ -161,16 +161,24 @@ function onCropped(file: File) {
   void uploadCoverFile(file)
 }
 
+// 封面操作進行中（store 的 busy 為所有資產操作共用，spinner 僅綁定自身操作，
+// 避免上傳預覽媒體時封面鈕也顯示 loading）
+const coverBusy = ref(false)
+
 async function uploadCoverFile(file: File) {
+  coverBusy.value = true
   setCoverPreview(file)
   const ok = await edit.uploadCover(catalogId.value, file)
   setCoverPreview(null)
+  coverBusy.value = false
   if (ok) message.success(t('productEdit.msgCoverUpdated'))
   else message.error(edit.error ?? t('productEdit.msgCoverFailed'))
 }
 
 async function onCoverRemove() {
+  coverBusy.value = true
   const ok = await edit.removeCover(catalogId.value)
+  coverBusy.value = false
   if (ok) message.success(t('productEdit.msgCoverRemoved'))
   else message.error(edit.error ?? t('productEdit.msgCoverFailed'))
 }
@@ -249,6 +257,20 @@ async function onDeleteMedia(assetId: string) {
   const ok = await edit.deletePreviewMedia(catalogId.value, assetId)
   if (ok) message.success(t('productEdit.msgMediaDeleted'))
   else message.error(edit.error ?? t('productEdit.msgMediaFailed'))
+}
+
+// 點擊媒體磚放大檢視（大圖 / 影片播放 / YouTube 嵌入）
+const mediaViewer = ref<(typeof previewMedia.value)[number] | null>(null)
+const ytEmbedUrl = (id: string) => `https://www.youtube-nocookie.com/embed/${id}`
+
+/** 前移 / 後移預覽媒體：以完整順序呼叫 reorder，成功後畫面隨 refresh 更新。 */
+async function onMoveMedia(i: number, dir: -1 | 1) {
+  const j = i + dir
+  if (j < 0 || j >= previewMedia.value.length) return
+  const ids = previewMedia.value.map((a) => a.id!)
+  ;[ids[i], ids[j]] = [ids[j], ids[i]]
+  const ok = await edit.reorderPreviewMedia(catalogId.value, ids)
+  if (!ok) message.error(edit.error ?? t('productEdit.msgMediaFailed'))
 }
 
 function openVersionModal() {
@@ -436,7 +458,7 @@ function fmtDate(v?: string | null) {
                   </div>
                 </div>
                 <div class="cover-actions">
-                  <n-button size="medium" :loading="busy" :disabled="busy" @click="pickCover">
+                  <n-button size="medium" :loading="coverBusy" :disabled="busy" @click="pickCover">
                     <template #icon><app-icon name="upload" :size="16" /></template>
                     {{ catalog.thumbnailUrl ? t('productEdit.coverReplace') : t('productEdit.coverUpload') }}
                   </n-button>
@@ -460,18 +482,25 @@ function fmtDate(v?: string | null) {
             <div>
               <input ref="mediaInput" type="file" :accept="MEDIA_ACCEPT" multiple style="display:none" @change="onMediaPick" />
               <div class="shot-grid">
-                <div v-for="s in previewMedia" :key="s.id" class="shot-box"
+                <div v-for="(s, i) in previewMedia" :key="s.id" class="shot-box shot-clickable"
                      :class="{ 'shot-media': s.type !== CatalogAssetType.Screenshot }"
                      :style="s.type === CatalogAssetType.Screenshot
                        ? { backgroundImage: `url(${s.url})` }
                        : s.type === CatalogAssetType.ExternalVideo && youtubeId(s.externalUrl)
                          ? { backgroundImage: `url(${ytThumbUrl(youtubeId(s.externalUrl)!)})` }
-                         : undefined">
+                         : undefined"
+                     @click="mediaViewer = s">
                   <span v-if="s.type !== CatalogAssetType.Screenshot" class="shot-play"><app-icon name="play" :size="15" /></span>
                   <span v-if="s.type === CatalogAssetType.PreviewVideo" class="shot-name">{{ s.fileName }}</span>
+                  <span class="shot-moves">
+                    <button class="ic-act" :title="t('productEdit.mediaMoveForward')" :disabled="busy || i === 0"
+                            @click.stop="onMoveMedia(i, -1)"><app-icon name="chevronL" :size="14" /></button>
+                    <button class="ic-act" :title="t('productEdit.mediaMoveBackward')" :disabled="busy || i === previewMedia.length - 1"
+                            @click.stop="onMoveMedia(i, 1)"><app-icon name="chevronR" :size="14" /></button>
+                  </span>
                   <n-popconfirm placement="top-end" @positive-click="onDeleteMedia(s.id!)">
                     <template #trigger>
-                      <button class="ic-act danger shot-del" :title="t('common.delete')" :disabled="busy"><app-icon name="trash" :size="15" /></button>
+                      <button class="ic-act danger shot-del" :title="t('common.delete')" :disabled="busy" @click.stop><app-icon name="trash" :size="15" /></button>
                     </template>
                     {{ t('productEdit.mediaDeleteConfirm') }}
                   </n-popconfirm>
@@ -580,6 +609,21 @@ function fmtDate(v?: string | null) {
       </template>
     </n-modal>
 
+    <!-- 預覽媒體放大檢視 -->
+    <n-modal :show="!!mediaViewer" preset="card" style="max-width:720px;"
+             :title="mediaViewer?.type === CatalogAssetType.PreviewVideo ? (mediaViewer?.fileName ?? '') : t('productEdit.mediaTitle')"
+             @update:show="(v: boolean) => { if (!v) mediaViewer = null }">
+      <template v-if="mediaViewer">
+        <img v-if="mediaViewer.type === CatalogAssetType.Screenshot" class="media-viewer" :src="mediaViewer.url ?? ''" alt="" />
+        <video v-else-if="mediaViewer.type === CatalogAssetType.PreviewVideo" class="media-viewer" :src="mediaViewer.url ?? ''"
+               controls autoplay preload="metadata"></video>
+        <iframe v-else-if="youtubeId(mediaViewer.externalUrl)" class="media-viewer media-viewer-frame"
+                :src="ytEmbedUrl(youtubeId(mediaViewer.externalUrl)!)"
+                title="YouTube video player" frameborder="0" allowfullscreen
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+      </template>
+    </n-modal>
+
     <!-- 加入 YouTube 連結 -->
     <n-modal v-model:show="youtubeModal" preset="card" style="max-width:460px;" :title="t('productEdit.youtubeModalTitle')">
       <div class="field">
@@ -649,6 +693,23 @@ function fmtDate(v?: string | null) {
   right: 6px;
   background: var(--bg);
 }
+/* 點擊放大檢視 */
+.shot-clickable { cursor: zoom-in; }
+.media-viewer { display: block; width: 100%; max-height: 70vh; object-fit: contain; border-radius: var(--r-md); background: #1a1a1a; }
+img.media-viewer { background: transparent; }
+.media-viewer-frame { aspect-ratio: 16 / 9; border: 0; }
+
+/* 左下移動鈕（前移 / 後移） */
+.shot-moves {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  gap: 4px;
+}
+.shot-moves .ic-act { background: var(--bg); }
+/* 影片磚檔名讓位給移動鈕 */
+.shot-media .shot-name { left: 70px; }
 /* 影片 / YouTube 磚：深色底 + 中央播放徽章（YouTube 另以縮圖為背景） */
 .shot-media { background-color: #1a1a1a; }
 .shot-play {
