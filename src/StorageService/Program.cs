@@ -30,11 +30,10 @@ builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Sto
 // 儲存後端：地端本地檔案系統 / 雲端 Google Cloud Storage，依設定切換
 if (storageOpts.Provider == StorageProvider.Gcs)
 {
-    // 服務帳戶金鑰可簽章 signed URL；留空則用 ADC（GKE Workload Identity，透過 IAM SignBlob 簽章）
-    var credential = string.IsNullOrWhiteSpace(storageOpts.Gcs.CredentialsPath)
-        ? GoogleCredential.GetApplicationDefault()
-        : CredentialFactory.FromFile<ServiceAccountCredential>(storageOpts.Gcs.CredentialsPath)
-            .ToGoogleCredential();
+    // ADC（GKE Workload Identity）：憑證由 metadata server 取得 pod 綁定的 GSA 身分，
+    // signed URL 經 IAM SignBlob API 簽章（GSA 需 iam.serviceAccounts.signBlob，
+    // 即 roles/iam.serviceAccountTokenCreator，見 docs/infra.md）。
+    var credential = GoogleCredential.GetApplicationDefault();
 
     builder.Services.AddSingleton(StorageClient.Create(credential));
     builder.Services.AddSingleton(UrlSigner.FromCredential(credential));

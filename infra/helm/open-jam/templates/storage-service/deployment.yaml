@@ -22,6 +22,10 @@ spec:
         {{- include "open-jam.labels" . | nindent 8 }}
         app.kubernetes.io/component: storage-service
     spec:
+      {{- if eq .Values.storage.provider "Gcs" }}
+      # Workload Identity：KSA 綁定 GSA（見 serviceaccount.yaml），GCS 憑證走 ADC
+      serviceAccountName: {{ include "open-jam.fullname" . }}-storage-service
+      {{- end }}
       containers:
         - name: storage-service
           image: {{ printf "%s:%s" .Values.storageService.image.repository .Values.storageService.image.tag | quote }}
@@ -72,13 +76,6 @@ spec:
               value: {{ .Values.storage.publicBucket | quote }}
             - name: Storage__PrivateBucket
               value: {{ .Values.storage.privateBucket | quote }}
-            {{- if .Values.storage.gcs.credentialsSecretName }}
-            - name: Storage__Gcs__CredentialsPath
-              value: {{ printf "%s/%s" (.Values.storage.gcs.mountPath | trimSuffix "/") .Values.storage.gcs.credentialsSecretKey | quote }}
-            {{- else }}
-            - name: Storage__Gcs__CredentialsPath
-              value: {{ .Values.storage.gcs.credentialsPath | quote }}
-            {{- end }}
             {{- else }}
             - name: Storage__Local__RootPath
               value: {{ .Values.storage.local.rootPath | quote }}
@@ -105,11 +102,6 @@ spec:
             - name: wait-for-it
               mountPath: /wait-for-it.sh
               subPath: wait-for-it.sh
-            {{- if and (eq .Values.storage.provider "Gcs") .Values.storage.gcs.credentialsSecretName }}
-            - name: gcs-sa-key
-              mountPath: {{ .Values.storage.gcs.mountPath | quote }}
-              readOnly: true
-            {{- end }}
           readinessProbe:
             httpGet:
               path: /healthz
@@ -131,13 +123,4 @@ spec:
           configMap:
             name: {{ include "open-jam.fullname" . }}-wait-for-it
             defaultMode: 0755
-        {{- if and (eq .Values.storage.provider "Gcs") .Values.storage.gcs.credentialsSecretName }}
-        - name: gcs-sa-key
-          secret:
-            secretName: {{ .Values.storage.gcs.credentialsSecretName | quote }}
-            # 容器以非 root 使用者（Dockerfile 的 $APP_UID，UID 1654）執行，
-            # secret 檔案 owner 為 root；0400 只有 owner 可讀會導致 Permission denied。
-            # secret volume 僅掛載於本 pod，pod 內全域可讀（0444）不構成外洩。
-            defaultMode: 0444
-        {{- end }}
 {{- end }}

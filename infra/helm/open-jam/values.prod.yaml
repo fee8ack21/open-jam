@@ -140,7 +140,8 @@ email:
   maxRetryAttempts: 5
   retryIntervalMinutes: 2
 
-# 檔案儲存後端：正式環境採用 GCS，signed URL 透過 GKE Workload Identity 簽章
+# 檔案儲存後端：正式環境採用 GCS，經 GKE Workload Identity 授權（免金鑰），
+# signed URL 由 IAM SignBlob 簽章
 storage:
   provider: Gcs
   # 公開讀取資產（Avatar/Banner、商品縮圖，IsPublic 物件）所屬 bucket
@@ -149,8 +150,8 @@ storage:
   privateBucket: open-jam-private
   softDeleteRetentionDays: 30
   gcs:
-    # 留空走 ADC / GKE Workload Identity
-    credentialsPath: ""
+    # Workload Identity 綁定的 GSA（IAM 綁定見 docs/infra.md「部署流程」）
+    gcpServiceAccount: "open-jam-storage@open-jam-498418.iam.gserviceaccount.com"
 
 # ── Application Services ──────────────────────────────────────────────────────
 

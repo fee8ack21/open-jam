@@ -148,7 +148,7 @@ RabbitMQ Worker，消費 `EmailRequestedEvent`，從 DB 讀取模板渲染後以
 
 REST API，簽發上傳 / 下載 URL 並管理檔案生命週期。
 
-- **儲存後端**：`IStorageProvider` 抽象，依 `Storage:Provider` 設定切換地端 `LocalStorageProvider`（本地檔案系統，預設存於 `Files/` 資料夾）或雲端 `GcsStorageProvider`（GCS，signed URL 用服務帳戶金鑰或 GKE Workload Identity 的 IAM SignBlob）。
+- **儲存後端**：`IStorageProvider` 抽象，依 `Storage:Provider` 設定切換地端 `LocalStorageProvider`（本地檔案系統，預設存於 `Files/` 資料夾）或雲端 `GcsStorageProvider`（GCS，經 GKE Workload Identity 授權（ADC，免金鑰），signed URL 以 IAM SignBlob 簽章）。
 - **流程**：`FilesController` 簽發上傳 / 下載 URL（本地由 `BlobUrlSigner` 以 HMAC 簽章，取代 presigned URL）→ 客戶端直傳；本地經 `BlobController` 接收上傳寫入 `LocalFileStore` 後即觸發 `StorageEventService` → `FileProcessingService` 處理 → publish `FileReadyEvent`（GCS 則由 bucket notification 觸發）。
 - **本地 blob 端點**：`BlobController`（`/v1/files/blob/{**key}`）負責本地儲存的 PUT 上傳 / GET 下載；`public/` 虛擬 bucket 路徑段（對應雲端公開 bucket，由 provider 組 URL 時加上、不進 `StorageKey`）免簽章供匿名讀取，其餘須帶有效 `expires` + `sig`。公開 / 私有隔離依 `StoredFile.IsPublic` 旗標（GCS 據此選 bucket），物件鍵值一律 `creators/{creatorId}/{fileId}/{name}`。
 - **檔案生命週期與配額銜接**：簽發 signed URL **不計配額**。`POST /v1/files/{id}/confirm` 驗證物件存在後觸發處理 pipeline（Local / GCS 共用同一條 confirm 路徑）；`POST /v1/files/{id}/reference` 由功能 API 於資產 reference 建立後標記檔案「已被使用」——只有 referenced 檔案計入配額對帳，未 referenced 者逾期由清理排程回收。
@@ -282,8 +282,8 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
       "RootPath": "Files",                  // 檔案存放根目錄（相對工作目錄）
       "BaseUrl": "http://localhost:5171",   // 本服務對外網址，用於組合 blob URL
       "SigningKey": "<HMAC 簽章密鑰，正式以 Secret 覆蓋>"
-    },
-    "Gcs": { "CredentialsPath": "" }  // 留空走 ADC / Workload Identity
+    }
+    // GCS 授權走 GKE Workload Identity（ADC，免金鑰），無額外憑證設定
   }
 }
 // StoreService 額外需要（呼叫 StorageService 簽發頭像 / 橫幅上傳 URL）

@@ -177,16 +177,11 @@ storage:
   privateBucket: open-jam-private
   softDeleteRetentionDays: 30
   gcs:
-    # GCS 服務帳戶金鑰：由使用者自行建立的 k8s Secret 提供，掛載為檔案後簽發 signed URL。
-    # 以專案根目錄的 gcs-sa-key.json 建立（secret 內的 data key 即檔名 gcs-sa-key.json）：
-    #   kubectl create secret generic gcs-sa-key --from-file=gcs-sa-key.json
-    # credentialsSecretName 留空則不掛載金鑰，改用 ADC / GKE Workload Identity。
-    credentialsSecretName: "gcs-sa-key"
-    credentialsSecretKey: "gcs-sa-key.json"
-    # 金鑰檔在容器內的掛載目錄；CredentialsPath = mountPath/credentialsSecretKey
-    mountPath: "/var/secrets/gcs"
-    # 直接覆寫 CredentialsPath（一般留空，由 mountPath + key 組合）；ADC 模式請連同 secretName 一併留空
-    credentialsPath: ""
+    # GKE Workload Identity：storage-service pod 以下列 GSA 身分存取 GCS（免服務帳戶金鑰），
+    # signed URL 經 IAM SignBlob API 簽章。Provider 為 Gcs 時必填；chart 會建立專屬 KSA
+    # 並加上 iam.gke.io/gcp-service-account annotation，GSA 端 IAM 綁定須先以 gcloud 完成
+    #（workloadIdentityUser / serviceAccountTokenCreator / bucket 權限，見 docs/infra.md）。
+    gcpServiceAccount: ""
   local:
     # 檔案存放根目錄（相對工作目錄）；正式建議掛載 PersistentVolume
     rootPath: Files
