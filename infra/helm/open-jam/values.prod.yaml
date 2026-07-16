@@ -315,7 +315,7 @@ contentService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/content-service
-    tag: v0.0.2
+    tag: v0.0.3
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -345,7 +345,7 @@ portalWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/portal-web
-    tag: v0.0.33
+    tag: v0.0.34
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -360,7 +360,7 @@ workspaceWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/workspace-web
-    tag: v0.0.33
+    tag: v0.0.34
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -392,7 +392,7 @@ bootstrap:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/bootstrap
-    tag: v0.0.14
+    tag: v0.0.15
     pullPolicy: IfNotPresent
   ttlSecondsAfterFinished: 300
   # seed 平台管理員（password → 機密 overlay）

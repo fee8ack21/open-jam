@@ -7,7 +7,7 @@
     <UserSecretsId>dotnet-ContentService-9d4a1c72-6b8e-4f13-a2d5-7c9e0f4b1a83</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
