@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
-import { CATEGORIES } from '@/data/products';
+import { CATEGORIES, type PreviewMediaItem } from '@/data/products';
 import ProductThumb from '@/components/ProductThumb.vue';
 import AppIcon from '@/components/app-icon';
 import Stars from '@/components/Stars.vue';
@@ -25,16 +25,23 @@ const active = ref(0);
 
 const p = computed(() => store.product(String(route.params.id)));
 
-// 圖庫：封面 + 預覽圖（Screenshot 資產）；無任何實圖時 gallery 為空、退回色調佔位
-const gallery = computed(() =>
-  p.value ? [p.value.image, ...(p.value.screenshots ?? [])].filter((u): u is string => !!u) : [],
-);
-// 主圖：以目前選中的圖庫項目覆寫 image（超出範圍時回到第一張）
+// 圖庫：封面 + 預覽媒體（圖片 / 上傳影片 / YouTube 嵌入）；無任何項目時退回色調佔位
+const gallery = computed<PreviewMediaItem[]>(() => {
+  if (!p.value) return [];
+  const items: PreviewMediaItem[] = [];
+  if (p.value.image) items.push({ kind: 'image', url: p.value.image });
+  items.push(...(p.value.previewMedia ?? []));
+  return items;
+});
+// 目前選中的圖庫項目（超出範圍時回到第一項）
+const activeItem = computed(() => gallery.value[active.value] ?? gallery.value[0]);
+// 主圖（僅圖片項目）：以目前選中的圖片覆寫 image
 const galleryProduct = computed(() => {
   if (!p.value) return null;
-  const img = gallery.value[active.value] ?? gallery.value[0];
-  return img ? { ...p.value, image: img } : p.value;
+  return activeItem.value?.kind === 'image' ? { ...p.value, image: activeItem.value.url } : p.value;
 });
+const ytEmbedUrl = (id: string) => `https://www.youtube-nocookie.com/embed/${id}`;
+const ytThumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const fav = computed(() => (p.value ? store.isFav(p.value.id) : false));
 const inCart = computed(() => (p.value ? store.inCart(p.value.id) : false));
 const initials = computed(() => (p.value ? p.value.creator.split(' ').map((s) => s[0]).slice(0, 2).join('') : ''));
@@ -76,12 +83,26 @@ const goCart = () => router.push({ name: 'checkout' });
     <div class="detail-grid">
       <!-- left: gallery + content -->
       <div>
-        <product-thumb :product="galleryProduct ?? p" class="gallery-main" :seed="active" :glyph-size="120"
+        <!-- 主展示區：依項目類型切換圖片 / 影片播放器 / YouTube 嵌入（key 確保切換時銷毀重建、停止播放） -->
+        <video v-if="activeItem?.kind === 'video'" :key="activeItem.url"
+               class="gallery-main gallery-media" :src="activeItem.url" controls preload="metadata"></video>
+        <iframe v-else-if="activeItem?.kind === 'youtube' && activeItem.youtubeId" :key="activeItem.youtubeId"
+                class="gallery-main gallery-media" :src="ytEmbedUrl(activeItem.youtubeId)"
+                title="YouTube video player" frameborder="0" allowfullscreen
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+        <product-thumb v-else :product="galleryProduct ?? p" class="gallery-main" :seed="active" :glyph-size="120"
                        :label="gallery.length > 1 ? t('detail.previewLabel', { current: active + 1, total: gallery.length }) : ''" />
         <div v-if="gallery.length > 1" class="gallery-thumbs">
-          <product-thumb v-for="(img, i) in gallery" :key="img" :product="{ ...p, image: img }"
-                         :class="{ on: active === i }" :show-cat="false" :glyph-size="26"
-                         hide-label @click="active = i" />
+          <template v-for="(item, i) in gallery" :key="item.url + i">
+            <product-thumb v-if="item.kind === 'image'" :product="{ ...p, image: item.url }"
+                           :class="{ on: active === i }" :show-cat="false" :glyph-size="26"
+                           hide-label @click="active = i" />
+            <button v-else type="button" class="thumb media-thumb" :class="{ on: active === i }" @click="active = i">
+              <img v-if="item.kind === 'youtube' && item.youtubeId" :src="ytThumbUrl(item.youtubeId)" alt="" loading="lazy" />
+              <video v-else :src="item.url" preload="metadata" muted></video>
+              <span class="media-play"><app-icon name="play" :size="16" /></span>
+            </button>
+          </template>
         </div>
 
         <div style="margin-top:44px">
@@ -206,3 +227,20 @@ const goCart = () => router.push({ name: 'checkout' });
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 影片 / YouTube 主展示區：沿用 .gallery-main 外框（16/10），深色底避免 letterbox 白邊 */
+.gallery-media { display: block; width: 100%; background: #1a1a1a; object-fit: contain; }
+
+/* 影片 / YouTube 縮圖磚：深色底 + 中央播放徽章（外框樣式沿用 .gallery-thumbs .thumb） */
+.media-thumb { padding: 0; background: #1a1a1a; }
+.media-thumb img,
+.media-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;
+  width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center;
+  background: rgba(255, 255, 255, .92); border: var(--bw) solid var(--border-strong);
+  color: var(--text); pointer-events: none;
+}
+.media-play svg { margin-left: 2px; }
+</style>

@@ -34,6 +34,15 @@ export interface ProductContent {
   size: string;
 }
 
+/** 商品頁圖庫的預覽媒體項目（圖片 / 上傳影片 / YouTube 嵌入）。 */
+export interface PreviewMediaItem {
+  kind: 'image' | 'video' | 'youtube';
+  /** image / video 為公開讀取 URL；youtube 為正規化 watch 網址。 */
+  url: string;
+  /** YouTube 影片 ID（縮圖與 embed 用，僅 kind = 'youtube'）。 */
+  youtubeId?: string;
+}
+
 /** 市集販售的商品。 */
 export interface Product {
   id: string;
@@ -65,8 +74,8 @@ export interface Product {
   featuredOrder?: number;
   /** 實際商品縮圖（webp import URL）；未設定時退回程式產生的佔位縮圖。 */
   image?: string;
-  /** 預覽圖公開 URL 清單（後端 Screenshot 資產，依 sortOrder 排序）；商品頁圖庫展示。 */
-  screenshots?: string[];
+  /** 預覽媒體清單（後端 Screenshot / PreviewVideo / ExternalVideo 資產，依 sortOrder 混排）；商品頁圖庫展示。 */
+  previewMedia?: PreviewMediaItem[];
   /** 目前版本 ID（下單必填，來自 CatalogService 商品詳情的 currentVersion）。 */
   versionId?: string;
   /** 幣別（ISO 4217，如 "TWD"、"usd"）；下單與付款沿用，未設定時預設 usd。 */

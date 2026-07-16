@@ -129,6 +129,10 @@ export const ICONS: Record<string, IconDef> = {
       '<circle cx="10.5" cy="10.5" r="6.7" fill="none" stroke="currentColor" stroke-width="2.6"></circle>' +
       '<path d="M15.6 15.6 L21 21" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></path>',
   },
+  /* 播放三角（影片 / YouTube 預覽媒體縮圖） */
+  play: {
+    body: '<path d="M8 5.2 l11 6.8 -11 6.8 z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>',
+  },
   arrow: { body: stroke('M4.5 12 h13.5 M12.5 6 l6 6 -6 6', 2.6) },
   arrowL: { body: stroke('M19.5 12 H6 M11.5 6 l-6 6 6 6', 2.6) },
   arrowU: { body: stroke('M12 19.5 V6 M6 11.5 l6 -6 6 6', 2.6) },

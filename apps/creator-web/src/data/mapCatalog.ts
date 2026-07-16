@@ -9,7 +9,7 @@ import {
   type CatalogDto,
   type CatalogCategoryDto,
 } from '@/api/catalog-service';
-import type { Product } from '@/data/products';
+import type { PreviewMediaItem, Product } from '@/data/products';
 import type { Store } from '@/data/store';
 import type { StoreDto } from '@/api/store-service';
 
@@ -51,6 +51,29 @@ export function hueColor(hue: number): string {
   return `hsl(${hue} 70% 58%)`;
 }
 
+/** 由 YouTube 網址取出影片 ID（後端已正規化為 watch 網址，其餘形式僅防禦性支援）。 */
+function youtubeVideoId(url: string): string | null {
+  const match =
+    /[?&]v=([A-Za-z0-9_-]{11})/.exec(url) ??
+    /youtu\.be\/([A-Za-z0-9_-]{11})/.exec(url) ??
+    /\/(?:shorts|embed|live)\/([A-Za-z0-9_-]{11})/.exec(url);
+  return match ? match[1] : null;
+}
+
+/** 展示型資產 → 圖庫預覽媒體項目（不支援的資產型別回 null）。 */
+function toPreviewMediaItem(asset: NonNullable<CatalogDto['assets']>[number]): PreviewMediaItem | null {
+  if (asset.type === CatalogAssetType.Screenshot && asset.url)
+    return { kind: 'image', url: asset.url };
+  if (asset.type === CatalogAssetType.PreviewVideo && asset.url)
+    return { kind: 'video', url: asset.url };
+  if (asset.type === CatalogAssetType.ExternalVideo) {
+    const url = asset.externalUrl ?? asset.url;
+    const id = url ? youtubeVideoId(url) : null;
+    if (url && id) return { kind: 'youtube', url, youtubeId: id };
+  }
+  return null;
+}
+
 /** CatalogSummaryDto / CatalogDto → 店面 Product。 */
 export function toProduct(
   dto: CatalogSummaryDto | CatalogDto,
@@ -82,11 +105,13 @@ export function toProduct(
     contents: [],
     previews: 0,
     image: dto.thumbnailUrl ?? undefined,
-    // 預覽圖（Screenshot 資產）僅完整 CatalogDto（詳情頁）帶有；列表摘要為空陣列
-    screenshots: (detail.assets ?? [])
-      .filter((a) => a.type === CatalogAssetType.Screenshot && a.url)
+    // 預覽媒體（Screenshot / PreviewVideo / ExternalVideo 資產，依 sortOrder 混排）
+    // 僅完整 CatalogDto（詳情頁）帶有；列表摘要為空陣列
+    previewMedia: (detail.assets ?? [])
+      .slice()
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-      .map((a) => a.url as string),
+      .map(toPreviewMediaItem)
+      .filter((m): m is PreviewMediaItem => m !== null),
     featured: dto.isStoreFeatured ?? false,
     featuredOrder: dto.storeFeaturedSortOrder ?? 0,
     versionId: detail.currentVersion?.id ?? undefined,
