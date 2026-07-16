@@ -139,48 +139,55 @@ gcloud compute addresses create open-jam-ip --global
 正式環境 StorageService 以 GCS 為後端，授權走 **GKE Workload Identity**（免服務帳戶金鑰）：Helm chart 建立的 KSA（`open-jam-storage-service`，namespace `open-jam`）綁定 GSA（`values.prod.yaml` 的 `storage.gcs.gcpServiceAccount`），signed URL 經 IAM SignBlob 簽章。以下 GCP 端綁定**不由 Helm 管理**，部署前須先完成一次：
 
 ```bash
-# 前置：叢集須啟用 Workload Identity（建叢集時 --workload-pool；既有叢集可事後補開）
-gcloud container clusters update open-jam `
+# （bash 語法；於 PowerShell 執行時將行尾接續符 \ 換成 `）
+# 前置：叢集須啟用 Workload Identity（建叢集時 --workload-pool；既有叢集可事後補開）。
+# 叢集為 open-jam-cluster-1（zonal，asia-east1-a），gcloud 未設預設 zone 時須帶 --location。
+gcloud container clusters update open-jam-cluster-1 --location=asia-east1-a \
   --workload-pool=open-jam-498418.svc.id.goog
-# 節點池亦須啟用 GKE metadata server（新節點池預設繼承叢集設定）
-gcloud container node-pools update <node-pool> `
-  --cluster=open-jam `
+# 節點池亦須啟用 GKE metadata server（新節點池預設繼承叢集設定；
+# 此步會滾動重建節點，單節點叢集等於全站中斷幾分鐘）
+gcloud container node-pools update <node-pool> \
+  --cluster=open-jam-cluster-1 --location=asia-east1-a \
   --workload-metadata=GKE_METADATA
 
 # 建立 GSA（email 即 values.prod.yaml 的 storage.gcs.gcpServiceAccount）
-gcloud iam service-accounts create open-jam-storage `
-  --project=open-jam-498418 `
+gcloud iam service-accounts create open-jam-storage \
+  --project=open-jam-498418 \
   --display-name="Open Jam StorageService (Workload Identity)"
 
 # bucket 權限：公開 bucket 需含 bucket IAM 管理（EnsurePublicReadPolicyAsync 套匿名讀取）
-gcloud storage buckets add-iam-policy-binding gs://open-jam-public `
-  --member="serviceAccount:open-jam-storage@open-jam-498418.iam.gserviceaccount.com" `
+gcloud storage buckets add-iam-policy-binding gs://open-jam-public \
+  --member="serviceAccount:open-jam-storage@open-jam-498418.iam.gserviceaccount.com" \
   --role="roles/storage.admin"
-gcloud storage buckets add-iam-policy-binding gs://open-jam-private `
-  --member="serviceAccount:open-jam-storage@open-jam-498418.iam.gserviceaccount.com" `
+gcloud storage buckets add-iam-policy-binding gs://open-jam-private \
+  --member="serviceAccount:open-jam-storage@open-jam-498418.iam.gserviceaccount.com" \
   --role="roles/storage.objectAdmin"
 
 # signed URL 簽章：GSA 需可對「自身」呼叫 IAM SignBlob
-gcloud iam service-accounts add-iam-policy-binding `
-  open-jam-storage@open-jam-498418.iam.gserviceaccount.com `
-  --member="serviceAccount:open-jam-storage@open-jam-498418.iam.gserviceaccount.com" `
+gcloud iam service-accounts add-iam-policy-binding \
+  open-jam-storage@open-jam-498418.iam.gserviceaccount.com \
+  --member="serviceAccount:open-jam-storage@open-jam-498418.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountTokenCreator"
 
 # Workload Identity 綁定：允許 KSA open-jam/open-jam-storage-service 扮演此 GSA
-gcloud iam service-accounts add-iam-policy-binding `
-  open-jam-storage@open-jam-498418.iam.gserviceaccount.com `
-  --member="serviceAccount:open-jam-498418.svc.id.goog[open-jam/open-jam-storage-service]" `
+gcloud iam service-accounts add-iam-policy-binding \
+  open-jam-storage@open-jam-498418.iam.gserviceaccount.com \
+  --member="serviceAccount:open-jam-498418.svc.id.goog[open-jam/open-jam-storage-service]" \
   --role="roles/iam.workloadIdentityUser"
 ```
 
-部署後驗證（pod 內 ADC 應回報 GSA 身分）：
+部署後驗證（storage-service 映像無 wget / curl，改以掛同一 KSA 的臨時 pod 查 metadata server，ADC 應回報 GSA 身分）：
 
 ```bash
-kubectl exec -n open-jam deploy/open-jam-storage-service -- `
-  wget -qO- --header="Metadata-Flavor: Google" `
+kubectl run wi-test -n open-jam --rm -it --restart=Never \
+  --image=curlimages/curl \
+  --overrides='{"spec":{"serviceAccountName":"open-jam-storage-service"}}' \
+  -- curl -s -H "Metadata-Flavor: Google" \
   http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email
 # 預期輸出：open-jam-storage@open-jam-498418.iam.gserviceaccount.com
 ```
+
+> 另一個間接訊號：storage-service 啟動時會呼叫 GCS 套公開 bucket 的匿名讀取 IAM（`EnsurePublicReadPolicyAsync`），pod 能進入 Running / Ready 即代表 ADC 憑證與 bucket 權限已生效；signed URL 的 SignBlob 路徑則需實際簽發上傳 / 下載 URL 才會走到。
 
 > 自「掛金鑰檔」模式遷移：確認新版部署正常簽發上傳 / 下載 URL 後，刪除舊 k8s Secret（`kubectl delete secret gcs-sa-key -n open-jam`）並作廢外流面最大的服務帳戶金鑰（`gcloud iam service-accounts keys list / delete`）。
 
