@@ -19,6 +19,7 @@ public class UserSeeder(AppDbContext db, IPasswordHasher passwordHasher, IConfig
         "rick_beato@example.com",
         "jack_thammarat@example.com",
         "hae_chan_park@example.com",
+        "studio_ghibli@example.com",
     ];
 
     private const string DefaultMockPassword = "Aa123456!";

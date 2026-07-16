@@ -19,6 +19,7 @@ public class StoreSeeder(StoreDbContext db, AuthDbContext authDb, IConfiguration
         "rick-beato",
         "jack-thammarat",
         "hae-chan-park",
+        "studio-ghibli",
     ];
 
     public async Task SeedAsync()
