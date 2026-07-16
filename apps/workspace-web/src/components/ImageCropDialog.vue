@@ -9,7 +9,7 @@ const { t } = useI18n()
 const props = defineProps<{
   show: boolean
   file: File | null
-  kind: 'avatar' | 'banner'
+  kind: 'avatar' | 'banner' | 'cover'
 }>()
 
 const emit = defineEmits<{
@@ -22,10 +22,11 @@ const open = computed({
   set: (v: boolean) => emit('update:show', v),
 })
 
-// 裁切輸出上限（超過才縮小，不放大）：avatar 圓形顯示最大 104px、banner 滿版封面
+// 裁切輸出上限（超過才縮小，不放大）：avatar 圓形顯示最大 104px、banner 滿版封面、cover 商品卡 4:3
 const OUTPUT = {
   avatar: { maxWidth: 512, maxHeight: 512 },
   banner: { maxWidth: 2400, maxHeight: 600 },
+  cover: { maxWidth: 1600, maxHeight: 1200 },
 } as const
 
 // 輸出格式跟隨原檔 MIME；副檔名對齊輸出格式（GIF 已不在允許清單）
@@ -48,14 +49,14 @@ onBeforeUnmount(() => {
   if (src.value) URL.revokeObjectURL(src.value)
 })
 
-const isAvatar = computed(() => props.kind === 'avatar')
-// avatar 用圓形遮罩（店面即為圓形呈現）；banner 固定 4:1 並以 previewClass 疊安全區參考框
-const stencilComponent = computed(() => (isAvatar.value ? CircleStencil : RectangleStencil))
-const stencilProps = computed(() =>
-  isAvatar.value
-    ? { aspectRatio: 1 }
-    : { aspectRatio: 4, previewClass: 'crop-banner-safe' },
-)
+// avatar 用圓形遮罩（店面即為圓形呈現）；banner 固定 4:1、cover 固定 4:3，皆以 previewClass 疊安全區參考框
+const stencilComponent = computed(() => (props.kind === 'avatar' ? CircleStencil : RectangleStencil))
+const STENCIL = {
+  avatar: { aspectRatio: 1 },
+  banner: { aspectRatio: 4, previewClass: 'crop-banner-safe' },
+  cover: { aspectRatio: 4 / 3, previewClass: 'crop-cover-safe' },
+} as const
+const stencilProps = computed(() => STENCIL[props.kind])
 
 /** 預設把裁切框撐到可視範圍最大，使用者只需微調。 */
 function defaultSize({
@@ -97,9 +98,9 @@ async function apply() {
 
 <template>
   <n-modal v-model:show="open" preset="card"
-           :title="isAvatar ? t('cropDialog.titleAvatar') : t('cropDialog.titleBanner')"
+           :title="t(`cropDialog.title.${kind}`)"
            style="max-width:640px;">
-    <p class="crop-hint">{{ isAvatar ? t('cropDialog.hintAvatar') : t('cropDialog.hintBanner') }}</p>
+    <p class="crop-hint">{{ t(`cropDialog.hint.${kind}`) }}</p>
 
     <div v-if="error === 'load'" class="crop-error">{{ t('cropDialog.loadError') }}</div>
     <Cropper v-else ref="cropperRef" class="crop-area" :src="src"
@@ -128,6 +129,19 @@ async function apply() {
   right: 18.75%;
   top: 17%;
   bottom: 17%;
+  border: 2px dashed rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* cover 安全區：列表小圖為正方形，4:3 內的中央正方形 = 左右各裁 12.5% */
+.crop-cover-safe::after {
+  content: '';
+  position: absolute;
+  left: 12.5%;
+  right: 12.5%;
+  top: 0;
+  bottom: 0;
   border: 2px dashed rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   pointer-events: none;

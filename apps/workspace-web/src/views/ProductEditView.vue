@@ -8,6 +8,7 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
 import { useCatalogEditStore, type CatalogBasics } from '@/stores/catalogEdit'
 import { CatalogStatus, type CatalogVersionDto } from '@/api/catalog-service'
+import ImageCropDialog from '@/components/ImageCropDialog.vue'
 
 const { t, locale } = useI18n()
 
@@ -136,7 +137,11 @@ async function onSave() {
 
 function pickCover() { coverInput.value?.click() }
 
-async function onCoverPick(e: Event) {
+// 裁切視窗：選檔通過驗證後先進裁切，「套用」才進上傳（同商店外觀設定）
+const cropShow = ref(false)
+const cropFile = ref<File | null>(null)
+
+function onCoverPick(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
@@ -144,6 +149,19 @@ async function onCoverPick(e: Event) {
   if (!COVER_ALLOWED.includes(file.type)) { message.error(t('productEdit.msgCoverType')); return }
   if (file.size > COVER_MAX_BYTES) { message.error(t('productEdit.msgCoverTooLarge')); return }
 
+  // GIF 經 canvas 裁切會失去動畫，維持原檔直傳
+  if (file.type === 'image/gif') { void uploadCoverFile(file); return }
+  cropFile.value = file
+  cropShow.value = true
+}
+
+function onCropped(file: File) {
+  // 裁切輸出理論上只會更小，仍防呆再驗一次上限
+  if (file.size > COVER_MAX_BYTES) { message.error(t('productEdit.msgCoverTooLarge')); return }
+  void uploadCoverFile(file)
+}
+
+async function uploadCoverFile(file: File) {
   setCoverPreview(file)
   const ok = await edit.uploadCover(catalogId.value, file)
   setCoverPreview(null)
@@ -330,6 +348,8 @@ function fmtDate(v?: string | null) {
             </div>
             <div>
               <input ref="coverInput" type="file" :accept="COVER_ACCEPT" style="display:none" @change="onCoverPick" />
+              <!-- 選檔後先裁切（4:3 + 中央正方形安全區），套用才上傳；GIF 不裁切 -->
+              <ImageCropDialog v-model:show="cropShow" :file="cropFile" kind="cover" @cropped="onCropped" />
               <div class="cover-row">
                 <div class="cover-box" :class="{ 'is-empty': !coverUrl }"
                      :style="coverUrl ? { backgroundImage: `url(${coverUrl})` } : { background: huePastel(form.coverHue) }"

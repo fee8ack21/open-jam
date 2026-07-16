@@ -285,10 +285,16 @@
     "msgSaveFailed": "Update failed"
   },
   "cropDialog": {
-    "titleAvatar": "Crop avatar",
-    "titleBanner": "Crop banner",
-    "hintAvatar": "Drag and zoom to choose the visible area — the circle is exactly what your store shows.",
-    "hintBanner": "Drag and zoom to choose the visible area. Phones and large screens only show the centre — keep key content inside the dashed box.",
+    "title": {
+      "avatar": "Crop avatar",
+      "banner": "Crop banner",
+      "cover": "Crop cover image"
+    },
+    "hint": {
+      "avatar": "Drag and zoom to choose the visible area — the circle is exactly what your store shows.",
+      "banner": "Drag and zoom to choose the visible area. Phones and large screens only show the centre — keep key content inside the dashed box.",
+      "cover": "Drag and zoom to choose the visible area. Small list thumbnails only show the centre square — keep key content inside the dashed box."
+    },
     "apply": "Apply",
     "cancel": "Cancel",
     "loadError": "Couldn’t load this image — please pick another file.",
