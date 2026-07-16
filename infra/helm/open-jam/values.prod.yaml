@@ -345,7 +345,7 @@ portalWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/portal-web
-    tag: v0.0.37
+    tag: v0.0.38
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
