@@ -316,7 +316,7 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
   "Stripe": {
     "SecretKey": "sk_test_...", "PublishableKey": "pk_test_...", "WebhookSecret": "whsec_...",
     "ConnectWebhookSecret": "whsec_...",   // Connect webhook 端點（account.updated）簽章密鑰
-    "PlatformFeePercent": 10,              // 平台抽成百分比（destination charge application fee）
+    "PlatformFeePercent": 3,               // 平台抽成百分比（destination charge application fee）
     "SuccessUrl": "http://localhost:5174/checkout/success?session_id={CHECKOUT_SESSION_ID}",
     "CancelUrl": "http://localhost:5174/checkout/cancel",
     // Stripe Connect onboarding 導回 workspace-web 收款設定頁

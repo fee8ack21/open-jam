@@ -10,7 +10,7 @@ public class StripeOptions
     /// <summary>Connect webhook 端點簽章密鑰（account.updated 等 Connect 事件與平台事件分屬不同端點）。</summary>
     public string ConnectWebhookSecret { get; set; } = "";
 
-    /// <summary>平台抽成百分比（destination charge 的 application fee），如 10 表示 10%。</summary>
+    /// <summary>平台抽成百分比（destination charge 的 application fee），如 3 表示 3%。</summary>
     public decimal PlatformFeePercent { get; set; }
 
     /// <summary>Stripe onboarding Account Link 失效重新導向 URL（workspace-web 收款設定頁）。</summary>
