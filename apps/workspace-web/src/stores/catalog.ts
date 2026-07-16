@@ -392,6 +392,63 @@ export const useCatalogStore = defineStore('catalog', () => {
   }
 
   /**
+   * 即時上傳預覽媒體（圖片 → Screenshot、影片 → PreviewVideo）：簽 URL + 直傳，
+   * 但不 confirm（不計配額）。尚未有 Draft catalog 時會順帶建立。
+   * 成功回傳 assetId，失敗回傳 null。
+   */
+  async function uploadDraftPreviewMedia(meta: DraftMeta, file: File): Promise<string | null> {
+    error.value = null;
+    const draft = await ensureDraft(meta);
+    if (!draft) return null;
+    const type = file.type.startsWith('video/')
+      ? CatalogAssetType.PreviewVideo
+      : CatalogAssetType.Screenshot;
+    try {
+      const urlRes = await catalogApi.catalogs.requestAssetUploadUrl(draft.catalogId, {
+        type,
+        fileName: file.name,
+        contentType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+      });
+      if (urlRes.data.uploadUrl) await putFile(urlRes.data.uploadUrl, file);
+      return urlRes.data.assetId ?? null;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.uploadScreenshotFailed'));
+      return null;
+    }
+  }
+
+  /**
+   * 加入 YouTube 外部影片嵌入（即時建立，不涉檔案上傳、不計配額）。
+   * 尚未有 Draft catalog 時會順帶建立。成功回傳 assetId，失敗回傳 null。
+   */
+  async function addDraftExternalVideo(meta: DraftMeta, url: string): Promise<string | null> {
+    error.value = null;
+    const draft = await ensureDraft(meta);
+    if (!draft) return null;
+    try {
+      const res = await catalogApi.catalogs.addExternalVideoAsset(draft.catalogId, { url });
+      return res.data.id ?? null;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.addExternalVideoFailed'));
+      return null;
+    }
+  }
+
+  /** 刪除 Draft catalog 上已建立的展示型資產（精靈中移除 YouTube 嵌入用）。 */
+  async function deleteDraftAsset(assetId: string): Promise<boolean> {
+    const catalogId = draftCatalogId.value;
+    if (!catalogId) return true;
+    try {
+      await catalogApi.catalogs.deleteAsset(catalogId, assetId);
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.deleteScreenshotFailed'));
+      return false;
+    }
+  }
+
+  /**
    * 送出：以目前 step-1 欄位同步 Draft catalog（草稿建立後可能已編輯），
    * 逐一 confirm 已上傳資產（此時才扣配額並建立 reference），視需要上架。
    * 成功回傳 CatalogDto 並清空 Draft 狀態；失敗將訊息寫入 error 並回傳 null。
@@ -401,6 +458,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     assetIds: string[],
     publish: boolean,
     coverAssetId?: string | null,
+    previewMedia?: { assetId: string; type: CatalogAssetType }[],
   ): Promise<CatalogDto | null> {
     const catalogId = draftCatalogId.value;
     const versionId = draftVersionId.value;
@@ -432,6 +490,10 @@ export const useCatalogStore = defineStore('catalog', () => {
       }
       if (coverAssetId) {
         await catalogApi.catalogs.confirmAsset(catalogId, coverAssetId, { type: CatalogAssetType.Thumbnail });
+      }
+      // 預覽媒體逐一 confirm（YouTube 嵌入建立當下已完成，不在此列）。
+      for (const media of previewMedia ?? []) {
+        await catalogApi.catalogs.confirmAsset(catalogId, media.assetId, { type: media.type });
       }
 
       if (publish) await catalogApi.catalogs.publish(catalogId);
@@ -477,6 +539,9 @@ export const useCatalogStore = defineStore('catalog', () => {
     resetDraftUpload,
     uploadDraftAsset,
     uploadDraftCover,
+    uploadDraftPreviewMedia,
+    addDraftExternalVideo,
+    deleteDraftAsset,
     finalizeDraft,
   };
 });

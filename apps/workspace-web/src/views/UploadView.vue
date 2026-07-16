@@ -8,6 +8,7 @@ import { useStoreApplicationStore } from '@/stores/storeApplication'
 import ImageCropDialog from '@/components/ImageCropDialog.vue'
 import { JFmt } from '@/utils/format'
 import { TAGS } from '@/data/products'
+import { CatalogAssetType } from '@/api/catalog-service'
 
 const { t } = useI18n()
 
@@ -33,6 +34,11 @@ const TYPE_COLOR: Record<string, string> = { ZIP: '#8a5cf6', XMP: '#7dd9ff', PDF
 const COVER_ACCEPT = 'image/png,image/jpeg,image/gif,image/webp'
 const COVER_ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 const COVER_MAX_BYTES = 5 * 1024 * 1024
+// 預覽媒體（同商品編輯頁）：影片接受 mp4 / mov / avi / webm
+const VIDEO_ALLOWED = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm']
+const VIDEO_MAX_BYTES = 100 * 1024 * 1024
+const MEDIA_ACCEPT = `${COVER_ACCEPT},${VIDEO_ALLOWED.join(',')}`
+const MAX_PREVIEW_MEDIA = 8
 
 const store = useDashboardStore()
 const message = useMessage()
@@ -66,8 +72,25 @@ interface CoverEntry {
 const cover = ref<CoverEntry | null>(null)
 const coverInput = ref<HTMLInputElement | null>(null)
 
+// 預覽媒體（商品內頁圖庫）：圖片 / 影片選檔即直傳（不 confirm、不計配額），送出時才 confirm；
+// YouTube 嵌入不涉檔案，貼上連結當下即在 Draft catalog 建立（移除時同步刪除）。
+interface MediaEntry {
+  key: string
+  kind: 'image' | 'video' | 'youtube'
+  file: File | null
+  assetId: string | null
+  status: 'uploading' | 'uploaded' | 'error'
+  /** image 為本地 object URL；youtube 為 ytimg 縮圖 URL；video 不設（深色磚 + 檔名） */
+  preview: string
+}
+const mediaEntries = ref<MediaEntry[]>([])
+const mediaInput = ref<HTMLInputElement | null>(null)
+const uploadedMedia = computed(() => mediaEntries.value.filter(e => e.status === 'uploaded'))
+
 const anyUploading = computed(() =>
-  entries.value.some(e => e.status === 'uploading') || cover.value?.status === 'uploading',
+  entries.value.some(e => e.status === 'uploading')
+  || cover.value?.status === 'uploading'
+  || mediaEntries.value.some(e => e.status === 'uploading'),
 )
 
 const step = computed(() => store.wizardStep)
@@ -234,8 +257,113 @@ function removeCover() {
   cover.value = null
 }
 
+// ── 預覽媒體 ────────────────────────────────────────────────
+function pickMediaFiles() { mediaInput.value?.click() }
+
+async function startMediaUpload(entry: MediaEntry) {
+  if (!entry.file) return
+  entry.status = 'uploading'
+  const assetId = await catalog.uploadDraftPreviewMedia(draftMeta(), entry.file)
+  if (assetId) {
+    entry.assetId = assetId
+    entry.status = 'uploaded'
+  } else {
+    entry.status = 'error'
+    message.error(catalog.error ?? t('upload.msgUploadFailed', { name: entry.file.name }))
+  }
+}
+
+function onMediaPick(e: Event) {
+  const input = e.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  input.value = ''
+  if (!files.length) return
+  if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
+  const room = MAX_PREVIEW_MEDIA - mediaEntries.value.length
+  if (files.length > room) { message.warning(t('upload.msgMediaLimit', { max: MAX_PREVIEW_MEDIA })); return }
+  for (const file of files) {
+    if (VIDEO_ALLOWED.includes(file.type)) {
+      if (file.size > VIDEO_MAX_BYTES) { message.error(t('upload.msgVideoTooLarge')); return }
+    } else if (COVER_ALLOWED.includes(file.type)) {
+      if (file.size > COVER_MAX_BYTES) { message.error(t('upload.msgCoverTooLarge')); return }
+    } else {
+      message.error(t('upload.msgMediaType')); return
+    }
+  }
+  for (const file of files) {
+    const isVideo = VIDEO_ALLOWED.includes(file.type)
+    const entry = reactive<MediaEntry>({
+      key: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      kind: isVideo ? 'video' : 'image',
+      file,
+      assetId: null,
+      status: 'uploading',
+      preview: isVideo ? '' : URL.createObjectURL(file),
+    })
+    mediaEntries.value.push(entry)
+    void startMediaUpload(entry)
+  }
+}
+
+// YouTube 嵌入：貼上連結即在 Draft catalog 建立
+const youtubeModal = ref(false)
+const youtubeUrl = ref('')
+const youtubeAdding = ref(false)
+
+function ytIdFromUrl(url: string) {
+  const m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(url)
+    ?? /youtu\.be\/([A-Za-z0-9_-]{11})/.exec(url)
+    ?? /\/(?:shorts|embed|live)\/([A-Za-z0-9_-]{11})/.exec(url)
+  return m ? m[1] : null
+}
+
+function openYoutubeModal() {
+  if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
+  youtubeUrl.value = ''
+  youtubeModal.value = true
+}
+
+async function onAddYoutube() {
+  const url = youtubeUrl.value.trim()
+  if (!url) { message.warning(t('upload.msgNeedYoutubeUrl')); return }
+  if (mediaEntries.value.length >= MAX_PREVIEW_MEDIA) { message.warning(t('upload.msgMediaLimit', { max: MAX_PREVIEW_MEDIA })); return }
+  youtubeAdding.value = true
+  const assetId = await catalog.addDraftExternalVideo(draftMeta(), url)
+  youtubeAdding.value = false
+  if (!assetId) { message.error(catalog.error ?? t('upload.msgYoutubeFailed')); return }
+  const id = ytIdFromUrl(url)
+  mediaEntries.value.push(reactive<MediaEntry>({
+    key: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    kind: 'youtube',
+    file: null,
+    assetId,
+    status: 'uploaded',
+    preview: id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : '',
+  }))
+  youtubeModal.value = false
+}
+
+// 移除預覽媒體：檔案僅本地移除（未 confirm 不計配額）；YouTube 已建立於後端，需同步刪除。
+async function removeMedia(entry: MediaEntry) {
+  if (entry.kind === 'youtube' && entry.assetId) {
+    const ok = await catalog.deleteDraftAsset(entry.assetId)
+    if (!ok) { message.error(catalog.error ?? t('upload.msgMediaFailed')); return }
+  }
+  if (entry.kind === 'image' && entry.preview) URL.revokeObjectURL(entry.preview)
+  const i = mediaEntries.value.indexOf(entry)
+  if (i >= 0) mediaEntries.value.splice(i, 1)
+}
+
+/** 釋放預覽媒體的本地 object URL 並清空清單。 */
+function clearMediaEntries() {
+  for (const m of mediaEntries.value)
+    if (m.kind === 'image' && m.preview) URL.revokeObjectURL(m.preview)
+  mediaEntries.value = []
+}
+
 onBeforeUnmount(() => {
   if (cover.value?.preview) URL.revokeObjectURL(cover.value.preview)
+  clearMediaEntries()
 })
 
 function goNext() {
@@ -249,15 +377,25 @@ async function submit(publish: boolean) {
   if (!step1Valid.value) { message.warning(t('upload.msgNeedTitle')); return }
   if (anyUploading.value) { message.warning(t('upload.msgUploadInProgress')); return }
   if (cover.value?.status === 'error') { message.warning(t('upload.msgCoverNotReady')); return }
+  if (mediaEntries.value.some(e => e.status === 'error')) { message.warning(t('upload.msgMediaNotReady')); return }
   const assetIds = uploadedEntries.value.map(e => e.assetId!).filter(Boolean)
   if (!assetIds.length) { message.warning(t('upload.msgNeedFile')); return }
 
-  const created = await catalog.finalizeDraft(draftMeta(), assetIds, publish, cover.value?.assetId ?? null)
+  // YouTube 嵌入建立當下已完成，僅上傳的圖片 / 影片需在送出時 confirm。
+  const previewMedia = uploadedMedia.value
+    .filter(e => e.kind !== 'youtube' && e.assetId)
+    .map(e => ({
+      assetId: e.assetId!,
+      type: e.kind === 'video' ? CatalogAssetType.PreviewVideo : CatalogAssetType.Screenshot,
+    }))
+
+  const created = await catalog.finalizeDraft(draftMeta(), assetIds, publish, cover.value?.assetId ?? null, previewMedia)
 
   if (created) {
     message.success(publish ? t('upload.msgPublished') : t('upload.msgDrafted'))
     entries.value = []
     removeCover()
+    clearMediaEntries()
     store.resetDraft()
     store.go('products')
   } else {
@@ -418,6 +556,36 @@ async function submit(publish: boolean) {
           </div>
 
           <div class="form-block">
+            <h4 class="fb-title">{{ t('upload.mediaLabel') }}</h4>
+            <p class="fb-sub">{{ t('upload.mediaSub') }}</p>
+            <input ref="mediaInput" type="file" :accept="MEDIA_ACCEPT" multiple style="display:none" @change="onMediaPick" />
+            <div class="shot-grid">
+              <div v-for="m in mediaEntries" :key="m.key" class="shot-box"
+                   :class="{ 'shot-media': m.kind !== 'image', 'shot-error': m.status === 'error' }"
+                   :style="m.preview ? { backgroundImage: `url(${m.preview})` } : undefined">
+                <span v-if="m.kind !== 'image'" class="shot-play"><app-icon name="play" :size="15" /></span>
+                <span v-if="m.kind === 'video'" class="shot-name">{{ m.file?.name }}</span>
+                <span v-if="m.status === 'uploading'" class="shot-veil"><span class="ur-spin"></span></span>
+                <button v-if="m.status === 'error'" class="ic-act shot-retry" :title="t('upload.retryUpload')" @click="startMediaUpload(m)">
+                  <app-icon name="refresh" :size="15" />
+                </button>
+                <button class="ic-act danger shot-del" :disabled="m.status === 'uploading'" @click="removeMedia(m)">
+                  <app-icon name="trash" :size="15" />
+                </button>
+              </div>
+              <button v-if="mediaEntries.length < MAX_PREVIEW_MEDIA" class="shot-box shot-add" @click="pickMediaFiles">
+                <app-icon name="plus" :size="20" :stroke="2.2" />
+                <span>{{ t('upload.mediaAdd') }}</span>
+              </button>
+              <button v-if="mediaEntries.length < MAX_PREVIEW_MEDIA" class="shot-box shot-add" @click="openYoutubeModal">
+                <app-icon name="play" :size="20" :stroke="2.2" />
+                <span>{{ t('upload.mediaAddYoutube') }}</span>
+              </button>
+            </div>
+            <p class="fb-sub" style="margin-top:10px; margin-bottom:0;">{{ t('upload.mediaHint', { max: MAX_PREVIEW_MEDIA }) }}</p>
+          </div>
+
+          <div class="form-block">
             <h4 class="fb-title">{{ t('upload.coverHueLabel') }}</h4>
             <p class="fb-sub">{{ t('upload.coverHueSub') }}</p>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -443,6 +611,7 @@ async function submit(publish: boolean) {
               <div class="rev-row"><span class="rev-k">{{ t('upload.revPrice') }}</span><span class="rev-v">{{ d.free ? t('common.free') : '$' + d.price }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revFiles') }}</span><span class="rev-v">{{ t('upload.revFilesValue', { count: uploadedEntries.length, size: totalSize }) }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revCover') }}</span><span class="rev-v">{{ cover?.status === 'uploaded' ? cover.file.name : t('upload.revCoverNone') }}</span></div>
+              <div class="rev-row"><span class="rev-k">{{ t('upload.revMedia') }}</span><span class="rev-v">{{ uploadedMedia.length ? t('upload.revMediaValue', { count: uploadedMedia.length }) : '—' }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revBlurb') }}</span><span class="rev-v" style="max-width:280px;">{{ d.blurb || '—' }}</span></div>
             </div>
           </div>
@@ -469,6 +638,22 @@ async function submit(publish: boolean) {
           </div>
         </div>
       </div>
+
+      <!-- 加入 YouTube 連結（同商品編輯頁） -->
+      <n-modal v-model:show="youtubeModal" preset="card" style="max-width:460px;" :title="t('upload.youtubeModalTitle')">
+        <div class="field">
+          <label class="field-label">{{ t('upload.youtubeUrlLabel') }}</label>
+          <n-input v-model:value="youtubeUrl" size="large" maxlength="500"
+                   :placeholder="t('upload.youtubeUrlPlaceholder')" @keydown.enter="onAddYoutube" />
+        </div>
+        <div class="field-hint" style="margin-top:12px;">{{ t('upload.youtubeHint') }}</div>
+        <template #footer>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <n-button @click="youtubeModal = false">{{ t('common.cancel') }}</n-button>
+            <n-button type="primary" :loading="youtubeAdding" @click="onAddYoutube">{{ t('common.confirm') }}</n-button>
+          </div>
+        </template>
+      </n-modal>
 
       <!-- ============ RIGHT: live preview ============ -->
       <div class="preview-rail">
@@ -528,4 +713,73 @@ async function submit(publish: boolean) {
   animation: cover-spin .7s linear infinite;
 }
 @keyframes cover-spin { to { transform: rotate(360deg); } }
+
+/* 預覽媒體格線（與商品編輯頁一致）：4:3 磚 + 右上刪除鍵 + 新增磚 */
+.shot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.shot-box {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r-md);
+  border: var(--bw) solid var(--border-strong);
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--ink-drop-sm);
+}
+.shot-del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--bg);
+}
+.shot-retry {
+  position: absolute;
+  top: 6px;
+  right: 40px;
+  background: var(--bg);
+}
+.shot-add {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border-style: dashed;
+  box-shadow: none;
+  background: var(--surface);
+  color: var(--text-faint);
+  font-size: 12.5px;
+  font-weight: 700;
+  transition: filter .15s;
+}
+.shot-add:hover:not(:disabled) { filter: brightness(.96); }
+.shot-add:disabled { cursor: not-allowed; opacity: .6; }
+/* 影片 / YouTube 磚：深色底 + 中央播放徽章（YouTube 另以縮圖為背景） */
+.shot-media { background-color: #1a1a1a; }
+.shot-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center;
+  background: rgba(255, 255, 255, .92); border: var(--bw) solid var(--border-strong);
+  color: var(--text); pointer-events: none;
+}
+.shot-name {
+  position: absolute; left: 6px; right: 6px; bottom: 6px;
+  font-family: var(--oj-mono); font-size: 10.5px; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
+}
+/* 上傳中遮罩與失敗框線 */
+.shot-veil {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: rgba(255, 255, 255, .55); border-radius: inherit;
+}
+.shot-veil .ur-spin {
+  width: 18px; height: 18px; border-radius: 50%; display: inline-block;
+  border: 3px solid var(--border-strong); border-top-color: transparent;
+  animation: cover-spin .7s linear infinite;
+}
+.shot-error { border-color: var(--c-pink-deep); }
 </style>

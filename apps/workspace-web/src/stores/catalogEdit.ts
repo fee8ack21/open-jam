@@ -161,20 +161,26 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     }
   }
 
-  /** 新增預覽圖（Screenshot 資產，商品頁圖庫展示）：簽 URL 直傳後 confirm。 */
-  async function uploadScreenshot(id: string, file: File) {
+  /**
+   * 新增預覽媒體（商品頁圖庫展示）：簽 URL 直傳後 confirm。
+   * 依 MIME 決定資產型別（image/* → Screenshot、video/* → PreviewVideo）。
+   */
+  async function uploadPreviewMedia(id: string, file: File) {
     busy.value = true;
     error.value = null;
+    const type = file.type.startsWith('video/')
+      ? CatalogAssetType.PreviewVideo
+      : CatalogAssetType.Screenshot;
     try {
       const urlRes = await catalogApi.catalogs.requestAssetUploadUrl(id, {
-        type: CatalogAssetType.Screenshot,
+        type,
         fileName: file.name,
         contentType: file.type || 'application/octet-stream',
         sizeBytes: file.size,
       });
       const assetId = urlRes.data.assetId!;
       if (urlRes.data.uploadUrl) await putFile(urlRes.data.uploadUrl, file);
-      await catalogApi.catalogs.confirmAsset(id, assetId, { type: CatalogAssetType.Screenshot });
+      await catalogApi.catalogs.confirmAsset(id, assetId, { type });
       await refreshCatalog(id);
       return true;
     } catch (err) {
@@ -185,8 +191,24 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     }
   }
 
-  /** 刪除預覽圖。 */
-  async function deleteScreenshot(id: string, assetId: string) {
+  /** 新增外部影片嵌入（YouTube）預覽媒體：不涉檔案上傳、不計配額。 */
+  async function addExternalVideo(id: string, url: string) {
+    busy.value = true;
+    error.value = null;
+    try {
+      await catalogApi.catalogs.addExternalVideoAsset(id, { url });
+      await refreshCatalog(id);
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.addExternalVideoFailed'));
+      return false;
+    } finally {
+      busy.value = false;
+    }
+  }
+
+  /** 刪除預覽媒體。 */
+  async function deletePreviewMedia(id: string, assetId: string) {
     busy.value = true;
     error.value = null;
     try {
@@ -283,8 +305,9 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     saveBasics,
     uploadCover,
     removeCover,
-    uploadScreenshot,
-    deleteScreenshot,
+    uploadPreviewMedia,
+    addExternalVideo,
+    deletePreviewMedia,
     createVersion,
     uploadVersionFile,
     deleteVersionFile,

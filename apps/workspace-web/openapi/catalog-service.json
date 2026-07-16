@@ -10,6 +10,7 @@
         "tags": [
           "CatalogCategories"
         ],
+        "summary": "列出所有分類（公開）。",
         "operationId": "List",
         "responses": {
           "200": {
@@ -47,8 +48,10 @@
         "tags": [
           "CatalogCategories"
         ],
+        "summary": "建立分類。僅 Admin 可操作。",
         "operationId": "Create",
         "requestBody": {
+          "description": "分類資料。",
           "content": {
             "application/json": {
               "schema": {
@@ -96,11 +99,13 @@
         "tags": [
           "CatalogCategories"
         ],
+        "summary": "查詢單一分類（公開）。",
         "operationId": "Get",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "分類 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -135,11 +140,13 @@
         "tags": [
           "CatalogCategories"
         ],
+        "summary": "更新分類。僅 Admin 可操作。",
         "operationId": "Update",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "分類 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -148,6 +155,7 @@
           }
         ],
         "requestBody": {
+          "description": "欲更新的欄位。",
           "content": {
             "application/json": {
               "schema": {
@@ -193,11 +201,13 @@
         "tags": [
           "CatalogCategories"
         ],
+        "summary": "刪除分類（不可有子分類或被商品引用）。僅 Admin 可操作。",
         "operationId": "Delete",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "分類 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -217,6 +227,7 @@
         "tags": [
           "CatalogFavorites"
         ],
+        "summary": "查詢目前使用者已收藏的商品 ID 清單。",
         "operationId": "ListMine",
         "responses": {
           "200": {
@@ -247,11 +258,13 @@
         "tags": [
           "CatalogFavorites"
         ],
+        "summary": "收藏商品。已收藏則 no-op。",
         "operationId": "Add",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -269,11 +282,13 @@
         "tags": [
           "CatalogFavorites"
         ],
+        "summary": "取消收藏商品。未收藏則 no-op。",
         "operationId": "Remove",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -293,11 +308,13 @@
         "tags": [
           "CatalogReviews"
         ],
+        "summary": "分頁列出商品評論（公開），含平均分與評論數。",
         "operationId": "List",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -307,18 +324,24 @@
           {
             "name": "Offset",
             "in": "query",
+            "description": "略過筆數。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
+            "description": "每頁筆數（最大 100）。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
@@ -350,11 +373,13 @@
         "tags": [
           "CatalogReviews"
         ],
+        "summary": "取得目前使用者對此商品的評論；尚未評論回傳 204。",
         "operationId": "GetMine",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -392,11 +417,13 @@
         "tags": [
           "CatalogReviews"
         ],
+        "summary": "新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。",
         "operationId": "UpsertMine",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -405,6 +432,7 @@
           }
         ],
         "requestBody": {
+          "description": "評分與留言。",
           "content": {
             "application/json": {
               "schema": {
@@ -450,11 +478,13 @@
         "tags": [
           "CatalogReviews"
         ],
+        "summary": "刪除本人對此商品的評論。",
         "operationId": "DeleteMine",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -474,97 +504,132 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "瀏覽已上架商品列表（公開）。",
         "operationId": "List",
         "parameters": [
           {
             "name": "StoreId",
             "in": "query",
+            "description": "限定商店 ID；null 表示不限。",
             "schema": {
               "type": "string",
-              "format": "uuid"
-            }
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "CategoryId",
             "in": "query",
+            "description": "限定分類 ID；null 表示不限。",
             "schema": {
               "type": "string",
-              "format": "uuid"
-            }
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "Status",
             "in": "query",
+            "description": "限定商品狀態；null 表示不限。僅對含未上架商品的查詢（mine / by-store）生效。",
             "schema": {
               "$ref": "#/components/schemas/CatalogStatus"
-            }
+            },
+            "example": "Published"
           },
           {
             "name": "Tag",
             "in": "query",
+            "description": "限定標籤名稱；null 表示不限。",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "example": "retro"
+            },
+            "example": "retro"
           },
           {
             "name": "Search",
             "in": "query",
+            "description": "名稱關鍵字搜尋；null 表示不限。",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "example": "音效"
+            },
+            "example": "音效"
           },
           {
             "name": "Featured",
             "in": "query",
+            "description": "僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。",
             "schema": {
-              "type": "boolean"
-            }
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
           },
           {
             "name": "StoreFeatured",
             "in": "query",
+            "description": "僅限店長精選；true 只回店長精選、false 只回非店長精選、null 表示不限。",
             "schema": {
-              "type": "boolean"
-            }
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
           },
           {
             "name": "MinPrice",
             "in": "query",
+            "description": "售價下限（含）；null 表示不限。",
             "schema": {
               "type": "number",
-              "format": "double"
-            }
+              "format": "double",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "MaxPrice",
             "in": "query",
+            "description": "售價上限（含）；null 表示不限。",
             "schema": {
               "type": "number",
-              "format": "double"
-            }
+              "format": "double",
+              "example": 30
+            },
+            "example": 30
           },
           {
             "name": "Sort",
             "in": "query",
+            "description": "排序方式；省略時預設最新上架。",
             "schema": {
               "$ref": "#/components/schemas/CatalogSort"
-            }
+            },
+            "example": "Newest"
           },
           {
             "name": "Offset",
             "in": "query",
+            "description": "略過筆數。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
+            "description": "每頁筆數（最大 100）。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
@@ -594,8 +659,10 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "建立商品（草稿）。僅商店 Owner 可操作。",
         "operationId": "Create",
         "requestBody": {
+          "description": "商品基本資料。",
           "content": {
             "application/json": {
               "schema": {
@@ -643,97 +710,132 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "查詢登入使用者（商店 Owner）的商品列表，含未上架商品。",
         "operationId": "ListMine",
         "parameters": [
           {
             "name": "StoreId",
             "in": "query",
+            "description": "限定商店 ID；null 表示不限。",
             "schema": {
               "type": "string",
-              "format": "uuid"
-            }
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "CategoryId",
             "in": "query",
+            "description": "限定分類 ID；null 表示不限。",
             "schema": {
               "type": "string",
-              "format": "uuid"
-            }
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "Status",
             "in": "query",
+            "description": "限定商品狀態；null 表示不限。僅對含未上架商品的查詢（mine / by-store）生效。",
             "schema": {
               "$ref": "#/components/schemas/CatalogStatus"
-            }
+            },
+            "example": "Published"
           },
           {
             "name": "Tag",
             "in": "query",
+            "description": "限定標籤名稱；null 表示不限。",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "example": "retro"
+            },
+            "example": "retro"
           },
           {
             "name": "Search",
             "in": "query",
+            "description": "名稱關鍵字搜尋；null 表示不限。",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "example": "音效"
+            },
+            "example": "音效"
           },
           {
             "name": "Featured",
             "in": "query",
+            "description": "僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。",
             "schema": {
-              "type": "boolean"
-            }
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
           },
           {
             "name": "StoreFeatured",
             "in": "query",
+            "description": "僅限店長精選；true 只回店長精選、false 只回非店長精選、null 表示不限。",
             "schema": {
-              "type": "boolean"
-            }
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
           },
           {
             "name": "MinPrice",
             "in": "query",
+            "description": "售價下限（含）；null 表示不限。",
             "schema": {
               "type": "number",
-              "format": "double"
-            }
+              "format": "double",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "MaxPrice",
             "in": "query",
+            "description": "售價上限（含）；null 表示不限。",
             "schema": {
               "type": "number",
-              "format": "double"
-            }
+              "format": "double",
+              "example": 30
+            },
+            "example": 30
           },
           {
             "name": "Sort",
             "in": "query",
+            "description": "排序方式；省略時預設最新上架。",
             "schema": {
               "$ref": "#/components/schemas/CatalogSort"
-            }
+            },
+            "example": "Newest"
           },
           {
             "name": "Offset",
             "in": "query",
+            "description": "略過筆數。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
+            "description": "每頁筆數（最大 100）。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
@@ -765,11 +867,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "查詢指定商店的全部商品（含草稿 / 已下架 / 已停權）。僅 Admin 可操作。",
         "operationId": "ListByStore",
         "parameters": [
           {
             "name": "storeId",
             "in": "path",
+            "description": "商店 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -779,92 +883,126 @@
           {
             "name": "StoreId",
             "in": "query",
+            "description": "限定商店 ID；null 表示不限。",
             "schema": {
               "type": "string",
-              "format": "uuid"
-            }
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "CategoryId",
             "in": "query",
+            "description": "限定分類 ID；null 表示不限。",
             "schema": {
               "type": "string",
-              "format": "uuid"
-            }
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           {
             "name": "Status",
             "in": "query",
+            "description": "限定商品狀態；null 表示不限。僅對含未上架商品的查詢（mine / by-store）生效。",
             "schema": {
               "$ref": "#/components/schemas/CatalogStatus"
-            }
+            },
+            "example": "Published"
           },
           {
             "name": "Tag",
             "in": "query",
+            "description": "限定標籤名稱；null 表示不限。",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "example": "retro"
+            },
+            "example": "retro"
           },
           {
             "name": "Search",
             "in": "query",
+            "description": "名稱關鍵字搜尋；null 表示不限。",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "example": "音效"
+            },
+            "example": "音效"
           },
           {
             "name": "Featured",
             "in": "query",
+            "description": "僅限編輯精選；true 只回精選、false 只回非精選、null 表示不限。",
             "schema": {
-              "type": "boolean"
-            }
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
           },
           {
             "name": "StoreFeatured",
             "in": "query",
+            "description": "僅限店長精選；true 只回店長精選、false 只回非店長精選、null 表示不限。",
             "schema": {
-              "type": "boolean"
-            }
+              "type": "boolean",
+              "example": true
+            },
+            "example": true
           },
           {
             "name": "MinPrice",
             "in": "query",
+            "description": "售價下限（含）；null 表示不限。",
             "schema": {
               "type": "number",
-              "format": "double"
-            }
+              "format": "double",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "MaxPrice",
             "in": "query",
+            "description": "售價上限（含）；null 表示不限。",
             "schema": {
               "type": "number",
-              "format": "double"
-            }
+              "format": "double",
+              "example": 30
+            },
+            "example": 30
           },
           {
             "name": "Sort",
             "in": "query",
+            "description": "排序方式；省略時預設最新上架。",
             "schema": {
               "$ref": "#/components/schemas/CatalogSort"
-            }
+            },
+            "example": "Newest"
           },
           {
             "name": "Offset",
             "in": "query",
+            "description": "略過筆數。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
+            "description": "每頁筆數（最大 100）。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
@@ -896,11 +1034,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "查詢商品完整資訊。未上架商品僅 Owner 可見。",
         "operationId": "Get",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -935,11 +1075,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "更新商品基本資料。僅 Owner 可操作。",
         "operationId": "Update",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -948,6 +1090,7 @@
           }
         ],
         "requestBody": {
+          "description": "欲更新的欄位。",
           "content": {
             "application/json": {
               "schema": {
@@ -993,11 +1136,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "刪除商品（軟刪除）。僅未曾上架的草稿可刪除，否則回 409。僅 Owner 可操作。",
         "operationId": "Delete",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1037,11 +1182,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "設定 / 移除商品分類。僅 Owner 可操作。",
         "operationId": "SetCategory",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1050,6 +1197,7 @@
           }
         ],
         "requestBody": {
+          "description": "分類設定。",
           "content": {
             "application/json": {
               "schema": {
@@ -1097,11 +1245,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "全量覆蓋商品標籤。僅 Owner 可操作。",
         "operationId": "SetTags",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1110,6 +1260,7 @@
           }
         ],
         "requestBody": {
+          "description": "標籤名稱清單。",
           "content": {
             "application/json": {
               "schema": {
@@ -1166,11 +1317,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "上架商品（Draft/Archived → Published）。需已有目前版本。僅 Owner 可操作。",
         "operationId": "Publish",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1190,11 +1343,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "下架封存商品（Published → Archived）。僅 Owner 可操作。",
         "operationId": "Archive",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1214,11 +1369,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "平台停權商品（任意狀態 → Suspended）。僅 Admin 可操作。",
         "operationId": "Suspend",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1238,11 +1395,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "解除商品停權（Suspended → Archived）。僅 Admin 可操作。",
         "operationId": "Unsuspend",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1262,11 +1421,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "商品詳情頁瀏覽次數 +1（公開）。",
         "operationId": "IncrementView",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1286,11 +1447,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "設為編輯精選（市集首頁精選輪播）。僅 Admin 可操作。",
         "operationId": "Feature",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1310,11 +1473,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "取消編輯精選。僅 Admin 可操作。",
         "operationId": "Unfeature",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1334,11 +1499,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "設為店長精選（店面首頁 spotlight，接續排在現有精選之後）。僅商店 Owner 可操作。",
         "operationId": "StoreFeature",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1358,11 +1525,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "取消店長精選。僅商店 Owner 可操作。",
         "operationId": "StoreUnfeature",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1382,8 +1551,10 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "重排店長精選的顯示順序（全量覆蓋）。僅商店 Owner 可操作。",
         "operationId": "ReorderStoreFeatured",
         "requestBody": {
+          "description": "商店 ID 與依顯示順序排列的商品 ID 清單。",
           "content": {
             "application/json": {
               "schema": {
@@ -1414,11 +1585,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。簽發階段不扣配額、不建資產。僅 Owner 可操作。",
         "operationId": "RequestAssetUploadUrl",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1427,6 +1600,7 @@
           }
         ],
         "requestBody": {
+          "description": "資產資訊。",
           "content": {
             "application/json": {
               "schema": {
@@ -1474,11 +1648,13 @@
         "tags": [
           "Catalogs"
         ],
+        "summary": "確認展示型資產上傳完成：扣配額、建立資產並標記檔案已使用。冪等。僅 Owner 可操作。",
         "operationId": "ConfirmAsset",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1488,6 +1664,7 @@
           {
             "name": "assetId",
             "in": "path",
+            "description": "資產（檔案）ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1496,6 +1673,7 @@
           }
         ],
         "requestBody": {
+          "description": "確認資訊（資產類型）。",
           "content": {
             "application/json": {
               "schema": {
@@ -1578,16 +1756,101 @@
         }
       }
     },
+    "/v1/catalogs/{id}/assets/external": {
+      "post": {
+        "tags": [
+          "Catalogs"
+        ],
+        "summary": "加入外部影片嵌入（YouTube）預覽媒體。不涉檔案上傳、不計配額。僅 Owner 可操作。",
+        "operationId": "AddExternalVideoAsset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "影片網址。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddExternalVideoAssetRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddExternalVideoAssetRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddExternalVideoAssetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogAssetDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogAssetDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogAssetDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/catalogs/{id}/assets/{assetId}": {
       "delete": {
         "tags": [
           "Catalogs"
         ],
+        "summary": "刪除展示型資產。僅 Owner 可操作。",
         "operationId": "DeleteAsset",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1597,6 +1860,7 @@
           {
             "name": "assetId",
             "in": "path",
+            "description": "資產 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1614,7 +1878,7 @@
     "/healthz": {
       "get": {
         "tags": [
-          "CatalogService, Version=0.0.8.0, Culture=neutral, PublicKeyToken=null"
+          "CatalogService"
         ],
         "responses": {
           "200": {
@@ -1628,30 +1892,40 @@
         "tags": [
           "CatalogTags"
         ],
+        "summary": "分頁查詢標籤（依使用次數遞減，公開）。",
         "operationId": "List",
         "parameters": [
           {
             "name": "Search",
             "in": "query",
+            "description": "名稱前綴關鍵字（強制小寫）；null 表示不限。",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "example": "ret"
+            },
+            "example": "ret"
           },
           {
             "name": "Offset",
             "in": "query",
+            "description": "略過筆數。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
           },
           {
             "name": "Limit",
             "in": "query",
+            "description": "每頁筆數（最大 100）。",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
           }
         ],
         "responses": {
@@ -1683,11 +1957,13 @@
         "tags": [
           "CatalogVersions"
         ],
+        "summary": "列出商品的所有版本（新到舊）。",
         "operationId": "List",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1731,11 +2007,13 @@
         "tags": [
           "CatalogVersions"
         ],
+        "summary": "建立新版本，並設為商品的目前版本。",
         "operationId": "Create",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1744,6 +2022,7 @@
           }
         ],
         "requestBody": {
+          "description": "版本資訊。",
           "content": {
             "application/json": {
               "schema": {
@@ -1791,11 +2070,13 @@
         "tags": [
           "CatalogVersions"
         ],
+        "summary": "申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額、不建資產。",
         "operationId": "RequestAssetUploadUrl",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1805,6 +2086,7 @@
           {
             "name": "versionId",
             "in": "path",
+            "description": "版本 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1813,6 +2095,7 @@
           }
         ],
         "requestBody": {
+          "description": "檔案資訊。",
           "content": {
             "application/json": {
               "schema": {
@@ -1860,11 +2143,13 @@
         "tags": [
           "CatalogVersions"
         ],
+        "summary": "確認版本可下載檔案上傳完成：扣配額、建立資產並標記檔案已使用。冪等。",
         "operationId": "ConfirmAsset",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1874,6 +2159,7 @@
           {
             "name": "versionId",
             "in": "path",
+            "description": "版本 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1883,6 +2169,7 @@
           {
             "name": "assetId",
             "in": "path",
+            "description": "資產（檔案）ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1959,11 +2246,13 @@
         "tags": [
           "CatalogVersions"
         ],
+        "summary": "取得版本可下載檔案的下載簽章 URL（管理用途）。",
         "operationId": "GetAssetDownloadUrl",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1973,6 +2262,7 @@
           {
             "name": "versionId",
             "in": "path",
+            "description": "版本 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -1982,6 +2272,7 @@
           {
             "name": "assetId",
             "in": "path",
+            "description": "檔案 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -2018,11 +2309,13 @@
         "tags": [
           "CatalogVersions"
         ],
+        "summary": "列出買家已購商品某版本的可下載檔案（含短效下載 URL）。登入買家以購買紀錄授權；訪客憑訂單 ID（隨訂單完成信寄出的下載憑證）授權。",
         "operationId": "ListPurchasedDownloads",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -2032,6 +2325,7 @@
           {
             "name": "versionId",
             "in": "path",
+            "description": "版本 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -2041,6 +2335,7 @@
           {
             "name": "orderId",
             "in": "query",
+            "description": "訪客下載憑證：已完成且包含此商品的訂單 ID；登入買家可省略。",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2085,11 +2380,13 @@
         "tags": [
           "CatalogVersions"
         ],
+        "summary": "刪除版本可下載檔案。",
         "operationId": "DeleteAsset",
         "parameters": [
           {
             "name": "catalogId",
             "in": "path",
+            "description": "商品 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -2099,6 +2396,7 @@
           {
             "name": "versionId",
             "in": "path",
+            "description": "版本 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -2108,6 +2406,7 @@
           {
             "name": "assetId",
             "in": "path",
+            "description": "檔案 ID。",
             "required": true,
             "schema": {
               "type": "string",
@@ -2125,184 +2424,278 @@
   },
   "components": {
     "schemas": {
+      "AddExternalVideoAssetRequest": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "YouTube 影片網址（支援 watch?v= / youtu.be / shorts / embed 形式）。",
+            "nullable": true,
+            "example": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          }
+        },
+        "additionalProperties": false,
+        "description": "加入外部影片嵌入（YouTube）預覽媒體的請求。不涉檔案上傳、不計配額。"
+      },
       "CatalogAssetDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "資產唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "type": {
             "$ref": "#/components/schemas/CatalogAssetType"
           },
           "fileName": {
             "type": "string",
-            "nullable": true
+            "description": "原始檔名。",
+            "nullable": true,
+            "example": "screenshot-1.png"
           },
           "contentType": {
             "type": "string",
-            "nullable": true
+            "description": "MIME 類型。",
+            "nullable": true,
+            "example": "image/png"
           },
           "fileSize": {
             "type": "integer",
-            "format": "int64"
+            "description": "檔案大小（bytes）。",
+            "format": "int64",
+            "example": 204800
           },
           "sortOrder": {
             "type": "integer",
-            "format": "int32"
+            "description": "顯示排序（預覽媒體跨類型共用同一條序列）。",
+            "format": "int32",
+            "example": 0
           },
           "url": {
             "type": "string",
-            "nullable": true
+            "description": "公開讀取 URL；外部嵌入資產為其外部 URL。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/.../screenshot-1.png"
+          },
+          "externalUrl": {
+            "type": "string",
+            "description": "外部影片嵌入 URL（僅 ExternalVideo 型別有值，正規化為 YouTube watch 網址）。",
+            "nullable": true,
+            "example": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
           },
           "createdAt": {
             "type": "string",
+            "description": "建立時間。",
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "展示型資產回應。"
       },
       "CatalogAssetType": {
         "enum": [
           "Thumbnail",
           "Screenshot",
           "PreviewAudio",
-          "PreviewVideo"
+          "PreviewVideo",
+          "ExternalVideo"
         ],
-        "type": "string"
+        "type": "string",
+        "description": "商品展示型資產類型。"
       },
       "CatalogAssetUploadUrlResponse": {
         "type": "object",
         "properties": {
           "assetId": {
             "type": "string",
-            "format": "uuid"
+            "description": "檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "uploadUrl": {
             "type": "string",
-            "nullable": true
+            "description": "前端應使用此 URL 以 HTTP PUT 直傳檔案。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/.../screenshot-1.png?expires=1735689600&sig=..."
           },
           "publicUrl": {
             "type": "string",
-            "nullable": true
+            "description": "上傳完成後的公開讀取網址。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/.../screenshot-1.png"
           },
           "expiresAt": {
             "type": "string",
+            "description": "簽章 URL 過期時間（UTC）。",
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "展示型資產上傳簽章 URL 回應。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。"
       },
       "CatalogCategoryDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "分類唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "parentId": {
             "type": "string",
+            "description": "上層分類 ID；null 表示頂層分類。",
             "format": "uuid",
-            "nullable": true
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "分類名稱。",
+            "nullable": true,
+            "example": "音樂與音效"
           },
           "slug": {
             "type": "string",
-            "nullable": true
+            "description": "分類代稱（全域唯一）。",
+            "nullable": true,
+            "example": "audio"
           },
           "description": {
             "type": "string",
-            "nullable": true
+            "description": "分類補充敘述；null 表示未設定。",
+            "nullable": true,
+            "example": "樂譜、配樂、分軌音檔"
           },
           "sortOrder": {
             "type": "integer",
-            "format": "int32"
+            "description": "同層顯示排序。",
+            "format": "int32",
+            "example": 0
           },
           "isSystem": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "是否為系統預設分類；系統預設分類不允許刪除。",
+            "example": false
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品分類回應。"
       },
       "CatalogDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "商品唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "storeId": {
             "type": "string",
-            "format": "uuid"
+            "description": "所屬商店 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "categoryId": {
             "type": "string",
+            "description": "所屬分類 ID；null 表示未分類。",
             "format": "uuid",
-            "nullable": true
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "商品名稱。",
+            "nullable": true,
+            "example": "像素風格音效包"
           },
           "slug": {
             "type": "string",
-            "nullable": true
+            "description": "商品代稱（同商店內唯一）。",
+            "nullable": true,
+            "example": "pixel-sfx-pack"
           },
           "description": {
             "type": "string",
-            "nullable": true
+            "description": "商品描述。",
+            "nullable": true,
+            "example": "200 個復古像素遊戲音效，WAV 格式。"
           },
           "summary": {
             "type": "string",
-            "nullable": true
+            "description": "一句話簡介（市集卡片短標語）；null 表示未設定。",
+            "nullable": true,
+            "example": "復古像素遊戲必備的 8-bit 音效合輯。"
           },
           "coverHue": {
             "type": "integer",
-            "format": "int32"
+            "description": "封面色相（0–359），無縮圖時生成漸層佔位封面。",
+            "format": "int32",
+            "example": 256
           },
           "status": {
             "$ref": "#/components/schemas/CatalogStatus"
           },
           "price": {
             "type": "number",
-            "format": "double"
+            "description": "售價。",
+            "format": "double",
+            "example": 150
           },
           "currency": {
             "type": "string",
-            "nullable": true
+            "description": "幣別（ISO 4217）。",
+            "nullable": true,
+            "example": "TWD"
           },
           "salesCount": {
             "type": "integer",
-            "format": "int64"
+            "description": "累計銷量。",
+            "format": "int64",
+            "example": 0
           },
           "viewCount": {
             "type": "integer",
-            "format": "int64"
+            "description": "商品詳情頁累計瀏覽次數。",
+            "format": "int64",
+            "example": 0
           },
           "isFeatured": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "是否為編輯精選（平台策展）。",
+            "example": false
           },
           "isStoreFeatured": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "是否為店長精選（商店 Owner 於自家店面標記）。",
+            "example": false
           },
           "storeFeaturedSortOrder": {
             "type": "integer",
-            "format": "int32"
+            "description": "店長精選顯示排序（小者在前）；非精選商品此值無意義。",
+            "format": "int32",
+            "example": 0
           },
           "ratingAverage": {
             "type": "number",
-            "format": "double"
+            "description": "平均評分（0–5）；無評論時為 0。",
+            "format": "double",
+            "example": 4.6
           },
           "ratingCount": {
             "type": "integer",
-            "format": "int32"
+            "description": "評論數。",
+            "format": "int32",
+            "example": 128
           },
           "thumbnailUrl": {
             "type": "string",
-            "nullable": true
+            "description": "縮圖公開 URL；null 表示尚未設定。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/.../thumb.png"
           },
           "currentVersion": {
             "$ref": "#/components/schemas/CatalogVersionDto"
@@ -2312,6 +2705,7 @@
             "items": {
               "$ref": "#/components/schemas/CatalogAssetDto"
             },
+            "description": "展示型資產（縮圖 / 截圖 / 預覽影音）清單。",
             "nullable": true
           },
           "tags": {
@@ -2319,24 +2713,34 @@
             "items": {
               "type": "string"
             },
-            "nullable": true
+            "description": "標籤名稱清單。",
+            "nullable": true,
+            "example": [
+              "audio",
+              "retro",
+              "8bit"
+            ]
           },
           "publishedAt": {
             "type": "string",
+            "description": "首次上架時間；null 表示尚未上架。",
             "format": "date-time",
             "nullable": true
           },
           "createdAt": {
             "type": "string",
+            "description": "建立時間。",
             "format": "date-time"
           },
           "updatedAt": {
             "type": "string",
+            "description": "最後更新時間。",
             "format": "date-time",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品完整資訊回應（商品詳情頁）。"
       },
       "CatalogFavoritesResponse": {
         "type": "object",
@@ -2347,45 +2751,60 @@
               "type": "string",
               "format": "uuid"
             },
+            "description": "目前使用者已收藏的商品 ID 清單（依收藏時間遞減）。",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "目前使用者的商品收藏（wishlist）回應。"
       },
       "CatalogReviewDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "評論唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "catalogId": {
             "type": "string",
-            "format": "uuid"
+            "description": "所屬商品 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "reviewerUserId": {
             "type": "string",
-            "format": "uuid"
+            "description": "評論者使用者 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "rating": {
             "type": "integer",
-            "format": "int32"
+            "description": "評分（1–5）。",
+            "format": "int32",
+            "example": 5
           },
           "comment": {
             "type": "string",
-            "nullable": true
+            "description": "留言內容；null 表示僅評分未留言。",
+            "nullable": true,
+            "example": "非常實用，物超所值！"
           },
           "createdAt": {
             "type": "string",
+            "description": "建立時間。",
             "format": "date-time"
           },
           "updatedAt": {
             "type": "string",
+            "description": "最後更新時間；null 表示未曾更新。",
             "format": "date-time",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品評論回應。"
       },
       "CatalogSort": {
         "enum": [
@@ -2394,7 +2813,8 @@
           "PriceHighToLow",
           "StoreFeatured"
         ],
-        "type": "string"
+        "type": "string",
+        "description": "商品列表排序方式。"
       },
       "CatalogStatus": {
         "enum": [
@@ -2403,176 +2823,249 @@
           "Archived",
           "Suspended"
         ],
-        "type": "string"
+        "type": "string",
+        "description": "商品狀態。"
       },
       "CatalogSummaryDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "商品唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "storeId": {
             "type": "string",
-            "format": "uuid"
+            "description": "所屬商店 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "categoryId": {
             "type": "string",
+            "description": "所屬分類 ID；null 表示未分類。",
             "format": "uuid",
-            "nullable": true
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "商品名稱。",
+            "nullable": true,
+            "example": "像素風格音效包"
           },
           "slug": {
             "type": "string",
-            "nullable": true
+            "description": "商品代稱。",
+            "nullable": true,
+            "example": "pixel-sfx-pack"
           },
           "summary": {
             "type": "string",
-            "nullable": true
+            "description": "一句話簡介（市集卡片短標語）；null 表示未設定。",
+            "nullable": true,
+            "example": "復古像素遊戲必備的 8-bit 音效合輯。"
           },
           "coverHue": {
             "type": "integer",
-            "format": "int32"
+            "description": "封面色相（0–359），無縮圖時生成漸層佔位封面。",
+            "format": "int32",
+            "example": 256
           },
           "price": {
             "type": "number",
-            "format": "double"
+            "description": "售價。",
+            "format": "double",
+            "example": 150
           },
           "currency": {
             "type": "string",
-            "nullable": true
+            "description": "幣別（ISO 4217）。",
+            "nullable": true,
+            "example": "TWD"
           },
           "status": {
             "$ref": "#/components/schemas/CatalogStatus"
           },
           "salesCount": {
             "type": "integer",
-            "format": "int64"
+            "description": "累計銷量。",
+            "format": "int64",
+            "example": 0
           },
           "viewCount": {
             "type": "integer",
-            "format": "int64"
+            "description": "商品詳情頁累計瀏覽次數。",
+            "format": "int64",
+            "example": 0
           },
           "isFeatured": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "是否為編輯精選（平台策展）。",
+            "example": false
           },
           "isStoreFeatured": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "是否為店長精選（商店 Owner 於自家店面標記）。",
+            "example": false
           },
           "storeFeaturedSortOrder": {
             "type": "integer",
-            "format": "int32"
+            "description": "店長精選顯示排序（小者在前）；非精選商品此值無意義。",
+            "format": "int32",
+            "example": 0
           },
           "ratingAverage": {
             "type": "number",
-            "format": "double"
+            "description": "平均評分（0–5）；無評論時為 0。",
+            "format": "double",
+            "example": 4.6
           },
           "ratingCount": {
             "type": "integer",
-            "format": "int32"
+            "description": "評論數。",
+            "format": "int32",
+            "example": 128
           },
           "thumbnailUrl": {
             "type": "string",
-            "nullable": true
+            "description": "縮圖公開 URL；null 表示尚未設定。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/public/.../thumb.png"
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "nullable": true
+            "description": "標籤名稱清單（市集卡片標籤、標籤搜尋用）。",
+            "nullable": true,
+            "example": [
+              "audio",
+              "retro",
+              "8bit"
+            ]
           },
           "publishedAt": {
             "type": "string",
+            "description": "首次上架時間；null 表示尚未上架。",
             "format": "date-time",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品列表項目（精簡欄位）。"
       },
       "CatalogTagDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "標籤唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "標籤名稱（小寫）。",
+            "nullable": true,
+            "example": "retro"
           },
           "usageCount": {
             "type": "integer",
-            "format": "int32"
+            "description": "被商品引用的次數。",
+            "format": "int32",
+            "example": 42
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品標籤回應。"
       },
       "CatalogVersionAssetDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "資產唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "fileName": {
             "type": "string",
-            "nullable": true
+            "description": "原始檔名。",
+            "nullable": true,
+            "example": "pixel-sfx-pack-v1.zip"
           },
           "contentType": {
             "type": "string",
-            "nullable": true
+            "description": "MIME 類型。",
+            "nullable": true,
+            "example": "application/pdf"
           },
           "fileSize": {
             "type": "integer",
-            "format": "int64"
+            "description": "檔案大小（bytes）。",
+            "format": "int64",
+            "example": 10485760
           },
           "sortOrder": {
             "type": "integer",
-            "format": "int32"
+            "description": "同版本內顯示排序。",
+            "format": "int32",
+            "example": 0
           },
           "createdAt": {
             "type": "string",
+            "description": "建立時間。",
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品版本可下載檔案回應。"
       },
       "CatalogVersionDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "版本唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "catalogId": {
             "type": "string",
-            "format": "uuid"
+            "description": "所屬商品 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "version": {
             "type": "string",
-            "nullable": true
+            "description": "版本字串。",
+            "nullable": true,
+            "example": "1.0.0"
           },
           "releaseNote": {
             "type": "string",
-            "nullable": true
+            "description": "版本說明 / 更新紀錄。",
+            "nullable": true,
+            "example": "首次發行。"
           },
           "assets": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CatalogVersionAssetDto"
             },
+            "description": "本版本的可下載檔案清單。",
             "nullable": true
           },
           "createdAt": {
             "type": "string",
+            "description": "建立時間。",
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品版本回應。"
       },
       "ConfirmCatalogAssetRequest": {
         "type": "object",
@@ -2581,144 +3074,197 @@
             "$ref": "#/components/schemas/CatalogAssetType"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "確認展示型資產上傳完成的請求（使用者提交確認時呼叫，此時才扣配額並建立資產）。"
       },
       "CreateCatalogCategoryRequest": {
         "type": "object",
         "properties": {
           "parentId": {
             "type": "string",
+            "description": "上層分類 ID；null 表示頂層分類。",
             "format": "uuid",
-            "nullable": true
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "分類名稱（1–100 字）。",
+            "nullable": true,
+            "example": "音樂與音效"
           },
           "slug": {
             "type": "string",
-            "nullable": true
+            "description": "分類代稱（全域唯一，3–100 字小寫英數字與連字號）。",
+            "nullable": true,
+            "example": "audio"
           },
           "description": {
             "type": "string",
-            "nullable": true
+            "description": "分類補充敘述（選填，最多 200 字）。",
+            "nullable": true,
+            "example": "樂譜、配樂、分軌音檔"
           },
           "sortOrder": {
             "type": "integer",
-            "format": "int32"
+            "description": "同層顯示排序。",
+            "format": "int32",
+            "example": 0
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "建立商品分類請求（平台維護）。"
       },
       "CreateCatalogRequest": {
         "type": "object",
         "properties": {
           "storeId": {
             "type": "string",
-            "format": "uuid"
+            "description": "所屬商店 ID。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "商品名稱（1–200 字）。",
+            "nullable": true,
+            "example": "像素風格音效包"
           },
           "slug": {
             "type": "string",
-            "nullable": true
+            "description": "商品代稱（同商店內唯一，3–100 字小寫英數字與連字號）。",
+            "nullable": true,
+            "example": "pixel-sfx-pack"
           },
           "description": {
             "type": "string",
-            "nullable": true
+            "description": "商品描述。",
+            "nullable": true,
+            "example": "200 個復古像素遊戲音效，WAV 格式。"
           },
           "summary": {
             "type": "string",
-            "nullable": true
+            "description": "一句話簡介（市集卡片短標語，至多 200 字）；null 表示未設定。",
+            "nullable": true,
+            "example": "復古像素遊戲必備的 8-bit 音效合輯。"
           },
           "coverHue": {
             "type": "integer",
+            "description": "封面色相（0–359）；省略時預設 256。",
             "format": "int32",
-            "nullable": true
+            "nullable": true,
+            "example": 256
           },
           "categoryId": {
             "type": "string",
+            "description": "所屬分類 ID；null 表示未分類。",
             "format": "uuid",
-            "nullable": true
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "price": {
             "type": "number",
-            "format": "double"
+            "description": "售價（>= 0）。",
+            "format": "double",
+            "example": 150
           },
           "currency": {
             "type": "string",
-            "nullable": true
+            "description": "幣別（ISO 4217）；省略時預設 TWD。",
+            "nullable": true,
+            "example": "TWD"
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "nullable": true
+            "description": "初始標籤名稱清單（強制小寫）。",
+            "nullable": true,
+            "example": [
+              "audio",
+              "retro"
+            ]
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "建立商品請求。"
       },
       "CreateCatalogVersionRequest": {
         "type": "object",
         "properties": {
           "version": {
             "type": "string",
-            "nullable": true
+            "description": "版本字串（同商品內唯一，1–50 字）。",
+            "nullable": true,
+            "example": "1.0.0"
           },
           "releaseNote": {
             "type": "string",
-            "nullable": true
+            "description": "版本說明 / 更新紀錄。",
+            "nullable": true,
+            "example": "首次發行。"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "建立商品版本請求。"
       },
       "ListCatalogTagsResponse": {
         "type": "object",
         "properties": {
           "totalCount": {
             "type": "integer",
-            "format": "int32"
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 128
           },
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CatalogTagDto"
             },
+            "description": "本頁標籤清單。",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品標籤分頁回應。"
       },
       "ListCatalogsResponse": {
         "type": "object",
         "properties": {
           "totalCount": {
             "type": "integer",
-            "format": "int32"
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 42
           },
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CatalogSummaryDto"
             },
+            "description": "本頁商品清單。",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品列表分頁回應。"
       },
       "ListReviewsResponse": {
         "type": "object",
         "properties": {
           "ratingAverage": {
             "type": "number",
-            "format": "double"
+            "description": "平均評分（0–5）；無評論時為 0。",
+            "format": "double",
+            "example": 4.6
           },
           "ratingCount": {
             "type": "integer",
-            "format": "int32"
+            "description": "評論總數。",
+            "format": "int32",
+            "example": 128
           },
           "ratingDistribution": {
             "type": "array",
@@ -2726,17 +3272,27 @@
               "type": "integer",
               "format": "int32"
             },
-            "nullable": true
+            "description": "各星等評論數分佈；固定 5 個元素，索引 0 = 1★、索引 4 = 5★（供評分分佈長條圖）。",
+            "nullable": true,
+            "example": [
+              3,
+              5,
+              12,
+              40,
+              68
+            ]
           },
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CatalogReviewDto"
             },
+            "description": "本頁評論清單（依時間新到舊）。",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "商品評論列表分頁回應（含彙總）。"
       },
       "ProblemDetails": {
         "type": "object",
@@ -2770,41 +3326,57 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "description": "資產唯一識別碼。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "fileName": {
             "type": "string",
-            "nullable": true
+            "description": "原始檔名。",
+            "nullable": true,
+            "example": "pixel-sfx-pack-v1.zip"
           },
           "contentType": {
             "type": "string",
-            "nullable": true
+            "description": "MIME 類型。",
+            "nullable": true,
+            "example": "application/zip"
           },
           "fileSize": {
             "type": "integer",
-            "format": "int64"
+            "description": "檔案大小（bytes）。",
+            "format": "int64",
+            "example": 10485760
           },
           "sortOrder": {
             "type": "integer",
-            "format": "int32"
+            "description": "同版本內顯示排序。",
+            "format": "int32",
+            "example": 0
           },
           "downloadUrl": {
             "type": "string",
-            "nullable": true
+            "description": "短效下載 URL（簽章）。",
+            "nullable": true,
+            "example": "https://storage.openjam.co/..."
           },
           "expiresAt": {
             "type": "string",
+            "description": "下載 URL 過期時間（UTC）。",
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "買家已購商品的可下載檔案（含短效下載 URL）。"
       },
       "ReorderStoreFeaturedRequest": {
         "type": "object",
         "properties": {
           "storeId": {
             "type": "string",
-            "format": "uuid"
+            "description": "所屬商店 ID（用於 Owner 驗證）。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "catalogIds": {
             "type": "array",
@@ -2812,10 +3384,15 @@
               "type": "string",
               "format": "uuid"
             },
-            "nullable": true
+            "description": "依欲顯示順序排列的商品 ID 清單；須為該商店目前的店長精選商品，且需完整涵蓋。",
+            "nullable": true,
+            "example": [
+              "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            ]
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "重排店長精選顯示順序請求（全量覆蓋，依陣列先後決定順序）。"
       },
       "RequestCatalogAssetUploadUrlRequest": {
         "type": "object",
@@ -2825,47 +3402,64 @@
           },
           "fileName": {
             "type": "string",
-            "nullable": true
+            "description": "原始檔名（含副檔名）。",
+            "nullable": true,
+            "example": "screenshot-1.png"
           },
           "contentType": {
             "type": "string",
-            "nullable": true
+            "description": "MIME 類型。",
+            "nullable": true,
+            "example": "image/png"
           },
           "sizeBytes": {
             "type": "integer",
-            "format": "int64"
+            "description": "檔案大小（bytes）。",
+            "format": "int64",
+            "example": 204800
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "申請展示型資產上傳簽章 URL 請求。"
       },
       "RequestVersionAssetUploadUrlRequest": {
         "type": "object",
         "properties": {
           "fileName": {
             "type": "string",
-            "nullable": true
+            "description": "原始檔名（含副檔名）。",
+            "nullable": true,
+            "example": "pixel-sfx-pack-v1.pdf"
           },
           "contentType": {
             "type": "string",
-            "nullable": true
+            "description": "MIME 類型。",
+            "nullable": true,
+            "example": "application/pdf"
           },
           "sizeBytes": {
             "type": "integer",
-            "format": "int64"
+            "description": "檔案大小（bytes）。",
+            "format": "int64",
+            "example": 10485760
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "申請版本可下載檔案上傳簽章 URL 請求。"
       },
       "SetCatalogCategoryRequest": {
         "type": "object",
         "properties": {
           "categoryId": {
             "type": "string",
+            "description": "分類 ID；null 表示移除分類。",
             "format": "uuid",
-            "nullable": true
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "設定商品分類請求。"
       },
       "SetCatalogTagsRequest": {
         "type": "object",
@@ -2875,124 +3469,172 @@
             "items": {
               "type": "string"
             },
-            "nullable": true
+            "description": "標籤名稱清單（強制小寫，去重）。空陣列表示清除所有標籤。",
+            "nullable": true,
+            "example": [
+              "audio",
+              "retro",
+              "8bit"
+            ]
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "設定商品標籤請求（全量覆蓋）。"
       },
       "StorageDownloadUrlResult": {
         "type": "object",
         "properties": {
           "fileId": {
             "type": "string",
+            "description": "檔案 ID。",
             "format": "uuid"
           },
           "downloadUrl": {
             "type": "string",
+            "description": "短效下載 URL。",
             "nullable": true
           },
           "expiresAt": {
             "type": "string",
+            "description": "簽章 URL 過期時間（UTC）。",
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "StorageService `GET /v1/files/{id}/download-url` 回應。"
       },
       "UpdateCatalogCategoryRequest": {
         "type": "object",
         "properties": {
           "parentId": {
             "type": "string",
+            "description": "上層分類 ID；未提供（欄位缺省）表示不變更。",
             "format": "uuid",
-            "nullable": true
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "分類名稱；null 表示不變更。",
+            "nullable": true,
+            "example": "音樂與音效"
           },
           "slug": {
             "type": "string",
-            "nullable": true
+            "description": "分類代稱；null 表示不變更。",
+            "nullable": true,
+            "example": "audio"
           },
           "description": {
             "type": "string",
-            "nullable": true
+            "description": "分類補充敘述；null 表示不變更。",
+            "nullable": true,
+            "example": "樂譜、配樂、分軌音檔"
           },
           "sortOrder": {
             "type": "integer",
+            "description": "同層顯示排序；null 表示不變更。",
             "format": "int32",
-            "nullable": true
+            "nullable": true,
+            "example": 1
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "更新商品分類請求（部分欄位，null 表示不變更）。"
       },
       "UpdateCatalogRequest": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "nullable": true
+            "description": "商品名稱；null 表示不變更。",
+            "nullable": true,
+            "example": "像素風格音效包 Vol.2"
           },
           "slug": {
             "type": "string",
-            "nullable": true
+            "description": "商品代稱；null 表示不變更。",
+            "nullable": true,
+            "example": "pixel-sfx-pack-2"
           },
           "description": {
             "type": "string",
-            "nullable": true
+            "description": "商品描述；null 表示不變更，空字串表示清空。",
+            "nullable": true,
+            "example": "新增 50 個音效。"
           },
           "summary": {
             "type": "string",
-            "nullable": true
+            "description": "一句話簡介；null 表示不變更，空字串表示清空。",
+            "nullable": true,
+            "example": "全新擴充版，收錄 250 個音效。"
           },
           "coverHue": {
             "type": "integer",
+            "description": "封面色相（0–359）；null 表示不變更。",
             "format": "int32",
-            "nullable": true
+            "nullable": true,
+            "example": 320
           },
           "price": {
             "type": "number",
+            "description": "售價；null 表示不變更。",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "example": 180
           },
           "currency": {
             "type": "string",
-            "nullable": true
+            "description": "幣別（ISO 4217）；null 表示不變更。",
+            "nullable": true,
+            "example": "TWD"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "更新商品請求（部分欄位，null 表示不變更）。"
       },
       "UpsertReviewRequest": {
         "type": "object",
         "properties": {
           "rating": {
             "type": "integer",
-            "format": "int32"
+            "description": "評分（1–5）。",
+            "format": "int32",
+            "example": 5
           },
           "comment": {
             "type": "string",
-            "nullable": true
+            "description": "留言內容（至多 2000 字）；null 或空字串表示僅評分。",
+            "nullable": true,
+            "example": "非常實用，物超所值！"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "新增 / 更新評論請求（同一使用者對同一商品為 upsert）。"
       },
       "VersionAssetUploadUrlResponse": {
         "type": "object",
         "properties": {
           "assetId": {
             "type": "string",
-            "format": "uuid"
+            "description": "檔案 ID（上傳完成後以此 ID 呼叫 confirm，確認後成為 Asset ID）。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
           },
           "uploadUrl": {
             "type": "string",
-            "nullable": true
+            "description": "前端應使用此 URL 以 HTTP PUT 直傳檔案。",
+            "nullable": true,
+            "example": "http://localhost:5171/v1/files/blob/creators/.../pixel-sfx-pack-v1.pdf?expires=1735689600&sig=..."
           },
           "expiresAt": {
             "type": "string",
+            "description": "簽章 URL 過期時間（UTC）。",
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。"
       }
     }
   }

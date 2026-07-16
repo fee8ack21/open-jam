@@ -175,42 +175,80 @@ async function onCoverRemove() {
   else message.error(edit.error ?? t('productEdit.msgCoverFailed'))
 }
 
-// ── 預覽圖（Screenshot 資產，商品頁圖庫）────────────────────
-const MAX_SCREENSHOTS = 8
-const screenshotInput = ref<HTMLInputElement | null>(null)
-const screenshots = computed(() =>
+// ── 預覽媒體（Screenshot / PreviewVideo / ExternalVideo 資產，商品頁圖庫）────
+const MAX_PREVIEW_MEDIA = 8
+// 與後端 CatalogAssetContentTypes 對齊：預覽影片接受 mp4 / mov / avi / webm
+const VIDEO_ALLOWED = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm']
+const VIDEO_MAX_BYTES = 100 * 1024 * 1024
+const MEDIA_ACCEPT = `${COVER_ACCEPT},${VIDEO_ALLOWED.join(',')}`
+const PREVIEW_MEDIA_TYPES = [CatalogAssetType.Screenshot, CatalogAssetType.PreviewVideo, CatalogAssetType.ExternalVideo]
+
+const mediaInput = ref<HTMLInputElement | null>(null)
+const previewMedia = computed(() =>
   (catalog.value?.assets ?? [])
-    .filter((a) => a.type === CatalogAssetType.Screenshot)
+    .filter((a) => a.type && PREVIEW_MEDIA_TYPES.includes(a.type))
     .slice()
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
 )
 
-function pickScreenshots() { screenshotInput.value?.click() }
+/** 由正規化的 YouTube watch 網址取出影片 ID（縮圖用）。 */
+function youtubeId(url?: string | null) {
+  const m = url ? /[?&]v=([A-Za-z0-9_-]{11})/.exec(url) : null
+  return m ? m[1] : null
+}
+const ytThumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
 
-async function onScreenshotPick(e: Event) {
+function pickMedia() { mediaInput.value?.click() }
+
+async function onMediaPick(e: Event) {
   const input = e.target as HTMLInputElement
   const files = Array.from(input.files ?? [])
   input.value = ''
   if (!files.length) return
-  const room = MAX_SCREENSHOTS - screenshots.value.length
-  if (files.length > room) { message.warning(t('productEdit.msgScreenshotLimit', { max: MAX_SCREENSHOTS })); return }
+  const room = MAX_PREVIEW_MEDIA - previewMedia.value.length
+  if (files.length > room) { message.warning(t('productEdit.msgMediaLimit', { max: MAX_PREVIEW_MEDIA })); return }
   for (const file of files) {
-    if (!COVER_ALLOWED.includes(file.type)) { message.error(t('productEdit.msgCoverType')); return }
-    if (file.size > COVER_MAX_BYTES) { message.error(t('productEdit.msgCoverTooLarge')); return }
+    if (VIDEO_ALLOWED.includes(file.type)) {
+      if (file.size > VIDEO_MAX_BYTES) { message.error(t('productEdit.msgVideoTooLarge')); return }
+    } else if (COVER_ALLOWED.includes(file.type)) {
+      if (file.size > COVER_MAX_BYTES) { message.error(t('productEdit.msgCoverTooLarge')); return }
+    } else {
+      message.error(t('productEdit.msgMediaType')); return
+    }
   }
   let uploaded = 0
   for (const file of files) {
-    const ok = await edit.uploadScreenshot(catalogId.value, file)
-    if (!ok) { message.error(edit.error ?? t('productEdit.msgScreenshotFailed')); break }
+    const ok = await edit.uploadPreviewMedia(catalogId.value, file)
+    if (!ok) { message.error(edit.error ?? t('productEdit.msgMediaFailed')); break }
     uploaded++
   }
-  if (uploaded) message.success(t('productEdit.msgScreenshotsUploaded', { count: uploaded }))
+  if (uploaded) message.success(t('productEdit.msgMediaUploaded', { count: uploaded }))
 }
 
-async function onDeleteScreenshot(assetId: string) {
-  const ok = await edit.deleteScreenshot(catalogId.value, assetId)
-  if (ok) message.success(t('productEdit.msgScreenshotDeleted'))
-  else message.error(edit.error ?? t('productEdit.msgScreenshotFailed'))
+// YouTube 嵌入：貼上連結即建立（不涉檔案上傳、不計配額）
+const youtubeModal = ref(false)
+const youtubeUrl = ref('')
+
+function openYoutubeModal() {
+  youtubeUrl.value = ''
+  youtubeModal.value = true
+}
+async function onAddYoutube() {
+  const url = youtubeUrl.value.trim()
+  if (!url) { message.warning(t('productEdit.msgNeedYoutubeUrl')); return }
+  const ok = await edit.addExternalVideo(catalogId.value, url)
+  if (ok) {
+    youtubeModal.value = false
+    message.success(t('productEdit.msgYoutubeAdded'))
+  } else {
+    message.error(edit.error ?? t('productEdit.msgMediaFailed'))
+  }
+}
+
+async function onDeleteMedia(assetId: string) {
+  const ok = await edit.deletePreviewMedia(catalogId.value, assetId)
+  if (ok) message.success(t('productEdit.msgMediaDeleted'))
+  else message.error(edit.error ?? t('productEdit.msgMediaFailed'))
 }
 
 function openVersionModal() {
@@ -412,30 +450,42 @@ function fmtDate(v?: string | null) {
           </div>
         </div>
 
-        <!-- 預覽圖（商品頁圖庫） -->
+        <!-- 預覽媒體（商品頁圖庫：圖片 / 影片 / YouTube 嵌入） -->
         <div class="card-pad set-card">
           <div class="set-grid">
             <div class="sg-k">
-              <div class="sgk-t">{{ t('productEdit.screenshotsTitle') }}</div>
-              <div class="sgk-d">{{ t('productEdit.screenshotsDesc') }}</div>
+              <div class="sgk-t">{{ t('productEdit.mediaTitle') }}</div>
+              <div class="sgk-d">{{ t('productEdit.mediaDesc') }}</div>
             </div>
             <div>
-              <input ref="screenshotInput" type="file" :accept="COVER_ACCEPT" multiple style="display:none" @change="onScreenshotPick" />
+              <input ref="mediaInput" type="file" :accept="MEDIA_ACCEPT" multiple style="display:none" @change="onMediaPick" />
               <div class="shot-grid">
-                <div v-for="s in screenshots" :key="s.id" class="shot-box" :style="{ backgroundImage: `url(${s.url})` }">
-                  <n-popconfirm placement="top-end" @positive-click="onDeleteScreenshot(s.id!)">
+                <div v-for="s in previewMedia" :key="s.id" class="shot-box"
+                     :class="{ 'shot-media': s.type !== CatalogAssetType.Screenshot }"
+                     :style="s.type === CatalogAssetType.Screenshot
+                       ? { backgroundImage: `url(${s.url})` }
+                       : s.type === CatalogAssetType.ExternalVideo && youtubeId(s.externalUrl)
+                         ? { backgroundImage: `url(${ytThumbUrl(youtubeId(s.externalUrl)!)})` }
+                         : undefined">
+                  <span v-if="s.type !== CatalogAssetType.Screenshot" class="shot-play"><app-icon name="play" :size="15" /></span>
+                  <span v-if="s.type === CatalogAssetType.PreviewVideo" class="shot-name">{{ s.fileName }}</span>
+                  <n-popconfirm placement="top-end" @positive-click="onDeleteMedia(s.id!)">
                     <template #trigger>
                       <button class="ic-act danger shot-del" :title="t('common.delete')" :disabled="busy"><app-icon name="trash" :size="15" /></button>
                     </template>
-                    {{ t('productEdit.screenshotDeleteConfirm') }}
+                    {{ t('productEdit.mediaDeleteConfirm') }}
                   </n-popconfirm>
                 </div>
-                <button v-if="screenshots.length < MAX_SCREENSHOTS" class="shot-box shot-add" :disabled="busy" @click="pickScreenshots">
+                <button v-if="previewMedia.length < MAX_PREVIEW_MEDIA" class="shot-box shot-add" :disabled="busy" @click="pickMedia">
                   <app-icon name="plus" :size="20" :stroke="2.2" />
-                  <span>{{ t('productEdit.screenshotAdd') }}</span>
+                  <span>{{ t('productEdit.mediaAdd') }}</span>
+                </button>
+                <button v-if="previewMedia.length < MAX_PREVIEW_MEDIA" class="shot-box shot-add" :disabled="busy" @click="openYoutubeModal">
+                  <app-icon name="play" :size="20" :stroke="2.2" />
+                  <span>{{ t('productEdit.mediaAddYoutube') }}</span>
                 </button>
               </div>
-              <div class="field-hint" style="margin-top:10px;">{{ t('productEdit.screenshotsHint', { max: MAX_SCREENSHOTS }) }}</div>
+              <div class="field-hint" style="margin-top:10px;">{{ t('productEdit.mediaHint', { max: MAX_PREVIEW_MEDIA }) }}</div>
             </div>
           </div>
         </div>
@@ -529,6 +579,22 @@ function fmtDate(v?: string | null) {
         </div>
       </template>
     </n-modal>
+
+    <!-- 加入 YouTube 連結 -->
+    <n-modal v-model:show="youtubeModal" preset="card" style="max-width:460px;" :title="t('productEdit.youtubeModalTitle')">
+      <div class="field">
+        <label class="field-label">{{ t('productEdit.youtubeUrlLabel') }}</label>
+        <n-input v-model:value="youtubeUrl" size="large" maxlength="500"
+                 :placeholder="t('productEdit.youtubeUrlPlaceholder')" @keydown.enter="onAddYoutube" />
+      </div>
+      <div class="field-hint" style="margin-top:12px;">{{ t('productEdit.youtubeHint') }}</div>
+      <template #footer>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <n-button @click="youtubeModal = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" :loading="busy" @click="onAddYoutube">{{ t('common.confirm') }}</n-button>
+        </div>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -582,6 +648,20 @@ function fmtDate(v?: string | null) {
   top: 6px;
   right: 6px;
   background: var(--bg);
+}
+/* 影片 / YouTube 磚：深色底 + 中央播放徽章（YouTube 另以縮圖為背景） */
+.shot-media { background-color: #1a1a1a; }
+.shot-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center;
+  background: rgba(255, 255, 255, .92); border: var(--bw) solid var(--border-strong);
+  color: var(--text); pointer-events: none;
+}
+.shot-name {
+  position: absolute; left: 6px; right: 6px; bottom: 6px;
+  font-family: var(--oj-mono); font-size: 10.5px; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
 }
 .shot-add {
   display: grid;
