@@ -349,11 +349,11 @@ body {
   border: var(--bw) solid var(--border-strong); box-shadow: var(--pop-2);
 }
 .hero-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.hero-main { flex: 1; min-width: 300px; max-width: 680px; padding-top: 4px; }
+.hero-main { flex: 1; min-width: 300px; padding-top: 4px; }
 .hero-title { font-size: clamp(28px, 3.6vw, 38px); font-weight: 900; margin: 0; line-height: 1.2; }
 /* 店名貼紙：綠底墨框 + 硬底影（設計稿） */
 .hero-title .hl { border-radius: 14px; padding: 2px 16px; transform: rotate(-1deg); }
-.hero-sub { color: var(--text-soft); margin: 16px 0 0; font-size: 15px; font-weight: 500; max-width: 56ch; line-height: 1.7; }
+.hero-sub { color: var(--text-soft); margin: 16px 0 0; font-size: 15px; font-weight: 500; line-height: 1.7; }
 
 /* inline stats — Space Grotesk 數字 + 糖果色圓點分隔（設計稿） */
 .hero-stats { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 14px; font-size: 14px; font-weight: 700; color: var(--text); }
@@ -706,6 +706,34 @@ body {
   border-radius: var(--r-md);
 }
 .oj-root .n-form-item-label__text { font-family: var(--oj-font); font-weight: 700; color: var(--text); font-size: 13.5px; }
+
+/* message toast（useMessage）：貼紙卡片 — 糖果底 + 墨線 + 硬底影。
+   teleport 至 body 故不掛 .oj-root；naive 將 --n-* 變數 inline 於
+   .n-message-wrapper，於子層 .n-message 重新定義即可蓋過 */
+.n-message {
+  --n-border: var(--bw) solid var(--border-strong);
+  --n-border-radius: var(--r-md);
+  --n-box-shadow: var(--ink-drop-sm), var(--pop-2);
+  --n-color: var(--surface);
+  --n-text-color: var(--text);
+  --n-max-width: min(720px, calc(100vw - 32px));
+  --n-icon-color-info: var(--text);
+  --n-icon-color-success: var(--text);
+  --n-icon-color-warning: var(--text);
+  --n-icon-color-error: var(--c-pink-deep);
+  --n-icon-color-loading: var(--c-violet);
+  --n-close-icon-color: var(--text-soft);
+  --n-close-icon-color-hover: var(--text);
+  --n-close-icon-color-pressed: var(--text);
+  --n-close-color-hover: rgba(26, 26, 26, .08);
+  --n-close-color-pressed: rgba(26, 26, 26, .14);
+  font-family: var(--oj-font);
+  font-weight: 700;
+}
+.n-message--info-type { --n-color: var(--c-cyan); }
+.n-message--success-type { --n-color: var(--c-lime); }
+.n-message--warning-type { --n-color: var(--t-yellow); }
+.n-message--error-type { --n-color: var(--t-pink); }
 
 /* ---------- footer（墨黑滿版帶，同 portal-web mkt-foot） ---------- */
 .foot {
