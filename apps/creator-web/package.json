@@ -1,6 +1,6 @@
 {
   "name": "creator-web",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "private": true,
   "type": "module",
   "description": "Open Jam — 創作者數位市集 (Vue 3 + Vite + Pinia + Vue Router)",
