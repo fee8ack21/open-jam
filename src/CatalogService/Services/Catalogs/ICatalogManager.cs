@@ -29,6 +29,9 @@ public interface ICatalogManager
     /// <summary>下架封存商品（Published → Archived）。僅 Owner 可操作。</summary>
     Task ArchiveAsync(Guid id, CancellationToken ct);
 
+    /// <summary>刪除商品（軟刪除，同步軟刪儲存端檔案）。僅未曾上架的草稿可刪除。僅 Owner 可操作。</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct);
+
     /// <summary>平台停權商品（任意狀態 → Suspended）。僅 Admin 可操作。</summary>
     Task SuspendAsync(Guid id, CancellationToken ct);
 

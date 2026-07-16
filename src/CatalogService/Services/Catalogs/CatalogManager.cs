@@ -292,6 +292,44 @@ public class CatalogManager(
     }
 
     /// <inheritdoc/>
+    public async Task DeleteAsync(Guid id, CancellationToken ct)
+    {
+        var catalog = await LoadOwnedCatalogAsync(id, ct);
+
+        // 上架過的商品可能已有訂單 / 評論等下游資料，僅允許刪除未曾上架的草稿。
+        if (catalog.Status != CatalogStatus.Draft || catalog.PublishedAt is not null)
+            throw new ConflictException("僅未曾上架的草稿商品可刪除。");
+
+        // 草稿已上傳的檔案（展示型資產 + 版本可下載檔）逐一軟刪儲存端檔案
+        // （404 視為已刪，冪等），配額用量由 QuotaService 對帳釋放。
+        var assets = await db.CatalogAssets
+            .Where(a => a.CatalogId == catalog.Id)
+            .ToListAsync(ct);
+
+        var versions = await db.CatalogVersions
+            .Where(v => v.CatalogId == catalog.Id)
+            .ToListAsync(ct);
+        var versionIds = versions.Select(v => v.Id).ToList();
+        var versionAssets = await db.CatalogVersionAssets
+            .Where(a => versionIds.Contains(a.CatalogVersionId))
+            .ToListAsync(ct);
+
+        foreach (var fileId in assets.Select(a => a.Id).Concat(versionAssets.Select(a => a.Id)))
+            await storageClient.DeleteFileAsync(fileId, ct);
+
+        // 附屬資料（資產 / 版本 / 標籤關聯）硬刪除並釋放標籤 UsageCount；商品主檔軟刪除。
+        await ApplyTagsAsync(catalog.Id, [], ct);
+        db.CatalogVersionAssets.RemoveRange(versionAssets);
+        db.CatalogVersions.RemoveRange(versions);
+        db.CatalogAssets.RemoveRange(assets);
+        db.Catalogs.Remove(catalog);
+
+        auditLog.Add(currentUser.UserId, "catalog.delete", "Catalog", catalog.Id, tenant: catalog.StoreId);
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <inheritdoc/>
     public async Task SuspendAsync(Guid id, CancellationToken ct)
     {
         var catalog = await db.Catalogs.FirstOrDefaultAsync(c => c.Id == id, ct)

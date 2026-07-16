@@ -2,8 +2,8 @@ using Shared.Audit;
 
 namespace CatalogService.Data.Entities;
 
-/// <summary>數位商品（商品主檔）。每個商品隸屬於一間商店。</summary>
-public class Catalog : ICreatedAt, IUpdatedAt
+/// <summary>數位商品（商品主檔）。每個商品隸屬於一間商店。僅未曾上架的草稿可刪除（軟刪除）。</summary>
+public class Catalog : ICreatedAt, IUpdatedAt, IDeletedAt, IDeletedBy
 {
     /// <summary>商品唯一識別碼。</summary>
     public Guid Id { get; private set; } = Guid.NewGuid();
@@ -73,4 +73,10 @@ public class Catalog : ICreatedAt, IUpdatedAt
 
     /// <summary>首次上架時間；null 表示尚未上架。</summary>
     public DateTimeOffset? PublishedAt { get; set; }
+
+    /// <inheritdoc/>
+    public DateTimeOffset? DeletedAt { get; private set; }
+
+    /// <inheritdoc/>
+    public Guid? DeletedBy { get; private set; }
 }

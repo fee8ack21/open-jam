@@ -113,6 +113,18 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>刪除商品（軟刪除）。僅未曾上架的草稿可刪除，否則回 409。僅 Owner 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await catalogManager.DeleteAsync(id, ct);
+        return NoContent();
+    }
+
     /// <summary>平台停權商品（任意狀態 → Suspended）。僅 Admin 可操作。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="ct">Cancellation token。</param>

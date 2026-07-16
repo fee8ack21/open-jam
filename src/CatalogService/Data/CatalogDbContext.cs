@@ -55,8 +55,8 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
             e.Property(c => c.Currency).HasMaxLength(3).IsRequired();
             e.Property(c => c.Price).HasColumnType("numeric(18,2)");
 
-            // 商品代稱於同一商店內唯一
-            e.HasIndex(c => new { c.StoreId, c.Slug }).IsUnique();
+            // 商品代稱於同一商店內唯一（不含已軟刪除者，刪除後代稱可重用）
+            e.HasIndex(c => new { c.StoreId, c.Slug }).IsUnique().HasFilter("deleted_at IS NULL");
             e.HasIndex(c => c.StoreId);
             e.HasIndex(c => c.Status);
             e.HasIndex(c => c.CategoryId);
