@@ -993,6 +993,20 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Catalogs
+     * @name Delete
+     * @request DELETE:/v1/catalogs/{id}
+     */
+    delete: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, ProblemDetails>({
+        path: `/v1/catalogs/${id}`,
+        method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
      * @name SetCategory
      * @request PUT:/v1/catalogs/{id}/category
      */
@@ -1233,11 +1247,11 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
-  catalogServiceVersion0050CultureNeutralPublicKeyTokenNull = {
+  catalogServiceVersion0080CultureNeutralPublicKeyTokenNull = {
     /**
      * No description
      *
-     * @tags CatalogService, Version=0.0.5.0, Culture=neutral, PublicKeyToken=null
+     * @tags CatalogService, Version=0.0.8.0, Culture=neutral, PublicKeyToken=null
      * @name HealthzList
      * @request GET:/healthz
      */

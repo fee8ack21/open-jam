@@ -60,7 +60,8 @@
     "removeCoverFailed": "Failed to remove cover image.",
     "createVersionFailed": "Failed to create version.",
     "uploadFileFailed": "Upload failed: {name}",
-    "deleteFileFailed": "Failed to delete file."
+    "deleteFileFailed": "Failed to delete file.",
+    "deleteProductFailed": "Failed to delete product."
   },
   "catalogStatus": {
     "all": "All",
@@ -95,7 +96,10 @@
     "noFeatured": "No store picks yet. Click the star on a product to feature it.",
     "moveUp": "Move up",
     "moveDown": "Move down",
-    "msgOrderSaved": "Featured order updated."
+    "msgOrderSaved": "Featured order updated.",
+    "deleteConfirmTitle": "Delete draft",
+    "deleteConfirmDesc": "\"{name}\" will be removed from the list, along with any uploaded files. Delete it?",
+    "msgDeleted": "Draft deleted."
   },
   "stores": {
     "subStats": "{total} stores, {active} active",

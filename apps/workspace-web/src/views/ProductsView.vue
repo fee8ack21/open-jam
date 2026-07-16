@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMessage } from 'naive-ui'
+import { useMessage, useDialog } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useDashboardStore } from '@/stores/dashboard'
@@ -25,6 +25,7 @@ function statusOf(s?: CatalogStatus) {
 const dashboard = useDashboardStore()
 const router = useRouter()
 const message = useMessage()
+const dialog = useDialog()
 const catalog = useCatalogStore()
 const storeApp = useStoreApplicationStore()
 const { products, totalCount, loading, busyId } = storeToRefs(catalog)
@@ -48,6 +49,25 @@ function openEdit(p: CatalogSummaryDto) {
 // 只有已上架商品可設為店長精選
 function canFeature(p: CatalogSummaryDto) {
   return p.status === CatalogStatus.Published
+}
+
+// 只有未曾上架的草稿可刪除（軟刪除；上架過的商品僅能下架封存）
+function canDelete(p: CatalogSummaryDto) {
+  return p.status === CatalogStatus.Draft && !p.publishedAt
+}
+function onDelete(p: CatalogSummaryDto) {
+  if (!p.id) return
+  dialog.warning({
+    title: t('products.deleteConfirmTitle'),
+    content: t('products.deleteConfirmDesc', { name: p.name ?? '' }),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      const ok = await catalog.remove(p.id!)
+      if (ok) message.success(t('products.msgDeleted'))
+      else message.error(catalog.error ?? t('products.msgActionFailed'))
+    },
+  })
 }
 async function toggleFeatured(p: CatalogSummaryDto) {
   if (!p.id) return
@@ -236,6 +256,7 @@ onMounted(load)
                     </button>
                     <button class="ic-act" :title="t('products.viewReviews')" @click="openReviews(p)"><app-icon name="chat" :size="17" /></button>
                     <button class="ic-act" :title="t('common.edit')" @click="openEdit(p)"><app-icon name="edit" :size="17" /></button>
+                    <button v-if="canDelete(p)" class="ic-act danger" :title="t('common.delete')" :disabled="busyId === p.id" @click="onDelete(p)"><app-icon name="trash" :size="17" /></button>
                   </div>
                 </td>
               </tr>

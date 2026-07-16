@@ -224,6 +224,22 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
+  /** 刪除商品（軟刪除；僅未曾上架的草稿可刪除），完成後重新載入目前頁次。 */
+  async function remove(id: string) {
+    busyId.value = id;
+    error.value = null;
+    try {
+      await catalogApi.catalogs.delete(id);
+      await reload();
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.deleteProductFailed'));
+      return false;
+    } finally {
+      busyId.value = null;
+    }
+  }
+
   /** 設定 / 取消店長精選（僅已上架商品可設為精選），完成後重新載入目前頁次。 */
   async function setStoreFeatured(id: string, featured: boolean) {
     busyId.value = id;
@@ -453,6 +469,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     unsuspend,
     publish,
     archive,
+    remove,
     setStoreFeatured,
     listStoreFeatured,
     reorderStoreFeatured,

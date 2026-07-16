@@ -60,7 +60,8 @@
     "removeCoverFailed": "移除封面圖失敗。",
     "createVersionFailed": "建立版本失敗。",
     "uploadFileFailed": "檔案上傳失敗：{name}",
-    "deleteFileFailed": "刪除檔案失敗。"
+    "deleteFileFailed": "刪除檔案失敗。",
+    "deleteProductFailed": "刪除商品失敗。"
   },
   "catalogStatus": {
     "all": "全部",
@@ -95,7 +96,10 @@
     "noFeatured": "尚未設定任何店長精選商品。於商品列表點擊星號即可設為精選。",
     "moveUp": "上移",
     "moveDown": "下移",
-    "msgOrderSaved": "已更新精選排序。"
+    "msgOrderSaved": "已更新精選排序。",
+    "deleteConfirmTitle": "刪除草稿",
+    "deleteConfirmDesc": "刪除後「{name}」將自列表移除，已上傳的檔案也會一併刪除。確定刪除？",
+    "msgDeleted": "已刪除草稿。"
   },
   "stores": {
     "subStats": "共 {total} 間商店，其中 {active} 間營運中",
