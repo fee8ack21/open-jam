@@ -158,7 +158,7 @@ auth:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
-    tag: v0.0.21
+    tag: v0.0.22
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -218,7 +218,7 @@ storeService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/store-service
-    tag: v0.0.8
+    tag: v0.0.9
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -392,7 +392,7 @@ bootstrap:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/bootstrap
-    tag: v0.0.15
+    tag: v0.0.16
     pullPolicy: IfNotPresent
   ttlSecondsAfterFinished: 300
   # seed 平台管理員（password → 機密 overlay）
