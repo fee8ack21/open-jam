@@ -68,6 +68,7 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
             e.Property(a => a.FileName).HasMaxLength(255).IsRequired();
             e.Property(a => a.StorageKey).HasMaxLength(500).IsRequired();
             e.Property(a => a.ContentType).HasMaxLength(100).IsRequired();
+            e.Property(a => a.ExternalUrl).HasMaxLength(500);
             e.HasIndex(a => a.CatalogId);
         });
 

@@ -14,4 +14,7 @@ public enum CatalogAssetType
 
     /// <summary>預覽影片。</summary>
     PreviewVideo,
+
+    /// <summary>外部影片嵌入（YouTube），僅存外部 URL、不佔儲存空間。</summary>
+    ExternalVideo,
 }

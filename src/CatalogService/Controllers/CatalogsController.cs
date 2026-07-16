@@ -241,6 +241,17 @@ public class CatalogsController(ICatalogManager catalogManager) : ControllerBase
         Guid id, Guid assetId, [FromBody] ConfirmCatalogAssetRequest request, CancellationToken ct) =>
         Ok(await catalogManager.ConfirmAssetAsync(id, assetId, request, ct));
 
+    /// <summary>加入外部影片嵌入（YouTube）預覽媒體。不涉檔案上傳、不計配額。僅 Owner 可操作。</summary>
+    /// <param name="id">商品 ID。</param>
+    /// <param name="request">影片網址。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{id:guid}/assets/external")]
+    [ProducesResponseType<CatalogAssetDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<CatalogAssetDto>> AddExternalVideoAsset(
+        Guid id, [FromBody] AddExternalVideoAssetRequest request, CancellationToken ct) =>
+        Ok(await catalogManager.AddExternalVideoAssetAsync(id, request, ct));
+
     /// <summary>刪除展示型資產。僅 Owner 可操作。</summary>
     /// <param name="id">商品 ID。</param>
     /// <param name="assetId">資產 ID。</param>

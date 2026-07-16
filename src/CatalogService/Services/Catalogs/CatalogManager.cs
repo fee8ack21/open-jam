@@ -26,6 +26,12 @@ public class CatalogManager(
 {
     private readonly string _publicBaseUrl = (storageOptions.Value.PublicBaseUrl ?? "").TrimEnd('/');
 
+    /// <summary>商品內頁圖庫的預覽媒體類型（共用同一條 SortOrder 序列與總數上限）。</summary>
+    private static readonly CatalogAssetType[] PreviewMediaTypes =
+        [CatalogAssetType.Screenshot, CatalogAssetType.PreviewVideo, CatalogAssetType.PreviewAudio, CatalogAssetType.ExternalVideo];
+
+    private const int MaxPreviewMediaCount = 8;
+
     /// <inheritdoc/>
     public async Task<CatalogDto> CreateAsync(CreateCatalogRequest request, CancellationToken ct)
     {
@@ -314,7 +320,9 @@ public class CatalogManager(
             .Where(a => versionIds.Contains(a.CatalogVersionId))
             .ToListAsync(ct);
 
-        foreach (var fileId in assets.Select(a => a.Id).Concat(versionAssets.Select(a => a.Id)))
+        // 外部嵌入資產無儲存端檔案，略過儲存端刪除。
+        var storedAssetIds = assets.Where(a => a.Type != CatalogAssetType.ExternalVideo).Select(a => a.Id);
+        foreach (var fileId in storedAssetIds.Concat(versionAssets.Select(a => a.Id)))
             await storageClient.DeleteFileAsync(fileId, ct);
 
         // 附屬資料（資產 / 版本 / 標籤關聯）硬刪除並釋放標籤 UsageCount；商品主檔軟刪除。
@@ -490,9 +498,10 @@ public class CatalogManager(
             .FirstOrDefaultAsync(a => a.Id == assetId && a.CatalogId == catalog.Id, ct);
         if (asset is null)
         {
-            var nextSortOrder = await db.CatalogAssets
-                .Where(a => a.CatalogId == catalog.Id && a.Type == request.Type)
-                .CountAsync(ct);
+            if (PreviewMediaTypes.Contains(request.Type))
+                await EnsurePreviewMediaRoomAsync(catalog.Id, ct);
+
+            var nextSortOrder = await NextSortOrderAsync(catalog.Id, request.Type, ct);
 
             asset = new CatalogAsset
             {
@@ -518,7 +527,36 @@ public class CatalogManager(
         await storageClient.MarkReferencedAsync(assetId, ct);
 
         var dto = mapper.Map<CatalogAssetDto>(asset);
-        dto.Url = BuildPublicUrl(asset.StorageKey);
+        dto.Url = AssetUrl(asset);
+        return dto;
+    }
+
+    /// <inheritdoc/>
+    public async Task<CatalogAssetDto> AddExternalVideoAssetAsync(
+        Guid id, AddExternalVideoAssetRequest request, CancellationToken ct)
+    {
+        var catalog = await LoadOwnedCatalogAsync(id, ct);
+
+        if (!YouTubeUrl.TryParseVideoId(request.Url, out var videoId))
+            throw new ValidationException("僅支援 YouTube 影片網址（watch?v= / youtu.be / shorts / embed）。");
+
+        await EnsurePreviewMediaRoomAsync(catalog.Id, ct);
+
+        // 外部嵌入無儲存端檔案：Id 為新產生的 Guid、storage 欄位留空，不涉 StorageService、不計配額。
+        var asset = new CatalogAsset
+        {
+            Id = Guid.NewGuid(),
+            CatalogId = catalog.Id,
+            Type = CatalogAssetType.ExternalVideo,
+            ExternalUrl = YouTubeUrl.CanonicalUrl(videoId),
+            SortOrder = await NextSortOrderAsync(catalog.Id, CatalogAssetType.ExternalVideo, ct),
+        };
+        db.CatalogAssets.Add(asset);
+
+        await db.SaveChangesAsync(ct);
+
+        var dto = mapper.Map<CatalogAssetDto>(asset);
+        dto.Url = AssetUrl(asset);
         return dto;
     }
 
@@ -532,7 +570,9 @@ public class CatalogManager(
             ?? throw new NotFoundException("找不到資產。");
 
         // 先軟刪儲存端檔案（404 視為已刪，冪等），配額用量由 QuotaService 對帳釋放。
-        await storageClient.DeleteFileAsync(assetId, ct);
+        // 外部嵌入無儲存端檔案，直接移除紀錄。
+        if (asset.Type != CatalogAssetType.ExternalVideo)
+            await storageClient.DeleteFileAsync(assetId, ct);
 
         db.CatalogAssets.Remove(asset);
 
@@ -546,6 +586,34 @@ public class CatalogManager(
 
     private Task<Catalog> LoadOwnedCatalogAsync(Guid id, CancellationToken ct) =>
         CatalogAuthorization.LoadOwnedCatalogAsync(db, storeClient, currentUser, id, ct);
+
+    /// <summary>預覽媒體總數（截圖 / 預覽影音 / 外部嵌入合計）達上限時擋下。</summary>
+    private async Task EnsurePreviewMediaRoomAsync(Guid catalogId, CancellationToken ct)
+    {
+        var count = await db.CatalogAssets
+            .Where(a => a.CatalogId == catalogId && PreviewMediaTypes.Contains(a.Type))
+            .CountAsync(ct);
+        if (count >= MaxPreviewMediaCount)
+            throw new ValidationException($"預覽媒體最多 {MaxPreviewMediaCount} 項。");
+    }
+
+    /// <summary>
+    /// 取下一個顯示排序值：預覽媒體跨類型共用同一條序列（依 Max+1 遞增，刪除後不回收），
+    /// 縮圖維持同類型內排序。
+    /// </summary>
+    private async Task<int> NextSortOrderAsync(Guid catalogId, CatalogAssetType type, CancellationToken ct)
+    {
+        var query = db.CatalogAssets.Where(a => a.CatalogId == catalogId);
+        query = PreviewMediaTypes.Contains(type)
+            ? query.Where(a => PreviewMediaTypes.Contains(a.Type))
+            : query.Where(a => a.Type == type);
+        var maxOrder = await query.MaxAsync(a => (int?)a.SortOrder, ct) ?? -1;
+        return maxOrder + 1;
+    }
+
+    /// <summary>資產的對外 URL：實體檔案組公開讀取網址，外部嵌入回其外部 URL。</summary>
+    private string AssetUrl(CatalogAsset asset) =>
+        asset.Type == CatalogAssetType.ExternalVideo ? asset.ExternalUrl ?? "" : BuildPublicUrl(asset.StorageKey);
 
     private async Task EnsureCategoryExistsAsync(Guid categoryId, CancellationToken ct)
     {
@@ -628,7 +696,7 @@ public class CatalogManager(
         dto.Assets = assets.Select(a =>
         {
             var assetDto = mapper.Map<CatalogAssetDto>(a);
-            assetDto.Url = BuildPublicUrl(a.StorageKey);
+            assetDto.Url = AssetUrl(a);
             return assetDto;
         }).ToList();
         dto.Tags = tags;

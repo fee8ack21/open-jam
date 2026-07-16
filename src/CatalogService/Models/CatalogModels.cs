@@ -207,13 +207,17 @@ public class CatalogAssetDto
     /// <example>204800</example>
     public long FileSize { get; set; }
 
-    /// <summary>同類型內顯示排序。</summary>
+    /// <summary>顯示排序（預覽媒體跨類型共用同一條序列）。</summary>
     /// <example>0</example>
     public int SortOrder { get; set; }
 
-    /// <summary>公開讀取 URL。</summary>
+    /// <summary>公開讀取 URL；外部嵌入資產為其外部 URL。</summary>
     /// <example>http://localhost:5171/v1/files/blob/public/.../screenshot-1.png</example>
     public string Url { get; set; } = "";
+
+    /// <summary>外部影片嵌入 URL（僅 ExternalVideo 型別有值，正規化為 YouTube watch 網址）。</summary>
+    /// <example>https://www.youtube.com/watch?v=dQw4w9WgXcQ</example>
+    public string? ExternalUrl { get; set; }
 
     /// <summary>建立時間。</summary>
     public DateTimeOffset CreatedAt { get; set; }
@@ -420,6 +424,14 @@ public class RequestCatalogAssetUploadUrlRequest
     /// <summary>檔案大小（bytes）。</summary>
     /// <example>204800</example>
     public long SizeBytes { get; set; }
+}
+
+/// <summary>加入外部影片嵌入（YouTube）預覽媒體的請求。不涉檔案上傳、不計配額。</summary>
+public class AddExternalVideoAssetRequest
+{
+    /// <summary>YouTube 影片網址（支援 watch?v= / youtu.be / shorts / embed 形式）。</summary>
+    /// <example>https://www.youtube.com/watch?v=dQw4w9WgXcQ</example>
+    public string Url { get; set; } = "";
 }
 
 /// <summary>確認展示型資產上傳完成的請求（使用者提交確認時呼叫，此時才扣配額並建立資產）。</summary>

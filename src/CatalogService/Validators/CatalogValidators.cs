@@ -1,3 +1,4 @@
+using CatalogService.Data.Entities;
 using CatalogService.Models;
 using CatalogService.Services;
 using FluentValidation;
@@ -83,9 +84,16 @@ public class UpdateCatalogRequestValidator : AbstractValidator<UpdateCatalogRequ
 /// <summary>申請展示型資產上傳簽章 URL 請求驗證。</summary>
 public class RequestCatalogAssetUploadUrlRequestValidator : AbstractValidator<RequestCatalogAssetUploadUrlRequest>
 {
+    private const long MaxImageBytes = 5 * 1024 * 1024;
+    private const long MaxPreviewMediaBytes = 100 * 1024 * 1024;
+
     /// <summary>建立驗證規則。</summary>
     public RequestCatalogAssetUploadUrlRequestValidator()
     {
+        RuleFor(x => x.Type)
+            .Must(t => t != CatalogAssetType.ExternalVideo)
+            .WithMessage("外部影片嵌入不經檔案上傳，請改用 external 端點。");
+
         RuleFor(x => x.FileName)
             .NotEmpty().WithMessage("原始檔名為必填。")
             .MaximumLength(255).WithMessage("原始檔名長度不得超過 255 字。");
@@ -95,6 +103,30 @@ public class RequestCatalogAssetUploadUrlRequestValidator : AbstractValidator<Re
 
         RuleFor(x => x.SizeBytes)
             .GreaterThan(0).WithMessage("檔案大小須大於 0。");
+
+        RuleFor(x => x.SizeBytes)
+            .LessThanOrEqualTo(MaxImageBytes)
+            .When(x => x.Type is CatalogAssetType.Thumbnail or CatalogAssetType.Screenshot)
+            .WithMessage("圖片資產大小不得超過 5 MB。");
+
+        RuleFor(x => x.SizeBytes)
+            .LessThanOrEqualTo(MaxPreviewMediaBytes)
+            .When(x => x.Type is CatalogAssetType.PreviewVideo or CatalogAssetType.PreviewAudio)
+            .WithMessage("預覽影音大小不得超過 100 MB。");
+    }
+}
+
+/// <summary>加入外部影片嵌入請求驗證：YouTube 網址格式。</summary>
+public class AddExternalVideoAssetRequestValidator : AbstractValidator<AddExternalVideoAssetRequest>
+{
+    /// <summary>建立驗證規則。</summary>
+    public AddExternalVideoAssetRequestValidator()
+    {
+        RuleFor(x => x.Url)
+            .NotEmpty().WithMessage("影片網址為必填。")
+            .MaximumLength(500).WithMessage("影片網址長度不得超過 500 字。")
+            .Must(url => YouTubeUrl.TryParseVideoId(url, out _))
+            .WithMessage("僅支援 YouTube 影片網址（watch?v= / youtu.be / shorts / embed）。");
     }
 }
 
@@ -105,7 +137,9 @@ public class ConfirmCatalogAssetRequestValidator : AbstractValidator<ConfirmCata
     public ConfirmCatalogAssetRequestValidator()
     {
         RuleFor(x => x.Type)
-            .IsInEnum().WithMessage("資產類型無效。");
+            .IsInEnum().WithMessage("資產類型無效。")
+            .Must(t => t != CatalogAssetType.ExternalVideo)
+            .WithMessage("外部影片嵌入不經檔案上傳，請改用 external 端點。");
     }
 }
 

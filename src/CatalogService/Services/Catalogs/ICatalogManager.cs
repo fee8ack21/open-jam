@@ -60,6 +60,10 @@ public interface ICatalogManager
     Task<CatalogAssetDto> ConfirmAssetAsync(
         Guid id, Guid assetId, ConfirmCatalogAssetRequest request, CancellationToken ct);
 
-    /// <summary>刪除展示型資產（同步軟刪儲存端檔案）。僅 Owner 可操作。</summary>
+    /// <summary>加入外部影片嵌入（YouTube）預覽媒體。不涉檔案上傳、不計配額。僅 Owner 可操作。</summary>
+    Task<CatalogAssetDto> AddExternalVideoAssetAsync(
+        Guid id, AddExternalVideoAssetRequest request, CancellationToken ct);
+
+    /// <summary>刪除展示型資產（同步軟刪儲存端檔案；外部嵌入僅移除紀錄）。僅 Owner 可操作。</summary>
     Task DeleteAssetAsync(Guid id, Guid assetId, CancellationToken ct);
 }
