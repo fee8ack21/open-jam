@@ -23,6 +23,7 @@ export enum CatalogSort {
   Newest = "Newest",
   PriceLowToHigh = "PriceLowToHigh",
   PriceHighToLow = "PriceHighToLow",
+  StoreFeatured = "StoreFeatured",
 }
 
 /** 商品展示型資產類型。 */
@@ -31,6 +32,16 @@ export enum CatalogAssetType {
   Screenshot = "Screenshot",
   PreviewAudio = "PreviewAudio",
   PreviewVideo = "PreviewVideo",
+  ExternalVideo = "ExternalVideo",
+}
+
+/** 加入外部影片嵌入（YouTube）預覽媒體的請求。不涉檔案上傳、不計配額。 */
+export interface AddExternalVideoAssetRequest {
+  /**
+   * YouTube 影片網址（支援 watch?v= / youtu.be / shorts / embed 形式）。
+   * @example "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+   */
+  url?: string | null;
 }
 
 /** 展示型資產回應。 */
@@ -60,16 +71,21 @@ export interface CatalogAssetDto {
    */
   fileSize?: number;
   /**
-   * 同類型內顯示排序。
+   * 顯示排序（預覽媒體跨類型共用同一條序列）。
    * @format int32
    * @example 0
    */
   sortOrder?: number;
   /**
-   * 公開讀取 URL。
+   * 公開讀取 URL；外部嵌入資產為其外部 URL。
    * @example "http://localhost:5171/v1/files/blob/public/.../screenshot-1.png"
    */
   url?: string | null;
+  /**
+   * 外部影片嵌入 URL（僅 ExternalVideo 型別有值，正規化為 YouTube watch 網址）。
+   * @example "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+   */
+  externalUrl?: string | null;
   /**
    * 建立時間。
    * @format date-time
@@ -137,6 +153,11 @@ export interface CatalogCategoryDto {
    * @example 0
    */
   sortOrder?: number;
+  /**
+   * 是否為系統預設分類；系統預設分類不允許刪除。
+   * @example false
+   */
+  isSystem?: boolean;
 }
 
 /** 商品完整資訊回應（商品詳情頁）。 */
@@ -215,6 +236,17 @@ export interface CatalogDto {
    * @example false
    */
   isFeatured?: boolean;
+  /**
+   * 是否為店長精選（商店 Owner 於自家店面標記）。
+   * @example false
+   */
+  isStoreFeatured?: boolean;
+  /**
+   * 店長精選顯示排序（小者在前）；非精選商品此值無意義。
+   * @format int32
+   * @example 0
+   */
+  storeFeaturedSortOrder?: number;
   /**
    * 平均評分（0–5）；無評論時為 0。
    * @format double
@@ -378,6 +410,17 @@ export interface CatalogSummaryDto {
    * @example false
    */
   isFeatured?: boolean;
+  /**
+   * 是否為店長精選（商店 Owner 於自家店面標記）。
+   * @example false
+   */
+  isStoreFeatured?: boolean;
+  /**
+   * 店長精選顯示排序（小者在前）；非精選商品此值無意義。
+   * @format int32
+   * @example 0
+   */
+  storeFeaturedSortOrder?: number;
   /**
    * 平均評分（0–5）；無評論時為 0。
    * @format double
@@ -645,6 +688,11 @@ export interface ListReviewsResponse {
    * @example 128
    */
   ratingCount?: number;
+  /**
+   * 各星等評論數分佈；固定 5 個元素，索引 0 = 1★、索引 4 = 5★（供評分分佈長條圖）。
+   * @example [3,5,12,40,68]
+   */
+  ratingDistribution?: number[] | null;
   /** 本頁評論清單（依時間新到舊）。 */
   items?: CatalogReviewDto[] | null;
 }
@@ -699,6 +747,21 @@ export interface PurchasedVersionAssetDto {
    * @format date-time
    */
   expiresAt?: string;
+}
+
+/** 重排店長精選顯示順序請求（全量覆蓋，依陣列先後決定順序）。 */
+export interface ReorderStoreFeaturedRequest {
+  /**
+   * 所屬商店 ID（用於 Owner 驗證）。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  storeId?: string;
+  /**
+   * 依欲顯示順序排列的商品 ID 清單；須為該商店目前的店長精選商品，且需完整涵蓋。
+   * @example ["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+   */
+  catalogIds?: string[] | null;
 }
 
 /** 申請展示型資產上傳簽章 URL 請求。 */
@@ -1418,6 +1481,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         Featured?: boolean;
         /**
+         * 僅限店長精選；true 只回店長精選、false 只回非店長精選、null 表示不限。
+         * @example true
+         */
+        StoreFeatured?: boolean;
+        /**
          * 售價下限（含）；null 表示不限。
          * @format double
          * @example 0
@@ -1518,6 +1586,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         Featured?: boolean;
         /**
+         * 僅限店長精選；true 只回店長精選、false 只回非店長精選、null 表示不限。
+         * @example true
+         */
+        StoreFeatured?: boolean;
+        /**
          * 售價下限（含）；null 表示不限。
          * @format double
          * @example 0
@@ -1601,6 +1674,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         Featured?: boolean;
         /**
+         * 僅限店長精選；true 只回店長精選、false 只回非店長精選、null 表示不限。
+         * @example true
+         */
+        StoreFeatured?: boolean;
+        /**
          * 售價下限（含）；null 表示不限。
          * @format double
          * @example 0
@@ -1675,6 +1753,21 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name Delete
+     * @summary 刪除商品（軟刪除）。僅未曾上架的草稿可刪除，否則回 409。僅 Owner 可操作。
+     * @request DELETE:/v1/catalogs/{id}
+     */
+    delete: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, ProblemDetails>({
+        path: `/v1/catalogs/${id}`,
+        method: "DELETE",
         ...params,
       }),
 
@@ -1831,6 +1924,56 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags Catalogs
+     * @name StoreFeature
+     * @summary 設為店長精選（店面首頁 spotlight，接續排在現有精選之後）。僅商店 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/store-feature
+     */
+    storeFeature: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/store-feature`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name StoreUnfeature
+     * @summary 取消店長精選。僅商店 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/store-unfeature
+     */
+    storeUnfeature: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/${id}/store-unfeature`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name ReorderStoreFeatured
+     * @summary 重排店長精選的顯示順序（全量覆蓋）。僅商店 Owner 可操作。
+     * @request PUT:/v1/catalogs/store-featured/order
+     */
+    reorderStoreFeatured: (
+      data: ReorderStoreFeaturedRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<void, any>({
+        path: `/v1/catalogs/store-featured/order`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
      * @name RequestAssetUploadUrl
      * @summary 申請展示型資產（縮圖 / 截圖 / 預覽影音）上傳簽章 URL。簽發階段不扣配額、不建資產。僅 Owner 可操作。
      * @request POST:/v1/catalogs/{id}/assets/upload-url
@@ -1865,6 +2008,28 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<CatalogAssetDto, ProblemDetails>({
         path: `/v1/catalogs/${id}/assets/${assetId}/confirm`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name AddExternalVideoAsset
+     * @summary 加入外部影片嵌入（YouTube）預覽媒體。不涉檔案上傳、不計配額。僅 Owner 可操作。
+     * @request POST:/v1/catalogs/{id}/assets/external
+     */
+    addExternalVideoAsset: (
+      id: string,
+      data: AddExternalVideoAssetRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogAssetDto, ProblemDetails>({
+        path: `/v1/catalogs/${id}/assets/external`,
         method: "POST",
         body: data,
         type: ContentType.Json,
@@ -2050,17 +2215,25 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags CatalogVersions
      * @name ListPurchasedDownloads
-     * @summary 列出買家已購商品某版本的可下載檔案（含短效下載 URL）。以購買紀錄授權，須已有該商品的完成訂單。
+     * @summary 列出買家已購商品某版本的可下載檔案（含短效下載 URL）。登入買家以購買紀錄授權；訪客憑訂單 ID（隨訂單完成信寄出的下載憑證）授權。
      * @request GET:/v1/catalogs/{catalogId}/versions/{versionId}/downloads
      */
     listPurchasedDownloads: (
       catalogId: string,
       versionId: string,
+      query?: {
+        /**
+         * 訪客下載憑證：已完成且包含此商品的訂單 ID；登入買家可省略。
+         * @format uuid
+         */
+        orderId?: string;
+      },
       params: RequestParams = {},
     ) =>
       this.http.request<PurchasedVersionAssetDto[], any>({
         path: `/v1/catalogs/${catalogId}/versions/${versionId}/downloads`,
         method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),
