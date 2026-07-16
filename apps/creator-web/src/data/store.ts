@@ -1,8 +1,8 @@
 /* ============================================================
-   Open Jam — current storefront（mock）
+   Open Jam — current storefront 型別
    欄位對應 StoreService 的 StoreDto（GET /v1/stores/{slug}）。
-   creator-web 為單一店家的店面（<creator>.openjam.co），此處先以
-   假資料代表「目前這間店」，待串接後端後改由 API 取得。
+   creator-web 為單一店家的店面（<creator>.openjam.co），
+   店面資料一律由 API 取得（見 stores/shop.ts 的 loadCatalog）。
    ============================================================ */
 
 /** 商店狀態（對應 StoreService StoreStatus enum）。 */
@@ -30,15 +30,15 @@ export interface Store {
   updatedAt: string | null;
 }
 
-/** 目前店面（mock）。 */
-export const STORE: Store = {
-  id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-  storeName: '小明的數位商店',
-  storeSlug: 'xiaoming-shop',
-  description: '專注於數位插畫與素材販售。',
+/** API 載入前的空店面初始值（不顯示任何假資料）。 */
+export const EMPTY_STORE: Store = {
+  id: '',
+  storeName: '',
+  storeSlug: '',
+  description: null,
   avatarUrl: null,
   bannerUrl: null,
   status: 'Active',
-  createdAt: '2026-01-15T08:30:00+00:00',
+  createdAt: '',
   updatedAt: null,
 };

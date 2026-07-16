@@ -6,8 +6,9 @@
    ============================================================ */
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import { PRODUCTS, type Product } from '@/data/products';
-import { STORE, type Store } from '@/data/store';
+import type { Product } from '@/data/products';
+import { EMPTY_STORE, type Store } from '@/data/store';
+import router from '@/router';
 import { catalogApi, orderApi, storeApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import i18n from '@/i18n';
@@ -72,12 +73,14 @@ export const useShopStore = defineStore('shop', () => {
   // theme / display
   const theme = ref<Theme>(load<Theme>('theme', 'light'));
 
-  // catalogue（由 CatalogService 載入；後端尚未可用時退回示範資料）
+  // catalogue（由 CatalogService 載入）
   const products = ref<Product[]>([]);
-  const storefront = ref<Store>(STORE);
+  const storefront = ref<Store>({ ...EMPTY_STORE });
   const categories = ref<CatalogCategoryDto[]>([]);
   const loading = ref(false);
   const loaded = ref(false);
+  // API 判定目前子網域查無商店（GET /v1/stores/{slug} 回 404）
+  const storeNotFound = ref(false);
 
   // catalogue search & filters
   const search = ref('');
@@ -99,9 +102,6 @@ export const useShopStore = defineStore('shop', () => {
 
   // 追蹤創作者（依信箱訂閱本店面更新）
   const following = ref(false);
-  // 追蹤人數：StoreService 公開 StoreDto 尚無追蹤數欄位（followers 端點僅 Owner 可查），
-  // 先以示範值顯示（後端缺口），待後端曝露公開計數後改由 API 帶入。
-  const followerCount = ref(236);
 
   // ── getters ────────────────────────────────────────────
   // arg-taking getters return a function
@@ -161,8 +161,19 @@ export const useShopStore = defineStore('shop', () => {
     };
   }
 
-  /** 載入店面資訊與其已上架商品（CatalogService 公開端點）。 */
+  /** 已確認查無商店時導向 404 頁（避免在 404 頁上重複導轉）。 */
+  function redirectNotFound() {
+    if (router.currentRoute.value.name !== 'not-found') {
+      router.replace({ name: 'not-found' });
+    }
+  }
+
+  /** 載入店面資訊與其已上架商品（CatalogService 公開端點）；查無商店則導向 404 頁。 */
   async function loadCatalog() {
+    if (storeNotFound.value) {
+      redirectNotFound();
+      return;
+    }
     if (loaded.value || loading.value) return;
     loading.value = true;
     try {
@@ -178,9 +189,13 @@ export const useShopStore = defineStore('shop', () => {
       const info = storeInfo();
       products.value = (listRes.data.items ?? []).map((p) => toProduct(p, catKeyOf(p.categoryId), info));
       loaded.value = true;
-    } catch {
-      // 後端尚未可用：退回示範資料，店面不致空白
-      if (!products.value.length) products.value = PRODUCTS.slice();
+    } catch (e) {
+      // 產生的 client 於非 2xx 時 throw 整個 Response：404 表示此子網域查無商店
+      if ((e as { status?: number } | null)?.status === 404) {
+        storeNotFound.value = true;
+        redirectNotFound();
+      }
+      // 其他錯誤（後端暫時不可用）：保留空店面，loaded 未設定可於下次進頁重試
     } finally {
       loading.value = false;
     }
@@ -298,7 +313,6 @@ export const useShopStore = defineStore('shop', () => {
     // 確保已載入真實店面 id（瀏覽時通常已載入，guard 後重呼為低成本）
     await loadCatalog();
     await storeApi.storeFollowers.follow(storefront.value.id, { email });
-    if (!following.value) followerCount.value += 1; // 樂觀反映本地顯示
     following.value = true;
   }
 
@@ -375,8 +389,8 @@ export const useShopStore = defineStore('shop', () => {
 
   return {
     // state
-    theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order, following, followerCount,
-    products, storefront, categories, loading, loaded, pendingOrder, checkingOut,
+    theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order, following,
+    products, storefront, categories, loading, loaded, storeNotFound, pendingOrder, checkingOut,
     // getters
     product, isFav, inCart, cartProducts, cartCount, subtotal, filtered, activeFilterCount,
     // actions

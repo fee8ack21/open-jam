@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
 import { CATEGORIES, TAGS, type Product } from '@/data/products';
 import ProductCard from '@/components/ProductCard.vue';
-import ProductThumb from '@/components/ProductThumb.vue';
+import FeaturedCard from '@/components/FeaturedCard.vue';
 import JamSelect from '@/components/JamSelect.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
 const s = store;
-const router = useRouter();
 const { t } = useI18n();
 
-onMounted(store.loadCatalog);
+onMounted(() => {
+  store.loadCatalog();
+  window.addEventListener('resize', updateFeatNav);
+});
+onBeforeUnmount(() => window.removeEventListener('resize', updateFeatNav));
 
 // ----- hero: creator profile（設計稿 Shop profile） -----
 // 店家於後台上傳的橫幅：有上傳時渲染為封面圖（頭像疊在下緣）；
@@ -127,8 +129,6 @@ const activeChips = computed(() => {
             <span class="hero-stat"><b>{{ workCount }}</b> {{ t('list.statWorks') }}</span>
             <span class="hero-stat-sep"></span>
             <span class="hero-stat"><app-icon name="star" :size="14" class="stat-star" /><b>{{ avgRating ?? '—' }}</b> {{ t('list.statRating') }}</span>
-            <span class="hero-stat-sep"></span>
-            <span class="hero-stat"><b>{{ store.followerCount.toLocaleString() }}</b> {{ t('list.statFollowers') }}</span>
           </div>
         </div>
       </div>

@@ -43,7 +43,8 @@ const goHelp = () => { window.location.href = `${env.PORTAL_PAGE_URL}/faq`; };
       <p class="nf-sub">{{ t('notfound.sub') }}</p>
 
       <div class="result-cta">
-        <button type="button" class="cta-ink block" @click="goList">
+        <!-- 商店本身不存在時沒有「店」可回，只留市集 / 協助 CTA -->
+        <button v-if="!store.storeNotFound" type="button" class="cta-ink block" @click="goList">
           <app-icon name="arrowL" :size="14" /> {{ t('notfound.backToStore', { store: storeName }) }}
         </button>
         <div class="result-cta-row">

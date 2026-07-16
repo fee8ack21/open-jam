@@ -5,8 +5,9 @@ class AppEnv {
   CATALOG_API_URL = 'https://api.openjam.co/catalog-service'
   STORE_API_URL = 'https://api.openjam.co/store-service'
   ORDER_API_URL = 'https://api.openjam.co/order-service'
-  // 本機開發 fallback：無子網域時用此 slug 決定店面（正式由 <slug>.openjam.co 子網域推導）
-  STORE_SLUG = 'xiaoming-shop'
+  // 本機開發 fallback：無子網域時用此 slug 決定店面（正式由 <slug>.openjam.co 子網域推導）；
+  // pin-jui 為系統測試商店，查無商店會導向 404 頁
+  STORE_SLUG = 'pin-jui'
   // OIDC（消費者免註冊，但若已於其他子網域登入，靜默讀取 Hydra session 帶入信箱）
   OIDC_AUTHORITY = 'https://hydra.openjam.co'
   OIDC_CLIENT_ID = 'open-jam-web'
