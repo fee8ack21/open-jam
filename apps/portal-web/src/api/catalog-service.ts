@@ -749,6 +749,15 @@ export interface PurchasedVersionAssetDto {
   expiresAt?: string;
 }
 
+/** 重排預覽媒體顯示順序的請求（全量覆蓋）。 */
+export interface ReorderPreviewMediaRequest {
+  /**
+   * 依顯示順序排列的預覽媒體資產 ID 清單（須完整涵蓋該商品目前的預覽媒體）。
+   * @example ["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+   */
+  assetIds?: string[] | null;
+}
+
 /** 重排店長精選顯示順序請求（全量覆蓋，依陣列先後決定順序）。 */
 export interface ReorderStoreFeaturedRequest {
   /**
@@ -2034,6 +2043,27 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Catalogs
+     * @name ReorderPreviewMedia
+     * @summary 重排預覽媒體的顯示順序（全量覆蓋）。僅 Owner 可操作。
+     * @request PUT:/v1/catalogs/{id}/assets/preview-media/order
+     */
+    reorderPreviewMedia: (
+      id: string,
+      data: ReorderPreviewMediaRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<void, ProblemDetails>({
+        path: `/v1/catalogs/${id}/assets/preview-media/order`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 

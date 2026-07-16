@@ -1839,6 +1839,72 @@
         }
       }
     },
+    "/v1/catalogs/{id}/assets/preview-media/order": {
+      "put": {
+        "tags": [
+          "Catalogs"
+        ],
+        "summary": "重排預覽媒體的顯示順序（全量覆蓋）。僅 Owner 可操作。",
+        "operationId": "ReorderPreviewMedia",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "依顯示順序排列的預覽媒體資產 ID 清單。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderPreviewMediaRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderPreviewMediaRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderPreviewMediaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/catalogs/{id}/assets/{assetId}": {
       "delete": {
         "tags": [
@@ -3368,6 +3434,25 @@
         },
         "additionalProperties": false,
         "description": "買家已購商品的可下載檔案（含短效下載 URL）。"
+      },
+      "ReorderPreviewMediaRequest": {
+        "type": "object",
+        "properties": {
+          "assetIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "依顯示順序排列的預覽媒體資產 ID 清單（須完整涵蓋該商品目前的預覽媒體）。",
+            "nullable": true,
+            "example": [
+              "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "重排預覽媒體顯示順序的請求（全量覆蓋）。"
       },
       "ReorderStoreFeaturedRequest": {
         "type": "object",
