@@ -330,7 +330,7 @@ creatorWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/creator-web
-    tag: v0.0.20
+    tag: v0.0.21
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
