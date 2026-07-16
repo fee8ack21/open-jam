@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watchEffect } from 'vue';
 import AppNav from './layout/AppNav.vue';
 import AppFooter from './layout/AppFooter.vue';
-import { STORE } from './data/store';
 import { useAuthStore } from '@/stores/auth';
 import { useShopStore } from '@/stores/shop';
 
-// 店面瀏覽器標題：Open Jam · <店名>（待串接後端後改由 API 取得）
-document.title = `Open Jam · ${STORE.storeName}`;
+const shop = useShopStore();
+
+// 店面瀏覽器標題：Open Jam · <店名>；店面資訊由 API 載入完成前維持 index.html 預設標題
+watchEffect(() => {
+  if (shop.loaded) document.title = `Open Jam · ${shop.storefront.storeName}`;
+});
 
 // 消費者免註冊，但若已於其他 .openjam.co 子網域登入，靜默讀取 SSO session，
 // 供「追蹤創作者」預填信箱、並載入該使用者的商品收藏（wishlist）。
-useAuthStore().getUserIdentity().then(() => useShopStore().loadFavorites());
+useAuthStore().getUserIdentity().then(() => shop.loadFavorites());
 
 const naiveTheme = computed(() => null);
 const overrides = computed(() => ({

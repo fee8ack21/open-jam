@@ -41,6 +41,8 @@ export interface StoreInfo {
   creator: string;
   handle: string;
   avatar: string;
+  /** 商店頭像公開 URL；null 表示未設定，卡片退回底色縮寫。 */
+  avatarUrl: string | null;
 }
 
 /** 由 coverHue 產生穩定的頭像底色（mock avatar 欄位是 CSS 顏色而非圖片）。 */
@@ -64,6 +66,7 @@ export function toProduct(
     creator: storeInfo.creator,
     handle: storeInfo.handle,
     avatar: storeInfo.avatar,
+    avatarUrl: storeInfo.avatarUrl,
     price: dto.price ?? 0,
     rating: dto.ratingAverage ?? 0,
     ratingCount: dto.ratingCount ?? 0,

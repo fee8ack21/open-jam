@@ -127,7 +127,10 @@ const goCart = () => router.push({ name: 'checkout' });
           <h1 class="detail-title">{{ p.title }}</h1>
 
           <div class="creator-row">
-            <span class="avatar" :style="{ background: p.avatar }">{{ initials }}</span>
+            <span class="avatar" :style="p.avatarUrl ? undefined : { background: p.avatar }">
+              <img v-if="p.avatarUrl" :src="p.avatarUrl" alt="" />
+              <template v-else>{{ initials }}</template>
+            </span>
             <div>
               <div class="creator-name">{{ p.creator }}</div>
               <div class="creator-handle">{{ p.handle }}</div>

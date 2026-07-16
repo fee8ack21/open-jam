@@ -157,6 +157,7 @@ export const useShopStore = defineStore('shop', () => {
       creator: storefront.value.storeName,
       handle: '@' + storefront.value.storeSlug,
       avatar: hueColor(214),
+      avatarUrl: storefront.value.avatarUrl,
     };
   }
 
