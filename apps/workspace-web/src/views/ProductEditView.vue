@@ -331,7 +331,7 @@ function fmtDate(v?: string | null) {
             <div>
               <input ref="coverInput" type="file" :accept="COVER_ACCEPT" style="display:none" @change="onCoverPick" />
               <div class="cover-row">
-                <div class="cover-box" :class="{ empty: !coverUrl }"
+                <div class="cover-box" :class="{ 'is-empty': !coverUrl }"
                      :style="coverUrl ? { backgroundImage: `url(${coverUrl})` } : { background: huePastel(form.coverHue) }"
                      @click="pickCover">
                   <div v-if="!coverUrl" class="cover-empty">
@@ -471,7 +471,8 @@ function fmtDate(v?: string | null) {
   transition: filter .15s;
 }
 .cover-box:hover { filter: brightness(.94); }
-.cover-box.empty { border-style: dashed; box-shadow: none; }
+/* 命名 is-empty 避免撞 base.css 全域 .empty（padding 80px 會撐高固定尺寸方塊） */
+.cover-box.is-empty { border-style: dashed; box-shadow: none; }
 .cover-empty { display: grid; justify-items: center; gap: 8px; color: var(--text-faint); font-size: 12.5px; font-weight: 700; }
 .cover-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 

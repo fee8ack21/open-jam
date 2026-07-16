@@ -363,7 +363,7 @@ async function submit(publish: boolean) {
             <p class="fb-sub">{{ t('upload.coverImgSub') }}</p>
             <input ref="coverInput" type="file" :accept="COVER_ACCEPT" style="display:none" @change="onCoverPick" />
             <div class="cover-row">
-              <div class="cover-box" :class="{ empty: !cover }"
+              <div class="cover-box" :class="{ 'is-empty': !cover }"
                    :style="cover ? { backgroundImage: `url(${cover.preview})`, backgroundColor: huePastel(d.coverHue) } : { background: huePastel(d.coverHue) }"
                    @click="pickCover">
                 <div v-if="!cover" class="cover-empty">
@@ -484,7 +484,8 @@ async function submit(publish: boolean) {
   transition: filter .15s;
 }
 .cover-box:hover { filter: brightness(.94); }
-.cover-box.empty { border-style: dashed; box-shadow: none; }
+/* 命名 is-empty 避免撞 base.css 全域 .empty（padding 80px 會撐高固定尺寸方塊） */
+.cover-box.is-empty { border-style: dashed; box-shadow: none; }
 .cover-empty { display: grid; justify-items: center; gap: 8px; color: var(--text-faint); font-size: 12.5px; font-weight: 700; }
 .cover-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .cover-actions .ur-status { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; }
