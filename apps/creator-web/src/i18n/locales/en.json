@@ -76,11 +76,14 @@
       "new": "New"
     }
   },
-  "spotlight": {
-    "badge": "Creator's pick",
-    "sold": "{count} sold",
-    "cta": "View work",
-    "freeNote": "free!"
+  "featured": {
+    "eyebrow": "Picks · Popular",
+    "title": "Creator's picks",
+    "note": "handpicked!",
+    "prevAria": "Previous pick",
+    "nextAria": "Next pick",
+    "tagPick": "Creator's pick",
+    "tagHot": "Popular"
   },
   "detail": {
     "screenLabel": "Product detail",

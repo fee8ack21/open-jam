@@ -2,7 +2,7 @@
    Open Jam — storefront catalogue browse area (ListView)
    設計稿「創作者商店」：排序 pills、側欄篩選卡（標籤 /
    價格區間 / 只看免費）、商品卡 grid + 角落貼紙徽章。
-   店家檔案帶（.hero）與精選（.spotlight）在 base.css。
+   店家檔案帶（.hero）與店長精選 carousel（.featured）在 base.css。
    ============================================================ */
 
 /* ---------- browse section ---------- */

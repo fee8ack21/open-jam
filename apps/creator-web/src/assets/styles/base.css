@@ -398,61 +398,89 @@ body {
 }
 .hero-cover-title .hl { box-shadow: var(--ink-drop); margin: 0 4px; padding: 0 12px; border-radius: 12px; }
 
-/* ---------- 店長精選 spotlight（設計稿 Featured banner：墨黑卡） ---------- */
-.spotlight {
-  display: grid; grid-template-columns: 1.3fr 1fr;
-  margin-top: 32px; position: relative; overflow: hidden;
-  background: var(--text); border-radius: 24px;
-  box-shadow: 0 16px 36px rgba(26, 26, 26, 0.2);
+/* ---------- 店長精選 carousel（白色滿版帶，同 portal-web 精選作品） ---------- */
+.featured {
+  margin: 40px calc(50% - 50vw) 0; padding: 48px calc(50vw - 50%) 56px;
+  background: var(--surface);
+  border-top: var(--bw) solid var(--border-strong); border-bottom: var(--bw) solid var(--border-strong);
 }
-.spot-body { padding: 40px; display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
-.spot-badge {
-  align-self: flex-start;
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--oj-font); font-size: 12px; font-weight: 900; letter-spacing: 1px;
-  background: var(--c-lime); color: var(--text); border-radius: 999px; padding: 4px 14px;
-  transform: rotate(-2deg); white-space: nowrap;
+/* 區塊標頭（墨丸 eyebrow + 大標 + 手寫註記，同 portal-web browse-head 語彙） */
+.browse-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--oj-font); font-size: 12px; font-weight: 900; letter-spacing: 2px;
+  color: var(--c-yellow); background: var(--text);
+  padding: 5px 14px; border-radius: 999px; margin: 0 0 14px;
+  transform: rotate(-2deg);
 }
-.spot-title { color: #fff; font-size: clamp(24px, 3vw, 32px); font-weight: 900; margin: 0; line-height: 1.3; text-wrap: balance; }
-.spot-blurb { color: #ccc; font-size: 15px; font-weight: 500; line-height: 1.7; margin: 0; max-width: 46ch; }
-.spot-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.spot-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  border: var(--bw) solid rgba(255, 255, 255, .55); color: #fff; border-radius: 999px;
-  padding: 3px 12px; font-size: 12px; font-weight: 700; font-family: var(--oj-font); white-space: nowrap;
+.browse-title {
+  font-family: var(--oj-font); font-size: clamp(26px, 3vw, 34px); font-weight: 900;
+  line-height: 1.2; margin: 0; color: var(--text);
 }
-.spot-actions { display: flex; align-items: center; gap: 18px; margin-top: 8px; }
-.spot-cta {
-  display: inline-flex; align-items: center; gap: 8px;
-  border: none; border-radius: 999px; cursor: pointer; padding: 12px 26px;
-  background: var(--c-yellow); color: var(--text); font-family: var(--oj-font); font-weight: 900; font-size: 15px;
-  white-space: nowrap; transition: transform .2s var(--ease-pop), box-shadow .2s;
+.browse-title .hand-note { font-size: 24px; margin-left: 8px; white-space: nowrap; transform: rotate(-3deg); vertical-align: baseline; }
+.hand-note.hand-pink { color: var(--c-pink-deep); }
+
+.feat-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.feat-nav { display: flex; gap: 10px; flex: none; }
+.feat-arrow {
+  width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; cursor: pointer;
+  color: var(--text); background: var(--surface);
+  border: var(--bw) solid var(--border-strong);
+  transition: transform .15s, background .15s, opacity .15s;
 }
-.spot-cta:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 8px 18px rgba(255, 222, 0, .35); }
-.spot-price { font-family: var(--oj-display); font-weight: 700; font-size: 22px; color: #fff; }
-.spot-price.free { font-family: var(--oj-hand); font-weight: 700; font-size: 30px; color: var(--c-lime); transform: rotate(-4deg); display: inline-block; }
-/* 右欄：紫底圓點紋 + 拍立得卡 */
-.spot-stage {
-  background: var(--c-violet); border-left: var(--bw) solid var(--border-strong);
-  display: flex; align-items: center; justify-content: center; position: relative;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
-  background-size: 20px 20px; min-height: 280px; padding: 28px; cursor: pointer;
+.feat-arrow:hover:not(:disabled) { background: var(--c-yellow); transform: rotate(6deg); }
+.feat-arrow.prev:hover:not(:disabled) { transform: rotate(-6deg); }
+.feat-arrow:active:not(:disabled) { transform: scale(.95); }
+.feat-arrow:disabled { opacity: .35; cursor: default; }
+
+/* 直式精選卡（封面上、資訊下），carousel 保持橫向捲動 */
+.feat-track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(285px, 88%); gap: 24px;
+  overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
+  /* 大 padding + 等量負 margin：讓卡片 hover 陰影有空間、不被 scroll container 截斷 */
+  padding: 14px 24px 48px; margin: -4px -24px -34px;
+  cursor: grab;
 }
-.spot-polaroid {
-  width: 200px; background: #fff; border: var(--bw) solid var(--border-strong); border-radius: 16px;
-  box-shadow: 0 14px 28px rgba(26, 26, 26, .3); transform: rotate(4deg); padding: 14px; position: relative;
-  transition: transform .2s var(--ease-pop);
+.feat-track::-webkit-scrollbar { display: none; }
+.feat-track.dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.feat-track.dragging .feat-card { pointer-events: none; }
+
+.feat-card {
+  scroll-snap-align: start; display: block;
+  text-decoration: none; color: inherit; background: var(--surface);
+  border: var(--bw) solid var(--border-strong); border-radius: 18px;
+  overflow: hidden;
+  transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.spot-stage:hover .spot-polaroid { transform: rotate(4deg) translateY(-4px); }
-/* 膠帶貼條 */
-.spot-polaroid::before {
-  content: ''; position: absolute; top: -12px; left: 50%; width: 64px; height: 20px; margin-left: -32px;
-  background: rgba(255, 222, 0, .9); border-radius: 3px; transform: rotate(-3deg);
-  box-shadow: 0 1px 3px rgba(26, 26, 26, .2); z-index: 1;
+.feat-card:hover { transform: translateY(-5px) rotate(-.6deg); box-shadow: var(--pop-3-h); }
+.feat-media { position: relative; height: 150px; border-bottom: var(--bw) solid var(--border-strong); }
+.feat-media .thumb { position: absolute; inset: 0; height: 100%; border-radius: 0; }
+.feat-info { padding: 18px; display: flex; flex-direction: column; }
+.feat-tag {
+  position: absolute; top: 10px; left: 10px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--oj-font); font-size: 11px; font-weight: 900;
+  color: var(--text); background: var(--c-yellow); border: var(--bw) solid var(--border-strong);
+  padding: 2px 10px; border-radius: 999px; transform: rotate(-3deg); white-space: nowrap;
 }
-.spot-polaroid .thumb { height: 120px; border: var(--bw) solid var(--border-strong); border-radius: 12px; }
-.spot-polaroid-title { font-weight: 900; font-size: 14px; margin-top: 12px; line-height: 1.35; color: var(--text); }
-.spot-polaroid-meta { font-weight: 700; font-size: 12px; margin-top: 4px; color: var(--text); }
+/* 銷量補入的熱門卡片：以不同底色與「店長精選」區隔，避免混淆 */
+.feat-tag.feat-tag-hot { background: var(--c-pink); }
+.feat-title {
+  font-family: var(--oj-font); font-weight: 900; font-size: 16px; line-height: 1.35;
+  color: var(--text); margin: 0 0 6px; text-wrap: pretty;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.feat-blurb {
+  color: var(--text-soft); font-size: 13px; font-weight: 500; line-height: 1.6; margin: 0 0 12px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.feat-creator { font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.feat-creator .avatar { width: 26px; height: 26px; font-size: 10px; }
+.feat-foot { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between; }
+.feat-price { font-family: var(--oj-display); font-weight: 700; font-size: 20px; color: var(--text); }
+.feat-price.free {
+  font-family: var(--oj-font); font-weight: 900; font-size: 14px;
+  background: var(--c-lime); border: var(--bw) solid var(--border-strong); border-radius: 999px; padding: 2px 12px;
+}
 
 /* ---------- 分類 pills（設計稿 Category pills） ---------- */
 .hero-cats { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 22px; }
@@ -751,8 +779,6 @@ body {
   .checkout-grid { grid-template-columns: 1fr; }
   .buy-card, .summary { position: static; }
   .hero-band { gap: 20px; }
-  .spotlight { grid-template-columns: 1fr; }
-  .spot-stage { border-left: none; border-top: var(--bw) solid var(--border-strong); min-height: 220px; }
 }
 @media (max-width: 860px) {
   .nav { height: auto; }
@@ -809,6 +835,6 @@ body {
   .hero-cover + .hero-band .hero-main { padding-top: 0; flex-basis: 100%; min-width: 0; }
   .hero-cover-copy { padding-bottom: 14px; }
   .hero-cover-eyebrow { font-size: 10.5px; letter-spacing: .1em; margin-bottom: 8px; }
-  .spot-body { padding: 28px 24px; }
+  .featured { padding-top: 40px; padding-bottom: 44px; }
   .result-cta-row { flex-direction: column; }
 }

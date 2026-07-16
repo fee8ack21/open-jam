@@ -76,11 +76,14 @@
       "new": "新上架"
     }
   },
-  "spotlight": {
-    "badge": "店長精選",
-    "sold": "已售 {count}",
-    "cta": "查看作品",
-    "freeNote": "free!"
+  "featured": {
+    "eyebrow": "精選 · 熱門",
+    "title": "店長精選",
+    "note": "handpicked!",
+    "prevAria": "上一個精選",
+    "nextAria": "下一個精選",
+    "tagPick": "店長精選",
+    "tagHot": "熱門"
   },
   "detail": {
     "screenLabel": "產品詳細頁",
