@@ -36,6 +36,7 @@ const avgRating = computed(() => {
 // ----- 店長精選 carousel（樣式與互動同 portal-web 精選作品） -----
 // 店長精選（依 featuredOrder 排序）優先，剩餘格數以銷量熱門補滿：
 // 補入的卡片標「熱門」誠實區隔，不讓熱門商品冒充店長精選。
+// 店長未設定任何精選時整個區塊不呈現，不以熱門商品湊數。
 const FEATURED_SLOTS = 8;   // 輪播總格數
 const featured = computed<Product[]>(() => {
   const all = store.products;
@@ -43,6 +44,7 @@ const featured = computed<Product[]>(() => {
     .filter((p) => p.featured)
     .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0))
     .slice(0, FEATURED_SLOTS);
+  if (!curated.length) return [];
   const picked = new Set(curated.map((p) => p.id));
   // 其餘格數以銷量由高到低補滿；同銷量維持後端順序（上架時間新→舊），故新品自然靠前
   const hot = all
