@@ -24,6 +24,17 @@ const { t } = useI18n();
 const active = ref(0);
 
 const p = computed(() => store.product(String(route.params.id)));
+
+// 圖庫：封面 + 預覽圖（Screenshot 資產）；無任何實圖時 gallery 為空、退回色調佔位
+const gallery = computed(() =>
+  p.value ? [p.value.image, ...(p.value.screenshots ?? [])].filter((u): u is string => !!u) : [],
+);
+// 主圖：以目前選中的圖庫項目覆寫 image（超出範圍時回到第一張）
+const galleryProduct = computed(() => {
+  if (!p.value) return null;
+  const img = gallery.value[active.value] ?? gallery.value[0];
+  return img ? { ...p.value, image: img } : p.value;
+});
 const fav = computed(() => (p.value ? store.isFav(p.value.id) : false));
 const inCart = computed(() => (p.value ? store.inCart(p.value.id) : false));
 const initials = computed(() => (p.value ? p.value.creator.split(' ').map((s) => s[0]).slice(0, 2).join('') : ''));
@@ -65,12 +76,12 @@ const goCart = () => router.push({ name: 'checkout' });
     <div class="detail-grid">
       <!-- left: gallery + content -->
       <div>
-        <product-thumb :product="p" class="gallery-main" :seed="active" :glyph-size="120"
-                       :label="t('detail.previewLabel', { current: active + 1, total: p.previews })" />
-        <div class="gallery-thumbs">
-          <product-thumb v-for="i in p.previews" :key="i" :product="p" :seed="i - 1"
-                         :class="{ on: active === i - 1 }" :show-cat="false" :glyph-size="26"
-                         hide-label @click="active = i - 1" />
+        <product-thumb :product="galleryProduct ?? p" class="gallery-main" :seed="active" :glyph-size="120"
+                       :label="gallery.length > 1 ? t('detail.previewLabel', { current: active + 1, total: gallery.length }) : ''" />
+        <div v-if="gallery.length > 1" class="gallery-thumbs">
+          <product-thumb v-for="(img, i) in gallery" :key="img" :product="{ ...p, image: img }"
+                         :class="{ on: active === i }" :show-cat="false" :glyph-size="26"
+                         hide-label @click="active = i" />
         </div>
 
         <div style="margin-top:44px">

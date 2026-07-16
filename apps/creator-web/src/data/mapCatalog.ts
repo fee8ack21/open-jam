@@ -3,10 +3,11 @@
    後端公開瀏覽端點回傳的欄位較精簡，rating / sales / 檔案清單等
    後端尚無資料，於此以預設值補齊，讓既有店面 UI 不需大改即可顯示。
    ============================================================ */
-import type {
-  CatalogSummaryDto,
-  CatalogDto,
-  CatalogCategoryDto,
+import {
+  CatalogAssetType,
+  type CatalogSummaryDto,
+  type CatalogDto,
+  type CatalogCategoryDto,
 } from '@/api/catalog-service';
 import type { Product } from '@/data/products';
 import type { Store } from '@/data/store';
@@ -81,6 +82,11 @@ export function toProduct(
     contents: [],
     previews: 0,
     image: dto.thumbnailUrl ?? undefined,
+    // 預覽圖（Screenshot 資產）僅完整 CatalogDto（詳情頁）帶有；列表摘要為空陣列
+    screenshots: (detail.assets ?? [])
+      .filter((a) => a.type === CatalogAssetType.Screenshot && a.url)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((a) => a.url as string),
     featured: dto.isStoreFeatured ?? false,
     featuredOrder: dto.storeFeaturedSortOrder ?? 0,
     versionId: detail.currentVersion?.id ?? undefined,

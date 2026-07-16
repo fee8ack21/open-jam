@@ -65,6 +65,8 @@ export interface Product {
   featuredOrder?: number;
   /** 實際商品縮圖（webp import URL）；未設定時退回程式產生的佔位縮圖。 */
   image?: string;
+  /** 預覽圖公開 URL 清單（後端 Screenshot 資產，依 sortOrder 排序）；商品頁圖庫展示。 */
+  screenshots?: string[];
   /** 目前版本 ID（下單必填，來自 CatalogService 商品詳情的 currentVersion）。 */
   versionId?: string;
   /** 幣別（ISO 4217，如 "TWD"、"usd"）；下單與付款沿用，未設定時預設 usd。 */
