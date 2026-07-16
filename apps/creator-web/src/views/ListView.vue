@@ -33,18 +33,72 @@ const avgRating = computed(() => {
   return (rated.reduce((sum, p) => sum + p.rating * p.ratingCount, 0) / n).toFixed(1);
 });
 
-// ----- 店長精選 spotlight：店長精選（依 featuredOrder 排序）優先，否則以最熱賣作品補位 -----
-const spotlight = computed<Product | null>(() => {
-  const list = store.products;
-  if (!list.length) return null;
-  const featured = list
+// ----- 店長精選 carousel（樣式與互動同 portal-web 精選作品） -----
+// 店長精選（依 featuredOrder 排序）優先，剩餘格數以銷量熱門補滿：
+// 補入的卡片標「熱門」誠實區隔，不讓熱門商品冒充店長精選。
+const FEATURED_SLOTS = 8;   // 輪播總格數
+const featured = computed<Product[]>(() => {
+  const all = store.products;
+  const curated = all
     .filter((p) => p.featured)
-    .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0));
-  return featured[0] ?? [...list].sort((a, b) => b.sales - a.sales)[0];
+    .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0))
+    .slice(0, FEATURED_SLOTS);
+  const picked = new Set(curated.map((p) => p.id));
+  // 其餘格數以銷量由高到低補滿；同銷量維持後端順序（上架時間新→舊），故新品自然靠前
+  const hot = all
+    .filter((p) => !picked.has(p.id))
+    .slice()
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, FEATURED_SLOTS - curated.length);
+  return [...curated, ...hot];
 });
-const goSpotlight = () => {
-  if (spotlight.value) router.push({ name: 'product', params: { id: spotlight.value.id } });
-};
+const featTrack = ref<HTMLElement | null>(null);
+const canLeft = ref(false);
+const canRight = ref(false);
+function updateFeatNav() {
+  const el = featTrack.value;
+  if (!el) return;
+  canLeft.value = el.scrollLeft > 4;
+  canRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+}
+function scrollFeat(dir: number) {
+  featTrack.value?.scrollBy({ left: dir * featTrack.value.clientWidth * 0.9, behavior: 'smooth' });
+}
+// 商品載入後 track 才渲染，等 DOM 更新再量箭頭可用狀態
+watch(featured, () => nextTick(updateFeatNav));
+
+// drag-to-scroll (mouse only — touch keeps native momentum scrolling)
+let dragging = false;
+let dragMoved = false;
+let dragStartX = 0;
+let dragStartScroll = 0;
+function onFeatDown(e: PointerEvent) {
+  if (e.pointerType !== 'mouse' || e.button !== 0 || !featTrack.value) return;
+  dragging = true;
+  dragMoved = false;
+  dragStartX = e.clientX;
+  dragStartScroll = featTrack.value.scrollLeft;
+}
+function onFeatMove(e: PointerEvent) {
+  if (!dragging || !featTrack.value) return;
+  const dx = e.clientX - dragStartX;
+  if (!dragMoved && Math.abs(dx) > 4) {
+    dragMoved = true;
+    featTrack.value.setPointerCapture?.(e.pointerId);
+    featTrack.value.classList.add('dragging');
+  }
+  if (dragMoved) featTrack.value.scrollLeft = dragStartScroll - dx;
+}
+function onFeatUp() {
+  if (!dragging) return;
+  dragging = false;
+  featTrack.value?.classList.remove('dragging');
+  updateFeatNav();
+}
+// swallow the click that follows a drag so cards don't navigate
+function onFeatClick(e: MouseEvent) {
+  if (dragMoved) { e.preventDefault(); e.stopPropagation(); dragMoved = false; }
+}
 
 type SortKey = 'popular' | 'newest' | 'rating' | 'price-asc' | 'price-desc';
 const sortOptions = computed<{ label: string; value: SortKey }[]>(() => [
@@ -134,32 +188,34 @@ const activeChips = computed(() => {
       </div>
     </section>
 
-    <!-- 店長精選 spotlight（設計稿 Featured banner：墨黑卡 + 拍立得） -->
-    <section v-if="spotlight" class="spotlight">
-      <div class="spot-body">
-        <span class="spot-badge"><app-icon name="sparkle" :size="12" /> {{ t('spotlight.badge') }}</span>
-        <h2 class="spot-title">{{ spotlight.title }}</h2>
-        <p v-if="spotlight.blurb" class="spot-blurb">{{ spotlight.blurb }}</p>
-        <div class="spot-meta">
-          <span class="spot-chip">{{ t('spotlight.sold', { count: spotlight.sales.toLocaleString() }) }}</span>
-          <span v-if="spotlight.ratingCount" class="spot-chip"><app-icon name="star" :size="12" /> {{ spotlight.rating.toFixed(1) }} ({{ spotlight.ratingCount }})</span>
-          <span class="spot-chip">{{ catLabel(spotlight.cat) }}</span>
+    <!-- 店長精選 carousel（白色滿版帶，樣式同 portal-web 精選作品） -->
+    <section v-if="featured.length" class="featured">
+      <div class="feat-head">
+        <div class="feat-head-text">
+          <p class="browse-eyebrow"><app-icon name="sparkle" :size="12" /> {{ t('featured.eyebrow') }}</p>
+          <h2 class="browse-title">{{ t('featured.title') }} <span class="hand-note hand-pink">{{ t('featured.note') }}</span></h2>
         </div>
-        <div class="spot-actions">
-          <button type="button" class="spot-cta" @click="goSpotlight">
-            {{ t('spotlight.cta') }}<app-icon name="arrow" :size="14" />
+        <div class="feat-nav">
+          <button type="button" class="feat-arrow prev" :disabled="!canLeft" @click="scrollFeat(-1)" :aria-label="t('featured.prevAria')">
+            <app-icon name="arrowL" :size="20" />
           </button>
-          <span class="spot-price" :class="{ free: spotlight.price === 0 }">
-            {{ spotlight.price === 0 ? t('spotlight.freeNote') : '$' + spotlight.price }}
-          </span>
+          <button type="button" class="feat-arrow" :disabled="!canRight" @click="scrollFeat(1)" :aria-label="t('featured.nextAria')">
+            <app-icon name="arrow" :size="20" />
+          </button>
         </div>
       </div>
-      <div class="spot-stage" @click="goSpotlight">
-        <div class="spot-polaroid">
-          <product-thumb :product="spotlight" hide-label :show-cat="false" :glyph-size="48" />
-          <div class="spot-polaroid-title">{{ spotlight.title }}</div>
-          <div class="spot-polaroid-meta">{{ spotlight.creator }}</div>
-        </div>
+      <div
+        class="feat-track"
+        ref="featTrack"
+        @scroll="updateFeatNav"
+        @pointerdown="onFeatDown"
+        @pointermove="onFeatMove"
+        @pointerup="onFeatUp"
+        @pointercancel="onFeatUp"
+        @click.capture="onFeatClick"
+        @dragstart.prevent
+      >
+        <featured-card v-for="p in featured" :key="p.id" :product="p" />
       </div>
     </section>
 
