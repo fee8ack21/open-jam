@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import { catalogApi } from '@/api';
 import i18n from '@/i18n';
 import {
+  CatalogAssetType,
   CatalogStatus,
   CatalogSort,
   type CatalogSummaryDto,
@@ -352,11 +353,39 @@ export const useCatalogStore = defineStore('catalog', () => {
   }
 
   /**
+   * 即時上傳封面圖（展示型 Thumbnail 資產）：簽 URL + 直傳，但不 confirm（不計配額）。
+   * 尚未有 Draft catalog 時會順帶建立。成功回傳 assetId，失敗回傳 null。
+   */
+  async function uploadDraftCover(meta: DraftMeta, file: File): Promise<string | null> {
+    error.value = null;
+    const draft = await ensureDraft(meta);
+    if (!draft) return null;
+    try {
+      const urlRes = await catalogApi.catalogs.requestAssetUploadUrl(draft.catalogId, {
+        type: CatalogAssetType.Thumbnail,
+        fileName: file.name,
+        contentType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+      });
+      if (urlRes.data.uploadUrl) await putFile(urlRes.data.uploadUrl, file);
+      return urlRes.data.assetId ?? null;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.uploadCoverFailed'));
+      return null;
+    }
+  }
+
+  /**
    * 送出：以目前 step-1 欄位同步 Draft catalog（草稿建立後可能已編輯），
    * 逐一 confirm 已上傳資產（此時才扣配額並建立 reference），視需要上架。
    * 成功回傳 CatalogDto 並清空 Draft 狀態；失敗將訊息寫入 error 並回傳 null。
    */
-  async function finalizeDraft(meta: DraftMeta, assetIds: string[], publish: boolean): Promise<CatalogDto | null> {
+  async function finalizeDraft(
+    meta: DraftMeta,
+    assetIds: string[],
+    publish: boolean,
+    coverAssetId?: string | null,
+  ): Promise<CatalogDto | null> {
     const catalogId = draftCatalogId.value;
     const versionId = draftVersionId.value;
     if (!catalogId || !versionId) {
@@ -384,6 +413,9 @@ export const useCatalogStore = defineStore('catalog', () => {
       // confirm 已上傳資產（冪等；此刻扣配額並建立 reference）。
       for (const assetId of assetIds) {
         await catalogApi.catalogVersions.confirmAsset(catalogId, versionId, assetId);
+      }
+      if (coverAssetId) {
+        await catalogApi.catalogs.confirmAsset(catalogId, coverAssetId, { type: CatalogAssetType.Thumbnail });
       }
 
       if (publish) await catalogApi.catalogs.publish(catalogId);
@@ -427,6 +459,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     draftCatalogId,
     resetDraftUpload,
     uploadDraftAsset,
+    uploadDraftCover,
     finalizeDraft,
   };
 });

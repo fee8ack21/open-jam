@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useDashboardStore } from '@/stores/dashboard'
@@ -28,6 +28,11 @@ function catMeta(slug: string) { return CAT_META[slug] ?? CAT_FALLBACK }
 
 const TYPE_COLOR: Record<string, string> = { ZIP: '#8a5cf6', XMP: '#7dd9ff', PDF: '#d6479b', JPG: '#ff6b35', PNG: '#ff6b35', PSD: '#7dd9ff', WAV: '#8a5cf6', MP3: '#d6479b', FIG: '#ff6b35' }
 
+// 與後端 CatalogAssetContentTypes 對齊：封面（Thumbnail）僅接受圖片（同商品編輯頁）
+const COVER_ACCEPT = 'image/png,image/jpeg,image/gif,image/webp'
+const COVER_ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const COVER_MAX_BYTES = 5 * 1024 * 1024
+
 const store = useDashboardStore()
 const message = useMessage()
 const catalog = useCatalogStore()
@@ -48,7 +53,21 @@ interface UploadEntry {
 }
 const entries = ref<UploadEntry[]>([])
 const uploadedEntries = computed(() => entries.value.filter(e => e.status === 'uploaded'))
-const anyUploading = computed(() => entries.value.some(e => e.status === 'uploading'))
+
+// 封面圖（展示型 Thumbnail 資產）：選圖即直傳（不 confirm、不計配額），送出時才 confirm。
+// preview 為本地 object URL，未上傳 / 上傳中即可即時預覽，色調封面作為圖片載入前的 fallback。
+interface CoverEntry {
+  file: File
+  assetId: string | null
+  status: 'uploading' | 'uploaded' | 'error'
+  preview: string
+}
+const cover = ref<CoverEntry | null>(null)
+const coverInput = ref<HTMLInputElement | null>(null)
+
+const anyUploading = computed(() =>
+  entries.value.some(e => e.status === 'uploading') || cover.value?.status === 'uploading',
+)
 
 const step = computed(() => store.wizardStep)
 const d = computed(() => store.draft)
@@ -157,6 +176,45 @@ function removeFile(entry: UploadEntry) {
   if (i >= 0) entries.value.splice(i, 1)
 }
 
+function pickCover() { coverInput.value?.click() }
+
+async function startCoverUpload(entry: CoverEntry) {
+  entry.status = 'uploading'
+  const assetId = await catalog.uploadDraftCover(draftMeta(), entry.file)
+  if (assetId) {
+    entry.assetId = assetId
+    entry.status = 'uploaded'
+  } else {
+    entry.status = 'error'
+    message.error(catalog.error ?? t('upload.msgUploadFailed', { name: entry.file.name }))
+  }
+}
+
+function onCoverPick(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
+  if (!COVER_ALLOWED.includes(file.type)) { message.error(t('upload.msgCoverType')); return }
+  if (file.size > COVER_MAX_BYTES) { message.error(t('upload.msgCoverTooLarge')); return }
+
+  removeCover()
+  const entry = reactive<CoverEntry>({ file, assetId: null, status: 'uploading', preview: URL.createObjectURL(file) })
+  cover.value = entry
+  void startCoverUpload(entry)
+}
+
+// 移除封面圖：釋放本地預覽並清空。已直傳但未 confirm 的檔案不計配額，逾期由 StorageService 清理。
+function removeCover() {
+  if (cover.value?.preview) URL.revokeObjectURL(cover.value.preview)
+  cover.value = null
+}
+
+onBeforeUnmount(() => {
+  if (cover.value?.preview) URL.revokeObjectURL(cover.value.preview)
+})
+
 function goNext() {
   if (step.value === 1 && !step1Valid.value) return
   if (step.value === 2 && !step2Valid.value) return
@@ -167,14 +225,16 @@ async function submit(publish: boolean) {
   if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
   if (!step1Valid.value) { message.warning(t('upload.msgNeedTitle')); return }
   if (anyUploading.value) { message.warning(t('upload.msgUploadInProgress')); return }
+  if (cover.value?.status === 'error') { message.warning(t('upload.msgCoverNotReady')); return }
   const assetIds = uploadedEntries.value.map(e => e.assetId!).filter(Boolean)
   if (!assetIds.length) { message.warning(t('upload.msgNeedFile')); return }
 
-  const created = await catalog.finalizeDraft(draftMeta(), assetIds, publish)
+  const created = await catalog.finalizeDraft(draftMeta(), assetIds, publish, cover.value?.assetId ?? null)
 
   if (created) {
     message.success(publish ? t('upload.msgPublished') : t('upload.msgDrafted'))
     entries.value = []
+    removeCover()
     store.resetDraft()
     store.go('products')
   } else {
@@ -299,6 +359,40 @@ async function submit(publish: boolean) {
           </div>
 
           <div class="form-block">
+            <h4 class="fb-title">{{ t('upload.coverImgLabel') }}</h4>
+            <p class="fb-sub">{{ t('upload.coverImgSub') }}</p>
+            <input ref="coverInput" type="file" :accept="COVER_ACCEPT" style="display:none" @change="onCoverPick" />
+            <div class="cover-row">
+              <div class="cover-box" :class="{ empty: !cover }"
+                   :style="cover ? { backgroundImage: `url(${cover.preview})`, backgroundColor: huePastel(d.coverHue) } : { background: huePastel(d.coverHue) }"
+                   @click="pickCover">
+                <div v-if="!cover" class="cover-empty">
+                  <app-icon name="image" :size="22" />
+                  <span>{{ t('upload.coverEmpty') }}</span>
+                </div>
+              </div>
+              <div class="cover-actions">
+                <n-button size="medium" :loading="cover?.status === 'uploading'" :disabled="cover?.status === 'uploading'" @click="pickCover">
+                  <template #icon><app-icon name="image" :size="16" /></template>
+                  {{ cover ? t('upload.coverReplace') : t('upload.coverUpload') }}
+                </n-button>
+                <n-button v-if="cover?.status === 'error'" size="medium" @click="startCoverUpload(cover!)">
+                  <template #icon><app-icon name="refresh" :size="16" /></template>
+                  {{ t('upload.retryUpload') }}
+                </n-button>
+                <n-button v-if="cover" size="medium" quaternary :disabled="cover.status === 'uploading'" @click="removeCover">
+                  {{ t('upload.coverRemove') }}
+                </n-button>
+                <span v-if="cover" class="ur-status" :class="cover.status" style="font-size:12px;">
+                  <template v-if="cover.status === 'uploading'"><span class="ur-spin"></span> {{ t('upload.statusUploading') }}</template>
+                  <template v-else-if="cover.status === 'uploaded'"><app-icon name="check" :size="12" :stroke="2.8" /> {{ t('upload.statusUploaded') }}</template>
+                  <template v-else>{{ t('upload.statusError') }}</template>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-block">
             <h4 class="fb-title">{{ t('upload.coverHueLabel') }}</h4>
             <p class="fb-sub">{{ t('upload.coverHueSub') }}</p>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -323,6 +417,7 @@ async function submit(publish: boolean) {
               <div class="rev-row"><span class="rev-k">{{ t('upload.revTags') }}</span><span class="rev-v">{{ d.tags.length ? d.tags.join('、') : '—' }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revPrice') }}</span><span class="rev-v">{{ d.free ? t('common.free') : '$' + d.price }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revFiles') }}</span><span class="rev-v">{{ t('upload.revFilesValue', { count: uploadedEntries.length, size: totalSize }) }}</span></div>
+              <div class="rev-row"><span class="rev-k">{{ t('upload.revCover') }}</span><span class="rev-v">{{ cover?.status === 'uploaded' ? cover.file.name : t('upload.revCoverNone') }}</span></div>
               <div class="rev-row"><span class="rev-k">{{ t('upload.revBlurb') }}</span><span class="rev-v" style="max-width:280px;">{{ d.blurb || '—' }}</span></div>
             </div>
           </div>
@@ -354,7 +449,7 @@ async function submit(publish: boolean) {
       <div class="preview-rail">
         <div class="pr-label"><app-icon name="eye" :size="14" /> {{ t('upload.previewLabel') }}</div>
         <div class="preview-card">
-          <product-thumb :product="previewProduct" />
+          <product-thumb :product="previewProduct" :image="cover?.preview ?? ''" />
           <div class="card-body">
             <h3 class="card-title">{{ previewProduct.title }}</h3>
             <div class="card-creator">
@@ -377,3 +472,29 @@ async function submit(publish: boolean) {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 封面圖（與商品編輯頁一致） */
+.cover-row { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
+.cover-box {
+  width: 220px; height: 150px; flex: none; cursor: pointer;
+  border-radius: var(--r-md); border: var(--bw) solid var(--border-strong);
+  background-size: cover; background-position: center;
+  box-shadow: var(--ink-drop-sm); display: grid; place-items: center;
+  transition: filter .15s;
+}
+.cover-box:hover { filter: brightness(.94); }
+.cover-box.empty { border-style: dashed; box-shadow: none; }
+.cover-empty { display: grid; justify-items: center; gap: 8px; color: var(--text-faint); font-size: 12.5px; font-weight: 700; }
+.cover-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.cover-actions .ur-status { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; }
+.cover-actions .ur-status.uploading { color: var(--text-faint); }
+.cover-actions .ur-status.uploaded { color: var(--c-green, #3aa657); }
+.cover-actions .ur-status.error { color: var(--c-pink-deep); }
+.cover-actions .ur-spin {
+  width: 11px; height: 11px; border-radius: 50%; display: inline-block;
+  border: 2px solid var(--border-strong); border-top-color: transparent;
+  animation: cover-spin .7s linear infinite;
+}
+@keyframes cover-spin { to { transform: rotate(360deg); } }
+</style>

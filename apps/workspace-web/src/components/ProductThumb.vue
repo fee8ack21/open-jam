@@ -12,12 +12,15 @@ interface ThumbProduct {
 
 const props = withDefaults(defineProps<{
   product: ThumbProduct
+  /** 封面圖 URL；有值時覆蓋於色調底之上（載入完成前仍見色調 fallback）。 */
+  image?: string
   label?: string
   glyphSize?: number
   showCat?: boolean
   hideLabel?: boolean
   seed?: number
 }>(), {
+  image: '',
   label: '',
   glyphSize: 64,
   showCat: true,
@@ -57,8 +60,9 @@ const autoLabel = computed(() => {
 
 <template>
   <div class="thumb" :style="vars">
+    <img v-if="image" class="thumb-img" :src="image" alt="" />
     <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
-    <div class="thumb-glyph"><app-icon :name="catGlyph" :size="glyphSize" :stroke="1.8" /></div>
+    <div v-if="!image" class="thumb-glyph"><app-icon :name="catGlyph" :size="glyphSize" :stroke="1.8" /></div>
     <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
   </div>
 </template>
