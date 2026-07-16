@@ -517,3 +517,4 @@ TEMP.md
 .playwright-mcp/
 .superpowers/
 gcs-sa-key.json
+mock
