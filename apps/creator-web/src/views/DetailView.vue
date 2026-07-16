@@ -51,6 +51,12 @@ const catLabel = computed(() =>
   p.value && CATEGORIES.some((c) => c.id === p.value!.cat) ? t('category.' + p.value.cat) : '',
 );
 const totalFiles = computed(() => (p.value ? p.value.files.reduce((n, f) => n + f.count, 0) : 0));
+// 「關於這份作品」段落：詳細介紹（空行分段）優先，未填時退回一句話簡介；皆空則整段隱藏
+const aboutParas = computed(() => {
+  if (!p.value) return [];
+  if (p.value.desc.length) return p.value.desc;
+  return p.value.blurb ? [p.value.blurb] : [];
+});
 
 // 載入完成前不可判定為不存在（避免直接連結進入時誤導向 not-found）
 const ready = ref(false);
@@ -107,25 +113,10 @@ const goCart = () => router.push({ name: 'checkout' });
           </template>
         </div>
 
-        <div style="margin-top:44px">
+        <div v-if="aboutParas.length" style="margin-top:44px">
           <h2 class="section-title">{{ t('detail.aboutTitle') }}</h2>
           <div class="prose">
-            <p v-for="(para, i) in p.desc" :key="i">{{ para }}</p>
-          </div>
-        </div>
-
-        <div style="margin-top:44px">
-          <h2 class="section-title">{{ t('detail.contentPreviewTitle') }}</h2>
-          <div class="preview-locked">
-            <product-thumb :product="p" :seed="active + 2"
-                           style="aspect-ratio:16/7;"
-                           :glyph-size="80" :show-cat="false" hide-label />
-            <div class="lock-veil">
-              <div class="lock-mark">
-                <app-icon name="lock" :size="18" />
-              </div>
-              <span class="lock-txt">{{ t('detail.lockedText') }}</span>
-            </div>
+            <p v-for="(para, i) in aboutParas" :key="i">{{ para }}</p>
           </div>
         </div>
 

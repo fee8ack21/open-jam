@@ -607,24 +607,6 @@ body {
 .prose { color: var(--text); font-size: 15px; font-weight: 500; line-height: 2; max-width: 66ch; }
 .prose p { margin: 0 0 12px; }
 
-/* 內容預覽鎖定遮罩（設計稿 preview） */
-.preview-locked { position: relative; border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--pop-2); }
-.preview-locked .thumb { border-radius: 0; }
-.preview-locked .lock-veil {
-  position: absolute; inset: 0; z-index: 4;
-  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 10px;
-  text-align: center; padding-bottom: 28px; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 249, 236, 0) 0%, rgba(255, 249, 236, .35) 55%, rgba(255, 249, 236, .96) 100%);
-}
-.lock-mark {
-  width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center;
-  background: var(--surface); border: var(--bw) solid var(--border-strong); box-shadow: var(--pop-1); color: var(--text);
-}
-.lock-veil .lock-txt {
-  background: var(--text); color: var(--c-yellow); border-radius: 999px;
-  font-weight: 900; font-size: 13px; padding: 7px 18px; white-space: nowrap;
-}
-
 .trust { display: flex; align-items: center; gap: 5px; color: var(--text-soft); font-size: 12px; font-weight: 700; margin-top: 14px; justify-content: center; }
 
 /* ---------- breadcrumb（設計稿：底線 hover + › 分隔） ---------- */

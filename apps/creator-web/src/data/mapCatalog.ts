@@ -1,7 +1,7 @@
 /* ============================================================
    CatalogService DTO → 店面 Product 對應
-   後端公開瀏覽端點回傳的欄位較精簡，rating / sales / 檔案清單等
-   後端尚無資料，於此以預設值補齊，讓既有店面 UI 不需大改即可顯示。
+   檔案清單 / 總大小 / 格式由完整 CatalogDto 的 currentVersion.assets
+   推導；列表摘要（CatalogSummaryDto）無版本資料，於詳情載入時補齊。
    ============================================================ */
 import {
   CatalogAssetType,
@@ -9,7 +9,7 @@ import {
   type CatalogDto,
   type CatalogCategoryDto,
 } from '@/api/catalog-service';
-import type { PreviewMediaItem, Product } from '@/data/products';
+import type { PreviewMediaItem, Product, ProductContent, ProductFile } from '@/data/products';
 import type { Store } from '@/data/store';
 import type { StoreDto } from '@/api/store-service';
 
@@ -60,6 +60,21 @@ function youtubeVideoId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+/** 檔案大小人類可讀格式（未知大小回空字串）。 */
+export function formatBytes(bytes: number): string {
+  if (!bytes || bytes <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let n = bytes;
+  let i = 0;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+  return `${n >= 10 || i === 0 ? Math.round(n) : n.toFixed(1)} ${units[i]}`;
+}
+
+/** 檔名 → 顯示用格式代碼（副檔名大寫，最多 4 字）。 */
+function fileTypeOf(name: string): string {
+  return (name.split('.').pop() || 'FILE').toUpperCase().slice(0, 4);
+}
+
 /** 展示型資產 → 圖庫預覽媒體項目（不支援的資產型別回 null）。 */
 function toPreviewMediaItem(asset: NonNullable<CatalogDto['assets']>[number]): PreviewMediaItem | null {
   if (asset.type === CatalogAssetType.Screenshot && asset.url)
@@ -82,6 +97,21 @@ export function toProduct(
 ): Product {
   const detail = dto as CatalogDto;
   const description = detail.description ?? null;
+
+  // 版本可下載檔（僅完整 CatalogDto 帶有 currentVersion；列表摘要為空清單）
+  const versionAssets = (detail.currentVersion?.assets ?? [])
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const contents: ProductContent[] = versionAssets.map((a) => ({
+    name: a.fileName ?? '',
+    type: fileTypeOf(a.fileName ?? ''),
+    size: formatBytes(a.fileSize ?? 0) || '—',
+  }));
+  const typeCounts = new Map<string, number>();
+  for (const c of contents) typeCounts.set(c.type, (typeCounts.get(c.type) ?? 0) + 1);
+  const files: ProductFile[] = [...typeCounts].map(([type, count]) => ({ type, count }));
+  const totalBytes = versionAssets.reduce((s, a) => s + (a.fileSize ?? 0), 0);
+
   return {
     id: dto.id ?? '',
     cat: catKey,
@@ -99,10 +129,10 @@ export function toProduct(
     tags: dto.tags ?? [],
     blurb: dto.summary ?? '',
     desc: description ? description.split(/\n+/).map((s) => s.trim()).filter(Boolean) : [],
-    files: [],
-    totalSize: '—',
-    formats: [],
-    contents: [],
+    files,
+    totalSize: formatBytes(totalBytes) || '—',
+    formats: [...typeCounts.keys()],
+    contents,
     previews: 0,
     image: dto.thumbnailUrl ?? undefined,
     // 預覽媒體（Screenshot / PreviewVideo / ExternalVideo 資產，依 sortOrder 混排）
