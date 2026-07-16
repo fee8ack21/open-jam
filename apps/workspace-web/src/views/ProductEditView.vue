@@ -7,7 +7,7 @@ import { storeToRefs } from 'pinia'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
 import { useCatalogEditStore, type CatalogBasics } from '@/stores/catalogEdit'
-import { CatalogStatus, type CatalogVersionDto } from '@/api/catalog-service'
+import { CatalogAssetType, CatalogStatus, type CatalogVersionDto } from '@/api/catalog-service'
 import ImageCropDialog from '@/components/ImageCropDialog.vue'
 
 const { t, locale } = useI18n()
@@ -173,6 +173,44 @@ async function onCoverRemove() {
   const ok = await edit.removeCover(catalogId.value)
   if (ok) message.success(t('productEdit.msgCoverRemoved'))
   else message.error(edit.error ?? t('productEdit.msgCoverFailed'))
+}
+
+// ── 預覽圖（Screenshot 資產，商品頁圖庫）────────────────────
+const MAX_SCREENSHOTS = 8
+const screenshotInput = ref<HTMLInputElement | null>(null)
+const screenshots = computed(() =>
+  (catalog.value?.assets ?? [])
+    .filter((a) => a.type === CatalogAssetType.Screenshot)
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+)
+
+function pickScreenshots() { screenshotInput.value?.click() }
+
+async function onScreenshotPick(e: Event) {
+  const input = e.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  input.value = ''
+  if (!files.length) return
+  const room = MAX_SCREENSHOTS - screenshots.value.length
+  if (files.length > room) { message.warning(t('productEdit.msgScreenshotLimit', { max: MAX_SCREENSHOTS })); return }
+  for (const file of files) {
+    if (!COVER_ALLOWED.includes(file.type)) { message.error(t('productEdit.msgCoverType')); return }
+    if (file.size > COVER_MAX_BYTES) { message.error(t('productEdit.msgCoverTooLarge')); return }
+  }
+  let uploaded = 0
+  for (const file of files) {
+    const ok = await edit.uploadScreenshot(catalogId.value, file)
+    if (!ok) { message.error(edit.error ?? t('productEdit.msgScreenshotFailed')); break }
+    uploaded++
+  }
+  if (uploaded) message.success(t('productEdit.msgScreenshotsUploaded', { count: uploaded }))
+}
+
+async function onDeleteScreenshot(assetId: string) {
+  const ok = await edit.deleteScreenshot(catalogId.value, assetId)
+  if (ok) message.success(t('productEdit.msgScreenshotDeleted'))
+  else message.error(edit.error ?? t('productEdit.msgScreenshotFailed'))
 }
 
 function openVersionModal() {
@@ -374,6 +412,34 @@ function fmtDate(v?: string | null) {
           </div>
         </div>
 
+        <!-- 預覽圖（商品頁圖庫） -->
+        <div class="card-pad set-card">
+          <div class="set-grid">
+            <div class="sg-k">
+              <div class="sgk-t">{{ t('productEdit.screenshotsTitle') }}</div>
+              <div class="sgk-d">{{ t('productEdit.screenshotsDesc') }}</div>
+            </div>
+            <div>
+              <input ref="screenshotInput" type="file" :accept="COVER_ACCEPT" multiple style="display:none" @change="onScreenshotPick" />
+              <div class="shot-grid">
+                <div v-for="s in screenshots" :key="s.id" class="shot-box" :style="{ backgroundImage: `url(${s.url})` }">
+                  <n-popconfirm placement="top-end" @positive-click="onDeleteScreenshot(s.id!)">
+                    <template #trigger>
+                      <button class="ic-act danger shot-del" :title="t('common.delete')" :disabled="busy"><app-icon name="trash" :size="15" /></button>
+                    </template>
+                    {{ t('productEdit.screenshotDeleteConfirm') }}
+                  </n-popconfirm>
+                </div>
+                <button v-if="screenshots.length < MAX_SCREENSHOTS" class="shot-box shot-add" :disabled="busy" @click="pickScreenshots">
+                  <app-icon name="plus" :size="20" :stroke="2.2" />
+                  <span>{{ t('productEdit.screenshotAdd') }}</span>
+                </button>
+              </div>
+              <div class="field-hint" style="margin-top:10px;">{{ t('productEdit.screenshotsHint', { max: MAX_SCREENSHOTS }) }}</div>
+            </div>
+          </div>
+        </div>
+
         <!-- 版本與可下載檔 -->
         <div class="card-pad set-card">
           <div class="set-grid">
@@ -495,6 +561,44 @@ function fmtDate(v?: string | null) {
 .cover-box.is-empty { border-style: dashed; box-shadow: none; }
 .cover-empty { display: grid; justify-items: center; gap: 8px; color: var(--text-faint); font-size: 12.5px; font-weight: 700; }
 .cover-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+
+/* 預覽圖（Screenshot）格線：4:3 縮圖 + 右上刪除鍵 + 新增磚 */
+.shot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.shot-box {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r-md);
+  border: var(--bw) solid var(--border-strong);
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--ink-drop-sm);
+}
+.shot-del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--bg);
+}
+.shot-add {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border-style: dashed;
+  box-shadow: none;
+  background: var(--surface);
+  color: var(--text-faint);
+  font-size: 12.5px;
+  font-weight: 700;
+  transition: filter .15s;
+}
+.shot-add:hover:not(:disabled) { filter: brightness(.96); }
+.shot-add:disabled { cursor: not-allowed; opacity: .6; }
 
 /* 版本 */
 .ver-block {

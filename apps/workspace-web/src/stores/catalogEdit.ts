@@ -161,6 +161,46 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     }
   }
 
+  /** 新增預覽圖（Screenshot 資產，商品頁圖庫展示）：簽 URL 直傳後 confirm。 */
+  async function uploadScreenshot(id: string, file: File) {
+    busy.value = true;
+    error.value = null;
+    try {
+      const urlRes = await catalogApi.catalogs.requestAssetUploadUrl(id, {
+        type: CatalogAssetType.Screenshot,
+        fileName: file.name,
+        contentType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+      });
+      const assetId = urlRes.data.assetId!;
+      if (urlRes.data.uploadUrl) await putFile(urlRes.data.uploadUrl, file);
+      await catalogApi.catalogs.confirmAsset(id, assetId, { type: CatalogAssetType.Screenshot });
+      await refreshCatalog(id);
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.uploadScreenshotFailed'));
+      return false;
+    } finally {
+      busy.value = false;
+    }
+  }
+
+  /** 刪除預覽圖。 */
+  async function deleteScreenshot(id: string, assetId: string) {
+    busy.value = true;
+    error.value = null;
+    try {
+      await catalogApi.catalogs.deleteAsset(id, assetId);
+      await refreshCatalog(id);
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.deleteScreenshotFailed'));
+      return false;
+    } finally {
+      busy.value = false;
+    }
+  }
+
   /** 建立新版本；後端會將其設為商品目前對外版本（買家取得的即是此版本的檔案）。 */
   async function createVersion(id: string, version: string, releaseNote: string) {
     busy.value = true;
@@ -243,6 +283,8 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     saveBasics,
     uploadCover,
     removeCover,
+    uploadScreenshot,
+    deleteScreenshot,
     createVersion,
     uploadVersionFile,
     deleteVersionFile,
