@@ -12,13 +12,16 @@ public class StorageOptions
     /// <summary>Google Cloud Storage 專屬設定；僅 <see cref="Provider"/> 為 <c>Gcs</c> 時使用。</summary>
     public GcsOptions Gcs { get; set; } = new();
 
-    /// <summary>公開讀取資產（`public/*`，如商店 Avatar/Banner、商品縮圖）的 GCS bucket。</summary>
+    /// <summary>公開讀取資產（`IsPublic`，如商店 Avatar/Banner、商品縮圖）的 GCS bucket。</summary>
     public string PublicBucket { get; set; } = "";
 
     /// <summary>私有資產（買家授權下載的版本檔）的 GCS bucket。</summary>
     public string PrivateBucket { get; set; } = "";
 
-    /// <summary>公開讀取物件（`public/*`）的對外存取網址前綴，例如 "http://localhost:5171/v1/files/blob"。</summary>
+    /// <summary>
+    /// 公開讀取物件的對外存取網址前綴（含公開 bucket 對應段）：與 StorageKey 拼接即為公開網址。
+    /// 地端為 "http://localhost:5171/v1/files/blob/public"、雲端為 "https://storage.googleapis.com/open-jam-public"。
+    /// </summary>
     public string PublicBaseUrl { get; set; } = "";
 
     /// <summary>
@@ -48,11 +51,6 @@ public class StorageOptions
 
     /// <summary>商品檔上傳完成後未被使用（未建立 reference）的保留天數，逾期由清理排程軟刪除；預設 1 天（積極回收暫存孤兒）。</summary>
     public int UnreferencedRetentionDays { get; set; } = 1;
-
-    /// <summary>依物件鍵值前綴（`public/`）判定其所屬 bucket。</summary>
-    /// <param name="key">物件鍵值，例如 "public/{creatorId}/{fileId}/avatar.png"。</param>
-    public string BucketFor(string key) =>
-        key.StartsWith("public/", StringComparison.Ordinal) ? PublicBucket : PrivateBucket;
 }
 
 /// <summary>儲存後端供應商種類。</summary>

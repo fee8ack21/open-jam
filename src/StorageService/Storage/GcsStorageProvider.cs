@@ -16,15 +16,18 @@ public class GcsStorageProvider(
 {
     private readonly StorageOptions _opts = options.Value;
 
+    /// <summary>依公開 / 私有旗標選擇目標 bucket。</summary>
+    private string BucketFor(bool isPublic) => isPublic ? _opts.PublicBucket : _opts.PrivateBucket;
+
     /// <inheritdoc/>
-    public async Task<string> GenerateUploadUrlAsync(string key, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default)
+    public async Task<string> GenerateUploadUrlAsync(string key, bool isPublic, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default)
     {
         // 簽入 Content-Type；上傳端送出的 Content-Type header 須與此一致，否則簽章驗證失敗。
         // maxBytes 已於簽發入口（FileService）以宣稱大小擋下超過上限者；simple signed PUT URL
         // 無法在 GCS 端硬性強制實際 content-length（需 POST policy 的 content-length-range），
         // 殘餘超量由 confirm 階段的配額檢查（超單檔上限回 422、不建 reference）與孤兒清理兜底。
         var template = UrlSigner.RequestTemplate
-            .FromBucket(_opts.BucketFor(key))
+            .FromBucket(BucketFor(isPublic))
             .WithObjectName(key)
             .WithHttpMethod(HttpMethod.Put)
             .WithContentHeaders(new Dictionary<string, IEnumerable<string>>
@@ -36,10 +39,10 @@ public class GcsStorageProvider(
     }
 
     /// <inheritdoc/>
-    public async Task<string> GenerateDownloadUrlAsync(string key, TimeSpan expiry, CancellationToken ct = default)
+    public async Task<string> GenerateDownloadUrlAsync(string key, bool isPublic, TimeSpan expiry, CancellationToken ct = default)
     {
         var template = UrlSigner.RequestTemplate
-            .FromBucket(_opts.BucketFor(key))
+            .FromBucket(BucketFor(isPublic))
             .WithObjectName(key)
             .WithHttpMethod(HttpMethod.Get);
 
@@ -47,11 +50,11 @@ public class GcsStorageProvider(
     }
 
     /// <inheritdoc/>
-    public async Task DeleteAsync(string key, CancellationToken ct = default)
+    public async Task DeleteAsync(string key, bool isPublic, CancellationToken ct = default)
     {
         try
         {
-            await storage.DeleteObjectAsync(_opts.BucketFor(key), key, cancellationToken: ct);
+            await storage.DeleteObjectAsync(BucketFor(isPublic), key, cancellationToken: ct);
         }
         catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
         {
@@ -61,11 +64,11 @@ public class GcsStorageProvider(
     }
 
     /// <inheritdoc/>
-    public async Task<bool> ObjectExistsAsync(string key, CancellationToken ct = default)
+    public async Task<bool> ObjectExistsAsync(string key, bool isPublic, CancellationToken ct = default)
     {
         try
         {
-            await storage.GetObjectAsync(_opts.BucketFor(key), key, cancellationToken: ct);
+            await storage.GetObjectAsync(BucketFor(isPublic), key, cancellationToken: ct);
             return true;
         }
         catch (GoogleApiException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
@@ -77,8 +80,8 @@ public class GcsStorageProvider(
     /// <inheritdoc/>
     public async Task EnsurePublicReadPolicyAsync(CancellationToken ct = default)
     {
-        // 公開 bucket 內物件皆為 public/ 前綴（BucketFor 保證非 public/ 鍵一律進私有 bucket），
-        // 故對整個公開 bucket 無條件開放匿名讀取即可，曝光範圍與「限 public/ 前綴」等價。
+        // 公開 bucket 只存放 IsPublic 物件（路由依 StoredFile.IsPublic，私有物件一律進私有 bucket），
+        // 故對整個公開 bucket 無條件開放匿名讀取即可。
         // 注意：GCP IAM 禁止對 allUsers/allAuthenticatedUsers 使用條件式繫結
         //（"Conditions are not allowed on public resources"），因此不可加 Condition。
         var bucket = _opts.PublicBucket;

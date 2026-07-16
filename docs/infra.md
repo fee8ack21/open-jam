@@ -47,9 +47,9 @@
 
 - **GCS**（雲端）+ 地端**本地檔案系統**（見 [[Storage]]）。
 - **雙 bucket**：
-  - `open-jam-public`：公開讀取資產（商店 Avatar/Banner、商品縮圖等 `public/*` 物件），對 `public/*` 前綴開匿名讀取（StorageService 啟動時由 `EnsurePublicReadPolicyAsync` 套用 IAM 條件式繫結）。
+  - `open-jam-public`：公開讀取資產（商店 Avatar/Banner、商品縮圖等 `IsPublic` 物件），整個 bucket 開匿名讀取（StorageService 啟動時由 `EnsurePublicReadPolicyAsync` 套用 IAM 繫結）。
   - `open-jam-private`：私有付費檔，僅透過短效 signed URL 授權存取。
-  - 兩個 bucket 皆須啟用 **uniform bucket-level access**（IAM 條件式繫結的前提）。StorageService 由 `StorageOptions.BucketFor(key)` 依 key 前綴 `public/` 自動選 bucket。
+  - 兩個 bucket 皆須啟用 **uniform bucket-level access**。StorageService 依 `StoredFile.IsPublic` 旗標選 bucket，物件鍵值一律 `creators/{creatorId}/{fileId}/{originalName}`。
   - **CORS（必設，否則瀏覽器上傳全失敗）**：前端（workspace-web）以 StorageService 簽發的 signed URL **從瀏覽器直接 HTTP PUT 到 `storage.googleapis.com`**，屬跨源請求，bucket 未設 CORS 時瀏覽器會擋下 PUT（preflight 被拒、`net::ERR_FAILED`）。伺服器端呼叫不受 CORS 限制，故僅真實瀏覽器上傳會踩到。兩個 bucket 都須套用下列 CORS：
 
     ```jsonc

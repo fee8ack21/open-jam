@@ -38,6 +38,9 @@ public class StoredFile : ICreatedAt, IUpdatedAt, IDeletedAt, IDeletedBy
     /// <summary>是否為公開預覽衍生檔（試看片段、PDF 前幾頁等）。</summary>
     public bool IsPreview { get; set; }
 
+    /// <summary>是否為公開讀取物件（例如商店 Avatar/Banner）；決定儲存後端的公開 / 私有隔離（GCS bucket、本地匿名讀取）。</summary>
+    public bool IsPublic { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 

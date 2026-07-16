@@ -70,7 +70,7 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 
 ## 檔案組織與生命週期
 
-- **路徑 / bucket 結構**：以租戶（creator）維度劃分前綴；**原始檔**與**衍生檔**（HLS、預覽、縮圖）分開存放。雲端 GCS 採**雙 bucket**：公開讀取資產（`public/*`，如商店 Avatar/Banner、商品縮圖）存於 `open-jam-public`，私有付費檔存於 `open-jam-private`；`StorageOptions.BucketFor(key)` 依 key 前綴 `public/` 自動選 bucket。地端 Local 無 bucket 概念，僅以 `public/` 前綴區分匿名讀取。
+- **路徑 / bucket 結構**：以租戶（creator）維度劃分前綴（物件鍵值一律 `creators/{creatorId}/{fileId}/{originalName}`）；**原始檔**與**衍生檔**（HLS、預覽、縮圖）分開存放。雲端 GCS 採**雙 bucket**：公開讀取資產（`StoredFile.IsPublic`，如商店 Avatar/Banner、商品縮圖）存於 `open-jam-public`，私有付費檔存於 `open-jam-private`，依旗標選 bucket。地端 Local 無 bucket 概念，以 blob URL 的 `public/` 虛擬 bucket 路徑段（provider 組 URL 時加上、不進鍵值）區分匿名讀取。
 - **軟刪除**：商品下架 / 刪除採軟刪除。
 - **已售出保留下載權**：已購買的商品仍保留買家下載權（對應 [[Auth]] 的 GDPR 與帳號刪除策略）。
 - **orphan 清理**：以排程清除孤兒檔案——上傳逾時未完成者標記 Failed；Ready 後逾期仍未被使用（未建立 reference）的商品檔軟刪除；已軟刪且過保留期者自儲存後端永久刪除。

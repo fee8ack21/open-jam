@@ -95,7 +95,7 @@ public class OrphanCleanupService(
         {
             try
             {
-                await storage.DeleteAsync(file.StorageKey, ct);
+                await storage.DeleteAsync(file.StorageKey, file.IsPublic, ct);
                 purgedIds.Add(file.Id);
                 logger.LogInformation("Permanently deleted file {FileId} from storage", file.Id);
             }

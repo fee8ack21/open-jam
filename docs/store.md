@@ -144,11 +144,10 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 
 ### StorageService 擴充
 
-1. `StorageOptions` 新增 `PublicBaseUrl`（dev: `http://localhost:5171/v1/files/blob`，正式環境為 CDN/GCS public URL）。
-2. `RequestUploadUrlRequest` 新增 `bool IsPublic`（預設 false）。
-3. `IsPublic=true` 時 `StoredFile.StorageKey` 改用 `public/{creatorId}/{fileId}/{originalName}`（取代 `creators/...`），其餘規則不變。
-4. `RequestUploadUrlResponse` 新增 `string StorageKey` 與 `string? PublicUrl`（`IsPublic=true` 時填值：`{PublicBaseUrl}/{StorageKey}`）。
-5. `public/*` 前綴的物件供匿名讀取（地端由 `BlobController` 對 `public/` 前綴免簽章放行；雲端 GCS 將公開 bucket `open-jam-public` 的 `public/*` 設為匿名可讀，由 `EnsurePublicReadPolicyAsync` 套用 IAM 繫結）。
+1. `StorageOptions` 新增 `PublicBaseUrl`（dev: `http://localhost:5171/v1/files/blob/public`，正式環境為 CDN/GCS 公開 bucket URL）。
+2. `RequestUploadUrlRequest` 新增 `bool IsPublic`（預設 false），持久化為 `StoredFile.IsPublic`；物件鍵值一律 `creators/{creatorId}/{fileId}/{originalName}`，公開 / 私有隔離依旗標而非鍵值前綴。
+3. `RequestUploadUrlResponse` 新增 `string StorageKey` 與 `string? PublicUrl`（`IsPublic=true` 時填值：`{PublicBaseUrl}/{StorageKey}`）。
+4. `IsPublic` 物件供匿名讀取（地端由 provider 於 blob URL 加 `public/` 虛擬 bucket 路徑段、`BlobController` 對該段免簽章放行；雲端 GCS 存入公開 bucket `open-jam-public`，整個 bucket 由 `EnsurePublicReadPolicyAsync` 套用 IAM 繫結設為匿名可讀）。
 
 ### 上傳流程（以 Avatar 為例）
 

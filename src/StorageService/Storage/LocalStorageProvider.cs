@@ -15,45 +15,51 @@ public class LocalStorageProvider(
 {
     private readonly LocalOptions _local = options.Value.Local;
 
-    /// <inheritdoc/>
-    public Task<string> GenerateUploadUrlAsync(string key, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default) =>
-        Task.FromResult(BuildSignedUrl("PUT", key, expiry, maxBytes));
+    /// <summary>
+    /// 將物件鍵值映射為 blob 端點路徑：公開物件加上 <c>public/</c> 虛擬 bucket 路徑段
+    /// （對應雲端的公開 bucket，blob 下載端點以此段免簽章放行），私有物件直接使用鍵值。
+    /// </summary>
+    private static string BlobPath(string key, bool isPublic) => isPublic ? $"public/{key}" : key;
 
     /// <inheritdoc/>
-    public Task<string> GenerateDownloadUrlAsync(string key, TimeSpan expiry, CancellationToken ct = default) =>
-        Task.FromResult(BuildSignedUrl("GET", key, expiry));
+    public Task<string> GenerateUploadUrlAsync(string key, bool isPublic, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default) =>
+        Task.FromResult(BuildSignedUrl("PUT", BlobPath(key, isPublic), expiry, maxBytes));
 
     /// <inheritdoc/>
-    public Task DeleteAsync(string key, CancellationToken ct = default)
+    public Task<string> GenerateDownloadUrlAsync(string key, bool isPublic, TimeSpan expiry, CancellationToken ct = default) =>
+        Task.FromResult(BuildSignedUrl("GET", BlobPath(key, isPublic), expiry));
+
+    /// <inheritdoc/>
+    public Task DeleteAsync(string key, bool isPublic, CancellationToken ct = default)
     {
-        fileStore.Delete(key);
+        fileStore.Delete(BlobPath(key, isPublic));
         return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
-    public Task<bool> ObjectExistsAsync(string key, CancellationToken ct = default) =>
-        Task.FromResult(fileStore.Exists(key));
+    public Task<bool> ObjectExistsAsync(string key, bool isPublic, CancellationToken ct = default) =>
+        Task.FromResult(fileStore.Exists(BlobPath(key, isPublic)));
 
     /// <inheritdoc/>
     public Task EnsurePublicReadPolicyAsync(CancellationToken ct = default)
     {
         // 本地儲存無 bucket policy 概念；確保根目錄存在即可。
-        // 公開讀取（public/* 前綴）由 blob 下載端點免簽章放行。
+        // 公開讀取（public/* 虛擬 bucket 路徑段）由 blob 下載端點免簽章放行。
         fileStore.EnsureRoot();
         return Task.CompletedTask;
     }
 
     /// <summary>組合指向本服務 blob 端點、帶 HMAC 簽章與到期時間的 URL。上傳（PUT）另綁大小上限。</summary>
-    private string BuildSignedUrl(string method, string key, TimeSpan expiry, long maxBytes = 0)
+    private string BuildSignedUrl(string method, string blobPath, TimeSpan expiry, long maxBytes = 0)
     {
         var expiresUnix = DateTimeOffset.UtcNow.Add(expiry).ToUnixTimeSeconds();
-        var sig = signer.Sign(method, key, expiresUnix, maxBytes);
+        var sig = signer.Sign(method, blobPath, expiresUnix, maxBytes);
         var baseUrl = _local.BaseUrl.TrimEnd('/');
 
         // 逐段 URL 編碼但保留路徑分隔符，避免檔名含空白 / 特殊字元時 URL 失效。
-        var encodedKey = string.Join('/', key.Split('/').Select(Uri.EscapeDataString));
+        var encodedPath = string.Join('/', blobPath.Split('/').Select(Uri.EscapeDataString));
 
-        var url = $"{baseUrl}/v1/files/blob/{encodedKey}?expires={expiresUnix}&sig={sig}";
+        var url = $"{baseUrl}/v1/files/blob/{encodedPath}?expires={expiresUnix}&sig={sig}";
         // PUT 才帶大小上限；blob 端點驗章時一併驗 max，並於接收時強制。
         return maxBytes > 0 ? $"{url}&max={maxBytes}" : url;
     }

@@ -150,7 +150,7 @@ REST API，簽發上傳 / 下載 URL 並管理檔案生命週期。
 
 - **儲存後端**：`IStorageProvider` 抽象，依 `Storage:Provider` 設定切換地端 `LocalStorageProvider`（本地檔案系統，預設存於 `Files/` 資料夾）或雲端 `GcsStorageProvider`（GCS，signed URL 用服務帳戶金鑰或 GKE Workload Identity 的 IAM SignBlob）。
 - **流程**：`FilesController` 簽發上傳 / 下載 URL（本地由 `BlobUrlSigner` 以 HMAC 簽章，取代 presigned URL）→ 客戶端直傳；本地經 `BlobController` 接收上傳寫入 `LocalFileStore` 後即觸發 `StorageEventService` → `FileProcessingService` 處理 → publish `FileReadyEvent`（GCS 則由 bucket notification 觸發）。
-- **本地 blob 端點**：`BlobController`（`/v1/files/blob/{**key}`）負責本地儲存的 PUT 上傳 / GET 下載；`public/` 前綴免簽章供匿名讀取，其餘須帶有效 `expires` + `sig`。
+- **本地 blob 端點**：`BlobController`（`/v1/files/blob/{**key}`）負責本地儲存的 PUT 上傳 / GET 下載；`public/` 虛擬 bucket 路徑段（對應雲端公開 bucket，由 provider 組 URL 時加上、不進 `StorageKey`）免簽章供匿名讀取，其餘須帶有效 `expires` + `sig`。公開 / 私有隔離依 `StoredFile.IsPublic` 旗標（GCS 據此選 bucket），物件鍵值一律 `creators/{creatorId}/{fileId}/{name}`。
 - **檔案生命週期與配額銜接**：簽發 signed URL **不計配額**。`POST /v1/files/{id}/confirm` 驗證物件存在後觸發處理 pipeline（Local / GCS 共用同一條 confirm 路徑）；`POST /v1/files/{id}/reference` 由功能 API 於資產 reference 建立後標記檔案「已被使用」——只有 referenced 檔案計入配額對帳，未 referenced 者逾期由清理排程回收。
 - **用量查詢**：`GET /v1/files/usage?creatorId=`（回該租戶 Ready 且 referenced 檔案 size 總和，QuotaService 每日對帳用）、`GET /v1/files/usage/summary`（Admin，平台儲存用量彙總，workspace-web 資源頁）。
 - **背景**：`OrphanCleanupService` 清理保留期過後的孤兒檔案（硬刪除）。
@@ -171,7 +171,7 @@ REST API，管理開店申請、店家與追蹤。Controller（`StoreApplication
 REST API，管理數位商品（`Catalog`）、版本（`CatalogVersion`）、平台分類（`CatalogCategory`，以 `ParentId` 自我參照多層子分類）、標籤（`CatalogTag`，名稱強制小寫、維護 `UsageCount`）、評論（`CatalogReview`）與收藏（`CatalogFavorite`）。Controller（`Catalogs` / `CatalogVersions` / `CatalogCategories` / `CatalogTags` / `CatalogReviews` / `CatalogFavorites`）僅轉接，業務在 `Services/<Feature>/` 的 `ICatalogManager` / `ICatalogVersionService` / `ICatalogCategoryService` / `ICatalogTagService` / `ICatalogReviewService` / `ICatalogFavoriteService`。
 
 - **商品狀態**：`Draft → Published`（需先有版本）↔ `Archived`；`Suspended` 由 Admin 停權 / 解除。`CatalogStatus` 索引化以利瀏覽過濾。上 / 下架時呼叫 QuotaService `POST /v1/products/count` ±1 檢查上架商品數上限；首次上架經 Outbox 發 `CatalogPublishedEvent`（`IsFirstPublish`，觸發追蹤者通知）。**付費商品上架閘門**：`Price > 0` 上架（及已上架商品免費改付費）時以 `PaymentServiceClient`（named `"payment"`）匿名查 PaymentService `GET /v1/connect/accounts/{storeId}/status`，商店未完成 Stripe Connect 收款設定（`ChargesEnabled=false`）回 422；免費商品不受限。
-- **資產分兩類**：展示型 `CatalogAsset`（縮圖 / 截圖 / 預覽影音 / 外部影片嵌入，公開讀取，`public/` 前綴）；版本可下載檔 `CatalogVersionAsset`（買家實際取得內容，私有，須授權簽發下載 URL）。實體檔案 Asset `Id` 與 StorageService 簽發的 `FileId` 同值。**預覽媒體**（截圖 `Screenshot` / 預覽影片 `PreviewVideo` / YouTube 嵌入 `ExternalVideo`）供商品內頁圖庫切換瀏覽：跨型別共用同一條 `SortOrder` 序列、總數上限 8；圖片單檔 5MB、影片 100MB（簽 URL 驗證器擋下）；`ExternalVideo` 由 `POST /v1/catalogs/{id}/assets/external` 建立（驗證並正規化 YouTube 網址、僅存 `ExternalUrl`、不涉 StorageService 不計配額）；`PUT /v1/catalogs/{id}/assets/preview-media/order` 全量覆蓋重排顯示順序（比照店長精選排序）。
+- **資產分兩類**：展示型 `CatalogAsset`（縮圖 / 截圖 / 預覽影音 / 外部影片嵌入，公開讀取，`IsPublic`）；版本可下載檔 `CatalogVersionAsset`（買家實際取得內容，私有，須授權簽發下載 URL）。實體檔案 Asset `Id` 與 StorageService 簽發的 `FileId` 同值。**預覽媒體**（截圖 `Screenshot` / 預覽影片 `PreviewVideo` / YouTube 嵌入 `ExternalVideo`）供商品內頁圖庫切換瀏覽：跨型別共用同一條 `SortOrder` 序列、總數上限 8；圖片單檔 5MB、影片 100MB（簽 URL 驗證器擋下）；`ExternalVideo` 由 `POST /v1/catalogs/{id}/assets/external` 建立（驗證並正規化 YouTube 網址、僅存 `ExternalUrl`、不涉 StorageService 不計配額）；`PUT /v1/catalogs/{id}/assets/preview-media/order` 全量覆蓋重排顯示順序（比照店長精選排序）。
 - **資產 confirm 管線（配額扣量）**：簽上傳 URL 不計配額；使用者提交確認時依序——StorageService `POST /v1/files/{id}/confirm`（確保 Ready、取實際大小）→ QuotaService `POST /v1/charges`（`ChargeId = FileId` 冪等扣量，超額 409 / 超上限 422 擋下）→ 建立資產 reference → StorageService `POST /v1/files/{id}/reference` 標記已使用。每步冪等，前端重試安全。
 - **計數與策展**：`SalesCount`（`OrderCompletedConsumer` 消費 `OrderCompletedEvent` 原子累加，`ProcessedEvent` 去重）、`ViewCount`（`POST /v1/catalogs/{id}/view`，前端以 localStorage 時間窗去重）、`RatingAverage` / `RatingCount`（隨評論維護）、`IsFeatured`（Admin `POST /{id}/feature` / `/unfeature`，首頁精選 × 熱門混合策展）。列表 API 支援排序與價格篩選。
 - **評論**：限已購買者（`OrderServiceClient` 轉發 Bearer token 至 OrderService `GET /v1/orders/purchased/{catalogId}` 驗證），每人每商品一則（`PUT /v1/catalogs/{id}/reviews/mine` upsert / `DELETE` 撤下）。
@@ -275,7 +275,7 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
   "Storage": {
     "Provider": "Local",
     "SoftDeleteRetentionDays": 30,
-    "PublicBaseUrl": "http://localhost:5171/v1/files/blob",  // public/* 匿名讀取網址前綴
+    "PublicBaseUrl": "http://localhost:5171/v1/files/blob/public",  // 公開物件匿名讀取網址前綴（含公開 bucket 對應段；雲端為 GCS 公開 bucket URL）
     // GCS 雙 bucket（Provider: "Gcs" 時必填）：公開資產與私有付費檔分開
     "PublicBucket": "open-jam-public", "PrivateBucket": "open-jam-private",
     "Local": {
@@ -292,7 +292,7 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
 }
 // CatalogService 額外需要（簽發資產上傳 URL + Owner 驗證 + 配額扣量 + 購買驗證 + 付費商品上架閘門）
 {
-  "Storage": { "PublicBaseUrl": "http://localhost:5171/v1/files/blob" },  // 展示型資產公開讀取前綴
+  "Storage": { "PublicBaseUrl": "http://localhost:5171/v1/files/blob/public" },  // 展示型資產公開讀取前綴
   "Services": {
     "StorageService": { "BaseUrl": "http://localhost:5171" },
     "StoreService": { "BaseUrl": "http://localhost:5172" },

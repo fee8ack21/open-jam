@@ -143,7 +143,7 @@ email:
 # 檔案儲存後端：正式環境採用 GCS，signed URL 透過 GKE Workload Identity 簽章
 storage:
   provider: Gcs
-  # 公開讀取資產（Avatar/Banner、商品縮圖，public/* 前綴）所屬 bucket
+  # 公開讀取資產（Avatar/Banner、商品縮圖，IsPublic 物件）所屬 bucket
   publicBucket: open-jam-public
   # 私有資產（買家授權下載的版本檔）所屬 bucket
   privateBucket: open-jam-private

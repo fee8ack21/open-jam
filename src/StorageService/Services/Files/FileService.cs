@@ -53,16 +53,15 @@ public class FileService(
             SizeBytes    = request.SizeBytes,
             FileType     = request.FileType,
             IsPreview    = request.IsPreview,
+            IsPublic     = request.IsPublic,
         };
-        file.StorageKey = request.IsPublic
-            ? $"public/{request.CreatorId}/{file.Id}/{request.OriginalName}"
-            : $"creators/{request.CreatorId}/{file.Id}/{request.OriginalName}";
+        file.StorageKey = $"creators/{request.CreatorId}/{file.Id}/{request.OriginalName}";
 
         db.StoredFiles.Add(file);
         await db.SaveChangesAsync(ct);
 
         var uploadUrl = await storage.GenerateUploadUrlAsync(
-            file.StorageKey, request.ContentType, request.SizeBytes, expiry, ct);
+            file.StorageKey, file.IsPublic, request.ContentType, request.SizeBytes, expiry, ct);
 
         var publicUrl = request.IsPublic
             ? $"{opts.PublicBaseUrl.TrimEnd('/')}/{file.StorageKey}"
@@ -100,7 +99,7 @@ public class FileService(
         if (file.Status != FileStatus.Uploading)
             return mapper.Map<FileDto>(file);
 
-        if (!await storage.ObjectExistsAsync(file.StorageKey, ct))
+        if (!await storage.ObjectExistsAsync(file.StorageKey, file.IsPublic, ct))
             throw new ValidationException($"檔案 {id} 尚未上傳至儲存後端");
 
         // 同步執行處理 pipeline（掃毒 / 轉碼 / 預覽，MVP 為 stub）後標記 Ready 並發 FileReadyEvent。
@@ -145,7 +144,7 @@ public class FileService(
         var opts   = storageOptions.Value;
         var expiry = TimeSpan.FromSeconds(opts.DownloadUrlExpirySeconds);
 
-        var downloadUrl = await storage.GenerateDownloadUrlAsync(file.StorageKey, expiry, ct);
+        var downloadUrl = await storage.GenerateDownloadUrlAsync(file.StorageKey, file.IsPublic, expiry, ct);
 
         return new GetDownloadUrlResponse
         {

@@ -52,12 +52,17 @@ public class BlobController(
         }
 
         // 本地直傳完成後，直接觸發與 webhook 等價的處理流程（掃毒 / 轉碼 / 標記 Ready）。
-        await storageEvents.HandleObjectCreatedAsync(key, size, ct);
+        // 公開物件的 blob 路徑帶 public/ 虛擬 bucket 段（對應雲端公開 bucket），
+        // 剝除後才是 StorageKey（與 GCS bucket notification 給的物件名一致）。
+        var objectKey = key.StartsWith("public/", StringComparison.Ordinal)
+            ? key["public/".Length..]
+            : key;
+        await storageEvents.HandleObjectCreatedAsync(objectKey, size, ct);
 
         return Ok();
     }
 
-    /// <summary>提供本地儲存檔案的下載；<c>public/</c> 前綴免簽章，其餘須帶有效簽章。</summary>
+    /// <summary>提供本地儲存檔案的下載；<c>public/</c> 虛擬 bucket 路徑段免簽章，其餘須帶有效簽章。</summary>
     /// <param name="key">物件鍵值（catch-all 路徑）。</param>
     /// <param name="expires">URL 到期時間（Unix 秒）；公開物件可省略。</param>
     /// <param name="sig">HMAC 簽章；公開物件可省略。</param>

@@ -10,26 +10,28 @@ public interface IStorageProvider
     /// 簽發上傳用 presigned PUT URL，前端透過此 URL 直傳檔案，不經 API 轉傳。
     /// </summary>
     /// <param name="key">物件鍵值（路徑），例如 "creators/{id}/{fileId}/photo.jpg"。</param>
+    /// <param name="isPublic">是否為公開讀取物件；決定公開 / 私有隔離（GCS bucket、本地虛擬 bucket 路徑段）。</param>
     /// <param name="contentType">預期的 MIME 類型，用於 Content-Type 限制。</param>
     /// <param name="maxBytes">允許上傳的最大位元組數。</param>
     /// <param name="expiry">簽章有效時限。</param>
     /// <param name="ct">Cancellation token。</param>
-    Task<string> GenerateUploadUrlAsync(string key, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default);
+    Task<string> GenerateUploadUrlAsync(string key, bool isPublic, string contentType, long maxBytes, TimeSpan expiry, CancellationToken ct = default);
 
     /// <summary>簽發下載用 presigned GET URL，用於一般檔案（非 HLS 串流）授權下載。</summary>
     /// <param name="key">物件鍵值。</param>
+    /// <param name="isPublic">是否為公開讀取物件。</param>
     /// <param name="expiry">簽章有效時限。</param>
     /// <param name="ct">Cancellation token。</param>
-    Task<string> GenerateDownloadUrlAsync(string key, TimeSpan expiry, CancellationToken ct = default);
+    Task<string> GenerateDownloadUrlAsync(string key, bool isPublic, TimeSpan expiry, CancellationToken ct = default);
 
     /// <summary>從儲存後端永久刪除物件（用於孤兒清理或硬刪除）。</summary>
-    Task DeleteAsync(string key, CancellationToken ct = default);
+    Task DeleteAsync(string key, bool isPublic, CancellationToken ct = default);
 
     /// <summary>確認物件是否存在於儲存後端（用於上傳狀態驗證）。</summary>
-    Task<bool> ObjectExistsAsync(string key, CancellationToken ct = default);
+    Task<bool> ObjectExistsAsync(string key, bool isPublic, CancellationToken ct = default);
 
     /// <summary>
-    /// 設定 `public/*` 前綴物件為匿名可讀（idempotent），供 Avatar/Banner 等公開資源使用。
+    /// 設定公開物件為匿名可讀（idempotent），供 Avatar/Banner 等公開資源使用。
     /// </summary>
     Task EnsurePublicReadPolicyAsync(CancellationToken ct = default);
 }

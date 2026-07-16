@@ -206,7 +206,7 @@ infra/helm/open-jam/
 | 參數 | 預設值 | 說明 |
 |------|--------|------|
 | `storage.provider` | `Gcs` | 儲存後端，`Gcs`（雲端，預設）或 `Local`（本地檔案系統） |
-| `storage.publicBucket` | `open-jam-public` | 公開讀取資產（Avatar/Banner、縮圖，`public/*`）所屬 GCS bucket |
+| `storage.publicBucket` | `open-jam-public` | 公開讀取資產（Avatar/Banner、縮圖，`IsPublic` 物件）所屬 GCS bucket |
 | `storage.privateBucket` | `open-jam-private` | 私有付費檔所屬 GCS bucket |
 | `storage.softDeleteRetentionDays` | `30` | 軟刪除檔案保留天數，超過後由 `OrphanCleanupService` 硬刪除 |
 | `storage.gcs.credentialsSecretName` | `gcs-sa-key` | GCS 服務帳戶金鑰的 k8s Secret 名稱；留空則改走 ADC / GKE Workload Identity |

@@ -33,7 +33,7 @@ public class RequestUploadUrlRequest
     /// <example>false</example>
     public bool IsPreview { get; set; }
 
-    /// <summary>是否為公開讀取物件（例如商店 Avatar/Banner）；true 時物件鍵值前綴為 "public/"。</summary>
+    /// <summary>是否為公開讀取物件（例如商店 Avatar/Banner）；決定存入公開或私有儲存空間。</summary>
     /// <example>false</example>
     public bool IsPublic { get; set; }
 }
@@ -50,11 +50,11 @@ public class RequestUploadUrlResponse
     public string UploadUrl { get; set; } = "";
 
     /// <summary>在儲存後端的物件鍵值。</summary>
-    /// <example>public/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png</example>
+    /// <example>creators/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png</example>
     public string StorageKey { get; set; } = "";
 
     /// <summary>公開讀取網址；僅 `IsPublic=true` 時提供。</summary>
-    /// <example>http://localhost:5171/v1/files/blob/public/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png</example>
+    /// <example>http://localhost:5171/v1/files/blob/public/creators/3fa85f64-5717-4562-b3fc-2c963f66afa6/.../avatar.png</example>
     public string? PublicUrl { get; set; }
 
     /// <summary>簽章 URL 過期時間（UTC）。</summary>
@@ -180,6 +180,10 @@ public class FileDto
     /// <summary>是否為公開預覽衍生檔。</summary>
     /// <example>false</example>
     public bool IsPreview { get; set; }
+
+    /// <summary>是否為公開讀取物件（例如商店 Avatar/Banner）。</summary>
+    /// <example>false</example>
+    public bool IsPublic { get; set; }
 
     /// <summary>功能 API 確認此檔已被實際使用的時間；null 表示尚未被使用。</summary>
     public DateTimeOffset? ReferencedAt { get; set; }
