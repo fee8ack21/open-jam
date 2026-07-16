@@ -426,7 +426,7 @@ function fmtDate(v?: string | null) {
                             @click="onDownloadFile(v.id!, a.id!)">
                       <app-icon name="download" :size="16" />
                     </button>
-                    <n-popconfirm @positive-click="onDeleteFile(v.id!, a.id!)">
+                    <n-popconfirm placement="top-end" @positive-click="onDeleteFile(v.id!, a.id!)">
                       <template #trigger>
                         <button class="ic-act" :title="t('common.delete')" :disabled="busy">
                           <app-icon name="trash" :size="16" />

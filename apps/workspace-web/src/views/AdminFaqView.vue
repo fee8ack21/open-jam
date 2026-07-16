@@ -227,7 +227,7 @@ onMounted(() => { loadCategories(); load() })
                 <td>
                   <div class="row-actions">
                     <button class="ic-act" :title="t('faqs.edit')" @click="openEdit(row)"><app-icon name="edit" :size="17" /></button>
-                    <n-popconfirm @positive-click="remove(row)">
+                    <n-popconfirm placement="top-end" @positive-click="remove(row)">
                       <template #trigger>
                         <button class="ic-act danger" :title="t('faqs.del')" :disabled="actingId === row.id"><app-icon name="trash" :size="17" /></button>
                       </template>

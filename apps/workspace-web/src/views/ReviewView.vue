@@ -180,7 +180,7 @@ onMounted(store.load)
                     </n-popover>
 
                     <!-- 核准 -->
-                    <n-popconfirm @positive-click="onApprove(a.id)">
+                    <n-popconfirm placement="top-end" @positive-click="onApprove(a.id)">
                       <template #trigger>
                         <n-button size="small" type="primary" :disabled="busyId === a.id" :loading="busyId === a.id">
                           <template #icon><app-icon name="check" :size="15" /></template>

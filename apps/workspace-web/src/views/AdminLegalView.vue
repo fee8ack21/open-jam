@@ -338,19 +338,19 @@ onMounted(load)
                     <button
                       v-if="row.status === LegalDocumentStatus.Draft"
                       class="ic-act" :title="t('common.edit')" @click="openEdit(row)"><app-icon name="edit" :size="17" /></button>
-                    <n-popconfirm v-if="row.status !== LegalDocumentStatus.Active" @positive-click="activate(row)">
+                    <n-popconfirm placement="top-end" v-if="row.status !== LegalDocumentStatus.Active" @positive-click="activate(row)">
                       <template #trigger>
                         <button class="ic-act" :title="t('legalDocs.activate')" :disabled="actingId === row.id"><app-icon name="check" :size="17" /></button>
                       </template>
                       {{ t('legalDocs.activateConfirm') }}
                     </n-popconfirm>
-                    <n-popconfirm v-else @positive-click="deactivate(row)">
+                    <n-popconfirm placement="top-end" v-else @positive-click="deactivate(row)">
                       <template #trigger>
                         <button class="ic-act danger" :title="t('legalDocs.deactivate')" :disabled="actingId === row.id"><app-icon name="minus" :size="17" /></button>
                       </template>
                       {{ t('legalDocs.deactivateConfirm') }}
                     </n-popconfirm>
-                    <n-popconfirm v-if="row.status === LegalDocumentStatus.Draft" @positive-click="remove(row)">
+                    <n-popconfirm placement="top-end" v-if="row.status === LegalDocumentStatus.Draft" @positive-click="remove(row)">
                       <template #trigger>
                         <button class="ic-act danger" :title="t('legalDocs.del')" :disabled="actingId === row.id"><app-icon name="trash" :size="17" /></button>
                       </template>

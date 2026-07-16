@@ -293,7 +293,7 @@ onMounted(load)
                     disabled>
                     <app-icon name="trash" :size="17" />
                   </button>
-                  <n-popconfirm v-else @positive-click="remove(category)">
+                  <n-popconfirm placement="top-end" v-else @positive-click="remove(category)">
                     <template #trigger>
                       <button class="ic-act danger" :title="t('common.delete')" :disabled="deletingId === category.id"><app-icon name="trash" :size="17" /></button>
                     </template>

@@ -123,7 +123,7 @@ onMounted(load)
                     <template #icon><app-icon name="refresh" :size="15" /></template>
                     {{ t('storeProducts.unsuspend') }}
                   </n-button>
-                  <n-popconfirm v-else @positive-click="onSuspend(p)">
+                  <n-popconfirm placement="top-end" v-else @positive-click="onSuspend(p)">
                     <template #trigger>
                       <n-button size="small" type="error" :disabled="busyId === p.id">
                         <template #icon><app-icon name="lock" :size="15" /></template>

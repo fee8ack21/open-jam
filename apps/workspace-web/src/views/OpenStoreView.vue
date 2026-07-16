@@ -114,7 +114,7 @@ onMounted(store.load)
                 {{ latestApplication.storeSlug }}.openjam.co · {{ t('openStore.submittedAt', { time: fmtDate(latestApplication.createdAt) }) }}
               </div>
             </div>
-            <n-popconfirm @positive-click="onWithdraw(latestApplication.id)">
+            <n-popconfirm placement="top-end" @positive-click="onWithdraw(latestApplication.id)">
               <template #trigger><n-button size="small" tertiary>{{ t('openStore.withdraw') }}</n-button></template>
               {{ t('openStore.withdrawConfirm') }}
             </n-popconfirm>

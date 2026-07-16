@@ -19,14 +19,14 @@ watch(error, (msg) => { if (msg) message.error(msg) })
 
 // 篩選狀態（買家信箱即時 debounce，狀態下拉即時生效）
 const emailFilter = ref('')
-const statusFilter = ref<OrderStatus | null>(null)
+const statusFilter = ref<OrderStatus | 'all'>('all')
 const page = ref(1)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
 async function applyFilter() {
   page.value = 1
-  await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value })
+  await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value === 'all' ? null : statusFilter.value })
 }
 // 買家信箱改由「搜尋」按鈕 / Enter 觸發；下拉狀態維持即時套用
 watch(statusFilter, () => {

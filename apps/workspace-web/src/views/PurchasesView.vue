@@ -20,9 +20,9 @@ watch(error, (msg) => { if (msg) message.error(msg) })
 const page = ref(1)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
-async function applyStatus(next: OrderStatus | null) {
+async function applyStatus(next: OrderStatus | 'all') {
   page.value = 1
-  await store.applyStatus(next)
+  await store.applyStatus(next === 'all' ? null : next)
 }
 async function changePage(p: number) {
   page.value = p
@@ -56,12 +56,11 @@ onMounted(store.load)
               <div class="fb-field" style="flex:1 1 200px;">
                 <label class="fb-label">{{ t('orders.orderStatus') }}</label>
                 <n-select
-                  :value="status"
-                  :placeholder="t('orders.orderStatusPlaceholder')"
+                  :value="status ?? 'all'"
                   :options="statusOptions"
                   @update:value="applyStatus" />
               </div>
-              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyStatus(status)">
+              <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyStatus(status ?? 'all')">
                 <template #icon><app-icon name="search" :size="16" /></template>
                 {{ t('common.search') }}
               </n-button>

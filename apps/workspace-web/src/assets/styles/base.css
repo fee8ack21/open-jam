@@ -271,6 +271,11 @@ body {
 }
 .n-dropdown-menu .n-dropdown-option-body { font-weight: 700; }
 
+/* popconfirm：限制寬度讓長文案換行，手機窄幅不撐出視窗 */
+.n-popover.n-popconfirm {
+  max-width: min(320px, calc(100vw - 24px));
+}
+
 /* dialog / modal 卡片：墨線 + 深軟投影 */
 .n-dialog,
 .n-modal .n-card {

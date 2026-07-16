@@ -48,11 +48,11 @@ export function orderStatusMeta(status?: OrderStatus): OrderStatusMeta {
   return (status && ORDER_STATUS_META[status]) || { labelKey: 'orderStatus.unknown', type: 'default' }
 }
 
-/** 狀態篩選下拉選項（含「全部」＝ null）；標籤依當前語系產生。 */
-export function orderStatusOptions(): { label: string; value: OrderStatus | null }[] {
+/** 狀態篩選下拉選項（含「全部」＝ 'all' sentinel，避免 null 讓下拉顯示 placeholder）；標籤依當前語系產生。 */
+export function orderStatusOptions(): { label: string; value: OrderStatus | 'all' }[] {
   const t = i18n.global.t
   return [
-    { label: t('orderStatus.all'), value: null },
+    { label: t('orderStatus.all'), value: 'all' },
     { label: t('orderStatus.pending'), value: OrderStatus.Pending },
     { label: t('orderStatus.paid'), value: OrderStatus.Paid },
     { label: t('orderStatus.completed'), value: OrderStatus.Completed },

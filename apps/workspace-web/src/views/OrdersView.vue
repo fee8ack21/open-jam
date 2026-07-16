@@ -24,14 +24,14 @@ const myStoreId = computed(() => storeApp.primaryStore?.id ?? null)
 
 // 篩選狀態（買家信箱即時 debounce，狀態下拉即時生效）
 const emailFilter = ref('')
-const statusFilter = ref<OrderStatus | null>(null)
+const statusFilter = ref<OrderStatus | 'all'>('all')
 const page = ref(1)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 
 async function applyFilter() {
   page.value = 1
-  await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value })
+  await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value === 'all' ? null : statusFilter.value })
 }
 // 買家信箱改由「搜尋」按鈕 / Enter 觸發；下拉狀態維持即時套用
 watch(statusFilter, () => {
@@ -58,7 +58,7 @@ async function openDetail(row: OrderSummaryDto) {
 /** 綁定（或切換）查詢商店並重置篩選表單。 */
 async function bindStore(id: string) {
   emailFilter.value = ''
-  statusFilter.value = null
+  statusFilter.value = 'all'
   page.value = 1
   await store.setStore(id)
 }
@@ -90,7 +90,6 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
                 <label class="fb-label">{{ t('orders.orderStatus') }}</label>
                 <n-select
                   v-model:value="statusFilter"
-                  :placeholder="t('orders.orderStatusPlaceholder')"
                   :options="statusOptions" />
               </div>
               <n-button class="fb-search-btn" type="primary" :loading="loading" @click="applyFilter">

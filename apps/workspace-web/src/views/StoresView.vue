@@ -188,6 +188,7 @@ onMounted(store.load)
                       <!-- 停權 / 解除停權 -->
                       <n-popconfirm
                         v-if="s.status === StoreStatus.Active"
+                        placement="top-end"
                         @positive-click="onSuspend(s.id)">
                         <template #trigger>
                           <n-button size="small" tertiary :disabled="busyId === s.id">
@@ -209,7 +210,7 @@ onMounted(store.load)
                       </n-button>
 
                       <!-- 關閉（終態不可逆） -->
-                      <n-popconfirm @positive-click="onClose(s.id)">
+                      <n-popconfirm placement="top-end" @positive-click="onClose(s.id)">
                         <template #trigger>
                           <n-button size="small" type="error" :disabled="busyId === s.id">
                             <template #icon><app-icon name="close" :size="15" /></template>
