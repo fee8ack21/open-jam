@@ -223,6 +223,23 @@ async function deactivate(row: LegalDocumentSummaryDto) {
   }
 }
 
+// ── 刪除草稿（僅 Draft 可刪，後端軟刪除）────────────────────
+async function remove(row: LegalDocumentSummaryDto) {
+  if (!row.id) return
+  actingId.value = row.id
+  try {
+    await contentApi.legalDocuments.delete(row.id)
+    message.success(t('legalDocs.msgDeleted'))
+    // 刪除末頁最後一筆時退回前一頁
+    if (items.value.length === 1 && page.value > 1) page.value -= 1
+    await load()
+  } catch (err) {
+    message.error(messageOf(err))
+  } finally {
+    actingId.value = null
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -307,6 +324,12 @@ onMounted(load)
                         <button class="ic-act danger" :title="t('legalDocs.deactivate')" :disabled="actingId === row.id"><app-icon name="minus" :size="17" /></button>
                       </template>
                       {{ t('legalDocs.deactivateConfirm') }}
+                    </n-popconfirm>
+                    <n-popconfirm v-if="row.status === LegalDocumentStatus.Draft" @positive-click="remove(row)">
+                      <template #trigger>
+                        <button class="ic-act danger" :title="t('legalDocs.del')" :disabled="actingId === row.id"><app-icon name="trash" :size="17" /></button>
+                      </template>
+                      {{ t('legalDocs.deleteConfirm') }}
                     </n-popconfirm>
                   </div>
                 </td>

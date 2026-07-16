@@ -4,10 +4,10 @@ namespace ContentService.Data.Entities;
 
 /// <summary>
 /// 法律文件（服務條款 / 隱私權政策）版本。
-/// 每次修訂為一筆新紀錄（同類型 Version 遞增），永不刪除，供同意紀錄與歷史比對。
-/// 僅 Draft 可編輯；啟用時同類型既有 Active 文件自動轉為 Inactive。
+/// 每次修訂為一筆新紀錄（同類型 Version 遞增）；啟用過的版本不可刪除，供同意紀錄與歷史比對，
+/// 僅 Draft 可編輯與刪除（軟刪除）。啟用時同類型既有 Active 文件自動轉為 Inactive。
 /// </summary>
-public class LegalDocument : ICreatedAt, IUpdatedAt, IUpdatedBy
+public class LegalDocument : ICreatedAt, IUpdatedAt, IUpdatedBy, IDeletedAt, IDeletedBy
 {
     /// <summary>文件唯一識別碼。</summary>
     public Guid Id { get; private set; } = Guid.NewGuid();
@@ -38,4 +38,10 @@ public class LegalDocument : ICreatedAt, IUpdatedAt, IUpdatedBy
 
     /// <inheritdoc/>
     public Guid? UpdatedBy { get; private set; }
+
+    /// <inheritdoc/>
+    public DateTimeOffset? DeletedAt { get; private set; }
+
+    /// <inheritdoc/>
+    public Guid? DeletedBy { get; private set; }
 }

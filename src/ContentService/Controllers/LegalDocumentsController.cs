@@ -11,7 +11,7 @@ namespace ContentService.Controllers;
 /// 法律文件（服務條款 / 隱私權政策）版本管理 REST API。
 /// 管理端點僅具 "Admin" 角色的 Hydra access token 可存取；
 /// 「目前啟用版本」查詢為匿名公開（portal-web 條款頁與 Auth 註冊 / 登入同意流程呈現用）。
-/// 文件不可刪除（無 DELETE 端點），停用後仍保留供歷史比對。
+/// 僅草稿可刪除（軟刪除）；啟用過的版本停用後仍保留供歷史比對，不可刪除。
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
@@ -92,4 +92,17 @@ public class LegalDocumentsController(ILegalDocumentService legalDocumentService
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<LegalDocumentDto>> Deactivate(Guid id, CancellationToken ct)
         => Ok(await legalDocumentService.DeactivateAsync(id, ct));
+
+    /// <summary>刪除法律文件草稿（軟刪除）；僅 Draft 狀態可刪除。</summary>
+    /// <param name="id">文件 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await legalDocumentService.DeleteAsync(id, ct);
+        return NoContent();
+    }
 }

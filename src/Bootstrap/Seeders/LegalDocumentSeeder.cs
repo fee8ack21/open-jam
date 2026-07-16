@@ -34,7 +34,8 @@ public class LegalDocumentSeeder(ContentDbContext db, ILogger<LegalDocumentSeede
 
     private async Task SeedTypeAsync(LegalDocumentType type, string title, string contentPath)
     {
-        if (await db.LegalDocuments.AnyAsync(d => d.Type == type))
+        // 含已軟刪除的草稿一併檢查：曾有紀錄即代表已初始化過，避免重插 Version = 1 撞唯一索引
+        if (await db.LegalDocuments.IgnoreQueryFilters().AnyAsync(d => d.Type == type))
         {
             logger.LogInformation("Legal document {Type} already exists, skipped", type);
             return;

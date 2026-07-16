@@ -707,6 +707,8 @@
     "deactivate": "Deactivate",
     "activateConfirm": "Activating publishes this version and deactivates the current one of the same type; existing members must re-consent at sign-in. Continue?",
     "deactivateConfirm": "After deactivation there will be no active version to display. Continue?",
+    "del": "Delete draft",
+    "deleteConfirm": "Delete this draft? Previously activated versions are not affected.",
     "valTitleRequired": "Title is required",
     "valContentRequired": "Content is required",
     "msgLoadFailed": "Failed to load, please try again later",
@@ -717,6 +719,7 @@
     "msgUpdateFailed": "Failed to update",
     "msgActivated": "Version activated",
     "msgDeactivated": "Version deactivated",
+    "msgDeleted": "Draft deleted",
     "previewLabel": "Preview",
     "previewEmpty": "Type content to see a live preview of the final layout"
   },

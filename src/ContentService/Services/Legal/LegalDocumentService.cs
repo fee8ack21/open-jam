@@ -10,7 +10,7 @@ using Shared.Exceptions;
 
 namespace ContentService.Services.Legal;
 
-/// <summary>法律文件版本管理的具體實作。文件永不刪除，僅以狀態控制生效與否。</summary>
+/// <summary>法律文件版本管理的具體實作。啟用過的版本不可刪除，僅以狀態控制生效與否；草稿可軟刪除。</summary>
 public class LegalDocumentService(
     ContentDbContext db,
     IMapper mapper,
@@ -66,7 +66,9 @@ public class LegalDocumentService(
     /// <inheritdoc/>
     public async Task<LegalDocumentDto> CreateAsync(CreateLegalDocumentRequest request, CancellationToken ct = default)
     {
+        // 含已軟刪除的草稿一併計算，避免新版本號撞到 (Type, Version) 唯一索引
         var maxVersion = await db.LegalDocuments
+            .IgnoreQueryFilters()
             .Where(d => d.Type == request.Type)
             .MaxAsync(d => (int?)d.Version, ct) ?? 0;
 
@@ -149,5 +151,19 @@ public class LegalDocumentService(
         await db.SaveChangesAsync(ct);
 
         return mapper.Map<LegalDocumentDto>(doc);
+    }
+
+    /// <inheritdoc/>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var doc = await db.LegalDocuments.FirstOrDefaultAsync(d => d.Id == id, ct)
+            ?? throw new NotFoundException("找不到指定的法律文件");
+
+        if (doc.Status != LegalDocumentStatus.Draft)
+            throw new ConflictException("僅草稿狀態的文件可刪除；已啟用或停用的版本為歷史紀錄，不可刪除");
+
+        db.LegalDocuments.Remove(doc);
+        audit.Add(currentUser.UserId, "legal.delete", "LegalDocument", doc.Id);
+        await db.SaveChangesAsync(ct);
     }
 }

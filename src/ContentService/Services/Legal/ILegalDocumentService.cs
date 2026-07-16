@@ -26,4 +26,7 @@ public interface ILegalDocumentService
 
     /// <summary>停用啟用中的文件（Active → Inactive）；非 Active 狀態擲出 Conflict。</summary>
     Task<LegalDocumentDto> DeactivateAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>刪除草稿（軟刪除）；非 Draft 狀態為歷史紀錄不可刪除，擲出 Conflict。</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

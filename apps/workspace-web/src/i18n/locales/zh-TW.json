@@ -707,6 +707,8 @@
     "deactivate": "停用",
     "activateConfirm": "啟用後此版本將對外生效，同類型現行版本會自動停用；既有會員登入時需重新同意。確定啟用？",
     "deactivateConfirm": "停用後前台將沒有生效中的版本可呈現。確定停用？",
+    "del": "刪除草稿",
+    "deleteConfirm": "確定刪除此草稿？啟用過的版本不受影響。",
     "valTitleRequired": "請輸入標題",
     "valContentRequired": "請輸入內容",
     "msgLoadFailed": "載入失敗，請稍後再試",
@@ -717,6 +719,7 @@
     "msgUpdateFailed": "更新失敗",
     "msgActivated": "已啟用此版本",
     "msgDeactivated": "已停用此版本",
+    "msgDeleted": "草稿已刪除",
     "previewLabel": "預覽",
     "previewEmpty": "輸入內容後即時預覽最終呈現樣式"
   },

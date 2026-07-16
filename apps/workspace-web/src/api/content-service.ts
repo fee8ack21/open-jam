@@ -1018,6 +1018,21 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags LegalDocuments
+     * @name Delete
+     * @summary 刪除法律文件草稿（軟刪除）；僅 Draft 狀態可刪除。
+     * @request DELETE:/v1/legal-documents/{id}
+     */
+    delete: (id: string, params: RequestParams = {}) =>
+      this.http.request<void, ProblemDetails>({
+        path: `/v1/legal-documents/${id}`,
+        method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags LegalDocuments
      * @name Activate
      * @summary 啟用文件（Draft / Inactive → Active）；同類型既有啟用版本自動轉為 Inactive。
      * @request POST:/v1/legal-documents/{id}/activate
