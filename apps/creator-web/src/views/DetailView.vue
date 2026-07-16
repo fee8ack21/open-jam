@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
+import { useAuthStore } from '@/stores/auth';
 import { CATEGORIES, type PreviewMediaItem } from '@/data/products';
 import ProductThumb from '@/components/ProductThumb.vue';
 import AppIcon from '@/components/app-icon';
@@ -17,6 +18,7 @@ const FILE_COLORS: Record<string, string> = {
 };
 
 const store = useShopStore();
+const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
@@ -150,7 +152,7 @@ const goCart = () => router.push({ name: 'checkout' });
       <div class="buy-card">
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <span class="chip" style="background:var(--t-green)">{{ catLabel }}</span>
-            <button class="fav" :class="{ on: fav }" :title="t('detail.favTitle')"
+            <button v-if="!auth.isAdmin" class="fav" :class="{ on: fav }" :title="t('detail.favTitle')"
                     @click="store.toggleFav(p.id)">
               <app-icon :name="fav ? 'heart' : 'heartLine'" :size="18" />
             </button>

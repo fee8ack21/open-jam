@@ -1,6 +1,7 @@
 using CatalogService.Data;
 using CatalogService.Data.Entities;
 using CatalogService.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
 using Shared.Exceptions;
@@ -8,12 +9,20 @@ using Shared.Exceptions;
 namespace CatalogService.Services.Favorites;
 
 /// <summary>使用者商品收藏（wishlist）業務邏輯實作。收藏為登入使用者所有（UserId 取自 JWT sub）。</summary>
-public class CatalogFavoriteService(CatalogDbContext db, ICurrentUserAccessor currentUser) : ICatalogFavoriteService
+public class CatalogFavoriteService(
+    CatalogDbContext db,
+    ICurrentUserAccessor currentUser,
+    IHttpContextAccessor httpContextAccessor) : ICatalogFavoriteService
 {
     /// <inheritdoc/>
     public async Task AddAsync(Guid catalogId, CancellationToken ct)
     {
         var userId = currentUser.UserId ?? throw new UnauthorizedException();
+
+        // 管理員無消費者身分，不可收藏商品
+        var isAdmin = httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
+        if (isAdmin)
+            throw new ForbiddenException("管理員不可收藏商品。");
 
         var catalogExists = await db.Catalogs.AnyAsync(c => c.Id == catalogId, ct);
         if (!catalogExists)

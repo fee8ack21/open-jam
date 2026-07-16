@@ -41,6 +41,15 @@ export const useAuthStore = defineStore('auth', () => {
     () => (accessTokenExt.value?.email as string | undefined) ?? userIdentity.value?.profile?.email ?? null,
   );
 
+  /**
+   * 平台角色，取自 access token 的 `ext.role` claim（由 Hydra consent 注入）。
+   * 是否為系統管理員（role === "Admin"）；管理員不具消費者身分，不可收藏商品。
+   */
+  const userRole = computed<string | null>(
+    () => (accessTokenExt.value?.role as string | undefined) ?? null,
+  );
+  const isAdmin = computed(() => (userRole.value ?? '').toLowerCase() === 'admin');
+
   async function getUserIdentity(): Promise<void> {
     if (loadPromise) return loadPromise;
 
@@ -139,6 +148,8 @@ export const useAuthStore = defineStore('auth', () => {
     userIdentity,
     isAuthenticated,
     userEmail,
+    userRole,
+    isAdmin,
     getUserIdentity,
     login,
     logout,

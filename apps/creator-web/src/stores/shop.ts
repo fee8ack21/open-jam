@@ -238,10 +238,10 @@ export const useShopStore = defineStore('shop', () => {
   function setTheme(t: Theme) { theme.value = t; save('theme', t); }
   function toggleTheme() { setTheme(theme.value === 'light' ? 'dark' : 'light'); }
 
-  /** 載入目前登入使用者的收藏清單；未登入則清空。 */
+  /** 載入目前登入使用者的收藏清單；未登入或管理員（無消費者身分）則清空。 */
   async function loadFavorites() {
     const auth = useAuthStore();
-    if (!auth.isAuthenticated) {
+    if (!auth.isAuthenticated || auth.isAdmin) {
       favorites.value = [];
       return;
     }
@@ -264,6 +264,7 @@ export const useShopStore = defineStore('shop', () => {
       auth.login();   // 預設 state 為目前網址，登入後導回本商品頁
       return;
     }
+    if (auth.isAdmin) return; // 管理員無消費者身分，不可收藏（UI 已隱藏入口，此為防呆）
 
     const wasFav = favorites.value.includes(id);
     // 樂觀更新（愛心立即反映）
