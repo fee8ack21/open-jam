@@ -18,6 +18,7 @@ public class StoreApplicationService(
     StoreDbContext db,
     ICurrentUserAccessor currentUser,
     AuditLogPublisher auditLog,
+    StoreEventPublisher storeEvents,
     IHttpContextAccessor httpContextAccessor,
     IMapper mapper) : IStoreApplicationService
 {
@@ -145,6 +146,9 @@ public class StoreApplicationService(
         application.Status = StoreApplicationStatus.Approved;
         application.ReviewedAt = DateTimeOffset.UtcNow;
         application.ReviewedBy = adminId;
+
+        // Auth 消費此事件，將店面子網域的 OIDC redirect URI 註冊進 Hydra web client
+        storeEvents.AddStoreProvisioned(store.Id, store.StoreSlug);
 
         auditLog.Add(
             who: adminId,

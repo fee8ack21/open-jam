@@ -1,5 +1,7 @@
 @{
     ViewData["Title"] = T["Error.PageTitle"];
+    var oidcError = ViewData["OidcError"] as string;
+    var oidcErrorDescription = ViewData["OidcErrorDescription"] as string;
 }
 
 <div class="auth-shell" data-screen="login-error">
@@ -11,6 +13,6 @@
         <div class="mobile-brand">
             @await Html.PartialAsync("_BrandLockup")
         </div>
-        <div class="form-wrap"><div class="screen"><div class="success-ring danger">@IconHelper.Render("alert", 40)</div><h2 class="form-title">@T["Error.Title"]</h2><p class="form-sub">@T["Error.Sub"]</p><div class="callout">@IconHelper.Render("shield", 18)<span>@Html.Raw(T["Error.Callout"])</span></div><div class="form-body"><a class="btn-pop violet" asp-action="Login" asp-controller="Home">@IconHelper.Render("arrowRight", 17) @T["Error.Retry"]</a></div><p class="err-code"><span class="dot"></span>@T["Error.Code"] <b>OIDC_CORRELATION_FAILED</b></p></div></div>
+        <div class="form-wrap"><div class="screen"><div class="success-ring danger">@IconHelper.Render("alert", 40)</div><h2 class="form-title">@T["Error.Title"]</h2><p class="form-sub">@T["Error.Sub"]</p><div class="callout">@IconHelper.Render("shield", 18)<span>@Html.Raw(T["Error.Callout"])</span></div><div class="form-body"><a class="btn-pop violet" asp-action="Login" asp-controller="Home">@IconHelper.Render("arrowRight", 17) @T["Error.Retry"]</a></div><p class="err-code"><span class="dot"></span>@T["Error.Code"] <b>@(string.IsNullOrEmpty(oidcError) ? "OIDC_CORRELATION_FAILED" : oidcError)</b></p>@if (!string.IsNullOrEmpty(oidcErrorDescription)) { <p class="err-code">@oidcErrorDescription</p> }</div></div>
     </main>
 </div>

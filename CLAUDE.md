@@ -101,7 +101,7 @@ pnpm preview
 
 **`ExceptionMiddleware`** — 僅用於 **REST API 服務**。在 `Program.cs` 以 `app.UseExceptionMiddleware()` 掛載，需排在所有其他 middleware 之前。MVC 服務不使用此 middleware，改以 `app.UseExceptionHandler(...)` 處理。
 
-**Events**（`Shared/Events/`）— `EmailRequestedEvent`、`AuditLogRequestedEvent`、`FileReadyEvent`、`PaymentSucceededEvent`、`OrderCompletedEvent`、`CatalogPublishedEvent`、`StoreFollowerChangedEvent`、`UserRegisteredEvent`：各服務在業務 transaction 內寫入 Outbox，由 `OutboxRelayService` 排程搬入 RabbitMQ。
+**Events**（`Shared/Events/`）— `EmailRequestedEvent`、`AuditLogRequestedEvent`、`FileReadyEvent`、`PaymentSucceededEvent`、`OrderCompletedEvent`、`CatalogPublishedEvent`、`StoreFollowerChangedEvent`、`StoreProvisionedEvent`、`UserRegisteredEvent`：各服務在業務 transaction 內寫入 Outbox，由 `OutboxRelayService` 排程搬入 RabbitMQ。
 
 ## Outbox 模式
 
@@ -117,6 +117,7 @@ ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 - `ContentServiceClient` + `LegalConsentService` — 法律文件本身由 **ContentService** 管理，Auth 僅保留**同意紀錄**（`UserLegalConsent`，`LegalDocumentId` 為跨服務參照、無外鍵）。`ContentServiceClient`（named HttpClient `"content"`）呼叫 ContentService 匿名端點 `GET /v1/legal-documents/active` 取啟用版本；`LegalConsentService` 以此比對本地同意紀錄算出「未同意清單」（`GetPendingConsentAsync`）、寫入同意（`RecordConsentsAsync`）。註冊時 ContentService 不可用則中止註冊（fail-closed，不建帳號）。
 - `Argon2idHasher` — 密碼雜湊
 - `OutboxRelayService` — Outbox → RabbitMQ
+- **店面子網域 OIDC redirect URI 註冊**（`Services/Storefront/` + `Consumers/StoreProvisionedConsumer`）— Hydra 不支援萬用字元 redirect URI，creator-web 店面（`<slug>.openjam.co`）的 `callback.html` / `silent-renew.html` / post-logout URI 須逐店列入 `open-jam-web` client 白名單。消費 `StoreProvisionedEvent`（開店核准）由 `StorefrontRedirectService` 註冊：Hydra client 更新為整包 read-modify-write，以 PostgreSQL advisory lock（`pg_advisory_xact_lock`）序列化防 lost update；缺漏才追加、冪等。URL 樣式取自 `App:StorefrontUrlPattern`（`{storeSlug}` 佔位符）、client id 取自 `Hydra:WebClientId`。存量店家由 Bootstrap `StorefrontRedirectSeeder` 回填
 
 **REST API**：`GET /v1/users`（Admin，`UsersController`）——全平台使用者分頁列表，供 workspace-web 管理員後台會員列表。（法律文件管理 API 已移至 ContentService。）
 
@@ -162,6 +163,7 @@ REST API，管理開店申請、店家與追蹤。Controller（`StoreApplication
 - **全平台商店列表**：`GET /v1/stores`（Admin），供 workspace-web 管理員後台。
 - **`StoreSlugValidator` / `StoreAuthorization`**：子網域 slug 驗證與店家成員授權。
 - **追蹤者事件**：Follow / Unfollow 經 Outbox 發 `StoreFollowerChangedEvent`（NotificationService 同步 ref 表）；`UserRegisteredConsumer` 消費 `UserRegisteredEvent` 回填訪客追蹤者的 `UserId`。
+- **開通事件**：開店申請核准（建立 Store）經 Outbox 發 `StoreProvisionedEvent`（Auth 消費，將店面子網域 OIDC redirect URI 註冊進 Hydra web client）。
 - **`AuditLogPublisher`** + `OutboxRelayService`：經 Outbox 發 `AuditLogRequestedEvent`。
 
 ## CatalogService（`src/CatalogService/`）
@@ -236,7 +238,7 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
 
 ## Bootstrap（`src/Bootstrap/`）
 
-一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`LegalDocumentSeeder`（seed 服務條款 / 隱私權政策初始啟用版本至 **ContentService** DB，該類型已有紀錄即略過）、`FaqSeeder`（seed 常見問題主題分類與初始問答至 ContentService DB，取自 portal-web 原前端 FAQ；分類以 slug 冪等 upsert，問答於 FAQ 表已有資料時略過）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）後結束。
+一次性 seed 工具，依序執行 `HydraClientSeeder`（註冊 Hydra OIDC client：Web 與 Service）、`EmailTemplateSeeder`（寫入郵件模板）、`UserSeeder`（建平台管理員，另可選 seed 假帳號）、`LegalDocumentSeeder`（seed 服務條款 / 隱私權政策初始啟用版本至 **ContentService** DB，該類型已有紀錄即略過）、`FaqSeeder`（seed 常見問題主題分類與初始問答至 ContentService DB，取自 portal-web 原前端 FAQ；分類以 slug 冪等 upsert，問答於 FAQ 表已有資料時略過）、`StoreSeeder`（可選 seed 假店家）、`CatalogCategorySeeder`（寫入平台分類）、`StoreFollowerRefSeeder`（回填 NotificationService 追蹤者參照表，重跑冪等）、`StorefrontRedirectSeeder`（回填既有店家子網域的 OIDC redirect URI 至 Hydra web client，重跑冪等；新店家由 Auth 消費 `StoreProvisionedEvent` 即時註冊）後結束。
 
 掛載 6 個 DbContext：`AuthConnection` / `EmailConnection` / `CatalogConnection` / `StoreConnection` / `NotificationConnection` / `ContentConnection`（具名連線字串，非共用 `DefaultConnection`）。設定 key：`AdminUser:Email` / `:Password`（皆需有值才 seed 管理員）、`MockUsers:Enabled` / `MockStores:Enabled`（正式環境須為 `false`）、`HydraClients:Web` / `:Service`。Helm 由 `templates/bootstrap/job.yaml` 以環境變數注入上述設定。
 
@@ -252,8 +254,9 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
 }
 // Auth 額外需要
 {
-  "Hydra": { "AdminUrl": "http://localhost:4445" },
-  "App": { "BaseUrl": "https://localhost:7280" },
+  "Hydra": { "AdminUrl": "http://localhost:4445", "WebClientId": "open-jam-web" },
+  // StorefrontUrlPattern：店面子網域 OIDC redirect URI 註冊用（{storeSlug} 佔位符）
+  "App": { "BaseUrl": "https://localhost:7280", "StorefrontUrlPattern": "https://{storeSlug}.openjam.co/" },
   // 取得啟用中法律文件供註冊 / 登入 re-consent 同意流程
   "Services": { "ContentService": { "BaseUrl": "http://localhost:5181" } }
 }

@@ -60,6 +60,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<StoreSeeder>();
         services.AddScoped<CatalogCategorySeeder>();
         services.AddScoped<StoreFollowerRefSeeder>();
+        services.AddScoped<StorefrontRedirectSeeder>();
     })
     .Build();
 
@@ -74,6 +75,7 @@ await sp.GetRequiredService<FaqSeeder>().SeedAsync();
 await sp.GetRequiredService<StoreSeeder>().SeedAsync();
 await sp.GetRequiredService<CatalogCategorySeeder>().SeedAsync();
 await sp.GetRequiredService<StoreFollowerRefSeeder>().SeedAsync();
+await sp.GetRequiredService<StorefrontRedirectSeeder>().SeedAsync();
 
 // TODO: SubdomainReservedWordSeeder — 待 Auth 或 Product DbContext 建立後接入。
 // 負責將系統占用子網域（auth / workspace / creator / market / api / www / mail）

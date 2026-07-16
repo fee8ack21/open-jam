@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 
 namespace Auth.Services.Hydra;
 
@@ -72,6 +73,20 @@ public class HydraService(IHttpClientFactory factory) : IHydraService
         EnsureChallengeSuccess(response);
         var result = await response.Content.ReadFromJsonAsync<HydraRedirectResponse>();
         return result!.RedirectTo;
+    }
+
+    public async Task<JsonNode?> GetClientAsync(string clientId, CancellationToken ct = default)
+    {
+        var response = await _http.GetAsync($"admin/clients/{Uri.EscapeDataString(clientId)}", ct);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<JsonNode>(ct);
+    }
+
+    public async Task PutClientAsync(string clientId, JsonNode client, CancellationToken ct = default)
+    {
+        var response = await _http.PutAsJsonAsync($"admin/clients/{Uri.EscapeDataString(clientId)}", client, ct);
+        response.EnsureSuccessStatusCode();
     }
 
     /// <summary>

@@ -14,4 +14,11 @@ public class AppOptions
     /// <summary>Portal Web（平台首頁）根 URL，供登入頁「返回平台」連結使用。</summary>
     /// <example>https://openjam.co</example>
     public string PortalUrl { get; set; } = null!;
+
+    /// <summary>
+    /// 創作者店面根 URL 樣式（{storeSlug} 佔位符），供組出店面子網域的 OIDC redirect URI
+    /// 註冊進 Hydra web client。
+    /// </summary>
+    /// <example>https://{storeSlug}.openjam.co/</example>
+    public string StorefrontUrlPattern { get; set; } = Services.Storefront.StorefrontRedirectUris.DefaultUrlPattern;
 }

@@ -1,3 +1,4 @@
+using Auth.Consumers;
 using Auth.Data;
 using Auth.Options;
 using Auth.Services.Background;
@@ -5,6 +6,7 @@ using Auth.Services.Content;
 using Auth.Services.Hydra;
 using Auth.Services.Legal;
 using Auth.Services.Security;
+using Auth.Services.Storefront;
 using Auth.Services.Users;
 using MassTransit;
 using Microsoft.AspNetCore.Localization;
@@ -73,16 +75,27 @@ builder.Services.AddScoped<ICurrentUserAccessor, HttpContextUserAccessor>();
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseOpenJamNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// MassTransit (publisher only)
+// MassTransit（Outbox 事件發布 + 消費 StoreProvisionedEvent 註冊店面 redirect URI）
 builder.Services.AddMassTransit(x =>
 {
-    x.UsingRabbitMq((_, cfg) =>
+    x.AddConsumer<StoreProvisionedConsumer>(cfg =>
+    {
+        cfg.UseMessageRetry(r => r.Exponential(
+            retryLimit:    5,
+            minInterval:   TimeSpan.FromSeconds(1),
+            maxInterval:   TimeSpan.FromSeconds(30),
+            intervalDelta: TimeSpan.FromSeconds(2)));
+    });
+
+    x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
         });
+
+        cfg.ConfigureEndpoints(ctx);
     });
 });
 
@@ -90,6 +103,7 @@ builder.Services.AddMassTransit(x =>
 builder.Services.AddScoped<IPasswordHasher, Argon2idHasher>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILegalConsentService, LegalConsentService>();
+builder.Services.AddScoped<IStorefrontRedirectService, StorefrontRedirectService>();
 builder.Services.AddHostedService<OutboxRelayService>();
 
 var app = builder.Build();

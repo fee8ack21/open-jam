@@ -13,6 +13,9 @@ public class StoreEventPublisher(StoreDbContext db)
     /// <summary>商店追蹤關係變更事件的 Outbox EventType。</summary>
     public const string StoreFollowerChangedType = "store.follower_changed";
 
+    /// <summary>商店開通事件的 Outbox EventType。</summary>
+    public const string StoreProvisionedType = "store.provisioned";
+
     /// <summary>寫入一筆 StoreFollowerChangedEvent。不負責 SaveChanges。</summary>
     /// <param name="storeId">商店 ID。</param>
     /// <param name="email">追蹤者信箱。</param>
@@ -27,6 +30,20 @@ public class StoreEventPublisher(StoreDbContext db)
             Email: email,
             UserId: userId,
             Followed: followed,
+            OccurredAt: DateTimeOffset.UtcNow));
+        db.OutboxMessages.Add(outbox);
+    }
+
+    /// <summary>寫入一筆 StoreProvisionedEvent（開店申請核准、商店建立時）。不負責 SaveChanges。</summary>
+    /// <param name="storeId">商店 ID。</param>
+    /// <param name="storeSlug">商店子網域 slug。</param>
+    public void AddStoreProvisioned(Guid storeId, string storeSlug)
+    {
+        var outbox = new OutboxMessage { EventType = StoreProvisionedType };
+        outbox.Payload = JsonSerializer.Serialize(new StoreProvisionedEvent(
+            OutboxMessageId: outbox.Id,
+            StoreId: storeId,
+            StoreSlug: storeSlug,
             OccurredAt: DateTimeOffset.UtcNow));
         db.OutboxMessages.Add(outbox);
     }

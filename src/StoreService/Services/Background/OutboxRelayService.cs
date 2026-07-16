@@ -67,6 +67,8 @@ public class OutboxRelayService(
                         => JsonSerializer.Deserialize<EmailRequestedEvent>(message.Payload)!,
                     StoreEventPublisher.StoreFollowerChangedType
                         => JsonSerializer.Deserialize<StoreFollowerChangedEvent>(message.Payload)!,
+                    StoreEventPublisher.StoreProvisionedType
+                        => JsonSerializer.Deserialize<StoreProvisionedEvent>(message.Payload)!,
                     _   => JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload)!,
                 };
 

@@ -295,9 +295,18 @@ public class HomeController(
     [HttpGet("reset-done")]
     public IActionResult ResetDone() => View();
 
-    /// <summary>錯誤頁。</summary>
+    /// <summary>
+    /// 錯誤頁；Hydra 的 URLS_ERROR 導入時帶 error / error_description query，
+    /// 顯示真實錯誤代碼與描述以利排查（如 redirect URI 不在白名單）。
+    /// UseExceptionHandler 導入（無 query）時退回既有通用文案。
+    /// </summary>
     [HttpGet("error")]
-    public IActionResult Error() => View();
+    public IActionResult Error(string? error, string? error_description)
+    {
+        ViewData["OidcError"] = error;
+        ViewData["OidcErrorDescription"] = error_description;
+        return View();
+    }
 
     /// <summary>切換語系，設定 Cookie 後導回原頁。</summary>
     [HttpGet("set-language")]
