@@ -60,9 +60,6 @@ const columns = [
 function fmtDate(v?: string | null) {
   return v ? new Date(v).toLocaleString(locale.value, { hour12: false }) : '—'
 }
-function initial(email?: string | null) {
-  return (email?.charAt(0) || '?').toUpperCase()
-}
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store.pageSize)))
 const hasFilter = computed(() =>
@@ -144,7 +141,6 @@ async function changePageSize(size: number) { page.value = 1; await store.setPag
               <tr v-for="m in items" v-else :key="m.id">
                 <td>
                   <div class="prod-cell">
-                    <span class="store-rank">{{ initial(m.email) }}</span>
                     <div style="min-width:0;">
                       <div class="pc-title">
                         {{ m.email }}

@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStoreListStore } from '@/stores/storeList'
 import { StoreStatus } from '@/api/store-service'
+import { JFmt } from '@/utils/format'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -157,9 +158,12 @@ onMounted(store.load)
               </tr>
               <tr v-for="s in items" v-else :key="s.id">
                 <td>
-                  <div style="min-width:0;">
+                  <div class="store-cell">
+                    <div class="store-avatar"
+                         :style="s.avatarUrl ? { backgroundImage: `url(${s.avatarUrl})` } : {}">
+                      <span v-if="!s.avatarUrl">{{ JFmt.initials(s.storeName || 'S') }}</span>
+                    </div>
                     <button class="store-name-button" @click="openProducts(s.id)">{{ s.storeName }}</button>
-                    <div v-if="s.description" class="pc-meta">{{ s.description }}</div>
                   </div>
                 </td>
                 <td>
@@ -289,6 +293,12 @@ onMounted(store.load)
   min-width: 940px;
 }
 
+/* 各欄位一律不折行（子網域 / 建立時間 / 最後更新等），寬度不足時由外層容器水平捲動 */
+.store-table th,
+.store-table td {
+  white-space: nowrap;
+}
+
 .history-pager {
   display: flex;
   justify-content: flex-end;
@@ -312,6 +322,31 @@ onMounted(store.load)
 .store-mono {
   font-family: var(--oj-mono);
   color: var(--text-soft);
+}
+
+/* 商店名稱欄：頭像 + 名稱並排 */
+.store-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* 列表用小頭像（同 StoreSettingsView st-avatar 語彙，縮小版）；無圖以縮寫字補位 */
+.store-avatar {
+  box-sizing: border-box;
+  width: 34px; height: 34px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--c-violet);
+  border: var(--bw) solid var(--border-strong);
+  display: grid; place-items: center;
+  color: #fff;
+  font-family: var(--oj-display);
+  font-weight: 700;
+  font-size: 13px;
 }
 
 .store-name-button {
