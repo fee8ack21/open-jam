@@ -16,6 +16,7 @@ interface CreatorInfo {
   name: string;
   handle: string;
   avatar: string;
+  avatarUrl?: string | null;
   works: number;
   sales: number;
 }
@@ -24,7 +25,7 @@ const creators = computed<CreatorInfo[]>(() => {
   const map = new Map<string, CreatorInfo>();
   for (const p of props.products) {
     const c = map.get(p.storeSlug) ?? {
-      slug: p.storeSlug, name: p.creator, handle: p.handle, avatar: p.avatar, works: 0, sales: 0,
+      slug: p.storeSlug, name: p.creator, handle: p.handle, avatar: p.avatar, avatarUrl: p.avatarUrl, works: 0, sales: 0,
     };
     c.works += 1;
     c.sales += p.sales;
@@ -52,7 +53,10 @@ function href(slug: string): string {
       <li v-for="(c, i) in creators" :key="c.slug">
         <a class="brd-row" :href="href(c.slug)">
           <span class="brd-rank" :class="{ 'brd-rank-1': i === 0 }">{{ i + 1 }}</span>
-          <span class="avatar brd-avatar" :style="{ background: c.avatar }">{{ initials(c.name) }}</span>
+          <span class="avatar brd-avatar" :style="c.avatarUrl ? undefined : { background: c.avatar }">
+            <img v-if="c.avatarUrl" :src="c.avatarUrl" alt="" />
+            <template v-else>{{ initials(c.name) }}</template>
+          </span>
           <span class="brd-info">
             <span class="brd-title">{{ c.name }}</span>
             <span class="brd-sub">{{ c.handle }}</span>

@@ -52,6 +52,7 @@ export function toProduct(
     creator: store?.storeName ?? i18n.global.t('creatorFallback'),
     handle: store?.storeSlug ? '@' + store.storeSlug : '',
     avatar: hueColor(dto.coverHue ?? 256),
+    avatarUrl: store?.avatarUrl ?? null,
     price: dto.price ?? 0,
     rating: dto.ratingAverage ?? 0,
     ratingCount: dto.ratingCount ?? 0,

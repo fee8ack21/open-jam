@@ -27,6 +27,8 @@ export interface Product {
   creator: string;
   handle: string;
   avatar: string;
+  /** 商店頭像公開 URL（後端 StoreDto.avatarUrl）；未設定時退回 avatar 底色 + 縮寫。 */
+  avatarUrl?: string | null;
   price: number;
   rating: number;
   ratingCount: number;

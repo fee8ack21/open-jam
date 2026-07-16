@@ -114,7 +114,10 @@ onBeforeUnmount(() => {
               <h2 class="qv-title">{{ product.title }}</h2>
 
               <div class="qv-creator">
-                <span class="avatar" :style="{ background: product.avatar }">{{ initials }}</span>
+                <span class="avatar" :style="product.avatarUrl ? undefined : { background: product.avatar }">
+                  <img v-if="product.avatarUrl" :src="product.avatarUrl" alt="" />
+                  <template v-else>{{ initials }}</template>
+                </span>
                 <span class="qv-creator-txt">
                   <b>{{ product.creator }}</b>
                   <span class="qv-handle">{{ product.handle }}</span>

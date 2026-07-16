@@ -41,7 +41,10 @@ const tag = computed(() =>
       <h3 class="feat-title">{{ product.title }}</h3>
       <p class="feat-blurb">{{ product.blurb }}</p>
       <div class="feat-creator">
-        <span class="avatar" :style="{ background: product.avatar }">{{ initials }}</span>
+        <span class="avatar" :style="product.avatarUrl ? undefined : { background: product.avatar }">
+          <img v-if="product.avatarUrl" :src="product.avatarUrl" alt="" />
+          <template v-else>{{ initials }}</template>
+        </span>
         {{ product.creator }}
       </div>
       <div class="feat-foot">
