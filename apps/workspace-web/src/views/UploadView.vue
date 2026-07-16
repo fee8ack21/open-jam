@@ -114,10 +114,13 @@ const HUE_PASTELS = ['#dff5d3', '#e4f6ff', '#ffe3f6', '#fff3c4', '#ede6ff']
 function huePastel(h: number) { return HUE_PASTELS[Math.abs(h) % HUE_PASTELS.length] }
 
 onMounted(async () => {
-  // 每次開啟精靈都從乾淨的 Draft 上傳狀態開始（未送出的舊草稿留在後端為 Draft）。
+  // 每次開啟精靈都從乾淨狀態開始：清空 step-1 草稿欄位（含步驟回到 1）與
+  // Draft 上傳關聯。檔案本就隨元件卸載清空，中途放棄的舊草稿留在後端為 Draft，
+  // 殘留的欄位文字若掛到新草稿上反而不一致。
+  store.resetDraft()
   catalog.resetDraftUpload()
   await catalog.loadCategories()
-  // draft 預設 / localStorage 殘留可能不是有效 slug，載入後對齊到第一個分類。
+  // draft 預設 cat 不是有效 slug，載入後對齊到第一個分類。
   const slugs = cats.value.map(c => c.slug)
   if (!slugs.includes(d.value.cat) && slugs.length) store.patchDraft({ cat: slugs[0] })
 })
