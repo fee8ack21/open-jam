@@ -28,6 +28,10 @@ public class OrderManager(
     {
         // 伺服器端核價：逐項向 CatalogService 取回商品現況（匿名呼叫，未上架 / 不存在回 404），
         // 名稱 / 單價 / 版本 / 幣別一律以伺服器端快照為準，不信任 client 傳入值。
+        // 已購買防呆比對用信箱（小寫）：與 HasPurchasedAsync 的 Email 準則一致。訪客無 userId，
+        // 僅能以結帳信箱比對；登入買家另以 userId 比對。信箱未驗證，故對訪客為「同信箱才擋」。
+        var buyerEmail = request.BuyerEmail.Trim().ToLowerInvariant();
+
         var catalogs = new List<CatalogServiceClient.CatalogInfo>(request.Items.Count);
         foreach (var item in request.Items)
         {
@@ -39,12 +43,32 @@ public class OrderManager(
             if (catalog.CurrentVersion is null)
                 throw new ValidationException($"商品 {catalog.Name} 尚無可購買的版本。");
 
+            // 數位商品買過即永久擁有：已完成訂單含此商品時擋下重複購買（回 409）。
+            // 訊息不附下載連結（避免任意輸入他人信箱即探知 / 取得其購買），引導至訂單完成信。
+            if (await HasPurchasedAsync(item.CatalogId, userId ?? Guid.Empty, buyerEmail, ct))
+                throw new ConflictException($"您已購買過「{catalog.Name}」，下載連結請見當初的訂單完成信，無需重複購買。");
+
             catalogs.Add(catalog);
         }
 
         var currency = catalogs[0].Currency.ToLowerInvariant();
         if (catalogs.Any(c => !string.Equals(c.Currency, catalogs[0].Currency, StringComparison.OrdinalIgnoreCase)))
             throw new ValidationException("訂單項目的幣別不一致，請分開結帳。");
+
+        // 重複送出防呆（如手滑連點購買）：同買家 / 同商店 / 同商品組合的近期未付款訂單直接重用，
+        // 不再建新單，避免累積孤兒 Pending 訂單。重用時重呼叫 PaymentService（以 OrderId 冪等——
+        // 既有 Session 未過期則沿用、否則重簽），回既有訂單的付款頁 URL。限近期（避免沿用過期定價）。
+        var reusable = await FindReusablePendingOrderAsync(request, userId, buyerEmail, ct);
+        if (reusable is not null)
+        {
+            var reuseSession = await paymentClient.CreateCheckoutSessionAsync(
+                reusable.Id, reusable.StoreId, reusable.BuyerUserId, reusable.BuyerEmail,
+                reusable.TotalAmount, reusable.Currency, BuildProductName(reusable), ct);
+
+            var reuseResponse = await GetAsync(reusable.Id, ct);
+            reuseResponse.CheckoutUrl = reuseSession.Url;
+            return reuseResponse;
+        }
 
         var order = new Order
         {
@@ -90,6 +114,38 @@ public class OrderManager(
         var response = await GetAsync(order.Id, ct);
         response.CheckoutUrl = session.Url;
         return response;
+    }
+
+    /// <summary>重複送出去重的未付款訂單重用時效——超過此時窗的舊 Pending 單另建新單（避免沿用過期定價）。</summary>
+    private static readonly TimeSpan ReusablePendingWindow = TimeSpan.FromMinutes(30);
+
+    /// <summary>
+    /// 找出可重用的近期未付款訂單：同商店、同買家（登入 userId 或結帳信箱）、商品組合完全相同。
+    /// 供「重複送出 / 連點購買」去重；回 null 表示應建立新訂單。並發的同時送出（罕見）仍可能各建一單，
+    /// 屬可接受殘量（僅多一筆未付款孤兒單，不會重複扣款）。
+    /// </summary>
+    private async Task<Order?> FindReusablePendingOrderAsync(
+        CreateOrderRequest request, Guid? userId, string buyerEmail, CancellationToken ct)
+    {
+        var cutoff = DateTimeOffset.UtcNow - ReusablePendingWindow;
+
+        var query = db.Orders
+            .Include(o => o.Items)
+            .Where(o => o.Status == OrderStatus.Pending
+                && o.StoreId == request.StoreId
+                && o.CreatedAt >= cutoff);
+
+        // 訪客無 userId，僅以結帳信箱比對；登入買家另以 userId 比對（與 HasPurchasedAsync 準則一致）。
+        query = userId is { } uid
+            ? query.Where(o => o.BuyerUserId == uid || o.BuyerEmail.ToLower() == buyerEmail)
+            : query.Where(o => o.BuyerEmail.ToLower() == buyerEmail);
+
+        var candidates = await query.OrderByDescending(o => o.CreatedAt).ToListAsync(ct);
+
+        // 商品組合完全相同（忽略順序）才算同一張購物車；集合比對於記憶體進行，候選數極少。
+        var wanted = request.Items.Select(i => i.CatalogId).OrderBy(id => id).ToList();
+        return candidates.FirstOrDefault(o =>
+            o.Items.Select(i => i.CatalogId).OrderBy(id => id).SequenceEqual(wanted));
     }
 
     /// <summary>組出顯示於 Stripe Checkout 頁面的商品名稱：單品用品名，多品以首件名稱加總件數。</summary>
