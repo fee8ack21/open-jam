@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { catalogApi, storeApi } from '@/api';
 import { categoryKeyResolver, toDetailMeta, toProduct } from '@/data/mapCatalog';
+import type { ProductDetailMeta } from '@/data/mapCatalog';
 import type { Product } from '@/data/products';
 import type { CatalogCategoryDto } from '@/api/catalog-service';
 import type { StoreDto } from '@/api/store-service';
@@ -24,8 +25,10 @@ export const useShopStore = defineStore('shop', {
     categories: [] as CatalogCategoryDto[],
     loading: false,
     loaded: false,
-    // 已補齊詳情 meta（檔案清單 / 格式 / 總大小）的商品 id
-    detailLoaded: new Set<string>(),
+    // 已載入的商品詳情 meta（檔案清單 / 格式 / 總大小）快取；同商品在
+    // 精選區（products）與 browse 格（queryCatalog 回傳）是不同物件，
+    // 快取 meta 才能就地補齊任一份，不重複請求
+    detailCache: new Map<string, ProductDetailMeta>(),
     // 商店公開資訊快取（queryCatalog 補商品所屬店家資訊時重用，避免重複請求）
     storeCache: new Map<string, StoreDto>(),
   }),
@@ -99,15 +102,26 @@ export const useShopStore = defineStore('shop', {
       };
     },
 
-    /** 載入商品完整資訊，就地補齊 QuickView 檔案 meta（清單 / 格式 / 總大小）與描述。 */
-    async loadProductDetail(id: string): Promise<void> {
-      if (!id || this.detailLoaded.has(id)) return;
-      const product = this.products.find((p) => p.id === id);
-      if (!product) return;
+    /**
+     * 載入商品完整資訊，就地補齊 QuickView 檔案 meta（清單 / 格式 / 總大小）與描述。
+     * 補在「呼叫端實際顯示的那份 Product」上——browse 格物件不在 products 內，
+     * 補錯份會讓 dialog 永遠停在佔位符。
+     */
+    async loadProductDetail(product: Product): Promise<void> {
+      if (!product.id) return;
+      const cached = this.detailCache.get(product.id);
+      if (cached) {
+        Object.assign(product, cached);
+        return;
+      }
       try {
-        const { data } = await catalogApi.catalogs.get(id);
-        Object.assign(product, toDetailMeta(data));
-        this.detailLoaded.add(id);
+        const { data } = await catalogApi.catalogs.get(product.id);
+        const meta = toDetailMeta(data);
+        this.detailCache.set(product.id, meta);
+        Object.assign(product, meta);
+        // 市集列表（精選 / 熱門區）中同商品的另一份也一併補齊
+        const listed = this.products.find((p) => p.id === product.id);
+        if (listed && listed !== product) Object.assign(listed, meta);
       } catch {
         // 詳情暫時取不到：保留列表資料（meta 顯示佔位），下次開啟重試
       }

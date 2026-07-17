@@ -282,7 +282,7 @@ const quickViewBadge = computed(() => (quickView.value ? badgeFor(quickView.valu
 function openQuickView(p: Product) {
   quickView.value = p;
   // 檔案 meta（清單 / 格式 / 總大小）僅完整詳情才有，開啟時非同步補齊
-  void store.loadProductDetail(p.id);
+  void store.loadProductDetail(p);
 }
 
 function catColor(id: string): string {
