@@ -19,9 +19,13 @@ public class StripeOptions
     /// <summary>Stripe onboarding 完成後導回 URL（workspace-web 收款設定頁）。</summary>
     public string ConnectReturnUrl { get; set; } = "";
 
-    /// <summary>付款成功導向 URL（模板）；<c>{CHECKOUT_SESSION_ID}</c> 由 Stripe 代入。</summary>
+    /// <summary>
+    /// 付款成功導向 URL（模板）；<c>{CHECKOUT_SESSION_ID}</c> 由 Stripe 代入，
+    /// <c>{storeSlug}</c>（若有）由 PaymentService 以該訂單所屬商店子網域代稱代入
+    /// （結帳結果頁位於店面子網域）。
+    /// </summary>
     public string SuccessUrl { get; set; } = "";
 
-    /// <summary>取消付款導向 URL。</summary>
+    /// <summary>取消付款導向 URL（模板）；<c>{storeSlug}</c>（若有）同 <see cref="SuccessUrl"/> 代入。</summary>
     public string CancelUrl { get; set; } = "";
 }

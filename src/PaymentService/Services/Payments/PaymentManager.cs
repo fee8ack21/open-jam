@@ -15,8 +15,13 @@ public class PaymentManager(
     PaymentDbContext db,
     IMapper mapper,
     IOptions<StripeOptions> stripeOptions,
+    StoreServiceClient storeService,
     AuditLogPublisher auditLog) : IPaymentManager
 {
+    // 付款成功 / 取消導回 URL 模板中的店面子網域佔位符（如 https://{storeSlug}.openjam.co/...）。
+    private const string StoreSlugToken = "{storeSlug}";
+
+
     public async Task<CheckoutSessionResponse> CreateCheckoutSessionAsync(
         CreateCheckoutSessionRequest request, CancellationToken ct)
     {
@@ -50,6 +55,11 @@ public class PaymentManager(
         if (connectedAccount is not { ChargesEnabled: true })
             throw new ValidationException("此商店尚未完成收款設定，暫時無法接受付款。");
 
+        // 導回 URL 以買家原本所在的店面子網域組出（結帳結果頁 CheckoutResultView 位於 creator-web，
+        // 只服務 <slug>.openjam.co；導回 apex 會落到沒有此路由的 portal-web）。模板含 {storeSlug} 時
+        // 才查 StoreService 取代（本地開發單一 creator-web 無子網域、模板不帶佔位符則免查）。
+        var (successUrl, cancelUrl) = await ResolveReturnUrlsAsync(opts, request.StoreId, ct);
+
         // 平台抽成（application fee）：百分比取自設定，四捨五入至最低貨幣單位。
         var applicationFee = (long)Math.Round(
             request.Amount * opts.PlatformFeePercent / 100m, MidpointRounding.AwayFromZero);
@@ -71,8 +81,8 @@ public class PaymentManager(
         var options = new SessionCreateOptions
         {
             Mode = "payment",
-            SuccessUrl = opts.SuccessUrl,
-            CancelUrl = opts.CancelUrl,
+            SuccessUrl = successUrl,
+            CancelUrl = cancelUrl,
             CustomerEmail = request.Email,
             LineItems =
             [
@@ -169,6 +179,23 @@ public class PaymentManager(
             SessionId = session.Id,
             Url = session.Url,
         };
+    }
+
+    /// <summary>
+    /// 將付款成功 / 取消導回 URL 模板中的 <c>{storeSlug}</c> 換成該商店子網域代稱。
+    /// 兩個模板皆不含佔位符時（如本地開發）直接沿用、不呼叫 StoreService。
+    /// <c>{CHECKOUT_SESSION_ID}</c> 保持原樣由 Stripe 代入。
+    /// </summary>
+    private async Task<(string SuccessUrl, string CancelUrl)> ResolveReturnUrlsAsync(
+        StripeOptions opts, Guid storeId, CancellationToken ct)
+    {
+        if (!opts.SuccessUrl.Contains(StoreSlugToken) && !opts.CancelUrl.Contains(StoreSlugToken))
+            return (opts.SuccessUrl, opts.CancelUrl);
+
+        var slug = await storeService.GetStoreSlugAsync(storeId, ct);
+        return (
+            opts.SuccessUrl.Replace(StoreSlugToken, slug),
+            opts.CancelUrl.Replace(StoreSlugToken, slug));
     }
 
     private static bool IsUniqueViolation(DbUpdateException ex) =>

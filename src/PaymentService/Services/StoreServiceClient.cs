@@ -9,6 +9,26 @@ namespace PaymentService.Services;
 /// </summary>
 public class StoreServiceClient(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
 {
+    /// <summary>查詢商店子網域代稱（匿名端點），供組合付款成功 / 取消導回店面子網域 URL。</summary>
+    /// <param name="storeId">商店 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    public async Task<string> GetStoreSlugAsync(Guid storeId, CancellationToken ct)
+    {
+        var client = httpClientFactory.CreateClient("store");
+
+        using var response = await client.GetAsync($"v1/stores/{storeId}", ct);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            throw new NotFoundException("找不到商店。");
+
+        response.EnsureSuccessStatusCode();
+
+        var info = await response.Content.ReadFromJsonAsync<StoreInfo>(cancellationToken: ct)
+            ?? throw new HttpRequestException("StoreService 回應內容為空。");
+
+        return info.StoreSlug;
+    }
+
     /// <summary>確認目前使用者為該商店的 Owner，否則拋出 <see cref="ForbiddenException"/>。</summary>
     /// <param name="storeId">商店 ID。</param>
     /// <param name="ct">Cancellation token。</param>
@@ -38,6 +58,12 @@ public class StoreServiceClient(IHttpClientFactory httpClientFactory, IHttpConte
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<List<MyStoreResult>>(cancellationToken: ct) ?? [];
+    }
+
+    /// <summary>StoreService <c>GET /v1/stores/{id}</c> 回應（僅取用子網域代稱）。</summary>
+    private class StoreInfo
+    {
+        public string StoreSlug { get; set; } = "";
     }
 
     /// <summary>StoreService <c>GET /v1/stores/me</c> 回應單筆（僅取用 Store.Id 與 Role）。</summary>
