@@ -56,6 +56,10 @@ spec:
               value: {{ include "open-jam.storeServiceUrl" . | quote }}
             - name: Services__PaymentService__BaseUrl
               value: {{ include "open-jam.paymentServiceUrl" . | quote }}
+            - name: Services__CatalogService__BaseUrl
+              value: {{ include "open-jam.catalogServiceUrl" . | quote }}
+            - name: Order__DownloadUrlPattern
+              value: {{ .Values.orderService.downloadUrlPattern | quote }}
             - name: ServiceAuth__TokenUrl
               value: {{ printf "%s/oauth2/token" (include "open-jam.hydraInternalPublicUrl" .) | quote }}
             - name: ServiceAuth__ClientId

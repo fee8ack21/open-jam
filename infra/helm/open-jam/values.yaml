@@ -330,6 +330,8 @@ orderService:
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
+  # 訂單完成信下載頁連結樣板，佔位符 {storeSlug} / {orderId}
+  downloadUrlPattern: "https://{storeSlug}.openjam.co/orders/{orderId}"
   resources:
     requests:
       cpu: 100m

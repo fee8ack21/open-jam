@@ -115,6 +115,13 @@ StoreService Service URL (cluster-internal).
 {{- end }}
 
 {{/*
+CatalogService Service URL (cluster-internal).
+*/}}
+{{- define "open-jam.catalogServiceUrl" -}}
+{{- printf "http://%s-catalog-service:8080" (include "open-jam.fullname" .) }}
+{{- end }}
+
+{{/*
 QuotaService Service URL (cluster-internal).
 */}}
 {{- define "open-jam.quotaServiceUrl" -}}
