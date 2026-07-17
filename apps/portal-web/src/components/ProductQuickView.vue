@@ -8,7 +8,7 @@
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { env } from '@/environment.js';
-import type { Product } from '@/data/products';
+import type { PreviewMediaItem, Product } from '@/data/products';
 
 const props = defineProps<{
   product: Product | null;
@@ -19,19 +19,30 @@ const emit = defineEmits<{ (e: 'close'): void }>();
 const { t } = useI18n();
 
 // ----- preview gallery -----
-// Demo data carries a single real thumbnail (`image`) plus a `previews`
-// count. The first slot shows the real image; the rest are seeded gradient
-// teasers (matching how ProductThumb renders placeholders elsewhere).
+// 內容與 creator-web 商品內頁圖庫一致：封面 + 預覽媒體（截圖 / 上傳影片 /
+// YouTube 嵌入，依 sortOrder 混排）。列表摘要只有封面，其餘隨開啟時的詳情
+// 載入就地長出來；完全沒有媒體時退回色調佔位（ProductThumb 的預設呈現）。
 const activeIdx = ref(0);
-const previewCount = computed(() => Math.max(1, props.product?.previews ?? 1));
-const previewIdxs = computed(() => Array.from({ length: previewCount.value }, (_, i) => i));
-
-/** For slot 0 keep the real image; later slots strip it to a seeded gradient. */
-function slotProduct(idx: number): Product {
+const gallery = computed<PreviewMediaItem[]>(() => {
+  const p = props.product;
+  if (!p) return [];
+  const items: PreviewMediaItem[] = [];
+  if (p.image) items.push({ kind: 'image', url: p.image });
+  items.push(...(p.previewMedia ?? []));
+  return items;
+});
+// 目前選中的項目（詳情載入後清單變長，索引超出範圍時回到第一項）
+const activeItem = computed(() => gallery.value[activeIdx.value] ?? gallery.value[0]);
+/** 圖片項目：以該圖覆寫 image 交給 ProductThumb；非圖片項目維持原樣（不進 ProductThumb）。 */
+function slotProduct(item: PreviewMediaItem): Product {
   const p = props.product as Product;
-  return idx === 0 ? p : { ...p, image: undefined };
+  return item.kind === 'image' ? { ...p, image: item.url } : p;
 }
-const stageProduct = computed(() => slotProduct(activeIdx.value));
+const stageProduct = computed(() =>
+  activeItem.value?.kind === 'image' ? slotProduct(activeItem.value) : (props.product as Product),
+);
+const ytEmbedUrl = (id: string) => `https://www.youtube-nocookie.com/embed/${id}`;
+const ytThumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
 const href = computed(() =>
   props.product
@@ -81,25 +92,57 @@ onBeforeUnmount(() => {
 
           <!-- ---------- preview gallery ---------- -->
           <div class="qv-gallery">
+            <!-- 主展示區：依項目類型切換圖片 / 影片播放器 / YouTube 嵌入
+                 （key 確保切換時銷毀重建、停止播放） -->
             <div class="qv-stage">
-              <product-thumb :product="stageProduct" :seed="activeIdx" hide-label />
+              <video
+                v-if="activeItem?.kind === 'video'"
+                :key="activeItem.url"
+                class="qv-media"
+                :src="activeItem.url"
+                controls
+                preload="metadata"
+              ></video>
+              <iframe
+                v-else-if="activeItem?.kind === 'youtube' && activeItem.youtubeId"
+                :key="activeItem.youtubeId"
+                class="qv-media"
+                :src="ytEmbedUrl(activeItem.youtubeId)"
+                title="YouTube video player"
+                frameborder="0"
+                allowfullscreen
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              ></iframe>
+              <product-thumb v-else :product="stageProduct" :seed="activeIdx" hide-label />
               <span v-if="badge" class="mc-mark" :class="'b-' + badge.tone">
                 <span class="mc-mark-in">{{ badge.label }}</span>
               </span>
             </div>
-            <div v-if="previewCount > 1" class="qv-thumbs" role="tablist">
+            <div v-if="gallery.length > 1" class="qv-thumbs" role="tablist">
               <button
-                v-for="i in previewIdxs"
-                :key="i"
+                v-for="(item, i) in gallery"
+                :key="item.url + i"
                 type="button"
                 class="qv-thumb"
-                :class="{ on: i === activeIdx }"
+                :class="{ on: i === activeIdx, 'qv-thumb-media': item.kind !== 'image' }"
                 :aria-label="t('quickView.previewAria', { n: i + 1 })"
                 :aria-selected="i === activeIdx"
                 role="tab"
                 @click="activeIdx = i"
               >
-                <product-thumb :product="slotProduct(i)" :seed="i" :glyph-size="26" :show-cat="false" hide-label />
+                <product-thumb
+                  v-if="item.kind === 'image'"
+                  :product="slotProduct(item)"
+                  :seed="i"
+                  :glyph-size="26"
+                  :show-cat="false"
+                  hide-label
+                />
+                <template v-else>
+                  <img v-if="item.kind === 'youtube' && item.youtubeId" :src="ytThumbUrl(item.youtubeId)" alt="" loading="lazy" />
+                  <video v-else :src="item.url" preload="metadata" muted></video>
+                  <span class="qv-play"><app-icon name="play" :size="14" /></span>
+                </template>
               </button>
             </div>
           </div>
@@ -217,6 +260,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 .qv-stage :deep(.thumb) { position: relative; inset: auto; aspect-ratio: 4 / 3; height: auto; border-radius: 0; }
+/* 影片 / YouTube 主展示：與圖片主圖同框（4:3、滿版），底色深以免留白閃爍 */
+.qv-media { display: block; width: 100%; aspect-ratio: 4 / 3; background: #1a1a1a; object-fit: contain; border: 0; }
 .qv-thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
 .qv-thumb {
   width: 56px; padding: 0; cursor: pointer; background: none;
@@ -227,6 +272,14 @@ onBeforeUnmount(() => {
 .qv-thumb:hover { transform: translateY(-2px); opacity: 0.85; }
 .qv-thumb.on { opacity: 1; }
 .qv-thumb :deep(.thumb) { position: relative; inset: auto; aspect-ratio: 1 / 1; height: auto; border-radius: 0; }
+/* 影片 / YouTube 縮圖：填滿方框並蓋上播放標記，與圖片縮圖等大 */
+.qv-thumb-media { position: relative; background: #1a1a1a; }
+.qv-thumb-media img,
+.qv-thumb-media video { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+.qv-play {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: #fff; text-shadow: 0 1px 3px rgba(26, 26, 26, 0.6); pointer-events: none;
+}
 
 /* ---------- info ---------- */
 .qv-info { flex: 1 1 0; display: flex; flex-direction: column; min-width: 0; min-height: 0; }

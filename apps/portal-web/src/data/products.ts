@@ -18,6 +18,15 @@ export interface ContentItem {
   size: string;
 }
 
+/** 圖庫預覽媒體項目（對應 creator-web 商品內頁圖庫，型別與語意一致）。 */
+export interface PreviewMediaItem {
+  kind: 'image' | 'video' | 'youtube';
+  /** image / video 為公開讀取 URL；youtube 為正規化 watch 網址。 */
+  url: string;
+  /** YouTube 影片 ID（縮圖與 embed 用，僅 kind = 'youtube'）。 */
+  youtubeId?: string;
+}
+
 export interface Product {
   id: string;
   storeSlug: string;
@@ -40,7 +49,12 @@ export interface Product {
   totalSize: string;
   formats: string[];
   contents: ContentItem[];
-  previews: number;
+  /**
+   * 預覽媒體（截圖 / 上傳影片 / YouTube 嵌入，依 sortOrder 混排），
+   * 內容與 creator-web 商品內頁圖庫一致（縮圖另由 image 帶入排在最前）。
+   * 列表摘要無資產資料，於 QuickView 開啟載入詳情時補齊。
+   */
+  previewMedia: PreviewMediaItem[];
   /** 實際商品縮圖（webp import URL）；未設定時退回程式產生的佔位縮圖。 */
   image?: string;
   /** 編輯精選：顯示於市集首頁頂部的「精選作品」輪播。 */

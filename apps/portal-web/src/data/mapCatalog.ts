@@ -5,13 +5,14 @@
    完整 CatalogDto 的 currentVersion.assets 推導；列表摘要
    （CatalogSummaryDto）無版本資料，於 QuickView 開啟時載入詳情補齊。
    ============================================================ */
-import type {
-  CatalogDto,
-  CatalogSummaryDto,
-  CatalogCategoryDto,
+import {
+  CatalogAssetType,
+  type CatalogDto,
+  type CatalogSummaryDto,
+  type CatalogCategoryDto,
 } from '@/api/catalog-service';
 import type { StoreDto } from '@/api/store-service';
-import type { ContentItem, FileEntry, Product } from '@/data/products';
+import type { ContentItem, FileEntry, PreviewMediaItem, Product } from '@/data/products';
 import i18n from '@/i18n';
 
 const ROOT_SLUG_TO_KEY: Record<string, string> = {
@@ -68,6 +69,43 @@ export interface ProductDetailMeta {
   totalSize: string;
   formats: string[];
   contents: ContentItem[];
+  previewMedia: PreviewMediaItem[];
+}
+
+/** 由 YouTube 網址取出影片 ID（後端已正規化為 watch 網址，其餘形式僅防禦性支援）。 */
+function youtubeVideoId(url: string): string | null {
+  const match =
+    /[?&]v=([A-Za-z0-9_-]{11})/.exec(url) ??
+    /youtu\.be\/([A-Za-z0-9_-]{11})/.exec(url) ??
+    /\/(?:shorts|embed|live)\/([A-Za-z0-9_-]{11})/.exec(url);
+  return match ? match[1] : null;
+}
+
+/** 展示型資產 → 圖庫預覽媒體項目（不支援的資產型別回 null）。 */
+function toPreviewMediaItem(asset: NonNullable<CatalogDto['assets']>[number]): PreviewMediaItem | null {
+  if (asset.type === CatalogAssetType.Screenshot && asset.url)
+    return { kind: 'image', url: asset.url };
+  if (asset.type === CatalogAssetType.PreviewVideo && asset.url)
+    return { kind: 'video', url: asset.url };
+  if (asset.type === CatalogAssetType.ExternalVideo) {
+    const url = asset.externalUrl ?? asset.url;
+    const id = url ? youtubeVideoId(url) : null;
+    if (url && id) return { kind: 'youtube', url, youtubeId: id };
+  }
+  return null;
+}
+
+/**
+ * 完整 CatalogDto → 圖庫預覽媒體（截圖 / 上傳影片 / YouTube 嵌入，依 sortOrder 混排）。
+ * 與 creator-web 商品內頁圖庫同一套規則：跨型別共用一條排序序列，
+ * 縮圖不在此列（由 Product.image 帶入、於 QuickView 排在最前）。
+ */
+export function toPreviewMedia(dto: CatalogDto): PreviewMediaItem[] {
+  return (dto.assets ?? [])
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map(toPreviewMediaItem)
+    .filter((m): m is PreviewMediaItem => m !== null);
 }
 
 /** 完整 CatalogDto → 檔案 meta（清單 / 數量 / 格式 / 總大小）與描述段落。 */
@@ -90,6 +128,7 @@ export function toDetailMeta(dto: CatalogDto): ProductDetailMeta {
     totalSize: formatBytes(totalBytes) || '—',
     formats: [...typeCounts.keys()],
     contents,
+    previewMedia: toPreviewMedia(dto),
   };
 }
 
@@ -120,7 +159,8 @@ export function toProduct(
     totalSize: '—',
     formats: [],
     contents: [],
-    previews: 0,
+    // 列表摘要無資產資料；預覽媒體待 loadProductDetail 補齊
+    previewMedia: [],
     image: dto.thumbnailUrl ?? undefined,
     featured: dto.isFeatured ?? false,
   };
