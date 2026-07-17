@@ -26,7 +26,10 @@ public class StripeWebhookHandler(
 
     private async Task<string> ReceiveCoreAsync(string body, string signature, string secret, CancellationToken ct)
     {
-        var evt = EventUtility.ConstructEvent(body, signature, secret);
+        // throwOnApiVersionMismatch: false —— Stripe 帳戶事件的 API 版本（如 2026-06-24.dahlia）
+        // 常新於 Stripe.net 函式庫預期版本，預設會拋例外致 webhook 回錯、事件無法落地。簽章仍照常驗
+        // （secret 有傳），且本服務只取 session id / metadata 等穩定欄位，版本 skew 安全。與 ParseEvent 一致。
+        var evt = EventUtility.ConstructEvent(body, signature, secret, throwOnApiVersionMismatch: false);
         var eventId = evt.Id;
         var eventType = evt.Type;
 
