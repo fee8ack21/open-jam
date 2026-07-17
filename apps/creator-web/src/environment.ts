@@ -21,6 +21,9 @@ class AppEnv {
         this[key] = content
       }
     })
+    // 尾斜線正規化：部署設定可能帶尾斜線（如 https://openjam.co/），
+    // 使用端一律以 `${PORTAL_PAGE_URL}/path` 串接，避免產生 // 造成 404
+    this.PORTAL_PAGE_URL = this.PORTAL_PAGE_URL.replace(/\/+$/, '')
   }
 }
 
