@@ -228,8 +228,8 @@ jobs:
             | tr '\n' ' ')
           echo "args=$ARGS" >> "$GITHUB_OUTPUT"
 
-      # bootstrap 為 post-install hook，僅在 helm install 首次觸發，
-      # helm upgrade 不會重跑（現況已是如此，非本次變更引入）
+      # bootstrap 掛 post-install,post-upgrade hook，每次 helm upgrade 皆重跑
+      # （seeder 冪等），使 Hydra service client secret 等靜態設定收斂到目前值
       - name: Helm upgrade
         run: |
           # 單節點叢集 CPU 吃緊：多服務同時 Recreate 時，新 pod 需等舊 pod（含 GKE NEG

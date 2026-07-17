@@ -393,7 +393,7 @@ bootstrap:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/bootstrap
-    tag: v0.0.20
+    tag: v0.0.21
     pullPolicy: IfNotPresent
   ttlSecondsAfterFinished: 300
   # seed 平台管理員（password → 機密 overlay）
