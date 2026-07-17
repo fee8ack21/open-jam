@@ -37,8 +37,10 @@ const hotProducts = computed(() =>
   store.products.slice().sort((a, b) => b.sales - a.sales).slice(0, 4),
 );
 
-// 跑馬燈標籤：取自實際商品 tags，依出現頻率排序（點擊即搜尋，保證有結果）
+// 跑馬燈標籤：優先取後端熱門標籤（依全站已上架商品引用數計算，點擊必有結果）；
+// 後端暫不可用時 fallback 為前 100 筆已載入商品的 tags 出現頻率
 const marqueeTags = computed(() => {
+  if (store.popularTags.length) return store.popularTags;
   const freq = new Map<string, number>();
   store.products.forEach((p) => p.tags.forEach((tag) => freq.set(tag, (freq.get(tag) ?? 0) + 1)));
   return [...freq.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag).slice(0, 14);

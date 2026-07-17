@@ -959,6 +959,12 @@ export interface VersionAssetUploadUrlResponse {
   expiresAt?: string;
 }
 
+/** 熱門標籤回應（供市集跑馬燈等公開版位）。 */
+export interface PopularCatalogTagsResponse {
+  /** 熱門標籤清單（依已上架商品引用數遞減）。 */
+  items?: CatalogTagDto[] | null;
+}
+
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
@@ -2132,6 +2138,33 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<ListCatalogTagsResponse, any>({
         path: `/v1/catalog-tags`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogTags
+     * @name Popular
+     * @summary 熱門標籤（僅計已上架商品引用數，依次數遞減取前 N，公開）。供市集跑馬燈等版位。
+     * @request GET:/v1/catalog-tags/popular
+     */
+    popular: (
+      query?: {
+        /**
+         * 取回筆數（1–50，超出範圍自動夾限）。
+         * @format int32
+         * @example 14
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PopularCatalogTagsResponse, any>({
+        path: `/v1/catalog-tags/popular`,
         method: "GET",
         query: query,
         format: "json",

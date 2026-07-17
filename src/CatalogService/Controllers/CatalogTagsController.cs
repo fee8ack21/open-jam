@@ -19,4 +19,12 @@ public class CatalogTagsController(ICatalogTagService tagService) : ControllerBa
     [ProducesResponseType<ListCatalogTagsResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<ListCatalogTagsResponse>> List([FromQuery] ListCatalogTagsRequest request, CancellationToken ct) =>
         Ok(await tagService.ListAsync(request, ct));
+
+    /// <summary>熱門標籤（僅計已上架商品引用數，依次數遞減取前 N，公開）。供市集跑馬燈等版位。</summary>
+    /// <param name="request">取回筆數。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet("popular")]
+    [ProducesResponseType<PopularCatalogTagsResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PopularCatalogTagsResponse>> Popular([FromQuery] PopularCatalogTagsRequest request, CancellationToken ct) =>
+        Ok(await tagService.ListPopularAsync(request, ct));
 }

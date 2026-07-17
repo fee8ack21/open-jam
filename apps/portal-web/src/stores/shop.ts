@@ -23,6 +23,8 @@ export const useShopStore = defineStore('shop', {
     // 市集商品（由 CatalogService 載入）
     products: [] as Product[],
     categories: [] as CatalogCategoryDto[],
+    // 熱門標籤（跑馬燈用）：後端依已上架商品引用數計算，點擊必有搜尋結果
+    popularTags: [] as string[],
     loading: false,
     loaded: false,
     // 已載入的商品詳情 meta（檔案清單 / 格式 / 總大小）快取；同商品在
@@ -43,11 +45,16 @@ export const useShopStore = defineStore('shop', {
       if (this.loaded || this.loading) return;
       this.loading = true;
       try {
-        const [catRes, listRes] = await Promise.all([
+        const [catRes, listRes, tagRes] = await Promise.all([
           catalogApi.catalogCategories.list(),
           catalogApi.catalogs.list({ Offset: 0, Limit: 100 }),
+          // 熱門標籤失敗不應阻擋市集載入（跑馬燈自有 fallback）
+          catalogApi.catalogTags.popular({ Limit: 14 }).catch(() => null),
         ]);
         this.categories = catRes.data ?? [];
+        this.popularTags = (tagRes?.data.items ?? [])
+          .map((t) => t.name)
+          .filter((n): n is string => !!n);
         const catKeyOf = categoryKeyResolver(this.categories);
         const items = listRes.data.items ?? [];
 

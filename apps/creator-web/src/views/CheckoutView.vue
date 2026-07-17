@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage, type FormInst, type FormRules } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
+import { useAuthStore } from '@/stores/auth';
 import ProductThumb from '@/components/ProductThumb.vue';
 import AppIcon from '@/components/app-icon';
 
 const store = useShopStore();
+const auth = useAuthStore();
 const router = useRouter();
 const message = useMessage();
 const { t } = useI18n();
@@ -15,6 +17,16 @@ const { t } = useI18n();
 const form = ref<FormInst | null>(null);
 const processing = ref(false);
 const model = reactive({ name: '', email: '' });
+
+// 已登入則以登入信箱預填（仍可手動改動）；使用者一旦動過欄位就不再覆蓋。
+const emailEdited = ref(false);
+watch(
+  () => auth.userEmail,
+  (email) => {
+    if (email && !emailEdited.value) model.email = email;
+  },
+  { immediate: true },
+);
 
 const rules = computed<FormRules>(() => ({
   name: { required: true, message: t('checkout.rules.nameRequired'), trigger: ['blur', 'input'] },
@@ -118,7 +130,8 @@ const pay = async () => {
                   <n-input v-model:value="model.name" :placeholder="t('checkout.namePlaceholder')" size="large" />
                 </n-form-item>
                 <n-form-item :label="t('checkout.email')" path="email">
-                  <n-input v-model:value="model.email" placeholder="you@example.com" size="large" />
+                  <n-input v-model:value="model.email" placeholder="you@example.com" size="large"
+                           @input="emailEdited = true" />
                 </n-form-item>
               </div>
               <div style="display:flex; align-items:center; gap:6px; color:var(--text-soft); font-size:12.5px; font-weight:700; margin-top:-4px;">

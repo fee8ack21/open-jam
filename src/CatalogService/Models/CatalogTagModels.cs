@@ -42,3 +42,18 @@ public class ListCatalogTagsResponse
     /// <summary>本頁標籤清單。</summary>
     public List<CatalogTagDto> Items { get; set; } = [];
 }
+
+/// <summary>熱門標籤查詢請求（依已上架商品引用數遞減取前 N）。</summary>
+public class PopularCatalogTagsRequest
+{
+    /// <summary>取回筆數（1–50，超出範圍自動夾限）。</summary>
+    /// <example>14</example>
+    public int Limit { get; set; } = 14;
+}
+
+/// <summary>熱門標籤回應（供市集跑馬燈等公開版位）。</summary>
+public class PopularCatalogTagsResponse
+{
+    /// <summary>熱門標籤清單（依已上架商品引用數遞減）。</summary>
+    public List<CatalogTagDto> Items { get; set; } = [];
+}

@@ -129,7 +129,7 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
                   <span class="history-mono" :title="o.id" style="font-size:12px;">{{ o.id ? o.id.slice(0, 8) : '—' }}</span>
                 </td>
                 <td class="hide-sm"><n-tag :type="orderStatusMeta(o.status).type" size="small" round>{{ t(orderStatusMeta(o.status).labelKey) }}</n-tag></td>
-                <td class="num" style="font-weight:700;">{{ formatOrderAmount(o.totalAmount, o.currency) }}</td>
+                <td class="num"><span class="history-mono" style="font-weight:700; color:var(--text);">{{ formatOrderAmount(o.totalAmount, o.currency) }}</span></td>
                 <td class="hide-sm"><span class="history-mono" style="font-size:12px;">{{ formatOrderTime(o.createdAt) }}</span></td>
                 <td style="text-align:right;">
                   <n-button text @click="openDetail(o)"><app-icon name="eye" :size="18" /></n-button>

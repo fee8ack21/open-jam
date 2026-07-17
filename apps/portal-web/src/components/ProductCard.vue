@@ -43,6 +43,7 @@ function onClick(e: MouseEvent) {
     </span>
     <div class="mc-body">
       <h3 class="mc-title">{{ product.title }}</h3>
+      <p v-if="product.blurb" class="mc-blurb">{{ product.blurb }}</p>
       <div class="mc-creator">
         <span class="avatar" :style="product.avatarUrl ? undefined : { background: product.avatar }">
           <img v-if="product.avatarUrl" :src="product.avatarUrl" alt="" />

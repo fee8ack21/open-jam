@@ -1,20 +1,17 @@
 <script setup lang="ts">
 /* ============================================================
    AppNav — portal-web 全站頂部導覽列
-   果醬罐 logo + 工具鈕（語言 / GitHub / 文件 / 通知）+
+   果醬罐 logo + 工具鈕（語言 / GitHub / 文件）+
    登入黑色膠囊。
    ============================================================ */
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.js';
-import { useNotificationsStore } from '@/stores/notifications';
 import BrandLogo from '@/components/BrandLogo.vue';
-import NotificationBell from '@/components/NotificationBell.vue';
 import { env } from '@/environment.js';
 import { SUPPORTED_LOCALES, setLocale, type Locale } from '@/i18n';
 
 const auth = useAuthStore();
-const notifications = useNotificationsStore();
 const { t, locale } = useI18n();
 
 function goWorkspace() {
@@ -96,11 +93,6 @@ onBeforeUnmount(() => {
         @click="toggleMenu"
       >
         <app-icon :name="menuOpen ? 'close' : 'menu'" :size="19" />
-        <span
-          v-if="!menuOpen && auth.isAuthenticated && notifications.unreadCount > 0"
-          class="nav-burger-dot"
-          aria-hidden="true"
-        ></span>
       </button>
 
       <div class="nav-actions">
@@ -161,7 +153,6 @@ onBeforeUnmount(() => {
           </transition>
         </div>
         <template v-if="auth.isAuthenticated">
-          <NotificationBell />
           <a class="nav-admin" href="#" :title="t('nav.workspace')" @click.prevent="goWorkspace">
             <span class="nav-admin-label">{{ t('nav.workspace') }}</span>
             <app-icon name="arrow" :size="14" />

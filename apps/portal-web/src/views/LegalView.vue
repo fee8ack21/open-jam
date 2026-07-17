@@ -9,7 +9,7 @@
    （GET /v1/legal-documents/active，後台可編輯 / 換版）；
    撈取失敗時退回 i18n 靜態文案。重點速覽亦隨版本管理
    （highlights 欄位，每行一則「標題|描述」），後台留空或
-   撈取失敗時退回 i18n 靜態文案（legal.<doc>.tldr）。
+   撈取失敗（無有效資料）時整個速覽區塊不顯示。
    ============================================================ */
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -129,12 +129,8 @@ function parseHighlights(text: string): { t: string; d: string }[] {
     .filter((c) => c.t && c.d);
 }
 
-// 重點速覽：優先用啟用中版本的 highlights，後台留空或撈取失敗則退回 i18n（legal.<doc>.tldr）
-const tldr = computed<{ t: string; d: string }[]>(() => {
-  const fromDoc = parseHighlights(activeDoc.value?.highlights ?? '');
-  if (fromDoc.length) return fromDoc;
-  return (tm(`legal.${props.doc}.tldr`) as { t: string; d: string }[]).map((c) => ({ t: rt(c.t), d: rt(c.d) }));
-});
+// 重點速覽：取啟用中版本的 highlights；後台留空或撈取失敗（無有效資料）則整區不顯示
+const tldr = computed<{ t: string; d: string }[]>(() => parseHighlights(activeDoc.value?.highlights ?? ''));
 
 // 目錄：取有標題的章節；點擊捲至對應章節
 const toc = computed(() => sections.value.filter((s) => s.h));
@@ -187,8 +183,8 @@ function jumpTo(n: string) {
         </div>
 
         <article class="legal-card">
-          <!-- ── 重點速覽：30 秒摘要卡片格 ── -->
-          <section class="legal-tldr" :aria-label="t('legal.tldrLabel')">
+          <!-- ── 重點速覽：30 秒摘要卡片格（無 highlights 資料則整區不顯示） ── -->
+          <section v-if="tldr.length" class="legal-tldr" :aria-label="t('legal.tldrLabel')">
             <p class="ltd-label"><app-icon name="note" :size="13" /> {{ t('legal.tldrLabel') }}</p>
             <div class="ltd-grid">
               <div v-for="(c, i) in tldr" :key="c.t" class="ltd-card" :style="{ '--acc': accentOf(i) }">

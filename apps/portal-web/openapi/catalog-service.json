@@ -2513,6 +2513,50 @@
           }
         }
       }
+    },
+    "/v1/catalog-tags/popular": {
+      "get": {
+        "tags": [
+          "CatalogTags"
+        ],
+        "summary": "熱門標籤（僅計已上架商品引用數，依次數遞減取前 N，公開）。供市集跑馬燈等版位。",
+        "operationId": "Popular",
+        "parameters": [
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "取回筆數（1–50，超出範圍自動夾限）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 14
+            },
+            "example": 14
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopularCatalogTagsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopularCatalogTagsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopularCatalogTagsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3414,7 +3458,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": { }
+        "additionalProperties": {}
       },
       "PurchasedVersionAssetDto": {
         "type": "object",
@@ -3749,6 +3793,21 @@
         },
         "additionalProperties": false,
         "description": "版本可下載檔案上傳簽章 URL 回應（私有物件，無公開讀取網址）。簽發階段不扣配額、不建資產，上傳後需呼叫 confirm 確認。"
+      },
+      "PopularCatalogTagsResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogTagDto"
+            },
+            "description": "熱門標籤清單（依已上架商品引用數遞減）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "熱門標籤回應（供市集跑馬燈等公開版位）。"
       }
     }
   }
