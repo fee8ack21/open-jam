@@ -220,9 +220,13 @@ public class OrderManager(
             .Where(o => o.BuyerUserId == userId && o.Status == OrderStatus.Completed)
             .AnyAsync(o => o.Items.Any(i => i.CatalogId == catalogId), ct);
 
-    private static void TransitionTo(Order order, OrderStatus next, string? reason)
+    private void TransitionTo(Order order, OrderStatus next, string? reason)
     {
-        order.StatusHistory.Add(NewHistory(order.Status, next, reason));
+        var history = NewHistory(order.Status, next, reason);
+        order.StatusHistory.Add(history);
+        // 訂單已被追蹤時，集合裡的新歷程列因 Id 已有值會被 DetectChanges 當成既有列（Modified），
+        // 產生打不中任何列的 UPDATE 而拋 DbUpdateConcurrencyException，故一律明確標記為新增。
+        db.Add(history);
         order.Status = next;
     }
 
