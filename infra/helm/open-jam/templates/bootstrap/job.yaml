@@ -7,9 +7,12 @@ metadata:
     {{- include "open-jam.labels" . | nindent 4 }}
     app.kubernetes.io/component: bootstrap
   annotations:
-    "helm.sh/hook": post-install
+    # post-upgrade 亦掛載：seeder 皆冪等，每次升級重跑使 Hydra service client secret
+    # 等靜態設定收斂到目前 helm 值（HydraClientSeeder force-update PUT），避免密鑰漂移致
+    # 服務間換 token 回 401。僅 post-install 時升級不會重跑、修正永不生效。
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "0"
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   ttlSecondsAfterFinished: {{ .Values.bootstrap.ttlSecondsAfterFinished }}
   template:
