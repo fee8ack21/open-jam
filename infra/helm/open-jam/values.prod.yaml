@@ -264,7 +264,7 @@ paymentService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/payment-service
-    tag: v0.0.10
+    tag: v0.0.11
     pullPolicy: IfNotPresent
   replicaCount: 1
   stripe:
@@ -288,7 +288,7 @@ orderService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
-    tag: v0.0.9
+    tag: v0.0.10
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
