@@ -44,17 +44,15 @@ public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor c
     public async Task<ActionResult<OrderResponse>> GetByNumber(string orderNumber, CancellationToken ct) =>
         Ok(await orderManager.GetByNumberAsync(orderNumber, ct));
 
-    /// <summary>查詢登入使用者本人的訂單列表（分頁）。</summary>
-    /// <param name="request">查詢條件（狀態 + 分頁）；買家 ID 取自登入身分。</param>
+    /// <summary>查詢登入使用者本人的訂單列表（分頁），含成為會員前以同信箱訪客結帳的訂單。</summary>
+    /// <param name="request">查詢條件（狀態 + 分頁）；買家身分取自登入 token（帳號 ID 與信箱）。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("mine")]
     [ProducesResponseType<ListOrdersResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<ListOrdersResponse>> ListMine([FromQuery] ListOrdersRequest request, CancellationToken ct)
     {
         var userId = currentUser.UserId ?? throw new UnauthorizedException();
-        request.BuyerUserId = userId;
-        request.BuyerEmail = null;
-        return Ok(await orderManager.ListAsync(request, ct));
+        return Ok(await orderManager.ListMineAsync(userId, currentUser.Email, request, ct));
     }
 
     /// <summary>查詢指定商店收到的訂單列表（賣家視角，分頁）。僅該商店 Owner 可操作。</summary>
@@ -84,7 +82,7 @@ public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor c
     public async Task<ActionResult<PurchaseCheckResponse>> HasPurchased(Guid catalogId, CancellationToken ct)
     {
         var userId = currentUser.UserId ?? throw new UnauthorizedException();
-        var purchased = await orderManager.HasPurchasedAsync(catalogId, userId, ct);
+        var purchased = await orderManager.HasPurchasedAsync(catalogId, userId, currentUser.Email, ct);
         return Ok(new PurchaseCheckResponse { Purchased = purchased });
     }
 

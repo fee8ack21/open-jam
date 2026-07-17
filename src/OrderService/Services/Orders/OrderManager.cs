@@ -111,7 +111,7 @@ public class OrderManager(
         ToResponseAsync(db.Orders.Where(o => o.OrderNumber == orderNumber), ct);
 
     /// <inheritdoc/>
-    public async Task<ListOrdersResponse> ListAsync(ListOrdersRequest request, CancellationToken ct)
+    public Task<ListOrdersResponse> ListAsync(ListOrdersRequest request, CancellationToken ct)
     {
         var query = db.Orders.AsNoTracking().AsQueryable();
 
@@ -127,6 +127,24 @@ public class OrderManager(
             query = query.Where(o => o.BuyerEmail == email);
         }
 
+        return PageAsync(query, request, ct);
+    }
+
+    /// <inheritdoc/>
+    public Task<ListOrdersResponse> ListMineAsync(Guid userId, string? email, ListOrdersRequest request, CancellationToken ct)
+    {
+        // 以結帳時實際填寫的 Email 一併比對（與 HasPurchasedAsync 同準則），
+        // 讓成為會員前以同信箱訪客結帳的訂單也出現在本人購買紀錄。
+        var query = email is null
+            ? db.Orders.AsNoTracking().Where(o => o.BuyerUserId == userId)
+            : db.Orders.AsNoTracking().Where(o => o.BuyerUserId == userId || o.BuyerEmail.ToLower() == email);
+
+        return PageAsync(query, request, ct);
+    }
+
+    /// <summary>套用狀態過濾與分頁，輸出訂單摘要列表（各列表視角共用）。</summary>
+    private async Task<ListOrdersResponse> PageAsync(IQueryable<Order> query, ListOrdersRequest request, CancellationToken ct)
+    {
         if (request.Status is { } status)
             query = query.Where(o => o.Status == status);
 
@@ -214,11 +232,17 @@ public class OrderManager(
     }
 
     /// <inheritdoc/>
-    public Task<bool> HasPurchasedAsync(Guid catalogId, Guid userId, CancellationToken ct) =>
-        db.Orders
-            .AsNoTracking()
-            .Where(o => o.BuyerUserId == userId && o.Status == OrderStatus.Completed)
-            .AnyAsync(o => o.Items.Any(i => i.CatalogId == catalogId), ct);
+    public Task<bool> HasPurchasedAsync(Guid catalogId, Guid userId, string? email, CancellationToken ct)
+    {
+        var query = db.Orders.AsNoTracking().Where(o => o.Status == OrderStatus.Completed);
+
+        // 以結帳時實際填寫的 Email 為主比對（訪客訂單無 BuyerUserId），帳號 ID 相符者亦視為已購買。
+        query = email is null
+            ? query.Where(o => o.BuyerUserId == userId)
+            : query.Where(o => o.BuyerUserId == userId || o.BuyerEmail.ToLower() == email);
+
+        return query.AnyAsync(o => o.Items.Any(i => i.CatalogId == catalogId), ct);
+    }
 
     private void TransitionTo(Order order, OrderStatus next, string? reason)
     {

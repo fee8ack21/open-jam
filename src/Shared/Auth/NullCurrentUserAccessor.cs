@@ -8,4 +8,7 @@ public sealed class NullCurrentUserAccessor : ICurrentUserAccessor
 {
     /// <inheritdoc/>
     public Guid? UserId => null;
+
+    /// <inheritdoc/>
+    public string? Email => null;
 }

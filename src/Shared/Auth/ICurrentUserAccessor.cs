@@ -8,4 +8,7 @@ public interface ICurrentUserAccessor
 {
     /// <summary>目前使用者 ID；未登入或背景工作情境下為 null。</summary>
     Guid? UserId { get; }
+
+    /// <summary>目前使用者 Email（一律小寫）；token 未含 email claim、未登入或背景工作情境下為 null。</summary>
+    string? Email { get; }
 }
