@@ -5,6 +5,7 @@ using CatalogService.Data.Entities;
 using CatalogService.Models;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
+using Shared.Data;
 using Shared.Exceptions;
 
 namespace CatalogService.Services.Reviews;
@@ -32,33 +33,35 @@ public class CatalogReviewService(
 
         var comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        var review = await db.CatalogReviews
-            .FirstOrDefaultAsync(r => r.CatalogId == catalogId && r.ReviewerUserId == userId, ct);
-
-        if (review is null)
+        var review = await db.Database.ExecuteInTransactionAsync(async tx =>
         {
-            review = new CatalogReview
+            var review = await db.CatalogReviews
+                .FirstOrDefaultAsync(r => r.CatalogId == catalogId && r.ReviewerUserId == userId, ct);
+
+            if (review is null)
             {
-                CatalogId = catalogId,
-                ReviewerUserId = userId,
-                Rating = request.Rating,
-                Comment = comment,
-            };
-            db.CatalogReviews.Add(review);
-        }
-        else
-        {
-            review.Rating = request.Rating;
-            review.Comment = comment;
-        }
+                review = new CatalogReview
+                {
+                    CatalogId = catalogId,
+                    ReviewerUserId = userId,
+                    Rating = request.Rating,
+                    Comment = comment,
+                };
+                db.CatalogReviews.Add(review);
+            }
+            else
+            {
+                review.Rating = request.Rating;
+                review.Comment = comment;
+            }
 
-        auditLog.Add(userId, "catalog.review", "Catalog", catalogId, tenant: storeId);
-        await db.SaveChangesAsync(ct);
+            auditLog.Add(userId, "catalog.review", "Catalog", catalogId, tenant: storeId);
+            await db.SaveChangesAsync(ct);
 
-        await RecomputeAggregateAsync(catalogId, ct);
-        await tx.CommitAsync(ct);
+            await RecomputeAggregateAsync(catalogId, ct);
+            await tx.CommitAsync(ct);
+            return review;
+        }, ct);
 
         return mapper.Map<CatalogReviewDto>(review);
     }
@@ -123,14 +126,15 @@ public class CatalogReviewService(
         if (review is null)
             return;
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.ExecuteInTransactionAsync(async tx =>
+        {
+            db.CatalogReviews.Remove(review);
+            auditLog.Add(userId, "catalog.review.delete", "Catalog", catalogId, tenant: null);
+            await db.SaveChangesAsync(ct);
 
-        db.CatalogReviews.Remove(review);
-        auditLog.Add(userId, "catalog.review.delete", "Catalog", catalogId, tenant: null);
-        await db.SaveChangesAsync(ct);
-
-        await RecomputeAggregateAsync(catalogId, ct);
-        await tx.CommitAsync(ct);
+            await RecomputeAggregateAsync(catalogId, ct);
+            await tx.CommitAsync(ct);
+        }, ct);
     }
 
     /// <summary>由評論重算商品的平均分 / 評論數並回寫 Catalog（不更動 Audit 欄位）。</summary>

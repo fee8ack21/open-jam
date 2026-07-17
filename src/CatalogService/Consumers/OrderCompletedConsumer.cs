@@ -2,6 +2,7 @@ using CatalogService.Data;
 using CatalogService.Data.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Shared.Data;
 using Shared.Events;
 
 namespace CatalogService.Consumers;
@@ -20,41 +21,48 @@ public class OrderCompletedConsumer(
         var evt = context.Message;
         var ct  = context.CancellationToken;
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-        // 先 claim 去重鍵：撞唯一索引即代表此事件已處理過，冪等跳過（不重複累加）。
-        db.ProcessedEvents.Add(new ProcessedEvent
+        var processed = await db.Database.ExecuteInTransactionAsync(async tx =>
         {
-            OutboxMessageId = evt.OutboxMessageId,
-            EventType       = "order.completed",
-        });
-        try
-        {
-            await db.SaveChangesAsync(ct);
-        }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
-        {
-            logger.LogDebug("OrderCompletedEvent 重複，OutboxMessageId={Id}，略過", evt.OutboxMessageId);
-            await tx.RollbackAsync(ct);
-            return;
-        }
+            // 重試時整段委派重放，先清除前次嘗試殘留的追蹤實體避免重複插入去重鍵。
+            db.ChangeTracker.Clear();
 
-        // 同一商品在訂單中可能出現多列，合併後一次原子累加（ExecuteUpdate 避免讀-改-寫競態）。
-        var increments = evt.Items
-            .GroupBy(i => i.CatalogId)
-            .Select(g => new { CatalogId = g.Key, Count = g.LongCount() });
+            // 先 claim 去重鍵：撞唯一索引即代表此事件已處理過，冪等跳過（不重複累加）。
+            db.ProcessedEvents.Add(new ProcessedEvent
+            {
+                OutboxMessageId = evt.OutboxMessageId,
+                EventType       = "order.completed",
+            });
+            try
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                logger.LogDebug("OrderCompletedEvent 重複，OutboxMessageId={Id}，略過", evt.OutboxMessageId);
+                await tx.RollbackAsync(ct);
+                return false;
+            }
 
-        foreach (var inc in increments)
-        {
-            await db.Catalogs
-                .Where(c => c.Id == inc.CatalogId)
-                .ExecuteUpdateAsync(
-                    s => s.SetProperty(c => c.SalesCount, c => c.SalesCount + inc.Count), ct);
-        }
+            // 同一商品在訂單中可能出現多列，合併後一次原子累加（ExecuteUpdate 避免讀-改-寫競態）。
+            var increments = evt.Items
+                .GroupBy(i => i.CatalogId)
+                .Select(g => new { CatalogId = g.Key, Count = g.LongCount() });
 
-        await tx.CommitAsync(ct);
-        logger.LogInformation(
-            "Order {OrderId} 完成，累加 {Count} 件商品銷量。", evt.OrderId, evt.Items.Count);
+            foreach (var inc in increments)
+            {
+                await db.Catalogs
+                    .Where(c => c.Id == inc.CatalogId)
+                    .ExecuteUpdateAsync(
+                        s => s.SetProperty(c => c.SalesCount, c => c.SalesCount + inc.Count), ct);
+            }
+
+            await tx.CommitAsync(ct);
+            return true;
+        }, ct);
+
+        if (processed)
+            logger.LogInformation(
+                "Order {OrderId} 完成，累加 {Count} 件商品銷量。", evt.OrderId, evt.Items.Count);
     }
 
     private static bool IsUniqueViolation(DbUpdateException ex) =>
