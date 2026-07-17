@@ -1,15 +1,17 @@
 <script setup lang="ts">
 /* ============================================================
-   ReviewWidget — 商品評價（僅出現在購買後的下載頁）。
+   ReviewWidget — 商品評價（僅出現在購買後的下載頁 / 結帳成功頁）。
    後端僅允許已購買者撰寫；同一人一商品一則，可重新送出更新。
+   身分二擇一：已登入買家由 JWT 帶入；未註冊訪客傳入 orderId（下單憑證），
+   後端據此以下單信箱識別。creator-web 消費者多為免註冊訪客，故 orderId 為主要路徑。
    ============================================================ */
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { catalogApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import AppIcon from '@/components/app-icon';
 
-const props = defineProps<{ catalogId: string }>();
+const props = defineProps<{ catalogId: string; orderId?: string }>();
 const auth = useAuthStore();
 const { t } = useI18n();
 
@@ -20,10 +22,15 @@ const saved = ref(false);     // 已有 / 已送出評價
 const editing = ref(false);   // 重新編輯既有評價
 const error = ref('');
 
+/** 訪客憑訂單評分時附帶的 query（登入者不帶，改由後端讀 JWT 身分）。 */
+const reviewQuery = computed(() => (props.orderId ? { orderId: props.orderId } : undefined));
+/** 可評分：已登入或持有訂單憑證；兩者皆無才提示登入。 */
+const canReview = computed(() => auth.isAuthenticated || !!props.orderId);
+
 onMounted(async () => {
-  if (!auth.isAuthenticated || !props.catalogId) return;
+  if (!canReview.value || !props.catalogId) return;
   try {
-    const res = await catalogApi.catalogReviews.getMine(props.catalogId);
+    const res = await catalogApi.catalogReviews.getMine(props.catalogId, reviewQuery.value);
     const r = res.data;
     if (r?.rating) {
       rating.value = r.rating;
@@ -40,10 +47,11 @@ async function submit() {
   submitting.value = true;
   error.value = '';
   try {
-    await catalogApi.catalogReviews.upsertMine(props.catalogId, {
-      rating: rating.value,
-      comment: comment.value.trim() || null,
-    });
+    await catalogApi.catalogReviews.upsertMine(
+      props.catalogId,
+      { rating: rating.value, comment: comment.value.trim() || null },
+      reviewQuery.value,
+    );
     saved.value = true;
     editing.value = false;
   } catch {
@@ -56,8 +64,8 @@ async function submit() {
 
 <template>
   <div class="review-widget">
-    <!-- 未登入：購買驗證需登入身分 -->
-    <div v-if="!auth.isAuthenticated" class="rw-login">
+    <!-- 無法驗證購買（未登入且無訂單憑證）：提示登入 -->
+    <div v-if="!canReview" class="rw-login">
       <span><app-icon name="star" :size="14" /> {{ t('review.loginPrompt') }}</span>
       <n-button size="tiny" tertiary @click="auth.login()">{{ t('review.login') }}</n-button>
     </div>

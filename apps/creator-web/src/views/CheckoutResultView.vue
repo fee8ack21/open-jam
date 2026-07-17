@@ -78,7 +78,7 @@ const goOrder = () => {
           <div class="result-box-item-main">
             <div class="result-box-item-title">{{ it.title }}</div>
             <div class="result-box-item-meta">{{ it.creator }}・{{ it.formats.join('・') }}・{{ it.totalSize }}</div>
-            <review-widget :catalog-id="it.id" />
+            <review-widget :catalog-id="it.id" :order-id="order.orderId" />
           </div>
           <span class="result-box-item-price">{{ it.price === 0 ? t('common.free') : '$' + it.price }}</span>
         </div>

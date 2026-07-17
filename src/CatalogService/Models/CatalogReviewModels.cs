@@ -11,9 +11,9 @@ public class CatalogReviewDto
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid CatalogId { get; set; }
 
-    /// <summary>評論者使用者 ID。</summary>
+    /// <summary>登入評論者使用者 ID；訪客評論為 null。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
-    public Guid ReviewerUserId { get; set; }
+    public Guid? ReviewerUserId { get; set; }
 
     /// <summary>評分（1–5）。</summary>
     /// <example>5</example>

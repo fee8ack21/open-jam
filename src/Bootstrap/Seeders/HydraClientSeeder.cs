@@ -15,8 +15,12 @@ public class HydraClientSeeder(
 
     public async Task SeedAsync()
     {
-        await EnsureClientAsync(BuildWebClient());
-        await EnsureClientAsync(BuildServiceClient());
+        // Web client：已存在則略過——其 redirect_uris 由 Auth 消費 StoreProvisionedEvent 動態逐店追加
+        // （StorefrontRedirectService），整包覆寫會抹掉這些動態註冊，故不 force update。
+        await EnsureClientAsync(BuildWebClient(), forceUpdate: false);
+        // Service client：純靜態（client_credentials，無動態狀態），已存在時整包覆寫使其收斂到目前設定，
+        // 避免密鑰輪替後 Hydra 端仍留舊 secret 導致服務間換 token 回 401。
+        await EnsureClientAsync(BuildServiceClient(), forceUpdate: true);
     }
 
     private HydraOAuth2Client BuildWebClient() => new()
@@ -44,12 +48,22 @@ public class HydraClientSeeder(
         TokenEndpointAuthMethod = "client_secret_basic",
     };
 
-    private async Task EnsureClientAsync(HydraOAuth2Client client)
+    private async Task EnsureClientAsync(HydraOAuth2Client client, bool forceUpdate)
     {
         var check = await _http.GetAsync($"admin/clients/{Uri.EscapeDataString(client.ClientId)}");
         if (check.StatusCode == HttpStatusCode.OK)
         {
-            logger.LogInformation("Hydra client '{ClientId}' already exists, skipping", client.ClientId);
+            if (!forceUpdate)
+            {
+                logger.LogInformation("Hydra client '{ClientId}' already exists, skipping", client.ClientId);
+                return;
+            }
+
+            // 整包覆寫（含 client_secret），使既有 client 收斂到目前設定值。
+            var update = await _http.PutAsJsonAsync(
+                $"admin/clients/{Uri.EscapeDataString(client.ClientId)}", client);
+            update.EnsureSuccessStatusCode();
+            logger.LogInformation("Updated Hydra client '{ClientId}'", client.ClientId);
             return;
         }
 

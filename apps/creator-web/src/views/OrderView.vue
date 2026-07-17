@@ -11,6 +11,7 @@ import { useI18n } from 'vue-i18n';
 import { catalogApi, orderApi } from '@/api';
 import { OrderStatus, type OrderResponse } from '@/api/order-service';
 import type { PurchasedVersionAssetDto } from '@/api/catalog-service';
+import ReviewWidget from '@/components/ReviewWidget.vue';
 import AppIcon from '@/components/app-icon';
 
 const route = useRoute();
@@ -140,6 +141,9 @@ const goList = () => router.push({ name: 'list' });
           <p v-else style="margin:10px 0 0; font-size:13px; color:var(--text-faint);">
             {{ t('order.noFiles') }}
           </p>
+
+          <!-- 評分：訪客憑本訂單 ID 即可評分（後端以下單信箱識別）；登入者則以 JWT 身分 -->
+          <review-widget :catalog-id="item.catalogId!" :order-id="orderId" />
         </div>
 
         <p style="margin:16px 0 0; font-size:12.5px; font-weight:500; color:var(--text-faint);">

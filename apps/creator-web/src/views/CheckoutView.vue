@@ -66,8 +66,16 @@ const pay = async () => {
     router.push({ name: 'checkout-success' });
   } catch (e) {
     processing.value = false;
-    message.error(e instanceof Error ? e.message : t('checkout.msgError'));
+    message.error(errorText(e));
   }
+};
+
+/** 從錯誤取出可讀訊息：優先用後端 Problem Details 的 detail（如「商店尚未完成收款設定」），否則退回通用文案。 */
+const errorText = (e: unknown): string => {
+  if (e && typeof e === 'object' && 'detail' in e && typeof (e as { detail: unknown }).detail === 'string')
+    return (e as { detail: string }).detail;
+  if (e instanceof Error) return e.message;
+  return t('checkout.msgError');
 };
 </script>
 

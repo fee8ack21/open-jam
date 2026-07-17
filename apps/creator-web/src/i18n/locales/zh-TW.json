@@ -117,6 +117,7 @@
   },
   "review": {
     "title": "買家評價",
+    "verified": "已驗證購買",
     "empty": "還沒有評價，成為第一個分享心得的人。",
     "noComment": "（未留言）",
     "loadMore": "載入更多評價",

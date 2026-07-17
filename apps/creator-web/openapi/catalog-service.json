@@ -373,7 +373,7 @@
         "tags": [
           "CatalogReviews"
         ],
-        "summary": "取得目前使用者對此商品的評論；尚未評論回傳 204。",
+        "summary": "取得評論者對此商品的評論；尚未評論回傳 204。登入買家由 JWT 帶入身分；未註冊訪客傳 orderId（下單憑證）以下單信箱識別。",
         "operationId": "GetMine",
         "parameters": [
           {
@@ -381,6 +381,15 @@
             "in": "path",
             "description": "商品 ID。",
             "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "description": "訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -417,7 +426,7 @@
         "tags": [
           "CatalogReviews"
         ],
-        "summary": "新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。",
+        "summary": "新增 / 更新本人對此商品的評論（一人一則）。須為已購買者：登入買家由 JWT 帶入身分；未註冊訪客傳 orderId 以下單信箱識別。",
         "operationId": "UpsertMine",
         "parameters": [
           {
@@ -425,6 +434,15 @@
             "in": "path",
             "description": "商品 ID。",
             "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "description": "訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -478,7 +496,7 @@
         "tags": [
           "CatalogReviews"
         ],
-        "summary": "刪除本人對此商品的評論。",
+        "summary": "刪除本人對此商品的評論。訪客傳 orderId 識別身分。",
         "operationId": "DeleteMine",
         "parameters": [
           {
@@ -486,6 +504,15 @@
             "in": "path",
             "description": "商品 ID。",
             "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "description": "訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2868,9 +2895,10 @@
           },
           "reviewerUserId": {
             "type": "string",
-            "description": "評論者使用者 ID。",
+            "description": "登入評論者使用者 ID；訪客評論為 null。",
             "format": "uuid",
-            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            "nullable": true
           },
           "rating": {
             "type": "integer",
@@ -3414,7 +3442,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": { }
+        "additionalProperties": {}
       },
       "PurchasedVersionAssetDto": {
         "type": "object",

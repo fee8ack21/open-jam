@@ -122,8 +122,15 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options, ICurre
         {
             e.HasKey(r => r.Id);
             e.Property(r => r.Comment).HasMaxLength(2000);
-            // 一人一商品至多一則評論
-            e.HasIndex(r => new { r.CatalogId, r.ReviewerUserId }).IsUnique();
+            e.Property(r => r.ReviewerEmail).HasMaxLength(256);
+            // 登入買家：一人一商品至多一則評論（僅約束具 UserId 的評論）
+            e.HasIndex(r => new { r.CatalogId, r.ReviewerUserId })
+                .IsUnique()
+                .HasFilter("reviewer_user_id IS NOT NULL");
+            // 訪客買家：一信箱一商品至多一則評論（僅約束具 Email 的評論）
+            e.HasIndex(r => new { r.CatalogId, r.ReviewerEmail })
+                .IsUnique()
+                .HasFilter("reviewer_email IS NOT NULL");
             // 列出某商品評論（依時間）
             e.HasIndex(r => r.CatalogId);
         });

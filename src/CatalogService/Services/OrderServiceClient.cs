@@ -33,6 +33,35 @@ public class OrderServiceClient(IHttpClientFactory httpClientFactory, IHttpConte
             && order.Items.Any(i => i.CatalogId == catalogId);
     }
 
+    /// <summary>
+    /// 訪客評論授權：驗證指定訂單已完成且包含指定商品，回傳其下單信箱（正規化為小寫）供作評論者身分；
+    /// 訂單不存在 / 未完成 / 不含該商品則回 null。
+    /// </summary>
+    /// <param name="orderId">訂單 ID（作為不可猜測的評論憑證）。</param>
+    /// <param name="catalogId">商品 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    public async Task<string?> ResolveBuyerEmailAsync(Guid orderId, Guid catalogId, CancellationToken ct)
+    {
+        var client = httpClientFactory.CreateClient("order");
+
+        // 匿名呼叫（不轉發 token）：訂單查詢端點對匿名開放，訂單 ID 本身即為授權憑證。
+        using var response = await client.GetAsync($"v1/orders/{orderId}", ct);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        response.EnsureSuccessStatusCode();
+
+        var order = await response.Content.ReadFromJsonAsync<OrderResult>(cancellationToken: ct);
+        if (order is null
+            || !string.Equals(order.Status, "Completed", StringComparison.OrdinalIgnoreCase)
+            || !order.Items.Any(i => i.CatalogId == catalogId)
+            || string.IsNullOrWhiteSpace(order.BuyerEmail))
+            return null;
+
+        return order.BuyerEmail.Trim().ToLowerInvariant();
+    }
+
     /// <summary>查詢目前使用者是否已購買（已完成訂單）指定商品。</summary>
     /// <param name="catalogId">商品 ID。</param>
     /// <param name="ct">Cancellation token。</param>
@@ -64,6 +93,8 @@ public class OrderServiceClient(IHttpClientFactory httpClientFactory, IHttpConte
     private class OrderResult
     {
         public string Status { get; set; } = "";
+
+        public string BuyerEmail { get; set; } = "";
 
         public List<OrderItemResult> Items { get; set; } = [];
     }

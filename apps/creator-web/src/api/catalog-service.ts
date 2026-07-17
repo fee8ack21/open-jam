@@ -313,11 +313,11 @@ export interface CatalogReviewDto {
    */
   catalogId?: string;
   /**
-   * 評論者使用者 ID。
+   * 登入評論者使用者 ID；訪客評論為 null。
    * @format uuid
    * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
    */
-  reviewerUserId?: string;
+  reviewerUserId?: string | null;
   /**
    * 評分（1–5）。
    * @format int32
@@ -1400,13 +1400,24 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags CatalogReviews
      * @name GetMine
-     * @summary 取得目前使用者對此商品的評論；尚未評論回傳 204。
+     * @summary 取得評論者對此商品的評論；尚未評論回傳 204。登入買家由 JWT 帶入身分；未註冊訪客傳 orderId（下單憑證）以下單信箱識別。
      * @request GET:/v1/catalogs/{catalogId}/reviews/mine
      */
-    getMine: (catalogId: string, params: RequestParams = {}) =>
+    getMine: (
+      catalogId: string,
+      query?: {
+        /**
+         * 訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。
+         * @format uuid
+         */
+        orderId?: string;
+      },
+      params: RequestParams = {},
+    ) =>
       this.http.request<CatalogReviewDto, any>({
         path: `/v1/catalogs/${catalogId}/reviews/mine`,
         method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),
@@ -1416,17 +1427,25 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags CatalogReviews
      * @name UpsertMine
-     * @summary 新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。
+     * @summary 新增 / 更新本人對此商品的評論（一人一則）。須為已購買者：登入買家由 JWT 帶入身分；未註冊訪客傳 orderId 以下單信箱識別。
      * @request PUT:/v1/catalogs/{catalogId}/reviews/mine
      */
     upsertMine: (
       catalogId: string,
       data: UpsertReviewRequest,
+      query?: {
+        /**
+         * 訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。
+         * @format uuid
+         */
+        orderId?: string;
+      },
       params: RequestParams = {},
     ) =>
       this.http.request<CatalogReviewDto, any>({
         path: `/v1/catalogs/${catalogId}/reviews/mine`,
         method: "PUT",
+        query: query,
         body: data,
         type: ContentType.Json,
         format: "json",
@@ -1438,13 +1457,24 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags CatalogReviews
      * @name DeleteMine
-     * @summary 刪除本人對此商品的評論。
+     * @summary 刪除本人對此商品的評論。訪客傳 orderId 識別身分。
      * @request DELETE:/v1/catalogs/{catalogId}/reviews/mine
      */
-    deleteMine: (catalogId: string, params: RequestParams = {}) =>
+    deleteMine: (
+      catalogId: string,
+      query?: {
+        /**
+         * 訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。
+         * @format uuid
+         */
+        orderId?: string;
+      },
+      params: RequestParams = {},
+    ) =>
       this.http.request<void, any>({
         path: `/v1/catalogs/${catalogId}/reviews/mine`,
         method: "DELETE",
+        query: query,
         ...params,
       }),
   };

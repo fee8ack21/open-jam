@@ -117,6 +117,7 @@
   },
   "review": {
     "title": "Buyer reviews",
+    "verified": "Verified purchase",
     "empty": "No reviews yet — be the first to share your thoughts.",
     "noComment": "(No comment)",
     "loadMore": "Load more reviews",

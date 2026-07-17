@@ -83,6 +83,9 @@ onMounted(() => load());
         <div class="rl-body">
           <div class="rl-meta">
             <n-rate :value="r.rating" readonly size="small" />
+            <span class="rl-verified" :title="t('review.verified')">
+              <app-icon name="check" :size="11" />{{ t('review.verified') }}
+            </span>
             <span class="rl-date">{{ fmtDate(r.createdAt) }}</span>
           </div>
           <p v-if="r.comment" class="rl-comment">{{ r.comment }}</p>
@@ -130,6 +133,13 @@ onMounted(() => load());
 }
 .rl-body { flex: 1; min-width: 0; }
 .rl-meta { display: flex; align-items: center; gap: 10px; }
+.rl-verified {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 8px 1px 6px; border-radius: 999px;
+  font-size: 11px; font-weight: 900; line-height: 1.6;
+  color: var(--text); background: var(--c-lime);
+  border: var(--bw) solid var(--border-strong);
+}
 .rl-date { font-size: 12px; color: var(--text-faint); font-family: var(--oj-mono); }
 .rl-comment { margin: 6px 0 0; font-size: 14px; line-height: 1.55; color: var(--text); white-space: pre-wrap; }
 .rl-nocomment { margin: 6px 0 0; font-size: 13px; color: var(--text-faint); }

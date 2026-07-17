@@ -19,31 +19,27 @@ public class CatalogReviewService(
     IMapper mapper) : ICatalogReviewService
 {
     /// <inheritdoc/>
-    public async Task<CatalogReviewDto> UpsertAsync(Guid catalogId, UpsertReviewRequest request, CancellationToken ct)
+    public async Task<CatalogReviewDto> UpsertAsync(Guid catalogId, UpsertReviewRequest request, Guid? orderId, CancellationToken ct)
     {
-        var userId = currentUser.UserId ?? throw new UnauthorizedException();
-
         var storeId = await db.Catalogs.Where(c => c.Id == catalogId)
             .Select(c => (Guid?)c.StoreId).FirstOrDefaultAsync(ct)
             ?? throw new NotFoundException("找不到商品。");
 
-        // 購買驗證：僅已完成訂單購買此商品者可評論。
-        if (!await orderClient.HasPurchasedAsync(catalogId, ct))
-            throw new ForbiddenException("僅購買者可評論此商品。");
+        var reviewer = await ResolveReviewerAsync(catalogId, orderId, ct);
 
         var comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
 
         var review = await db.Database.ExecuteInTransactionAsync(async tx =>
         {
-            var review = await db.CatalogReviews
-                .FirstOrDefaultAsync(r => r.CatalogId == catalogId && r.ReviewerUserId == userId, ct);
+            var review = await FindReviewAsync(catalogId, reviewer, ct);
 
             if (review is null)
             {
                 review = new CatalogReview
                 {
                     CatalogId = catalogId,
-                    ReviewerUserId = userId,
+                    ReviewerUserId = reviewer.UserId,
+                    ReviewerEmail = reviewer.Email,
                     Rating = request.Rating,
                     Comment = comment,
                 };
@@ -55,7 +51,7 @@ public class CatalogReviewService(
                 review.Comment = comment;
             }
 
-            auditLog.Add(userId, "catalog.review", "Catalog", catalogId, tenant: storeId);
+            auditLog.Add(reviewer.UserId, "catalog.review", "Catalog", catalogId, tenant: storeId);
             await db.SaveChangesAsync(ct);
 
             await RecomputeAggregateAsync(catalogId, ct);
@@ -106,36 +102,88 @@ public class CatalogReviewService(
     }
 
     /// <inheritdoc/>
-    public async Task<CatalogReviewDto?> GetMineAsync(Guid catalogId, CancellationToken ct)
+    public async Task<CatalogReviewDto?> GetMineAsync(Guid catalogId, Guid? orderId, CancellationToken ct)
     {
-        var userId = currentUser.UserId ?? throw new UnauthorizedException();
+        // 讀取不需購買驗證：登入者以 JWT 身分、訪客以訂單信箱查詢；訪客訂單無法對應信箱時視為無評論。
+        var reviewer = await TryResolveReviewerAsync(catalogId, orderId, ct);
+        if (reviewer is null)
+            return null;
 
-        return await db.CatalogReviews.AsNoTracking()
-            .Where(r => r.CatalogId == catalogId && r.ReviewerUserId == userId)
+        return await MatchReviewer(db.CatalogReviews.AsNoTracking(), catalogId, reviewer.Value)
             .ProjectTo<CatalogReviewDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(ct);
     }
 
     /// <inheritdoc/>
-    public async Task DeleteMineAsync(Guid catalogId, CancellationToken ct)
+    public async Task DeleteMineAsync(Guid catalogId, Guid? orderId, CancellationToken ct)
     {
-        var userId = currentUser.UserId ?? throw new UnauthorizedException();
+        var reviewer = await ResolveReviewerAsync(catalogId, orderId, ct);
 
-        var review = await db.CatalogReviews
-            .FirstOrDefaultAsync(r => r.CatalogId == catalogId && r.ReviewerUserId == userId, ct);
+        var review = await FindReviewAsync(catalogId, reviewer, ct);
         if (review is null)
             return;
 
         await db.Database.ExecuteInTransactionAsync(async tx =>
         {
             db.CatalogReviews.Remove(review);
-            auditLog.Add(userId, "catalog.review.delete", "Catalog", catalogId, tenant: null);
+            auditLog.Add(reviewer.UserId, "catalog.review.delete", "Catalog", catalogId, tenant: null);
             await db.SaveChangesAsync(ct);
 
             await RecomputeAggregateAsync(catalogId, ct);
             await tx.CommitAsync(ct);
         }, ct);
     }
+
+    /// <summary>評論者身分：登入買家的 UserId 或訪客的下單信箱（二擇一）。</summary>
+    private readonly record struct Reviewer(Guid? UserId, string? Email);
+
+    /// <summary>
+    /// 解析評論者身分並驗證其已購買（撰寫 / 刪除用）。登入者轉發 token 向 OrderService 驗證購買；
+    /// 未登入者須帶 <paramref name="orderId"/>，驗證訂單已完成且含此商品後取下單信箱。二者皆無則 401、驗證不過則 403。
+    /// </summary>
+    private async Task<Reviewer> ResolveReviewerAsync(Guid catalogId, Guid? orderId, CancellationToken ct)
+    {
+        if (currentUser.UserId is Guid userId)
+        {
+            if (!await orderClient.HasPurchasedAsync(catalogId, ct))
+                throw new ForbiddenException("僅購買者可評論此商品。");
+            return new Reviewer(userId, null);
+        }
+
+        if (orderId is Guid oid)
+        {
+            var email = await orderClient.ResolveBuyerEmailAsync(oid, catalogId, ct)
+                ?? throw new ForbiddenException("僅購買者可評論此商品。");
+            return new Reviewer(null, email);
+        }
+
+        throw new UnauthorizedException();
+    }
+
+    /// <summary>解析評論者身分但不強制存在（讀取用）：無登入身分且訂單無法對應信箱時回 null。</summary>
+    private async Task<Reviewer?> TryResolveReviewerAsync(Guid catalogId, Guid? orderId, CancellationToken ct)
+    {
+        if (currentUser.UserId is Guid userId)
+            return new Reviewer(userId, null);
+
+        if (orderId is Guid oid)
+        {
+            var email = await orderClient.ResolveBuyerEmailAsync(oid, catalogId, ct);
+            return email is null ? null : new Reviewer(null, email);
+        }
+
+        throw new UnauthorizedException();
+    }
+
+    /// <summary>依評論者身分（UserId 或 Email）過濾評論查詢。</summary>
+    private static IQueryable<CatalogReview> MatchReviewer(IQueryable<CatalogReview> query, Guid catalogId, Reviewer reviewer) =>
+        reviewer.UserId is Guid userId
+            ? query.Where(r => r.CatalogId == catalogId && r.ReviewerUserId == userId)
+            : query.Where(r => r.CatalogId == catalogId && r.ReviewerEmail == reviewer.Email);
+
+    /// <summary>取得評論者對此商品的既有評論（追蹤，供更新 / 刪除）；無則 null。</summary>
+    private Task<CatalogReview?> FindReviewAsync(Guid catalogId, Reviewer reviewer, CancellationToken ct) =>
+        MatchReviewer(db.CatalogReviews, catalogId, reviewer).FirstOrDefaultAsync(ct);
 
     /// <summary>由評論重算商品的平均分 / 評論數並回寫 Catalog（不更動 Audit 欄位）。</summary>
     private async Task RecomputeAggregateAsync(Guid catalogId, CancellationToken ct)

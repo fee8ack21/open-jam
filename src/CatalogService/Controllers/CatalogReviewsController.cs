@@ -24,36 +24,49 @@ public class CatalogReviewsController(ICatalogReviewService reviewService) : Con
         Guid catalogId, [FromQuery] ListReviewsRequest request, CancellationToken ct) =>
         Ok(await reviewService.ListAsync(catalogId, request, ct));
 
-    /// <summary>取得目前使用者對此商品的評論；尚未評論回傳 204。</summary>
+    /// <summary>
+    /// 取得評論者對此商品的評論；尚未評論回傳 204。
+    /// 登入買家由 JWT 帶入身分；未註冊訪客傳 <paramref name="orderId"/>（下單憑證）以下單信箱識別。
+    /// </summary>
     /// <param name="catalogId">商品 ID。</param>
+    /// <param name="orderId">訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("mine")]
+    [AllowAnonymous]
     [ProducesResponseType<CatalogReviewDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult<CatalogReviewDto>> GetMine(Guid catalogId, CancellationToken ct)
+    public async Task<ActionResult<CatalogReviewDto>> GetMine(
+        Guid catalogId, [FromQuery] Guid? orderId, CancellationToken ct)
     {
-        var review = await reviewService.GetMineAsync(catalogId, ct);
+        var review = await reviewService.GetMineAsync(catalogId, orderId, ct);
         return review is null ? NoContent() : Ok(review);
     }
 
-    /// <summary>新增 / 更新本人對此商品的評論（一人一則）。須為已購買者。</summary>
+    /// <summary>
+    /// 新增 / 更新本人對此商品的評論（一人一則）。須為已購買者：
+    /// 登入買家由 JWT 帶入身分；未註冊訪客傳 <paramref name="orderId"/> 以下單信箱識別。
+    /// </summary>
     /// <param name="catalogId">商品 ID。</param>
     /// <param name="request">評分與留言。</param>
+    /// <param name="orderId">訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpPut("mine")]
+    [AllowAnonymous]
     [ProducesResponseType<CatalogReviewDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<CatalogReviewDto>> UpsertMine(
-        Guid catalogId, [FromBody] UpsertReviewRequest request, CancellationToken ct) =>
-        Ok(await reviewService.UpsertAsync(catalogId, request, ct));
+        Guid catalogId, [FromBody] UpsertReviewRequest request, [FromQuery] Guid? orderId, CancellationToken ct) =>
+        Ok(await reviewService.UpsertAsync(catalogId, request, orderId, ct));
 
-    /// <summary>刪除本人對此商品的評論。</summary>
+    /// <summary>刪除本人對此商品的評論。訪客傳 <paramref name="orderId"/> 識別身分。</summary>
     /// <param name="catalogId">商品 ID。</param>
+    /// <param name="orderId">訪客評論憑證：已完成且含此商品的訂單 ID；登入者免帶。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpDelete("mine")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteMine(Guid catalogId, CancellationToken ct)
+    public async Task<IActionResult> DeleteMine(Guid catalogId, [FromQuery] Guid? orderId, CancellationToken ct)
     {
-        await reviewService.DeleteMineAsync(catalogId, ct);
+        await reviewService.DeleteMineAsync(catalogId, orderId, ct);
         return NoContent();
     }
 }
