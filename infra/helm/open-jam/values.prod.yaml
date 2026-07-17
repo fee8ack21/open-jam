@@ -234,7 +234,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.17
+    tag: v0.0.18
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -264,7 +264,7 @@ paymentService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/payment-service
-    tag: v0.0.5
+    tag: v0.0.6
     pullPolicy: IfNotPresent
   replicaCount: 1
   stripe:

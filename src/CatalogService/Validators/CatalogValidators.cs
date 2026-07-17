@@ -36,6 +36,11 @@ public class CreateCatalogRequestValidator : AbstractValidator<CreateCatalogRequ
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0).WithMessage("售價不得為負數。");
 
+        RuleFor(x => x.Price)
+            .Must(CatalogInputRules.IsValidPaidPrice)
+            .When(x => x.Price >= 0)
+            .WithMessage(CatalogInputRules.MinPaidPriceMessage);
+
         RuleFor(x => x.Currency!)
             .Must(CatalogInputRules.IsValidCurrency)
             .When(x => x.Currency is not null)
@@ -73,6 +78,11 @@ public class UpdateCatalogRequestValidator : AbstractValidator<UpdateCatalogRequ
             .GreaterThanOrEqualTo(0)
             .When(x => x.Price is not null)
             .WithMessage("售價不得為負數。");
+
+        RuleFor(x => x.Price!.Value)
+            .Must(CatalogInputRules.IsValidPaidPrice)
+            .When(x => x.Price is not null && x.Price >= 0)
+            .WithMessage(CatalogInputRules.MinPaidPriceMessage);
 
         RuleFor(x => x.Currency!)
             .Must(CatalogInputRules.IsValidCurrency)
@@ -238,6 +248,15 @@ internal static class CatalogInputRules
     /// <summary>幣別格式錯誤訊息。</summary>
     public const string CurrencyMessage = "幣別須為 3 碼英文字母（ISO 4217）。";
 
+    /// <summary>
+    /// 付費商品最低定價（TWD）。0 元（免費）走特殊履約不受限；介於此值以下的付費商品，
+    /// 金額低於 Stripe 最低收款門檻（約 $0.50 USD）而永遠無法結帳，故從上架源頭擋下。
+    /// </summary>
+    public const decimal MinPaidPrice = 30m;
+
+    /// <summary>最低定價錯誤訊息。</summary>
+    public static readonly string MinPaidPriceMessage = $"付費商品最低定價為 {MinPaidPrice:0} 元（0 元為免費）。";
+
     /// <summary>一句話簡介長度錯誤訊息。</summary>
     public const string SummaryLengthMessage = "一句話簡介長度不得超過 200 字。";
 
@@ -253,4 +272,7 @@ internal static class CatalogInputRules
         var value = currency.Trim();
         return value.Length == 3 && value.All(char.IsLetter);
     }
+
+    /// <summary>售價是否合法：0 元（免費）或不低於最低付費定價；負數另由 GreaterThanOrEqualTo 擋下。</summary>
+    public static bool IsValidPaidPrice(decimal price) => price == 0m || price >= MinPaidPrice;
 }

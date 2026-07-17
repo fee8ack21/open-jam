@@ -107,7 +107,18 @@ public class PaymentManager(
         };
 
         var service = new SessionService();
-        var session = await service.CreateAsync(options, cancellationToken: ct);
+        Session session;
+        try
+        {
+            session = await service.CreateAsync(options, cancellationToken: ct);
+        }
+        catch (StripeException ex)
+        {
+            // Stripe 拒絕（如金額低於最低收款門檻約 $0.50 USD、幣別 / 帳戶問題）：轉為 422 並帶
+            // Stripe 原始訊息，而非讓非 AppException 冒泡成毫無資訊的 500。OrderService 的
+            // PaymentServiceClient 會取 Problem Details detail 原樣轉給前端顯示。
+            throw new ValidationException($"金流服務無法建立付款：{ex.StripeError?.Message ?? ex.Message}");
+        }
 
         payment.ProviderCheckoutId = session.Id;
         payment.ProviderPaymentId = session.PaymentIntentId;
