@@ -61,6 +61,7 @@ public class OutboxRelayService(
                     }
 
                     await db.SaveChangesAsync(CancellationToken.None);
+                    await tx.CommitAsync(ct);
                 }, ct);
             }
             catch (Exception ex)
