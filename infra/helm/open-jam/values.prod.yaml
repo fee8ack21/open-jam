@@ -234,7 +234,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.13
+    tag: v0.0.14
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -331,7 +331,7 @@ creatorWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/creator-web
-    tag: v0.0.27
+    tag: v0.0.28
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -346,7 +346,7 @@ portalWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/portal-web
-    tag: v0.0.38
+    tag: v0.0.39
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -361,7 +361,7 @@ workspaceWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/workspace-web
-    tag: v0.0.42
+    tag: v0.0.43
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
