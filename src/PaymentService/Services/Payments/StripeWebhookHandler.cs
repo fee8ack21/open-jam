@@ -103,20 +103,24 @@ public class StripeWebhookHandler(
         var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == paymentId.Value, ct);
         if (payment == null) return;
 
-        if (payment.Status == PaymentStatus.Succeeded) return;
-
-        payment.Status = PaymentStatus.Succeeded;
-        payment.ProviderPaymentId = session.PaymentIntentId ?? payment.ProviderPaymentId;
-        payment.PaidAt = DateTimeOffset.UtcNow;
-
-        db.PaymentTransactions.Add(new PaymentTransaction
+        // 冪等：已 Succeeded 就不重複改狀態 / 記交易，但仍往下「一律確保完成事件入 Outbox」。
+        // 這能修復先前殘態——付款曾被標記 Succeeded、但完成事件因例外未發出（訂單卡 Pending）；
+        // 重跑此事件即補發。PaymentSucceededEvent 對 OrderService 冪等（以訂單狀態判斷），重送安全。
+        if (payment.Status != PaymentStatus.Succeeded)
         {
-            Id = Guid.NewGuid(),
-            PaymentId = payment.Id,
-            TransactionType = TransactionType.Success,
-            ProviderTransactionId = session.PaymentIntentId ?? session.Id,
-            RawPayload = evt.Data.RawObject?.ToString(),
-        });
+            payment.Status = PaymentStatus.Succeeded;
+            payment.ProviderPaymentId = session.PaymentIntentId ?? payment.ProviderPaymentId;
+            payment.PaidAt = DateTimeOffset.UtcNow;
+
+            db.PaymentTransactions.Add(new PaymentTransaction
+            {
+                Id = Guid.NewGuid(),
+                PaymentId = payment.Id,
+                TransactionType = TransactionType.Success,
+                ProviderTransactionId = session.PaymentIntentId ?? session.Id,
+                RawPayload = evt.Data.RawObject?.ToString(),
+            });
+        }
 
         var outbox = new OutboxMessage
         {
