@@ -109,6 +109,12 @@
     "favTitle": "Save to favorites",
     "handNoteFree": "grab it, it's free ♡"
   },
+  "lightbox": {
+    "open": "Click to enlarge",
+    "close": "Close",
+    "prev": "Previous image",
+    "next": "Next image"
+  },
   "review": {
     "title": "Buyer reviews",
     "empty": "No reviews yet — be the first to share your thoughts.",

@@ -6,6 +6,7 @@ import { useShopStore } from '@/stores/shop';
 import { useAuthStore } from '@/stores/auth';
 import { CATEGORIES, type PreviewMediaItem } from '@/data/products';
 import ProductThumb from '@/components/ProductThumb.vue';
+import Lightbox from '@/components/Lightbox.vue';
 import AppIcon from '@/components/app-icon';
 import Stars from '@/components/Stars.vue';
 import ReviewList from '@/components/ReviewList.vue';
@@ -42,6 +43,23 @@ const galleryProduct = computed(() => {
   if (!p.value) return null;
   return activeItem.value?.kind === 'image' ? { ...p.value, image: activeItem.value.url } : p.value;
 });
+// Lightbox：僅實際圖片可放大（影片 / YouTube 原地播放、佔位縮圖不觸發）。
+// imageGalleryIndexes 維護「lightbox 第 n 張 ↔ 圖庫索引」對應，切換時同步縮圖列選中狀態
+const imageGalleryIndexes = computed(() =>
+  gallery.value.flatMap((item, gi) => (item.kind === 'image' ? [gi] : [])));
+const lightboxImages = computed(() => imageGalleryIndexes.value.map((gi) => gallery.value[gi].url));
+const lightboxOpen = ref(false);
+const lightboxIndex = ref(0);
+function openLightbox() {
+  if (activeItem.value?.kind !== 'image') return;
+  const effActive = gallery.value[active.value] ? active.value : 0;
+  lightboxIndex.value = Math.max(0, imageGalleryIndexes.value.indexOf(effActive));
+  lightboxOpen.value = true;
+}
+function onLightboxIndex(i: number) {
+  lightboxIndex.value = i;
+  active.value = imageGalleryIndexes.value[i] ?? active.value;
+}
 const ytEmbedUrl = (id: string) => `https://www.youtube-nocookie.com/embed/${id}`;
 const ytThumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const fav = computed(() => (p.value ? store.isFav(p.value.id) : false));
@@ -68,7 +86,7 @@ async function ensureLoaded(id: string) {
   store.recordView(id); // 進頁瀏覽 +1（fire-and-forget，不阻塞畫面）
 }
 onMounted(() => ensureLoaded(String(route.params.id)));
-watch(() => route.params.id, (id) => { active.value = 0; ensureLoaded(String(id)); });
+watch(() => route.params.id, (id) => { active.value = 0; lightboxOpen.value = false; ensureLoaded(String(id)); });
 watchEffect(() => { if (ready.value && !p.value) router.replace({ name: 'not-found' }); });
 
 const fileColor = (t: string) => FILE_COLORS[t] || FILE_COLORS.DEFAULT;
@@ -99,7 +117,10 @@ const goCart = () => router.push({ name: 'checkout' });
                 title="YouTube video player" frameborder="0" allowfullscreen
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
         <product-thumb v-else :product="galleryProduct ?? p" class="gallery-main" :seed="active" :glyph-size="120"
-                       :label="gallery.length > 1 ? t('detail.previewLabel', { current: active + 1, total: gallery.length }) : ''" />
+                       :class="{ zoomable: activeItem?.kind === 'image' }"
+                       :title="activeItem?.kind === 'image' ? t('lightbox.open') : undefined"
+                       :label="gallery.length > 1 ? t('detail.previewLabel', { current: active + 1, total: gallery.length }) : ''"
+                       @click="openLightbox" />
         <div v-if="gallery.length > 1" class="gallery-thumbs">
           <template v-for="(item, i) in gallery" :key="item.url + i">
             <product-thumb v-if="item.kind === 'image'" :product="{ ...p, image: item.url }"
@@ -137,6 +158,9 @@ const goCart = () => router.push({ name: 'checkout' });
         </div>
 
         <review-list :catalog-id="p.id" />
+
+        <lightbox v-if="lightboxOpen" :images="lightboxImages" :index="lightboxIndex"
+                  @update:index="onLightboxIndex" @close="lightboxOpen = false" />
       </div>
 
       <!-- right: buy card -->
@@ -224,6 +248,9 @@ const goCart = () => router.push({ name: 'checkout' });
 <style scoped>
 /* 影片 / YouTube 主展示區：沿用 .gallery-main 外框（16/10），深色底避免 letterbox 白邊 */
 .gallery-media { display: block; width: 100%; background: #1a1a1a; object-fit: contain; }
+
+/* 主展示區為實際圖片時可點擊放大（lightbox） */
+.gallery-main.zoomable { cursor: zoom-in; }
 
 /* 影片 / YouTube 縮圖磚：深色底 + 中央播放徽章（外框樣式沿用 .gallery-thumbs .thumb） */
 .media-thumb { padding: 0; background: #1a1a1a; }

@@ -109,6 +109,12 @@
     "favTitle": "收藏",
     "handNoteFree": "grab it, it's free ♡"
   },
+  "lightbox": {
+    "open": "點擊放大",
+    "close": "關閉",
+    "prev": "上一張",
+    "next": "下一張"
+  },
   "review": {
     "title": "買家評價",
     "empty": "還沒有評價，成為第一個分享心得的人。",
