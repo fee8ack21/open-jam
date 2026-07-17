@@ -115,7 +115,7 @@ public class StripeWebhookHandler(
             PaymentId = payment.Id,
             TransactionType = TransactionType.Success,
             ProviderTransactionId = session.PaymentIntentId ?? session.Id,
-            RawPayload = evt.Data.RawObject?.ToJson(),
+            RawPayload = evt.Data.RawObject?.ToString(),
         });
 
         var outbox = new OutboxMessage
@@ -161,7 +161,7 @@ public class StripeWebhookHandler(
             PaymentId = payment.Id,
             TransactionType = TransactionType.Fail,
             ProviderTransactionId = session.Id,
-            RawPayload = evt.Data.RawObject?.ToJson(),
+            RawPayload = evt.Data.RawObject?.ToString(),
         });
 
         logger.LogInformation("Payment failed (async): {PaymentId} {CheckoutSessionId}", payment.Id, session.Id);
@@ -190,7 +190,7 @@ public class StripeWebhookHandler(
             PaymentId = payment.Id,
             TransactionType = TransactionType.Expired,
             ProviderTransactionId = session.Id,
-            RawPayload = evt.Data.RawObject?.ToJson(),
+            RawPayload = evt.Data.RawObject?.ToString(),
         });
 
         logger.LogInformation("Checkout session expired: {PaymentId} {CheckoutSessionId}", payment.Id, session.Id);
@@ -217,7 +217,7 @@ public class StripeWebhookHandler(
             PaymentId = payment.Id,
             TransactionType = TransactionType.Fail,
             ProviderTransactionId = intent.Id,
-            RawPayload = evt.Data.RawObject?.ToJson(),
+            RawPayload = evt.Data.RawObject?.ToString(),
         });
 
         logger.LogInformation("Payment failed: {PaymentId} {PaymentIntentId}", payment.Id, intent.Id);
