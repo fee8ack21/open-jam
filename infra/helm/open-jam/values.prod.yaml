@@ -234,7 +234,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.14
+    tag: v0.0.15
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -286,7 +286,7 @@ orderService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
-    tag: v0.0.6
+    tag: v0.0.7
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:

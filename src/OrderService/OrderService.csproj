@@ -7,7 +7,7 @@
     <UserSecretsId>dotnet-OrderService-7b1e4c2a-9d36-4af8-bc15-2f8e6a4d9c01</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>0.0.6</Version>
+    <Version>0.0.7</Version>
   </PropertyGroup>
 
   <ItemGroup>
