@@ -7,7 +7,7 @@
     <UserSecretsId>dotnet-CatalogService-9d4f2a17-6b8c-4e1d-a2f3-7c5e9b0d4a18</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <Version>0.0.16</Version>
+    <Version>0.0.17</Version>
   </PropertyGroup>
 
   <ItemGroup>
