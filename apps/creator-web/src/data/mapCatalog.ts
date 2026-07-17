@@ -37,6 +37,13 @@ export function categoryKeyResolver(categories: CatalogCategoryDto[]) {
   };
 }
 
+/** 前端分類鍵（music / photo / ebook）→ 後端頂層分類 ID，供列表查詢的 CategoryId 篩選；無法對應時回 undefined。 */
+export function rootCategoryIdOf(categories: CatalogCategoryDto[], key: string): string | undefined {
+  const slug = Object.entries(ROOT_SLUG_TO_KEY).find(([, k]) => k === key)?.[0];
+  if (!slug) return undefined;
+  return categories.find((c) => !c.parentId && c.slug === slug)?.id ?? undefined;
+}
+
 /** 店家顯示資訊（套到每張商品卡片的創作者欄位）。 */
 export interface StoreInfo {
   creator: string;

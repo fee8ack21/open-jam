@@ -140,7 +140,7 @@ onBeforeUnmount(() => {
               <div class="qv-specs">
                 <div class="qv-spec">
                   <span class="qv-spec-k">{{ t('quickView.formats') }}</span>
-                  <span class="qv-spec-v">{{ product.formats.join(' · ') }}</span>
+                  <span class="qv-spec-v">{{ product.formats.join(' · ') || '—' }}</span>
                 </div>
                 <div class="qv-spec">
                   <span class="qv-spec-k">{{ t('quickView.totalSize') }}</span>

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { catalogApi, storeApi } from '@/api';
-import { categoryKeyResolver, toProduct } from '@/data/mapCatalog';
+import { categoryKeyResolver, toDetailMeta, toProduct } from '@/data/mapCatalog';
 import type { Product } from '@/data/products';
 import type { CatalogCategoryDto } from '@/api/catalog-service';
 import type { StoreDto } from '@/api/store-service';
@@ -24,6 +24,10 @@ export const useShopStore = defineStore('shop', {
     categories: [] as CatalogCategoryDto[],
     loading: false,
     loaded: false,
+    // 已補齊詳情 meta（檔案清單 / 格式 / 總大小）的商品 id
+    detailLoaded: new Set<string>(),
+    // 商店公開資訊快取（queryCatalog 補商品所屬店家資訊時重用，避免重複請求）
+    storeCache: new Map<string, StoreDto>(),
   }),
   actions: {
     setFont(f: Font): void {
@@ -44,27 +48,68 @@ export const useShopStore = defineStore('shop', {
         const catKeyOf = categoryKeyResolver(this.categories);
         const items = listRes.data.items ?? [];
 
-        // 依 storeId 去重後逐一補商店資訊（公開端點）
-        const storeIds = [...new Set(items.map((p) => p.storeId).filter((v): v is string => !!v))];
-        const stores = await Promise.all(
-          storeIds.map((id) =>
-            storeApi.stores
-              .get(id)
-              .then((r) => r.data)
-              .catch(() => undefined),
-          ),
-        );
-        const storeMap = new Map<string, StoreDto>();
-        stores.forEach((s) => { if (s?.id) storeMap.set(s.id, s); });
+        // 依 storeId 去重後逐一補商店資訊（公開端點），存入快取供列表查詢重用
+        await this.resolveStores(items.map((p) => p.storeId));
 
         this.products = items.map((p) =>
-          toProduct(p, catKeyOf(p.categoryId), p.storeId ? storeMap.get(p.storeId) : undefined),
+          toProduct(p, catKeyOf(p.categoryId), p.storeId ? this.storeCache.get(p.storeId) : undefined),
         );
         this.loaded = true;
       } catch {
         // 後端暫時不可用：保留空市集（各版位已有空狀態），loaded 未設定可於下次進頁重試
       } finally {
         this.loading = false;
+      }
+    },
+
+    /** 補齊尚未快取的商店公開資訊（去重後並行查詢，單店失敗不影響其他）。 */
+    async resolveStores(storeIds: (string | null | undefined)[]): Promise<void> {
+      const missing = [...new Set(storeIds.filter((v): v is string => !!v && !this.storeCache.has(v)))];
+      const stores = await Promise.all(
+        missing.map((id) =>
+          storeApi.stores
+            .get(id)
+            .then((r) => r.data)
+            .catch(() => undefined),
+        ),
+      );
+      stores.forEach((s) => { if (s?.id) this.storeCache.set(s.id, s); });
+    },
+
+    /**
+     * 依查詢條件向 CatalogService 撈商品列表（browse 格的篩選 / 排序 / 分頁皆走 API，非 in-memory）。
+     * 回傳本頁商品與符合條件總數；商品所屬店家資訊由快取補齊。
+     */
+    async queryCatalog(
+      query: Parameters<typeof catalogApi.catalogs.list>[0],
+    ): Promise<{ items: Product[]; total: number }> {
+      // 分類清單通常已由 loadCatalog 載入；防禦性補載以確保分類鍵解析
+      if (!this.categories.length) {
+        try { this.categories = (await catalogApi.catalogCategories.list()).data ?? []; } catch { /* 保留空清單 */ }
+      }
+      const res = await catalogApi.catalogs.list(query);
+      const items = res.data.items ?? [];
+      await this.resolveStores(items.map((p) => p.storeId));
+      const catKeyOf = categoryKeyResolver(this.categories);
+      return {
+        items: items.map((p) =>
+          toProduct(p, catKeyOf(p.categoryId), p.storeId ? this.storeCache.get(p.storeId) : undefined),
+        ),
+        total: res.data.totalCount ?? items.length,
+      };
+    },
+
+    /** 載入商品完整資訊，就地補齊 QuickView 檔案 meta（清單 / 格式 / 總大小）與描述。 */
+    async loadProductDetail(id: string): Promise<void> {
+      if (!id || this.detailLoaded.has(id)) return;
+      const product = this.products.find((p) => p.id === id);
+      if (!product) return;
+      try {
+        const { data } = await catalogApi.catalogs.get(id);
+        Object.assign(product, toDetailMeta(data));
+        this.detailLoaded.add(id);
+      } catch {
+        // 詳情暫時取不到：保留列表資料（meta 顯示佔位），下次開啟重試
       }
     },
   },

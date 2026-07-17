@@ -528,7 +528,11 @@
 }
 .load-more-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.15); background: var(--c-yellow); }
 .load-more-btn:active { transform: translateY(0); }
+.load-more-btn:disabled { opacity: .55; cursor: default; transform: none; box-shadow: none; }
 .load-more-count { font-family: var(--oj-font); font-size: 12px; font-weight: 700; opacity: .65; }
+
+/* 重新查詢期間保留舊結果、以透明度提示載入中（避免整格閃空） */
+.browse .grid.is-refreshing { opacity: .55; pointer-events: none; transition: opacity .15s; }
 
 /* ---------- footer（墨黑滿版帶） ---------- */
 .mkt-foot {
@@ -756,17 +760,20 @@
 /* 探索所有作品：維持奶油底（不加框） */
 .band-mist { background: transparent; border: 0; padding-top: 16px; padding-bottom: 8px; }
 
-/* ---------- 本週熱門大 banner（墨黑卡 + 粉紅拍立得側欄） ---------- */
+/* ---------- 本週熱門大 banner（墨黑冠軍區 + 粉紅 2–4 名榜單） ---------- */
 .hot-banner {
   position: relative; display: grid; grid-template-columns: 1.2fr 1fr; gap: 0;
   min-height: 320px; overflow: hidden;
   background: #1a1a1a;
   border: var(--bw) solid var(--border-strong); border-radius: 24px; box-shadow: 0 16px 36px rgba(26, 26, 26, 0.2);
-  text-decoration: none; color: inherit;
-  transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.hot-banner:hover { transform: translateY(-4px); box-shadow: 0 22px 44px rgba(26, 26, 26, 0.28); }
-.hot-info { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: clamp(28px, 3.4vw, 48px) clamp(24px, 3vw, 44px); }
+.hot-banner.no-list { grid-template-columns: 1fr; }
+.hot-info {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  padding: clamp(28px, 3.4vw, 48px) clamp(24px, 3vw, 44px);
+  padding-right: clamp(190px, 24%, 250px);
+  text-decoration: none; color: inherit;
+}
 .hot-eyebrow {
   display: inline-flex; align-items: center; gap: 5px;
   font-family: var(--oj-font); font-weight: 900; font-size: 12px; letter-spacing: 1px; color: var(--text);
@@ -793,29 +800,58 @@
   background: var(--c-yellow); border-radius: 999px;
   transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.hot-banner:hover .hot-cta { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 8px 18px rgba(255, 222, 0, 0.35); }
+.hot-info:hover .hot-cta { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 8px 18px rgba(255, 222, 0, 0.35); }
 .hot-price { font-family: var(--oj-hand); font-weight: 700; font-size: 30px; color: var(--c-lime); transform: rotate(-4deg); }
+/* 冠軍拍立得：斜貼於墨黑區右上（白卡 + 膠帶 + 內縮縮圖） */
+.hot-champ {
+  position: absolute; top: clamp(26px, 3vw, 40px); right: clamp(22px, 2.6vw, 38px);
+  width: min(180px, 22vw); background: #fff;
+  border: var(--bw) solid var(--border-strong); border-radius: 14px;
+  box-shadow: 0 14px 28px rgba(26, 26, 26, 0.45); transform: rotate(5deg); padding: 12px;
+  transition: transform .2s var(--ease-pop);
+}
+.hot-info:hover .hot-champ { transform: rotate(6deg) translateY(-3px); }
+.hot-champ::before {
+  content: ''; position: absolute; top: -12px; left: 50%; width: 62px; height: 20px;
+  margin-left: -31px; background: rgba(255, 222, 0, 0.9); border-radius: 3px;
+  transform: rotate(-3deg); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.2); z-index: 2;
+}
+.hot-champ .thumb { height: 108px; border: var(--bw) solid var(--border-strong); border-radius: 10px; }
+.hot-champ-title { font-family: var(--oj-font); font-weight: 900; font-size: 12.5px; margin-top: 9px; line-height: 1.35; color: var(--text); }
+.hot-champ-author { font-family: var(--oj-font); font-weight: 700; font-size: 10.5px; margin-top: 3px; color: var(--text); }
+/* 2–4 名榜單（粉紅點點底） */
 .hot-media {
   position: relative; min-height: 300px;
   background: var(--c-pink); border-left: var(--bw) solid var(--border-strong);
   background-image: radial-gradient(rgba(26, 26, 26, 0.18) 1.5px, transparent 1.5px);
   background-size: 20px 20px;
-  display: flex; align-items: center; justify-content: center; padding: 30px;
+  display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  padding: clamp(22px, 2.6vw, 32px);
 }
-/* 拍立得框：白卡 + 膠帶 + 內縮縮圖 */
-.hot-polaroid {
-  position: relative; width: min(220px, 80%); background: #fff;
-  border: var(--bw) solid var(--border-strong); border-radius: 16px;
-  box-shadow: 0 14px 28px rgba(26, 26, 26, 0.3); transform: rotate(4deg); padding: 16px;
+.hot-rank-head {
+  font-family: var(--oj-font); font-weight: 900; font-size: 12px; letter-spacing: 1.5px;
+  color: var(--text);
 }
-.hot-polaroid::before {
-  content: ''; position: absolute; top: -13px; left: 50%; width: 70px; height: 22px;
-  margin-left: -35px; background: rgba(255, 222, 0, 0.9); border-radius: 3px;
-  transform: rotate(-3deg); box-shadow: 0 1px 3px rgba(26, 26, 26, 0.2); z-index: 2;
+.hot-rank-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: var(--bw) solid var(--border-strong); border-radius: 14px;
+  padding: 10px 14px; text-decoration: none; color: inherit;
+  transition: transform .2s var(--ease-pop), box-shadow .2s;
 }
-.hot-polaroid .thumb { height: 140px; border: var(--bw) solid var(--border-strong); border-radius: 12px; }
-.hot-polaroid-title { font-family: var(--oj-font); font-weight: 900; font-size: 15px; margin-top: 12px; line-height: 1.35; color: var(--text); }
-.hot-polaroid-author { font-family: var(--oj-font); font-weight: 700; font-size: 12px; margin-top: 4px; color: var(--text); }
+.hot-rank-row:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(26, 26, 26, 0.25); }
+.hot-rank-num {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 24px; height: 24px; border-radius: 999px;
+  border: var(--bw) solid var(--border-strong); background: var(--surface);
+  font-family: var(--oj-font); font-weight: 900; font-size: 12px; color: var(--text);
+}
+.hot-rank-row .thumb { width: 44px; height: 44px; flex: none; border: var(--bw) solid var(--border-strong); border-radius: 10px; }
+.hot-rank-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hot-rank-name {
+  font-family: var(--oj-font); font-weight: 900; font-size: 13.5px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hot-rank-meta { display: inline-flex; align-items: center; gap: 3px; font-weight: 700; font-size: 11.5px; color: var(--text); opacity: .72; }
 
 /* ---------- 市集儀表板：三塊個性板（熱銷 / 評分 / 創作者） ---------- */
 .pulse-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; align-items: start; }
@@ -931,8 +967,10 @@
 }
 @media (max-width: 900px) {
   .hot-banner { grid-template-columns: 1fr; min-height: 0; }
-  .hot-media { order: -1; min-height: 220px; border-left: 0; border-bottom: var(--bw) solid var(--border-strong); padding: 34px 20px 24px; }
-  .hot-polaroid { width: min(240px, 86%); }
+  .hot-media { min-height: 0; border-left: 0; border-top: var(--bw) solid var(--border-strong); padding: 22px 20px 26px; }
+  .hot-info { padding-right: 150px; }
+  .hot-champ { top: 18px; right: 16px; width: 122px; padding: 9px; }
+  .hot-champ .thumb { height: 74px; }
   .hot-actions { padding-top: 10px; }
   .band { padding-top: 44px; padding-bottom: 56px; }
 }

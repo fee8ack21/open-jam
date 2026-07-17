@@ -22,12 +22,16 @@ export interface WishlistEntry {
   creator: string
   handle: string
   avatar: string
+  /** 商店頭像公開 URL；null 表示未設定，卡片退回底色縮寫。 */
+  avatarUrl: string | null
   price: number
   rating: number
   ratingCount: number
   tags: string[]
   formats: string[]
   totalSize: string
+  /** 實際商品縮圖；有值時取代程式產生的佔位縮圖。 */
+  image?: string
   /** 前往創作者子網域商品頁；商店 slug 未知時為 null。 */
   productUrl: string | null
 }
@@ -42,6 +46,21 @@ function messageOf(err: unknown, fallback: string): string {
 /** 由 coverHue 產生穩定的頭像底色（avatar 欄位是 CSS 顏色而非圖片）。 */
 function hueColor(hue: number): string {
   return `hsl(${hue} 70% 58%)`
+}
+
+/** 檔案大小人類可讀格式（未知大小回空字串）。 */
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes <= 0) return ''
+  const units = ['B', 'KB', 'MB', 'GB']
+  let n = bytes
+  let i = 0
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++ }
+  return `${n >= 10 || i === 0 ? Math.round(n) : n.toFixed(1)} ${units[i]}`
+}
+
+/** 檔名 → 顯示用格式代碼（副檔名大寫，最多 4 字）。 */
+function fileTypeOf(name: string): string {
+  return (name.split('.').pop() || 'FILE').toUpperCase().slice(0, 4)
 }
 
 /**
@@ -140,6 +159,10 @@ export const useWishlistStore = defineStore('wishlist', () => {
         const store = dto.storeId ? storeCache.get(dto.storeId) : undefined
         const slug = store?.storeSlug ?? null
         const hue = dto.coverHue ?? 256
+        // 格式 / 總大小由目前版本的可下載檔推導（同 creator-web 商品卡片）。
+        const versionAssets = dto.currentVersion?.assets ?? []
+        const formats = [...new Set(versionAssets.map((a) => fileTypeOf(a.fileName ?? '')))]
+        const totalBytes = versionAssets.reduce((s, a) => s + (a.fileSize ?? 0), 0)
         return {
           id: dto.id ?? '',
           cat: categoryKey(dto.categoryId),
@@ -148,12 +171,14 @@ export const useWishlistStore = defineStore('wishlist', () => {
           creator: store?.storeName ?? '',
           handle: slug ? '@' + slug : '',
           avatar: hueColor(hue),
+          avatarUrl: store?.avatarUrl ?? null,
           price: dto.price ?? 0,
           rating: dto.ratingAverage ?? 0,
           ratingCount: dto.ratingCount ?? 0,
           tags: dto.tags ?? [],
-          formats: [],
-          totalSize: '—',
+          formats,
+          totalSize: formatBytes(totalBytes) || '—',
+          image: dto.thumbnailUrl ?? undefined,
           productUrl: slug
             ? `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', slug)}/product/${dto.id}`
             : null,

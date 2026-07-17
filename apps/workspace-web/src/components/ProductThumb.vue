@@ -52,17 +52,23 @@ const catGlyph = computed(() => {
   return c ? c.glyph : 'image'
 })
 const catLabel = computed(() => ({ music: 'SCORE', photo: 'PHOTO', ebook: 'EBOOK' } as Record<string, string>)[props.product.cat] || '')
-const autoLabel = computed(() => {
-  if (props.label) return props.label
-  return `${props.product.formats[0]} · ${props.product.totalSize}`
-})
+// 後端商品資料可能缺檔案格式 / 總大小（formats 為空、totalSize 為 '—' 佔位），
+// 缺值時整段略過，避免顯示 "undefined · —"（同 creator-web）。
+const autoLabel = computed(() =>
+  props.label || [props.product.formats[0], props.product.totalSize]
+    .filter((part) => part && part !== '—')
+    .join(' · '))
 </script>
 
 <template>
-  <div class="thumb" :style="vars">
-    <img v-if="image" class="thumb-img" :src="image" alt="" />
-    <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
-    <div v-if="!image" class="thumb-glyph"><app-icon :name="catGlyph" :size="glyphSize" :stroke="1.8" /></div>
-    <div v-if="!hideLabel" class="thumb-label">{{ autoLabel }}</div>
+  <div class="thumb" :style="image ? undefined : vars">
+    <template v-if="image">
+      <img class="thumb-img" :src="image" alt="" loading="lazy" />
+    </template>
+    <template v-else>
+      <div v-if="showCat" class="thumb-cat">{{ catLabel }}</div>
+      <div class="thumb-glyph"><app-icon :name="catGlyph" :size="glyphSize" :stroke="1.8" /></div>
+      <div v-if="!hideLabel && autoLabel" class="thumb-label">{{ autoLabel }}</div>
+    </template>
   </div>
 </template>

@@ -64,6 +64,8 @@
     "emptyTitle": "No matching works found",
     "emptyDesc": "Try loosening the filters or clearing your search keywords.",
     "emptyClear": "Clear filters",
+    "loadMore": "Load more",
+    "loadMoreCount": "({count} more)",
     "sort": {
       "popular": "Most popular",
       "newest": "Newest",

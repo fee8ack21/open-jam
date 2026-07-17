@@ -24,6 +24,8 @@ export enum CatalogSort {
   PriceLowToHigh = "PriceLowToHigh",
   PriceHighToLow = "PriceHighToLow",
   StoreFeatured = "StoreFeatured",
+  Popular = "Popular",
+  Rating = "Rating",
 }
 
 /** 商品展示型資產類型。 */
@@ -1464,7 +1466,7 @@ export class Api<SecurityDataType extends unknown> {
          */
         StoreId?: string;
         /**
-         * 限定分類 ID；null 表示不限。
+         * 限定分類 ID（含其所有子孫分類）；null 表示不限。
          * @format uuid
          * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
          */
@@ -1475,12 +1477,12 @@ export class Api<SecurityDataType extends unknown> {
          */
         Status?: CatalogStatus;
         /**
-         * 限定標籤名稱；null 表示不限。
-         * @example "retro"
+         * 限定標籤名稱（AND 語意，須同時含所有指定標籤）；null 或空陣列表示不限。
+         * @example ["retro","lofi"]
          */
-        Tag?: string;
+        Tags?: string[];
         /**
-         * 名稱關鍵字搜尋；null 表示不限。
+         * 關鍵字搜尋（比對商品名稱或任一標籤名稱）；null 表示不限。
          * @example "音效"
          */
         Search?: string;
@@ -1569,7 +1571,7 @@ export class Api<SecurityDataType extends unknown> {
          */
         StoreId?: string;
         /**
-         * 限定分類 ID；null 表示不限。
+         * 限定分類 ID（含其所有子孫分類）；null 表示不限。
          * @format uuid
          * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
          */
@@ -1580,12 +1582,12 @@ export class Api<SecurityDataType extends unknown> {
          */
         Status?: CatalogStatus;
         /**
-         * 限定標籤名稱；null 表示不限。
-         * @example "retro"
+         * 限定標籤名稱（AND 語意，須同時含所有指定標籤）；null 或空陣列表示不限。
+         * @example ["retro","lofi"]
          */
-        Tag?: string;
+        Tags?: string[];
         /**
-         * 名稱關鍵字搜尋；null 表示不限。
+         * 關鍵字搜尋（比對商品名稱或任一標籤名稱）；null 表示不限。
          * @example "音效"
          */
         Search?: string;
@@ -1657,7 +1659,7 @@ export class Api<SecurityDataType extends unknown> {
          */
         StoreId?: string;
         /**
-         * 限定分類 ID；null 表示不限。
+         * 限定分類 ID（含其所有子孫分類）；null 表示不限。
          * @format uuid
          * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
          */
@@ -1668,12 +1670,12 @@ export class Api<SecurityDataType extends unknown> {
          */
         Status?: CatalogStatus;
         /**
-         * 限定標籤名稱；null 表示不限。
-         * @example "retro"
+         * 限定標籤名稱（AND 語意，須同時含所有指定標籤）；null 或空陣列表示不限。
+         * @example ["retro","lofi"]
          */
-        Tag?: string;
+        Tags?: string[];
         /**
-         * 名稱關鍵字搜尋；null 表示不限。
+         * 關鍵字搜尋（比對商品名稱或任一標籤名稱）；null 表示不限。
          * @example "音效"
          */
         Search?: string;

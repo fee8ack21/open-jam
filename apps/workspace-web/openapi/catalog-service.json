@@ -521,7 +521,7 @@
           {
             "name": "CategoryId",
             "in": "query",
-            "description": "限定分類 ID；null 表示不限。",
+            "description": "限定分類 ID（含其所有子孫分類）；null 表示不限。",
             "schema": {
               "type": "string",
               "format": "uuid",
@@ -539,19 +539,28 @@
             "example": "Published"
           },
           {
-            "name": "Tag",
+            "name": "Tags",
             "in": "query",
-            "description": "限定標籤名稱；null 表示不限。",
+            "description": "限定標籤名稱（AND 語意，須同時含所有指定標籤）；null 或空陣列表示不限。",
             "schema": {
-              "type": "string",
-              "example": "retro"
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": [
+                "retro",
+                "lofi"
+              ]
             },
-            "example": "retro"
+            "example": [
+              "retro",
+              "lofi"
+            ]
           },
           {
             "name": "Search",
             "in": "query",
-            "description": "名稱關鍵字搜尋；null 表示不限。",
+            "description": "關鍵字搜尋（比對商品名稱或任一標籤名稱）；null 表示不限。",
             "schema": {
               "type": "string",
               "example": "音效"
@@ -727,7 +736,7 @@
           {
             "name": "CategoryId",
             "in": "query",
-            "description": "限定分類 ID；null 表示不限。",
+            "description": "限定分類 ID（含其所有子孫分類）；null 表示不限。",
             "schema": {
               "type": "string",
               "format": "uuid",
@@ -745,19 +754,28 @@
             "example": "Published"
           },
           {
-            "name": "Tag",
+            "name": "Tags",
             "in": "query",
-            "description": "限定標籤名稱；null 表示不限。",
+            "description": "限定標籤名稱（AND 語意，須同時含所有指定標籤）；null 或空陣列表示不限。",
             "schema": {
-              "type": "string",
-              "example": "retro"
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": [
+                "retro",
+                "lofi"
+              ]
             },
-            "example": "retro"
+            "example": [
+              "retro",
+              "lofi"
+            ]
           },
           {
             "name": "Search",
             "in": "query",
-            "description": "名稱關鍵字搜尋；null 表示不限。",
+            "description": "關鍵字搜尋（比對商品名稱或任一標籤名稱）；null 表示不限。",
             "schema": {
               "type": "string",
               "example": "音效"
@@ -894,7 +912,7 @@
           {
             "name": "CategoryId",
             "in": "query",
-            "description": "限定分類 ID；null 表示不限。",
+            "description": "限定分類 ID（含其所有子孫分類）；null 表示不限。",
             "schema": {
               "type": "string",
               "format": "uuid",
@@ -912,19 +930,28 @@
             "example": "Published"
           },
           {
-            "name": "Tag",
+            "name": "Tags",
             "in": "query",
-            "description": "限定標籤名稱；null 表示不限。",
+            "description": "限定標籤名稱（AND 語意，須同時含所有指定標籤）；null 或空陣列表示不限。",
             "schema": {
-              "type": "string",
-              "example": "retro"
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": [
+                "retro",
+                "lofi"
+              ]
             },
-            "example": "retro"
+            "example": [
+              "retro",
+              "lofi"
+            ]
           },
           {
             "name": "Search",
             "in": "query",
-            "description": "名稱關鍵字搜尋；null 表示不限。",
+            "description": "關鍵字搜尋（比對商品名稱或任一標籤名稱）；null 表示不限。",
             "schema": {
               "type": "string",
               "example": "音效"
@@ -2877,7 +2904,9 @@
           "Newest",
           "PriceLowToHigh",
           "PriceHighToLow",
-          "StoreFeatured"
+          "StoreFeatured",
+          "Popular",
+          "Rating"
         ],
         "type": "string",
         "description": "商品列表排序方式。"

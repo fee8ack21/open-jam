@@ -64,6 +64,8 @@
     "emptyTitle": "找不到符合的作品",
     "emptyDesc": "試著放寬篩選條件或清除搜尋關鍵字。",
     "emptyClear": "清除篩選",
+    "loadMore": "載入更多",
+    "loadMoreCount": "（還有 {count} 件）",
     "sort": {
       "popular": "最熱門",
       "newest": "最新上架",

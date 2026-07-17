@@ -46,11 +46,16 @@ onMounted(store.load)
           <div class="fav on" :title="t('wishlist.remove')" @click="store.remove(p.id)">
             <app-icon name="heart" :size="17" fill />
           </div>
-          <product-thumb :product="p" />
+          <product-thumb :product="p" :image="p.image ?? ''" />
           <div class="card-body">
             <h3 class="card-title">{{ p.title }}</h3>
             <div class="card-creator">
-              <span class="avatar" :style="{ background: p.avatar }">{{ F.initials(p.creator) }}</span>
+              <span class="avatar"
+                    :style="p.avatarUrl
+                      ? { backgroundImage: `url(${p.avatarUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                      : { background: p.avatar }">
+                <template v-if="!p.avatarUrl">{{ F.initials(p.creator) }}</template>
+              </span>
               {{ p.creator }}
             </div>
             <div class="tagrow">

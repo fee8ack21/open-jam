@@ -8,6 +8,8 @@ import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } 
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop.js';
 import { CATEGORIES, type Product } from '@/data/products';
+import { rootCategoryIdOf } from '@/data/mapCatalog';
+import { CatalogSort } from '@/api/catalog-service';
 import AppNav from '@/layout/AppNav.vue';
 import AppFooter from '@/layout/AppFooter.vue';
 import HeroCollage from '@/components/hero-collage/HeroCollage.vue';
@@ -27,15 +29,12 @@ import { useScrollReveal } from '@/composables/useScrollReveal';
 const store = useShopStore();
 const { t, rt, tm, locale } = useI18n();
 
-// 後端列表已依上架時間 desc：index 越小越新
-const orderMap = computed(() => new Map(store.products.map((p, i) => [p.id, i])));
-
 const cats = CATEGORIES;
 const rotatingWords = computed(() => (tm('market.hero.rotatingWords') as string[]).map((w) => rt(w)));
 
-// 本週熱門大 banner：取銷量冠軍
-const hotProduct = computed(() =>
-  store.products.slice().sort((a, b) => b.sales - a.sales)[0],
+// 本週熱門大 banner：取銷量前四（冠軍 + 2–4 名榜單）
+const hotProducts = computed(() =>
+  store.products.slice().sort((a, b) => b.sales - a.sales).slice(0, 4),
 );
 
 // 跑馬燈標籤：取自實際商品 tags，依出現頻率排序（點擊即搜尋，保證有結果）
@@ -96,7 +95,6 @@ const category = ref('all');
 const sort = ref('popular');
 const priceBand = ref('all');
 const pageSize = 12;
-const visibleCount = ref(12);
 const showToTop = ref(false);
 
 const sortOptions = computed(() => [
@@ -125,38 +123,61 @@ const categoryMenuOptions = computed(() => [
   })),
 ]);
 
-function inBand(price: number): boolean {
-  switch (priceBand.value) {
-    case 'free': return price === 0;
-    case 'low':  return price > 0 && price <= 15;
-    case 'mid':  return price >= 16 && price <= 30;
-    case 'high': return price > 30;
-    default:     return true;
+// ----- browse 格：篩選 / 排序 / 分頁一律走 CatalogService 查詢（非 in-memory），條件變動時重撈 -----
+const SEARCH_DEBOUNCE_MS = 300;
+const SORT_MAP: Record<string, CatalogSort> = {
+  popular: CatalogSort.Popular,
+  newest: CatalogSort.Newest,
+  rating: CatalogSort.Rating,
+  'price-asc': CatalogSort.PriceLowToHigh,
+  'price-desc': CatalogSort.PriceHighToLow,
+};
+// 價格帶 → API 含端點的 Min/MaxPrice（以 0.01 模擬「排除免費 / 排除 $30」的開區間下限）
+const PRICE_BAND: Record<string, { min?: number; max?: number }> = {
+  free: { max: 0 },
+  low: { min: 0.01, max: 15 },
+  mid: { min: 16, max: 30 },
+  high: { min: 30.01 },
+};
+
+const browseItems = ref<Product[]>([]);
+const browseTotal = ref(0);
+const browseLoading = ref(false);
+let browseSeq = 0;   // 遞增序號：丟棄過期回應，避免競態蓋掉最新結果
+
+/** 依目前條件重撈 browse 格；append = true 為「載入更多」（offset 追加下一頁）。 */
+async function queryBrowse(append = false) {
+  const seq = ++browseSeq;
+  browseLoading.value = true;
+  try {
+    const band = PRICE_BAND[priceBand.value] ?? {};
+    const res = await store.queryCatalog({
+      CategoryId: category.value !== 'all' ? rootCategoryIdOf(store.categories, category.value) : undefined,
+      Search: search.value.trim() || undefined,
+      MinPrice: band.min,
+      MaxPrice: band.max,
+      Sort: SORT_MAP[sort.value] ?? CatalogSort.Popular,
+      Offset: append ? browseItems.value.length : 0,
+      Limit: pageSize,
+    });
+    if (seq !== browseSeq) return; // 已有更新的查詢發出，丟棄本次結果
+    browseItems.value = append ? [...browseItems.value, ...res.items] : res.items;
+    browseTotal.value = res.total;
+  } catch {
+    // 查詢失敗保留既有結果（載入更多失敗 offset 不推進，可重按）
+  } finally {
+    if (seq === browseSeq) browseLoading.value = false;
   }
 }
 
-const results = computed(() => {
-  let list = store.products.slice();
-  const q = search.value.trim().toLowerCase();
-  if (q) {
-    list = list.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.creator.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q)),
-    );
-  }
-  if (category.value !== 'all') list = list.filter((p) => p.cat === category.value);
-  list = list.filter((p) => inBand(p.price));
-  switch (sort.value) {
-    case 'newest':     list.sort((a, b) => (orderMap.value.get(a.id) ?? 0) - (orderMap.value.get(b.id) ?? 0)); break;
-    case 'rating':     list.sort((a, b) => b.rating - a.rating); break;
-    case 'price-asc':  list.sort((a, b) => a.price - b.price); break;
-    case 'price-desc': list.sort((a, b) => b.price - a.price); break;
-    default:           list.sort((a, b) => b.sales - a.sales);
-  }
-  return list;
-});
+// 條件變動即重撈：搜尋輸入 debounce，其餘條件以 0ms 合併同一輪的連鎖變動（如 reset）
+let browseTimer: ReturnType<typeof setTimeout> | undefined;
+function scheduleBrowseQuery(delay: number) {
+  clearTimeout(browseTimer);
+  browseTimer = setTimeout(() => { void queryBrowse(); }, delay);
+}
+watch(search, () => scheduleBrowseQuery(SEARCH_DEBOUNCE_MS));
+watch([category, sort, priceBand], () => scheduleBrowseQuery(0));
 
 const activeCatLabel = computed(() => {
   if (category.value === 'all') return t('market.browse.allWorks');
@@ -178,10 +199,7 @@ const activeFilters = computed(() => {
   return chips;
 });
 
-const visibleResults = computed(() => results.value.slice(0, visibleCount.value));
-const hasMore = computed(() => visibleCount.value < results.value.length);
-
-watch(results, () => { visibleCount.value = pageSize; });
+const hasMore = computed(() => browseItems.value.length < browseTotal.value);
 
 // ----- featured carousel (精選作品) -----
 // 混合策展：少量「人工精選」(後端 isFeatured) + 其餘以「銷量熱門」自動補滿。
@@ -261,7 +279,11 @@ function badgeFor(p: Product): { label: string; tone: 'hot' | 'new' | 'feat' } |
 // the same corner badge and deep-links out to the storefront to buy.
 const quickView = ref<Product | null>(null);
 const quickViewBadge = computed(() => (quickView.value ? badgeFor(quickView.value) : null));
-function openQuickView(p: Product) { quickView.value = p; }
+function openQuickView(p: Product) {
+  quickView.value = p;
+  // 檔案 meta（清單 / 格式 / 總大小）僅完整詳情才有，開啟時非同步補齊
+  void store.loadProductDetail(p.id);
+}
 
 function catColor(id: string): string {
   const map: Record<string, string> = { music: 'var(--c-violet)', photo: 'var(--c-pink)', ebook: 'var(--c-cyan)' };
@@ -289,7 +311,7 @@ function compactNum(n: number): string {
 function reset() { category.value = 'all'; sort.value = 'popular'; priceBand.value = 'all'; search.value = ''; }
 function onScroll() { showToTop.value = window.scrollY > 300; }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-function loadMore() { visibleCount.value += pageSize; }
+function loadMore() { void queryBrowse(true); }
 
 function onResize() {
   updateFeatNav();
@@ -298,6 +320,7 @@ function onResize() {
 
 onMounted(() => {
   store.loadCatalog();
+  void queryBrowse();   // browse 格第一頁（與全量聚合載入平行，互不等待）
   window.addEventListener('scroll', onScroll);
   window.addEventListener('resize', onResize);
   updateFeatNav();
@@ -403,7 +426,11 @@ onBeforeUnmount(() => {
       </section>
 
       <!-- ============ 本週熱門大 banner（奶油底） ============ -->
-      <hot-banner v-if="store.products.length && hotProduct" :product="hotProduct" />
+      <hot-banner
+        v-if="store.products.length && hotProducts.length"
+        :product="hotProducts[0]"
+        :runners-up="hotProducts.slice(1)"
+      />
 
       <!-- ============ 市集儀表板（淡藍圓點 band） ============ -->
       <div v-if="store.products.length" class="band band-violet">
@@ -433,7 +460,7 @@ onBeforeUnmount(() => {
         <div class="browse-toolbar">
           <i18n-t keypath="market.browse.count" tag="span" class="browse-count" scope="global">
             <template #cat><b>{{ activeCatLabel }}</b></template>
-            <template #count><b>{{ results.length }}</b></template>
+            <template #count><b>{{ browseTotal }}</b></template>
           </i18n-t>
           <div class="sort-tabs">
             <span class="sort-lab">{{ t('market.browse.sortLabel') }}</span>
@@ -493,16 +520,16 @@ onBeforeUnmount(() => {
               <button type="button" class="fchip-clear" @click="reset">{{ t('market.browse.clearAllShort') }}</button>
             </div>
 
-            <div v-if="results.length" class="grid">
-              <product-card v-for="p in visibleResults" :key="p.id" :product="p" :badge="badgeFor(p)" @select="openQuickView" />
+            <div v-if="browseItems.length" class="grid" :class="{ 'is-refreshing': browseLoading }">
+              <product-card v-for="p in browseItems" :key="p.id" :product="p" :badge="badgeFor(p)" @select="openQuickView" />
             </div>
-            <div v-if="hasMore" class="load-more-wrap">
-              <button class="load-more-btn" @click="loadMore">
+            <div v-if="browseItems.length && hasMore" class="load-more-wrap">
+              <button class="load-more-btn" :disabled="browseLoading" @click="loadMore">
                 <app-icon name="arrowD" :size="15" /> {{ t('market.browse.loadMore') }}
-                <span class="load-more-count">{{ t('market.browse.loadMoreCount', { count: results.length - visibleCount }) }}</span>
+                <span class="load-more-count">{{ t('market.browse.loadMoreCount', { count: browseTotal - browseItems.length }) }}</span>
               </button>
             </div>
-            <div v-if="!results.length" class="empty">
+            <div v-if="!browseItems.length && !browseLoading" class="empty">
               <app-icon name="search" :size="40" style="margin-bottom: 14px; opacity: 0.5" />
               <p style="font-size: 17px; font-weight: 600; color: var(--text-soft)">{{ t('market.browse.emptyTitle') }}</p>
               <p style="margin-top: 6px">{{ t('market.browse.emptyDesc') }}</p>

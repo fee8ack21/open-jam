@@ -4,7 +4,7 @@
    action 為一般函式。View/navigation state 已移至 vue-router；
    此 store 只擁有商品篩選、購物車、收藏與已完成訂單紀錄。
    ============================================================ */
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 import type { Product } from '@/data/products';
 import { EMPTY_STORE, type Store } from '@/data/store';
@@ -13,8 +13,8 @@ import { catalogApi, orderApi, storeApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import i18n from '@/i18n';
 import { env } from '@/environment';
-import { categoryKeyResolver, toProduct, toStore, hueColor, type StoreInfo } from '@/data/mapCatalog';
-import type { CatalogCategoryDto } from '@/api/catalog-service';
+import { categoryKeyResolver, rootCategoryIdOf, toProduct, toStore, hueColor, type StoreInfo } from '@/data/mapCatalog';
+import { CatalogSort, type CatalogCategoryDto } from '@/api/catalog-service';
 import { OrderStatus } from '@/api/order-service';
 
 type Theme = 'light' | 'dark';
@@ -68,6 +68,21 @@ const save = (k: string, v: unknown) => { try { localStorage.setItem('openjam.' 
 /** 瀏覽計數去重視窗：同一瀏覽器在此時間內對同商品只計一次（6 小時）。 */
 const VIEW_DEDUP_MS = 6 * 60 * 60 * 1000;
 
+/** 搜尋輸入的查詢 debounce（毫秒）。 */
+const SEARCH_DEBOUNCE_MS = 300;
+
+/** 商品列表查詢每頁筆數（「載入更多」逐頁追加）。 */
+const QUERY_PAGE_SIZE = 24;
+
+/** 前端排序鍵 → API 排序參數。 */
+const SORT_MAP: Record<SortKey, CatalogSort> = {
+  popular: CatalogSort.Popular,
+  newest: CatalogSort.Newest,
+  rating: CatalogSort.Rating,
+  'price-asc': CatalogSort.PriceLowToHigh,
+  'price-desc': CatalogSort.PriceHighToLow,
+};
+
 export const useShopStore = defineStore('shop', () => {
   // ── state ──────────────────────────────────────────────
   // theme / display
@@ -116,26 +131,12 @@ export const useShopStore = defineStore('shop', () => {
   const cartCount = computed(() => cart.value.reduce((n, c) => n + c.qty, 0));
   const subtotal = computed(() => cartProducts.value.reduce((s, p) => s + p.price * p.qty, 0));
 
-  const filtered = computed<Product[]>(() => {
-    let list = products.value.slice();
-    const q = search.value.trim().toLowerCase();
-    if (q) list = list.filter((p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.creator.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q)));
-    if (category.value !== 'all') list = list.filter((p) => p.cat === category.value);
-    if (activeTags.value.length) list = list.filter((p) => activeTags.value.every((t) => p.tags.includes(t)));
-    if (onlyFree.value) list = list.filter((p) => p.price === 0);
-    list = list.filter((p) => p.price >= priceRange.value[0] && p.price <= priceRange.value[1]);
-    switch (sort.value) {
-      case 'newest': list.reverse(); break;
-      case 'price-asc': list.sort((a, b) => a.price - b.price); break;
-      case 'price-desc': list.sort((a, b) => b.price - a.price); break;
-      case 'rating': list.sort((a, b) => b.rating - a.rating); break;
-      default: list.sort((a, b) => b.sales - a.sales);
-    }
-    return list;
-  });
+  // 篩選 / 排序 / 分頁一律由 CatalogService 查詢（非 in-memory），條件變動時重新撈回
+  const queryResults = ref<Product[]>([]);
+  const queryTotal = ref(0);
+  const queryLoading = ref(false);
+  const hasMoreResults = computed(() => queryResults.value.length < queryTotal.value);
+  let querySeq = 0;                 // 遞增序號：丟棄過期回應，避免競態蓋掉最新結果
   const activeFilterCount = computed(() => {
     let n = activeTags.value.length;
     if (category.value !== 'all') n++;
@@ -189,6 +190,7 @@ export const useShopStore = defineStore('shop', () => {
       const info = storeInfo();
       products.value = (listRes.data.items ?? []).map((p) => toProduct(p, catKeyOf(p.categoryId), info));
       loaded.value = true;
+      void queryProducts();   // 商店 id 就緒後撈第一頁列表查詢結果
     } catch (e) {
       // 產生的 client 於非 2xx 時 throw 整個 Response：404 表示此子網域查無商店
       if ((e as { status?: number } | null)?.status === 404) {
@@ -200,6 +202,56 @@ export const useShopStore = defineStore('shop', () => {
       loading.value = false;
     }
   }
+
+  /**
+   * 依目前篩選 / 排序條件向 CatalogService 重新查詢商品列表。
+   * append = true 表示「載入更多」：以目前筆數為 offset 追加下一頁；否則從第一頁重撈。
+   * 失敗時保留既有結果（載入更多失敗 offset 不推進，可重按）。
+   */
+  async function queryProducts(append = false) {
+    if (!storefront.value.id) return;
+    const seq = ++querySeq;
+    queryLoading.value = true;
+    try {
+      // onlyFree 與價格滑桿同時啟用時以免費為準（MaxPrice 0），避免下限 > 上限被 API 422 擋下
+      const [minPrice, maxPrice] = priceRange.value;
+      const res = await catalogApi.catalogs.list({
+        StoreId: storefront.value.id,
+        CategoryId: category.value !== 'all' ? rootCategoryIdOf(categories.value, category.value) : undefined,
+        Tags: activeTags.value.length ? [...activeTags.value] : undefined,
+        Search: search.value.trim() || undefined,
+        MinPrice: onlyFree.value || minPrice <= 0 ? undefined : minPrice,
+        // 滑桿上限 40 代表「$40+」不設上限
+        MaxPrice: onlyFree.value ? 0 : maxPrice >= 40 ? undefined : maxPrice,
+        Sort: SORT_MAP[sort.value],
+        Offset: append ? queryResults.value.length : 0,
+        Limit: QUERY_PAGE_SIZE,
+      });
+      if (seq !== querySeq) return; // 已有更新的查詢發出，丟棄本次結果
+      const catKeyOf = categoryKeyResolver(categories.value);
+      const info = storeInfo();
+      const mapped = (res.data.items ?? []).map((p) => toProduct(p, catKeyOf(p.categoryId), info));
+      queryResults.value = append ? [...queryResults.value, ...mapped] : mapped;
+      queryTotal.value = res.data.totalCount ?? queryResults.value.length;
+    } catch {
+      // 查詢失敗保留既有結果，供使用者調整條件或重試
+    } finally {
+      if (seq === querySeq) queryLoading.value = false;
+    }
+  }
+
+  /** 載入下一頁查詢結果（「載入更多」）。 */
+  function loadMoreProducts() { return queryProducts(true); }
+
+  // 條件變動即重新查詢：搜尋輸入 debounce，其餘條件以 0ms 合併同一輪的連鎖變動
+  // （如 setCategory 會同時清空標籤，避免連發兩次請求）
+  let queryTimer: ReturnType<typeof setTimeout> | undefined;
+  function scheduleQuery(delay: number) {
+    clearTimeout(queryTimer);
+    queryTimer = setTimeout(() => { void queryProducts(); }, delay);
+  }
+  watch(search, () => scheduleQuery(SEARCH_DEBOUNCE_MS));
+  watch([category, activeTags, priceRange, sort, onlyFree], () => scheduleQuery(0), { deep: true });
 
   /**
    * 記錄一次商品瀏覽（詳情頁進入時呼叫，fire-and-forget）。
@@ -392,11 +444,12 @@ export const useShopStore = defineStore('shop', () => {
     // state
     theme, search, category, activeTags, priceRange, sort, onlyFree, favorites, cart, order, following,
     products, storefront, categories, loading, loaded, storeNotFound, pendingOrder, checkingOut,
+    queryResults, queryTotal, queryLoading,
     // getters
-    product, isFav, inCart, cartProducts, cartCount, subtotal, filtered, activeFilterCount,
+    product, isFav, inCart, cartProducts, cartCount, subtotal, hasMoreResults, activeFilterCount,
     // actions
     setTheme, toggleTheme, toggleFav, addToCart, setQty, removeFromCart, clearCart,
     setCategory, toggleTag, clearFilters, startCheckout, checkout, finishCheckout, cancelCheckout, followStore,
-    loadCatalog, loadProduct, loadFavorites, recordView,
+    loadCatalog, loadProduct, loadFavorites, recordView, queryProducts, loadMoreProducts,
   };
 });

@@ -154,7 +154,7 @@ public class ConfirmCatalogAssetRequestValidator : AbstractValidator<ConfirmCata
     }
 }
 
-/// <summary>商品列表查詢請求驗證：分頁範圍。</summary>
+/// <summary>商品列表查詢請求驗證：分頁範圍、價格區間與標籤清單。</summary>
 public class ListCatalogsRequestValidator : AbstractValidator<ListCatalogsRequest>
 {
     /// <summary>建立驗證規則。</summary>
@@ -162,6 +162,15 @@ public class ListCatalogsRequestValidator : AbstractValidator<ListCatalogsReques
     {
         RuleFor(x => x.Offset).ValidOffset();
         RuleFor(x => x.Limit).ValidLimit();
+
+        RuleFor(x => x.Tags!)
+            .Must(tags => tags.Count <= 10)
+            .When(x => x.Tags is not null)
+            .WithMessage("標籤篩選最多 10 項。");
+
+        RuleForEach(x => x.Tags)
+            .NotEmpty().WithMessage("標籤名稱不得為空白。")
+            .When(x => x.Tags is not null);
 
         RuleFor(x => x.MinPrice!.Value)
             .GreaterThanOrEqualTo(0)

@@ -103,12 +103,19 @@ public class CatalogManager(
             query = query.Where(c => c.StoreId == storeId);
 
         if (request.CategoryId is { } categoryId)
-            query = query.Where(c => c.CategoryId == categoryId);
+        {
+            // 分類為 ParentId 自我參照樹：篩選含指定分類與其所有子孫分類
+            var categoryIds = await DescendantCategoryIdsAsync(categoryId, ct);
+            query = query.Where(c => c.CategoryId != null && categoryIds.Contains(c.CategoryId.Value));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var term = request.Search.Trim();
-            query = query.Where(c => EF.Functions.ILike(c.Name, $"%{term}%"));
+            var pattern = $"%{request.Search.Trim()}%";
+            query = query.Where(c =>
+                EF.Functions.ILike(c.Name, pattern) ||
+                db.CatalogTagMappings.Any(m => m.CatalogId == c.Id &&
+                    db.CatalogTags.Any(t => t.Id == m.TagId && EF.Functions.ILike(t.Name, pattern))));
         }
 
         if (request.Featured is { } featured)
@@ -117,15 +124,15 @@ public class CatalogManager(
         if (request.StoreFeatured is { } storeFeatured)
             query = query.Where(c => c.IsStoreFeatured == storeFeatured);
 
-        if (!string.IsNullOrWhiteSpace(request.Tag))
+        // 多標籤為 AND 語意：每個標籤都須命中才列入
+        if (request.Tags is { Count: > 0 })
         {
-            var tag = request.Tag.Trim().ToLowerInvariant();
-            query =
-                from c in query
-                join m in db.CatalogTagMappings on c.Id equals m.CatalogId
-                join t in db.CatalogTags on m.TagId equals t.Id
-                where t.Name == tag
-                select c;
+            foreach (var raw in request.Tags)
+            {
+                var tag = raw.Trim().ToLowerInvariant();
+                query = query.Where(c => db.CatalogTagMappings.Any(m => m.CatalogId == c.Id &&
+                    db.CatalogTags.Any(t => t.Id == m.TagId && t.Name == tag)));
+            }
         }
 
         if (request.MinPrice is { } minPrice)
@@ -142,6 +149,8 @@ public class CatalogManager(
             CatalogSort.PriceLowToHigh => query.OrderBy(c => c.Price).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
             CatalogSort.PriceHighToLow => query.OrderByDescending(c => c.Price).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
             CatalogSort.StoreFeatured => query.OrderBy(c => c.StoreFeaturedSortOrder).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
+            CatalogSort.Popular => query.OrderByDescending(c => c.SalesCount).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
+            CatalogSort.Rating => query.OrderByDescending(c => c.RatingAverage).ThenByDescending(c => c.RatingCount).ThenByDescending(c => c.PublishedAt ?? c.CreatedAt),
             _ => query.OrderByDescending(c => c.PublishedAt ?? c.CreatedAt),
         };
 
@@ -613,6 +622,32 @@ public class CatalogManager(
 
     private Task<Catalog> LoadOwnedCatalogAsync(Guid id, CancellationToken ct) =>
         CatalogAuthorization.LoadOwnedCatalogAsync(db, storeClient, currentUser, id, ct);
+
+    /// <summary>取指定分類及其所有子孫分類的 ID 清單（分類表為小表，載回記憶體展開）。</summary>
+    private async Task<List<Guid>> DescendantCategoryIdsAsync(Guid categoryId, CancellationToken ct)
+    {
+        var all = await db.CatalogCategories.AsNoTracking()
+            .Select(c => new { c.Id, c.ParentId })
+            .ToListAsync(ct);
+        var childrenByParent = all
+            .Where(c => c.ParentId is not null)
+            .GroupBy(c => c.ParentId!.Value)
+            .ToDictionary(g => g.Key, g => g.Select(c => c.Id).ToList());
+
+        var ids = new List<Guid>();
+        var seen = new HashSet<Guid>();
+        var stack = new Stack<Guid>();
+        stack.Push(categoryId);
+        while (stack.Count > 0)
+        {
+            var cur = stack.Pop();
+            if (!seen.Add(cur)) continue;
+            ids.Add(cur);
+            if (childrenByParent.TryGetValue(cur, out var children))
+                foreach (var child in children) stack.Push(child);
+        }
+        return ids;
+    }
 
     /// <summary>預覽媒體總數（截圖 / 預覽影音 / 外部嵌入合計）達上限時擋下。</summary>
     private async Task EnsurePreviewMediaRoomAsync(Guid catalogId, CancellationToken ct)

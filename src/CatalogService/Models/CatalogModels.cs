@@ -341,6 +341,12 @@ public enum CatalogSort
 
     /// <summary>店長精選排序（依 StoreFeaturedSortOrder 由小到大）；搭配 StoreFeatured 篩選取店面 spotlight。</summary>
     StoreFeatured = 3,
+
+    /// <summary>熱門（依銷量由高到低）。</summary>
+    Popular = 4,
+
+    /// <summary>評分（依平均評分由高到低，評分相同時評論數多者優先）。</summary>
+    Rating = 5,
 }
 
 /// <summary>商品列表查詢請求（分頁採 offset / limit）。</summary>
@@ -350,7 +356,7 @@ public class ListCatalogsRequest
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? StoreId { get; set; }
 
-    /// <summary>限定分類 ID；null 表示不限。</summary>
+    /// <summary>限定分類 ID（含其所有子孫分類）；null 表示不限。</summary>
     /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
     public Guid? CategoryId { get; set; }
 
@@ -358,11 +364,11 @@ public class ListCatalogsRequest
     /// <example>Published</example>
     public CatalogStatus? Status { get; set; }
 
-    /// <summary>限定標籤名稱；null 表示不限。</summary>
-    /// <example>retro</example>
-    public string? Tag { get; set; }
+    /// <summary>限定標籤名稱（AND 語意，須同時含所有指定標籤）；null 或空陣列表示不限。</summary>
+    /// <example>["retro","lofi"]</example>
+    public List<string>? Tags { get; set; }
 
-    /// <summary>名稱關鍵字搜尋；null 表示不限。</summary>
+    /// <summary>關鍵字搜尋（比對商品名稱或任一標籤名稱）；null 表示不限。</summary>
     /// <example>音效</example>
     public string? Search { get; set; }
 

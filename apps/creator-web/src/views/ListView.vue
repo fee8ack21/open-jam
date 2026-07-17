@@ -112,7 +112,8 @@ const sortOptions = computed<{ label: string; value: SortKey }[]>(() => [
 ]);
 
 const cats = CATEGORIES;
-const results = computed(() => store.filtered);
+// 篩選 / 排序 / 分頁由 CatalogService 查詢（store 監聽條件變動重撈），非前端 in-memory
+const results = computed(() => store.queryResults);
 const availableTags = computed(() => {
   if (store.category !== 'all') return TAGS[store.category];
   return [...new Set(Object.values(TAGS).flat())];
@@ -234,7 +235,7 @@ const activeChips = computed(() => {
       <!-- toolbar: result count + sort pills -->
       <div class="browse-toolbar">
         <i18n-t keypath="list.count" tag="span" class="browse-count" scope="global">
-          <template #count><b>{{ results.length }}</b></template>
+          <template #count><b>{{ s.queryTotal }}</b></template>
         </i18n-t>
         <div class="sort-tabs">
           <span class="sort-lab">{{ t('list.sortLabel') }}</span>
@@ -295,10 +296,16 @@ const activeChips = computed(() => {
             <button type="button" class="fchip-clear" @click="clear">{{ t('list.clearAllShort') }}</button>
           </div>
 
-          <div v-if="results.length" class="grid">
+          <div v-if="results.length" class="grid" :class="{ 'is-refreshing': s.queryLoading }">
             <product-card v-for="p in results" :key="p.id" :product="p" :badge="badgeFor(p)" />
           </div>
-          <div v-else class="no-results">
+          <div v-if="results.length && s.hasMoreResults" class="load-more-wrap">
+            <button type="button" class="load-more-btn" :disabled="s.queryLoading" @click="store.loadMoreProducts()">
+              <app-icon name="arrowD" :size="15" /> {{ t('list.loadMore') }}
+              <span class="load-more-count">{{ t('list.loadMoreCount', { count: s.queryTotal - results.length }) }}</span>
+            </button>
+          </div>
+          <div v-if="!results.length && !s.queryLoading" class="no-results">
             <app-icon name="search" :size="36" style="margin:0 auto;" />
             <p class="no-results-title">{{ t('list.emptyTitle') }}</p>
             <p class="no-results-desc">{{ t('list.emptyDesc') }}</p>
@@ -311,6 +318,23 @@ const activeChips = computed(() => {
 </template>
 
 <style scoped>
+/* 重新查詢期間保留舊結果、以透明度提示載入中（避免整格閃空） */
+.grid.is-refreshing { opacity: .55; pointer-events: none; transition: opacity .15s; }
+
+/* 載入更多（樣式同 portal-web browse 格） */
+.load-more-wrap { margin-top: 40px; text-align: center; }
+.load-more-btn {
+  display: inline-flex; align-items: center; gap: 10px; height: 54px; padding: 0 40px;
+  font-family: var(--oj-font); font-weight: 900; font-size: 15px;
+  color: var(--text); background: var(--surface);
+  border: var(--bw) solid var(--border-strong); border-radius: 999px;
+  cursor: pointer; transition: transform .2s var(--ease-pop), box-shadow .2s, background .15s;
+}
+.load-more-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(26, 26, 26, 0.15); background: var(--c-yellow); }
+.load-more-btn:active { transform: translateY(0); }
+.load-more-btn:disabled { opacity: .55; cursor: default; transform: none; box-shadow: none; }
+.load-more-count { font-family: var(--oj-font); font-size: 12px; font-weight: 700; opacity: .65; }
+
 /* 無符合結果卡（設計稿 no results） */
 .no-results {
   border: var(--bw) solid var(--border-strong); border-radius: var(--r-lg); background: var(--surface);
