@@ -1,7 +1,22 @@
 using FluentValidation;
 using PaymentService.Models;
+using Shared.Web;
 
 namespace PaymentService.Validators;
+
+public class ListPaymentsRequestValidator : AbstractValidator<ListPaymentsRequest>
+{
+    public ListPaymentsRequestValidator()
+    {
+        RuleFor(r => r.Offset).ValidOffset();
+        RuleFor(r => r.Limit).ValidLimit();
+        RuleFor(r => r.Email).EmailAddress().When(r => !string.IsNullOrEmpty(r.Email))
+            .WithMessage("Email 格式不正確。");
+        RuleFor(r => r.To).GreaterThanOrEqualTo(r => r.From!.Value)
+            .When(r => r.From.HasValue && r.To.HasValue)
+            .WithMessage("時間區間上限不得早於下限。");
+    }
+}
 
 public class CreateCheckoutSessionRequestValidator : AbstractValidator<CreateCheckoutSessionRequest>
 {

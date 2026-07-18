@@ -39,6 +39,19 @@ public class PaymentsController(IPaymentManager paymentManager) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>付款紀錄分頁列表（可依狀態 / 商店 / 訂單 / 買家信箱 / 時間區間過濾）。僅 Admin 可操作，
+    /// 供管理員後台對帳與客訴查案。</summary>
+    /// <param name="request">過濾與分頁條件。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpGet]
+    [Authorize(Policy = "Admin")]
+    [ProducesResponseType<ListPaymentsResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ListPaymentsResponse>> List(
+        [FromQuery] ListPaymentsRequest request, CancellationToken ct)
+    {
+        return Ok(await paymentManager.ListAsync(request, ct));
+    }
+
     /// <summary>查詢付款紀錄。僅 Admin 可操作。</summary>
     /// <param name="id">付款 ID。</param>
     /// <param name="ct">Cancellation token。</param>

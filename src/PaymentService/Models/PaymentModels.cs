@@ -42,6 +42,51 @@ public class CheckoutSessionResponse
     public string Url { get; set; } = "";
 }
 
+/// <summary>付款列表查詢請求（Admin）。</summary>
+public class ListPaymentsRequest
+{
+    /// <summary>限定付款狀態；null 表示不限。</summary>
+    /// <example>Succeeded</example>
+    public PaymentStatus? Status { get; set; }
+
+    /// <summary>限定賣方商店 ID；null 表示不限。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid? StoreId { get; set; }
+
+    /// <summary>限定商品訂單 ID；null 表示不限。</summary>
+    /// <example>3fa85f64-5717-4562-b3fc-2c963f66afa6</example>
+    public Guid? OrderId { get; set; }
+
+    /// <summary>限定購買者 Email（完全比對，不分大小寫）；null 表示不限。</summary>
+    /// <example>buyer@example.com</example>
+    public string? Email { get; set; }
+
+    /// <summary>建立時間下限（UTC，含）；null 表示不限。</summary>
+    public DateTimeOffset? From { get; set; }
+
+    /// <summary>建立時間上限（UTC，含）；null 表示不限。</summary>
+    public DateTimeOffset? To { get; set; }
+
+    /// <summary>略過筆數。</summary>
+    /// <example>0</example>
+    public int Offset { get; set; } = 0;
+
+    /// <summary>每頁筆數（最大 100）。</summary>
+    /// <example>20</example>
+    public int Limit { get; set; } = 20;
+}
+
+/// <summary>付款列表分頁回應。</summary>
+public class ListPaymentsResponse
+{
+    /// <summary>符合條件的總筆數（未分頁）。</summary>
+    /// <example>42</example>
+    public int TotalCount { get; set; }
+
+    /// <summary>本頁付款清單。</summary>
+    public List<PaymentResponse> Items { get; set; } = [];
+}
+
 /// <summary>付款紀錄回應。</summary>
 public class PaymentResponse
 {

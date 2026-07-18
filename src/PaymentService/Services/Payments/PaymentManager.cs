@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PaymentService.Data;
@@ -290,5 +291,32 @@ public class PaymentManager(
             ?? throw new NotFoundException("Payment not found.");
 
         return mapper.Map<PaymentResponse>(payment);
+    }
+
+    public async Task<ListPaymentsResponse> ListAsync(ListPaymentsRequest request, CancellationToken ct)
+    {
+        var query = db.Payments.AsNoTracking().AsQueryable();
+
+        if (request.Status is { } status) query = query.Where(p => p.Status == status);
+        if (request.StoreId is { } storeId) query = query.Where(p => p.StoreId == storeId);
+        if (request.OrderId is { } orderId) query = query.Where(p => p.OrderId == orderId);
+        if (request.From is { } from) query = query.Where(p => p.CreatedAt >= from);
+        if (request.To is { } to) query = query.Where(p => p.CreatedAt <= to);
+
+        if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            var email = request.Email.Trim().ToLowerInvariant();
+            query = query.Where(p => p.Email.ToLower() == email);
+        }
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip(request.Offset)
+            .Take(request.Limit)
+            .ProjectTo<PaymentResponse>(mapper.ConfigurationProvider)
+            .ToListAsync(ct);
+
+        return new ListPaymentsResponse { TotalCount = totalCount, Items = items };
     }
 }
