@@ -1,3 +1,4 @@
+using System.Linq;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using StorageService.Services.StorageEvents;
@@ -32,6 +33,9 @@ public class BlobController(
     public async Task<IActionResult> UploadAsync(
         string key, [FromQuery] long expires, [FromQuery] string? sig, [FromQuery] long max, CancellationToken ct)
     {
+        if (HasUnsafeSegment(key))
+            return Forbid();
+
         // max 一併驗章：竄改 max 會使簽章驗證失敗，無法放寬上限。
         if (!signer.Verify("PUT", key, expires, sig, max))
             return Forbid();
@@ -72,6 +76,9 @@ public class BlobController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult Download(string key, [FromQuery] long expires, [FromQuery] string? sig)
     {
+        if (HasUnsafeSegment(key))
+            return Forbid();
+
         var isPublic = key.StartsWith("public/", StringComparison.Ordinal);
         if (!isPublic && !signer.Verify("GET", key, expires, sig))
             return Forbid();
@@ -82,4 +89,13 @@ public class BlobController(
         var stream = fileStore.OpenRead(key);
         return File(stream, "application/octet-stream", enableRangeProcessing: true);
     }
+
+    /// <summary>
+    /// 是否含 <c>..</c> / <c>.</c> 路徑段。<c>public/</c> 前綴判斷在原始字串層、實際讀檔在
+    /// <c>Path.GetFullPath</c> 正規化（解析 <c>..</c>）之後，兩者對 <c>..</c> 解讀不一致會讓
+    /// <c>public/../creators/…</c> 這類路徑通過免簽章判斷、卻讀到私有物件。合法鍵值
+    /// （<c>creators/{id}/{id}/{name}</c> 或其 <c>public/</c> 前綴形式）永不含這些段，直接擋下、零誤傷。
+    /// </summary>
+    private static bool HasUnsafeSegment(string key) =>
+        key.Replace('\\', '/').Split('/').Any(seg => seg is ".." or ".");
 }
