@@ -27,5 +27,9 @@ public interface IOrderManager
     Task<bool> HasPurchasedAsync(Guid catalogId, Guid userId, string? email, CancellationToken ct);
 
     /// <summary>付款成功時履約完成訂單（由 <c>PaymentSucceededEvent</c> consumer 呼叫，冪等）。</summary>
-    Task CompleteFromPaymentAsync(Guid orderId, DateTimeOffset paidAt, CancellationToken ct);
+    Task CompleteFromPaymentAsync(Guid orderId, DateTimeOffset paidAt, long platformFeeAmount, CancellationToken ct);
+
+    /// <summary>取消逾期未付款訂單（由 <c>PendingOrderCleanupService</c> 排程呼叫），回傳本輪取消筆數。
+    /// 走與人工取消相同的 expire-first 路徑；Session 已完成付款者跳過，交由付款成功事件履約。</summary>
+    Task<int> CleanupExpiredPendingAsync(CancellationToken ct);
 }

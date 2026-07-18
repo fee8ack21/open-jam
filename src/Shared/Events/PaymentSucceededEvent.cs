@@ -22,5 +22,7 @@ public record PaymentSucceededEvent(
     /// <summary>Stripe PaymentIntent ID。</summary>
     string ProviderPaymentId,
     /// <summary>付款成功時間（UTC）。</summary>
-    DateTimeOffset PaidAt
+    DateTimeOffset PaidAt,
+    /// <summary>平台抽成金額（最低貨幣單位，Stripe application fee）；舊事件缺此欄位時反序列化為 0。</summary>
+    long ApplicationFeeAmount = 0
 );

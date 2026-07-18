@@ -75,6 +75,7 @@ builder.Services.AddScoped<AuditLogPublisher>();
 builder.Services.AddScoped<OrderEventPublisher>();
 
 builder.Services.AddHostedService<OutboxRelayService>();
+builder.Services.AddHostedService<PendingOrderCleanupService>();
 
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
 builder.Services.AddOpenJamCors(builder.Configuration);

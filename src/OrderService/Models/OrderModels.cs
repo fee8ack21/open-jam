@@ -98,6 +98,10 @@ public class OrderSummaryDto
     /// <example>1990</example>
     public long TotalAmount { get; set; }
 
+    /// <summary>平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。</summary>
+    /// <example>1399</example>
+    public long PlatformFeeAmount { get; set; }
+
     /// <summary>建立時間（UTC）。</summary>
     public DateTimeOffset CreatedAt { get; set; }
 
@@ -137,6 +141,10 @@ public class OrderResponse
     /// <summary>訂單總金額（最低貨幣單位）。</summary>
     /// <example>1990</example>
     public long TotalAmount { get; set; }
+
+    /// <summary>平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。</summary>
+    /// <example>1399</example>
+    public long PlatformFeeAmount { get; set; }
 
     /// <summary>建立時間（UTC）。</summary>
     public DateTimeOffset CreatedAt { get; set; }

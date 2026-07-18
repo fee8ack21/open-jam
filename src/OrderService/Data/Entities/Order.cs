@@ -28,6 +28,10 @@ public class Order : ICreatedAt, IUpdatedAt
     /// <summary>訂單總金額（最低貨幣單位，如 cents），為各項目單價之和。</summary>
     public long TotalAmount { get; set; }
 
+    /// <summary>平台抽成金額（最低貨幣單位，付款成功時由 PaymentSucceededEvent 快照）。
+    /// 免費訂單為 0；本欄位上線前完成的舊付費訂單亦為 0（未回填）。賣家實收 = TotalAmount − 本值。</summary>
+    public long PlatformFeeAmount { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 

@@ -253,7 +253,7 @@ public class OrderManager(
     }
 
     /// <inheritdoc/>
-    public async Task CompleteFromPaymentAsync(Guid orderId, DateTimeOffset paidAt, CancellationToken ct)
+    public async Task CompleteFromPaymentAsync(Guid orderId, DateTimeOffset paidAt, long platformFeeAmount, CancellationToken ct)
     {
         var order = await db.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == orderId, ct);
         if (order is null)
@@ -275,7 +275,48 @@ public class OrderManager(
         if (order.Status is not (OrderStatus.Pending or OrderStatus.Paid))
             return;
 
+        // 平台抽成快照（付款當下的 application fee），供賣家訂單列表顯示實收金額。
+        order.PlatformFeeAmount = platformFeeAmount;
+
         await FulfillAsync(order, paidAt, "Payment succeeded", ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> CleanupExpiredPendingAsync(CancellationToken ct)
+    {
+        var opts = orderOptions.Value;
+        var cutoff = DateTimeOffset.UtcNow - TimeSpan.FromHours(opts.PendingExpiryHours);
+
+        var stale = await db.Orders
+            .Where(o => o.Status == OrderStatus.Pending && o.CreatedAt < cutoff)
+            .OrderBy(o => o.CreatedAt)
+            .Take(opts.CleanupBatchSize)
+            .ToListAsync(ct);
+
+        var cancelled = 0;
+        foreach (var order in stale)
+        {
+            try
+            {
+                // 與人工取消同一條 expire-first 路徑。逾期門檻大於 Session 的 24 小時存活上限，
+                // 此呼叫通常僅冪等補標記 Payment 過期；若竟已付款（409）表示付款成功事件遺失或
+                // 尚未消化，跳過留給履約流程，不得取消。
+                await paymentClient.ExpireCheckoutSessionAsync(order.Id, ct);
+            }
+            catch (ConflictException)
+            {
+                logger.LogWarning(
+                    "清理略過訂單 {OrderId}：Checkout Session 已完成付款，待付款成功事件履約。", order.Id);
+                continue;
+            }
+
+            TransitionTo(order, OrderStatus.Cancelled, "Checkout session expired");
+            auditLog.Add(null, "order.cancel", "Order", order.Id, tenant: null);
+            cancelled++;
+        }
+
+        if (cancelled > 0) await db.SaveChangesAsync(ct);
+        return cancelled;
     }
 
     /// <summary>履約完成訂單：轉移狀態、發出完成事件與訂單完成信（付款成功與免費訂單共用）。</summary>

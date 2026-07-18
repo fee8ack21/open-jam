@@ -134,7 +134,8 @@ public class StripeWebhookHandler(
                 Amount: payment.Amount,
                 Currency: payment.Currency,
                 ProviderPaymentId: payment.ProviderPaymentId ?? "",
-                PaidAt: payment.PaidAt ?? DateTimeOffset.UtcNow
+                PaidAt: payment.PaidAt ?? DateTimeOffset.UtcNow,
+                ApplicationFeeAmount: payment.ApplicationFeeAmount
             ), OutboxJson.Options),
         };
         db.OutboxMessages.Add(outbox);

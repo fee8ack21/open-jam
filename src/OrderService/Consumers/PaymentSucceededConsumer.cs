@@ -20,6 +20,7 @@ public class PaymentSucceededConsumer(
         logger.LogInformation(
             "Completing order {OrderId} from payment {PaymentId}.", evt.OrderId, evt.PaymentId);
 
-        await orderManager.CompleteFromPaymentAsync(evt.OrderId, evt.PaidAt, context.CancellationToken);
+        await orderManager.CompleteFromPaymentAsync(
+            evt.OrderId, evt.PaidAt, evt.ApplicationFeeAmount, context.CancellationToken);
     }
 }

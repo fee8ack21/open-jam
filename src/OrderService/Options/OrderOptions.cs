@@ -9,4 +9,13 @@ public class OrderOptions
     /// </summary>
     /// <example>https://{storeSlug}.openjam.co/orders/{orderId}</example>
     public string DownloadUrlPattern { get; set; } = "https://{storeSlug}.openjam.co/orders/{orderId}";
+
+    /// <summary>Pending 訂單逾期時數，超過即由清理排程自動取消。須大於 Stripe Checkout Session
+    /// 的 24 小時存活上限，確保清理時 Session 必已自然過期。</summary>
+    /// <example>25</example>
+    public int PendingExpiryHours { get; set; } = 25;
+
+    /// <summary>清理排程單輪處理的訂單數上限。</summary>
+    /// <example>50</example>
+    public int CleanupBatchSize { get; set; } = 50;
 }
