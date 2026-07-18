@@ -118,9 +118,11 @@ services:
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
       Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
+      Hydra__WebClientId: ${WEB_CLIENT_ID}
       App__BaseUrl: ${AUTH_PAGE_URL}
       App__WorkspaceUrl: ${WORKSPACE_URL}
       App__PortalUrl: ${PORTAL_PAGE_URL}
+      App__StorefrontUrlPattern: ${APP_STOREFRONT_URL_PATTERN}
       Services__ContentService__BaseUrl: http://${PROJECT_NAME}-content-service:8080
     ports:
       - "5169:8080"
@@ -141,7 +143,7 @@ services:
       dockerfile: LogService/Dockerfile
     restart: unless-stopped
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
       ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_log;Username=${DB_USER};Password=${DB_PASSWORD}
       RabbitMQ__Host: ${RABBITMQ_HOST}
@@ -172,7 +174,7 @@ services:
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
       Smtp__Host: ${SMTP_HOST}
       Smtp__Port: ${SMTP_PORT}
-      Smtp__UseSsl: ${SMTP_ENABLE_SSL}
+      Smtp__SecureSocket: ${SMTP_SECURE_SOCKET}
       Smtp__FromAddress: ${SMTP_FROM}
     depends_on:
       postgres:
@@ -196,7 +198,8 @@ services:
       RabbitMQ__Username: ${RABBITMQ_USER}
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
       Storage__Provider: ${STORAGE_PROVIDER}
-      Storage__Bucket: ${STORAGE_BUCKET}
+      Storage__PublicBucket: ${STORAGE_PUBLIC_BUCKET}
+      Storage__PrivateBucket: ${STORAGE_PRIVATE_BUCKET}
       Storage__PublicBaseUrl: ${STORAGE_PUBLIC_BASE_URL}
       Storage__Local__RootPath: ${STORAGE_LOCAL_ROOT_PATH}
       Storage__Local__BaseUrl: ${STORAGE_LOCAL_BASE_URL}
@@ -248,6 +251,46 @@ services:
       storage-service:
         condition: service_started
 
+  catalog-service:
+    container_name: ${PROJECT_NAME}-catalog-service
+    build:
+      context: ../../src
+      dockerfile: CatalogService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_catalog;Username=${DB_USER};Password=${DB_PASSWORD}
+      RabbitMQ__Host: ${RABBITMQ_HOST}
+      RabbitMQ__Username: ${RABBITMQ_USER}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Storage__PublicBaseUrl: ${STORAGE_PUBLIC_BASE_URL}
+      Services__StorageService__BaseUrl: http://${PROJECT_NAME}-storage-service:8080
+      Services__StoreService__BaseUrl: http://${PROJECT_NAME}-store-service:8080
+      Services__QuotaService__BaseUrl: http://${PROJECT_NAME}-quota-service:8080
+      Services__OrderService__BaseUrl: http://${PROJECT_NAME}-order-service:8080
+      Services__PaymentService__BaseUrl: http://${PROJECT_NAME}-payment-service:8080
+      ServiceAuth__TokenUrl: http://${PROJECT_NAME}-hydra:4444/oauth2/token
+      ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
+      ServiceAuth__ClientSecret: ${HYDRA_SERVICE_CLIENT_SECRET:-change-me-in-production}
+      Hydra__Issuer: ${HYDRA_PUBLIC_URL}
+      Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
+    ports:
+      - "5176:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      hydra:
+        condition: service_started
+      storage-service:
+        condition: service_started
+      store-service:
+        condition: service_started
+      quota-service:
+        condition: service_started
+
   quota-service:
     container_name: ${PROJECT_NAME}-quota-service
     build:
@@ -290,8 +333,15 @@ services:
       Stripe__SecretKey: ${STRIPE_SECRET_KEY}
       Stripe__PublishableKey: ${STRIPE_PUBLISHABLE_KEY}
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
+      Stripe__ConnectWebhookSecret: ${STRIPE_CONNECT_WEBHOOK_SECRET}
+      Stripe__PlatformFeePercent: ${STRIPE_PLATFORM_FEE_PERCENT}
+      Stripe__PlatformFeeFixed: ${STRIPE_PLATFORM_FEE_FIXED}
       Stripe__SuccessUrl: ${PAYMENT_SUCCESS_URL}
       Stripe__CancelUrl: ${PAYMENT_CANCEL_URL}
+      Stripe__ConnectRefreshUrl: ${PAYMENT_CONNECT_REFRESH_URL}
+      Stripe__ConnectReturnUrl: ${PAYMENT_CONNECT_RETURN_URL}
+      Services__StoreService__BaseUrl: http://${PROJECT_NAME}-store-service:8080
+      Services__CatalogService__BaseUrl: http://${PROJECT_NAME}-catalog-service:8080
       ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
@@ -320,6 +370,8 @@ services:
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
       Services__StoreService__BaseUrl: http://${PROJECT_NAME}-store-service:8080
       Services__PaymentService__BaseUrl: http://${PROJECT_NAME}-payment-service:8080
+      Services__CatalogService__BaseUrl: http://${PROJECT_NAME}-catalog-service:8080
+      Order__DownloadUrlPattern: ${ORDER_DOWNLOAD_URL_PATTERN}
       ServiceAuth__TokenUrl: http://${PROJECT_NAME}-hydra:4444/oauth2/token
       ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
       ServiceAuth__ClientSecret: ${HYDRA_SERVICE_CLIENT_SECRET:-change-me-in-production}
@@ -402,6 +454,7 @@ services:
       PORTAL_PAGE_URL: ${PORTAL_PAGE_URL}
       CATALOG_API_URL: ${CATALOG_API_URL}
       STORE_API_URL: ${STORE_API_URL}
+      ORDER_API_URL: ${ORDER_API_URL}
       STORE_SLUG: ${STORE_SLUG}
       OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
@@ -424,6 +477,7 @@ services:
       DOCS_URL: ${DOCS_URL}
       CATALOG_API_URL: ${CATALOG_API_URL}
       STORE_API_URL: ${STORE_API_URL}
+      NOTIFICATION_API_URL: ${NOTIFICATION_API_URL}
       CONTENT_API_URL: ${CONTENT_API_URL}
     ports:
       - "5174:80"
@@ -436,13 +490,19 @@ services:
     environment:
       WORKSPACE_PAGE_URL: ${WORKSPACE_URL}
       PORTAL_PAGE_URL: ${PORTAL_PAGE_URL}
+      CREATOR_PAGE_BASE_URL: ${CREATOR_BASE_URL}
       OIDC_AUTHORITY: ${AUTHORITY}
       OIDC_CLIENT_ID: ${WEB_CLIENT_ID}
       AUTH_PAGE_URL: ${AUTH_PAGE_URL}
+      AUTH_API_URL: ${AUTH_API_URL}
       STORE_API_URL: ${STORE_API_URL}
       CATALOG_API_URL: ${CATALOG_API_URL}
       LOG_API_URL: ${LOG_API_URL}
+      ORDER_API_URL: ${ORDER_API_URL}
+      STORAGE_API_URL: ${STORAGE_API_URL}
+      NOTIFICATION_API_URL: ${NOTIFICATION_API_URL}
       CONTENT_API_URL: ${CONTENT_API_URL}
+      PAYMENT_API_URL: ${PAYMENT_API_URL}
     ports:
       - "5175:80"
 
@@ -452,7 +512,7 @@ services:
       context: ../../docs
     restart: unless-stopped
     ports:
-      - "5176:80"
+      - "5182:80"   # 5176 讓給 catalog-service（與開發埠一致）
 
   bootstrap:
     container_name: ${PROJECT_NAME}-bootstrap
@@ -460,10 +520,21 @@ services:
       context: ../../src
       dockerfile: Bootstrap/Dockerfile
     environment:
-      ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
+      # Bootstrap 掛 6 個具名連線字串（非 DefaultConnection）
+      ConnectionStrings__AuthConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_auth;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__EmailConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__CatalogConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_catalog;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__StoreConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_store;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__NotificationConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_notification;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__ContentConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_content;Username=${DB_USER};Password=${DB_PASSWORD}
       Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
       HydraClients__Service__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
       HydraClients__Service__ClientSecret: ${HYDRA_SERVICE_CLIENT_SECRET:-change-me-in-production}
+      HydraClients__Web__StorefrontUrlPattern: ${APP_STOREFRONT_URL_PATTERN}
+      AdminUser__Email: ${ADMIN_EMAIL}
+      AdminUser__Password: ${ADMIN_PASSWORD}
+      MockUsers__Enabled: ${MOCK_USERS_ENABLED:-false}
+      MockStores__Enabled: ${MOCK_STORES_ENABLED:-false}
     depends_on:
       postgres:
         condition: service_healthy
