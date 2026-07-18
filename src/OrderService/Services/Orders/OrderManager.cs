@@ -238,6 +238,12 @@ public class OrderManager(
         if (order.Status != OrderStatus.Pending)
             throw new ConflictException("僅未付款的訂單可取消。");
 
+        // expire-first：先向 Stripe 作廢 Checkout Session、成功才取消訂單。付款成敗的真相在
+        // Stripe——已付款的 Session 無法作廢（此呼叫拋 409），據此拒絕取消，關閉「取消後付款頁
+        // 仍可付款」與「剛付完款但成功事件還在路上」兩種競態。此步失敗時訂單維持 Pending 且
+        // Session 已死或未動，無金錢風險，買家重試即可補完（整條鏈冪等）。
+        await paymentClient.ExpireCheckoutSessionAsync(order.Id, ct);
+
         TransitionTo(order, OrderStatus.Cancelled, request.Reason ?? "Cancelled by buyer");
         auditLog.Add(userId, "order.cancel", "Order", order.Id, tenant: null);
 
@@ -253,7 +259,19 @@ public class OrderManager(
         if (order is null)
             throw new NotFoundException($"找不到訂單 {orderId}。");
 
-        // 冪等：訂單已完成（或已取消 / 退款）時不再處理，避免重複的 PaymentSucceededEvent 造成重複狀態。
+        // 已取消 / 已退款訂單收到付款成功：正常流程不應發生（取消前已作廢 Session），代表買家
+        // 已被扣款但訂單不會履約——留下 error log 與稽核事件供人工介入退款，不得靜默略過。
+        if (order.Status is OrderStatus.Cancelled or OrderStatus.Refunded)
+        {
+            logger.LogError(
+                "訂單 {OrderId} 狀態為 {Status} 卻收到付款成功事件（付款時間 {PaidAt}）：買家已被扣款但訂單不會履約，需人工退款處理。",
+                order.Id, order.Status, paidAt);
+            auditLog.Add(order.BuyerUserId, "order.paid_after_cancel", "Order", order.Id, tenant: null);
+            await db.SaveChangesAsync(ct);
+            return;
+        }
+
+        // 冪等：訂單已完成時不再處理，避免重複的 PaymentSucceededEvent 造成重複狀態。
         if (order.Status is not (OrderStatus.Pending or OrderStatus.Paid))
             return;
 

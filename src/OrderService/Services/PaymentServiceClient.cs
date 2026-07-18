@@ -66,6 +66,32 @@ public class PaymentServiceClient(IHttpClientFactory httpClientFactory, ServiceT
             ?? throw new HttpRequestException("PaymentService 回應內容為空。");
     }
 
+    /// <summary>作廢訂單既有的 Stripe Checkout Session（取消訂單前呼叫，付款頁立即失效）。</summary>
+    /// <param name="orderId">訂單 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    /// <exception cref="ConflictException">訂單已完成付款、Session 無法作廢（呼叫端應拒絕取消）。</exception>
+    /// <exception cref="HttpRequestException">PaymentService 不可達或回非預期錯誤——取消流程 fail-closed，
+    /// 寧可取消失敗由買家重試，不留「訂單已取消但付款頁仍可付款」的錯帳窗口。</exception>
+    public async Task ExpireCheckoutSessionAsync(Guid orderId, CancellationToken ct)
+    {
+        var client = httpClientFactory.CreateClient("payment");
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"v1/payments/expire-by-order/{orderId}");
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", await serviceToken.GetTokenAsync(ct));
+
+        using var response = await client.SendAsync(request, ct);
+        if (response.IsSuccessStatusCode) return;
+
+        var body = await response.Content.ReadAsStringAsync(ct);
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+            throw new ConflictException(ExtractDetail(body) ?? "訂單已完成付款，無法取消。");
+
+        throw new HttpRequestException(
+            $"PaymentService expire-by-order 回應 {(int)response.StatusCode}：{body}");
+    }
+
     /// <summary>從 RFC 9457 Problem Details 回應中取出 <c>detail</c> 文字；解析失敗回 null。</summary>
     private static string? ExtractDetail(string body)
     {
