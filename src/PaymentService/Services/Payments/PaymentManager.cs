@@ -123,6 +123,9 @@ public class PaymentManager(
                     Destination = connectedAccount.StripeAccountId,
                 },
                 ApplicationFeeAmount = applicationFee > 0 ? applicationFee : null,
+                // 付款成功後由 Stripe 寄送官方卡片收據（live mode 生效；test mode 不寄），
+                // 與平台自己的訂單完成信（購買明細收據）互補。
+                ReceiptEmail = request.Email,
             },
         };
 

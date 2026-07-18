@@ -102,12 +102,34 @@
                             <td class="display" style="font-size:13px; font-weight:700; line-height:1.6; color:#1A1A1A; padding:0 0 8px; vertical-align:top;">{{order_number}}</td>
                           </tr>
                           <tr>
-                            <td class="body-font" style="font-size:13px; font-weight:700; color:#555555; white-space:nowrap; padding:0 20px 8px 0; vertical-align:top;">購買商品</td>
-                            <td class="display" style="font-size:13px; font-weight:700; line-height:1.6; color:#1A1A1A; padding:0 0 8px; vertical-align:top;">{{product_name}}</td>
+                            <td class="body-font" style="font-size:13px; font-weight:700; color:#555555; white-space:nowrap; padding:0 20px 8px 0; vertical-align:top;">商店</td>
+                            <td class="body-font" style="font-size:13px; font-weight:700; line-height:1.6; color:#1A1A1A; padding:0 0 8px; vertical-align:top;">{{store_name}}</td>
                           </tr>
                           <tr>
-                            <td class="body-font" style="font-size:13px; font-weight:700; color:#555555; white-space:nowrap; padding:0 20px 0 0; vertical-align:top;">付款金額</td>
-                            <td class="display" style="font-size:13px; font-weight:700; line-height:1.6; color:#1A1A1A; padding:0 0 0; vertical-align:top;">{{total_amount}} {{currency}}</td>
+                            <td class="body-font" style="font-size:13px; font-weight:700; color:#555555; white-space:nowrap; padding:0 20px 0 0; vertical-align:top;">購買日期</td>
+                            <td class="display" style="font-size:13px; font-weight:700; line-height:1.6; color:#1A1A1A; padding:0; vertical-align:top;">{{purchased_at}}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- receipt items（{{items_rows}} 由 OrderService 逐項預先渲染，格式見 OrderEventPublisher） -->
+              <tr>
+                <td class="px" style="padding:14px 40px 0px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFF9EC; border:1.5px solid #1A1A1A; border-radius:12px;">
+                    <tr>
+                      <td style="padding:16px 20px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                          <tr>
+                            <td class="body-font" colspan="2" style="font-size:11px; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; color:#555555; padding-bottom:10px;">購買明細</td>
+                          </tr>
+                          {{items_rows}}
+                          <tr>
+                            <td class="body-font" style="font-size:13px; font-weight:900; color:#1A1A1A; padding:10px 20px 0 0; border-top:1.5px solid #1A1A1A;">合計</td>
+                            <td class="display" align="right" style="font-size:15px; font-weight:700; color:#1A1A1A; padding:10px 0 0; border-top:1.5px solid #1A1A1A; white-space:nowrap;">{{total_amount}} {{currency}}</td>
                           </tr>
                         </table>
                       </td>
