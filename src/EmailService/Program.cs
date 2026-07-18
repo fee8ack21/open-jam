@@ -33,6 +33,10 @@ else
 // MassTransit + RabbitMQ（consumer + 指數退避重試）
 builder.Services.AddMassTransit(x =>
 {
+    // queue 名稱加服務前綴：跨服務同名 consumer 才不會綁到同一條 queue 變成輪流分食，
+    // 廣播事件每個服務必須各收一份。
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("Email", false));
+
     x.AddConsumer<EmailConsumer>(cfg =>
     {
         // 暫時性失敗（連線逾時等）採指數退避，最多 5 次，1–30 秒區間

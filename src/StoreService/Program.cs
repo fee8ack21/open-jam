@@ -27,6 +27,10 @@ builder.Services.AddDbContext<StoreDbContext>(opts =>
 // MassTransit + RabbitMQ（Outbox 事件發布 + 消費 UserRegisteredEvent 回填追蹤者 UserId）
 builder.Services.AddMassTransit(x =>
 {
+    // queue 名稱加服務前綴：跨服務同名 consumer（如 UserRegisteredConsumer）才不會綁到同一條
+    // queue 變成輪流分食，廣播事件每個服務必須各收一份。
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("Store", false));
+
     x.AddConsumer<UserRegisteredConsumer>(cfg =>
     {
         cfg.UseMessageRetry(r => r.Exponential(

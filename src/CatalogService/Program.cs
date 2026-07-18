@@ -30,6 +30,10 @@ builder.Services.AddDbContext<CatalogDbContext>(opts =>
 // MassTransit + RabbitMQ（Outbox 事件發布 + 消費 OrderCompletedEvent 累加銷量）
 builder.Services.AddMassTransit(x =>
 {
+    // queue 名稱加服務前綴：跨服務同名 consumer 才不會綁到同一條 queue 變成輪流分食，
+    // 廣播事件每個服務必須各收一份。
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("Catalog", false));
+
     x.AddConsumer<OrderCompletedConsumer>(cfg =>
     {
         cfg.UseMessageRetry(r => r.Exponential(

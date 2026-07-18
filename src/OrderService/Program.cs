@@ -22,6 +22,10 @@ builder.Services.AddDbContext<OrderDbContext>(opts =>
 
 builder.Services.AddMassTransit(x =>
 {
+    // queue 名稱加服務前綴：跨服務同名 consumer（如 UserRegisteredConsumer）才不會綁到同一條
+    // queue 變成輪流分食，廣播事件每個服務必須各收一份。
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("Order", false));
+
     x.AddConsumer<PaymentSucceededConsumer>(cfg =>
     {
         cfg.UseMessageRetry(r => r.Exponential(

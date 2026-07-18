@@ -78,6 +78,10 @@ builder.Services.AddDbContext<AppDbContext>(opts =>
 // MassTransit（Outbox 事件發布 + 消費 StoreProvisionedEvent 註冊店面 redirect URI）
 builder.Services.AddMassTransit(x =>
 {
+    // queue 名稱加服務前綴：跨服務同名 consumer 才不會綁到同一條 queue 變成輪流分食，
+    // 廣播事件每個服務必須各收一份。
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("Auth", false));
+
     x.AddConsumer<StoreProvisionedConsumer>(cfg =>
     {
         cfg.UseMessageRetry(r => r.Exponential(
