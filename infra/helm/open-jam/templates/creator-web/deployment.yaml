@@ -32,6 +32,8 @@ spec:
               value: {{ .Values.config.catalogApiUrl | quote }}
             - name: STORE_API_URL
               value: {{ .Values.config.storeApiUrl | quote }}
+            - name: ORDER_API_URL
+              value: {{ .Values.config.orderApiUrl | quote }}
             # 多租戶以子網域 (<slug>.openjam.co) 推導店面 slug；此處留空，僅本地無子網域時的 fallback 才用得到
             - name: STORE_SLUG
               value: ""

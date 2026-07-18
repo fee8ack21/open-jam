@@ -46,6 +46,8 @@ spec:
               value: {{ .Values.config.storeApiUrl | quote }}
             - name: CONTENT_API_URL
               value: {{ .Values.config.contentApiUrl | quote }}
+            - name: NOTIFICATION_API_URL
+              value: {{ .Values.config.notificationApiUrl | quote }}
           {{- with .Values.portalWeb.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
