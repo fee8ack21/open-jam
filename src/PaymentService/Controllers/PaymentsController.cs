@@ -24,6 +24,21 @@ public class PaymentsController(IPaymentManager paymentManager) : ControllerBase
         return StatusCode(201, result);
     }
 
+    /// <summary>作廢訂單既有的 Stripe Checkout Session（取消訂單前呼叫，付款頁立即失效）。
+    /// 訂單已完成付款回 409（呼叫端應拒絕取消）；無 Pending 付款時冪等視為成功。
+    /// 僅限內部服務（OrderService）以 service token 呼叫。</summary>
+    /// <param name="orderId">訂單 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("expire-by-order/{orderId:guid}")]
+    [Authorize(Policy = "InternalService")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ExpireByOrder(Guid orderId, CancellationToken ct)
+    {
+        await paymentManager.ExpireCheckoutByOrderAsync(orderId, ct);
+        return NoContent();
+    }
+
     /// <summary>查詢付款紀錄。僅 Admin 可操作。</summary>
     /// <param name="id">付款 ID。</param>
     /// <param name="ct">Cancellation token。</param>

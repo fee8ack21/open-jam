@@ -206,6 +206,76 @@ public class PaymentManager(
     private static bool IsUniqueViolation(DbUpdateException ex) =>
         ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == "23505";
 
+    public async Task ExpireCheckoutByOrderAsync(Guid orderId, CancellationToken ct)
+    {
+        var pendings = await db.Payments
+            .Where(p => p.OrderId == orderId && p.Status == PaymentStatus.Pending)
+            .ToListAsync(ct);
+
+        // 無 Pending 付款（免費訂單、Session 從未建成、或先前重試已作廢完成）：冪等視為成功。
+        if (pendings.Count == 0) return;
+
+        StripeConfiguration.ApiKey = stripeOptions.Value.SecretKey;
+        var sessions = new SessionService();
+
+        foreach (var payment in pendings)
+        {
+            if (payment.ProviderCheckoutId is null)
+            {
+                MarkExpired(payment, providerTransactionId: null);
+                continue;
+            }
+
+            // 以 Stripe 現況仲裁：只有它知道這筆到底收了沒。open 才作廢；complete 拒絕取消；
+            // expired（自然過期或前次重試已作廢但本地未落地）直接補標記，重放安全。
+            var session = await sessions.GetAsync(payment.ProviderCheckoutId, cancellationToken: ct);
+
+            if (session.Status == "open")
+            {
+                try
+                {
+                    await sessions.ExpireAsync(payment.ProviderCheckoutId, cancellationToken: ct);
+                    session = null;
+                }
+                catch (StripeException)
+                {
+                    // Get 與 Expire 之間的競態（買家恰於此刻完成付款等）：重查一次以現況為準。
+                    session = await sessions.GetAsync(payment.ProviderCheckoutId, cancellationToken: ct);
+                    if (session.Status != "expired" && session.Status != "complete") throw;
+                }
+            }
+
+            if (session?.Status == "complete")
+                throw new ConflictException("訂單已完成付款，無法取消。");
+
+            MarkExpired(payment, payment.ProviderCheckoutId);
+            auditLog.Add(
+                who: payment.UserId,
+                action: "payment.checkout.expired",
+                target: "Payment",
+                targetId: payment.Id,
+                tenant: payment.StoreId);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>將付款標記為過期並記一筆交易歷程（與 webhook 的 checkout.session.expired 處理一致；
+    /// 該 webhook 事件稍後送達時因狀態已非 Pending 而自然略過，不會重複記錄）。</summary>
+    private void MarkExpired(Payment payment, string? providerTransactionId)
+    {
+        payment.Status = PaymentStatus.Expired;
+        payment.ExpiredAt = DateTimeOffset.UtcNow;
+
+        db.PaymentTransactions.Add(new PaymentTransaction
+        {
+            Id = Guid.NewGuid(),
+            PaymentId = payment.Id,
+            TransactionType = TransactionType.Expired,
+            ProviderTransactionId = providerTransactionId,
+        });
+    }
+
     public async Task<PaymentResponse> GetAsync(Guid id, CancellationToken ct)
     {
         var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == id, ct)
