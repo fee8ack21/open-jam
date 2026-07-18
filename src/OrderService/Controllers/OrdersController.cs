@@ -33,7 +33,7 @@ public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor c
     [AllowAnonymous]
     [ProducesResponseType<OrderResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<OrderResponse>> Get(Guid id, CancellationToken ct) =>
-        Ok(await orderManager.GetAsync(id, ct));
+        Ok(MaskForAnonymous(await orderManager.GetAsync(id, ct)));
 
     /// <summary>以訂單編號查詢訂單完整資訊。</summary>
     /// <param name="orderNumber">人類可讀訂單編號（如 OJ-20260624-1A2B3C4D）。</param>
@@ -42,7 +42,7 @@ public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor c
     [AllowAnonymous]
     [ProducesResponseType<OrderResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<OrderResponse>> GetByNumber(string orderNumber, CancellationToken ct) =>
-        Ok(await orderManager.GetByNumberAsync(orderNumber, ct));
+        Ok(MaskForAnonymous(await orderManager.GetByNumberAsync(orderNumber, ct)));
 
     /// <summary>查詢登入使用者本人的訂單列表（分頁），含成為會員前以同信箱訪客結帳的訂單。</summary>
     /// <param name="request">查詢條件（狀態 + 分頁）；買家身分取自登入 token（帳號 ID 與信箱）。</param>
@@ -95,4 +95,23 @@ public class OrdersController(IOrderManager orderManager, ICurrentUserAccessor c
     [ProducesResponseType<OrderResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<OrderResponse>> Cancel(Guid id, CancelOrderRequest request, CancellationToken ct) =>
         Ok(await orderManager.CancelAsync(id, request, currentUser.UserId, ct));
+
+    /// <summary>
+    /// 匿名呼叫者（creator-web 憑 orderId 下載的訪客）遮罩買家 email 後回傳；帶 token 者
+    /// （買家本人 / 賣家 / Admin）給完整值。orderId 是下載憑證、可能隨訂單完成信外流或留在
+    /// 瀏覽器歷史，不應連帶讓第三方讀到買家 PII。
+    /// </summary>
+    private OrderResponse MaskForAnonymous(OrderResponse order)
+    {
+        if (currentUser.UserId is null)
+            order.BuyerEmail = MaskEmail(order.BuyerEmail);
+        return order;
+    }
+
+    /// <summary>把 email 遮罩為「首字 + *** + @網域」（如 <c>b***@example.com</c>）。</summary>
+    private static string MaskEmail(string email)
+    {
+        var at = email.IndexOf('@');
+        return at <= 0 ? "***" : $"{email[..1]}***{email[at..]}";
+    }
 }
