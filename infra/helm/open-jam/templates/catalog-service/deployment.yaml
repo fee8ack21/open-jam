@@ -65,6 +65,15 @@ spec:
               value: {{ include "open-jam.paymentServiceUrl" . | quote }}
             - name: Services__OrderService__BaseUrl
               value: {{ include "open-jam.orderServiceUrl" . | quote }}
+            - name: ServiceAuth__TokenUrl
+              value: {{ printf "%s/oauth2/token" (include "open-jam.hydraInternalPublicUrl" .) | quote }}
+            - name: ServiceAuth__ClientId
+              value: {{ .Values.hydraClients.service.clientId | quote }}
+            - name: ServiceAuth__ClientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: hydra-service-client-secret
             - name: Hydra__Issuer
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: Hydra__MetadataAddress

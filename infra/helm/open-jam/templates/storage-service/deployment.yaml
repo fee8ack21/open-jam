@@ -61,6 +61,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}
                   key: rabbitmq-password
+            - name: ServiceAuth__ClientId
+              value: {{ .Values.hydraClients.service.clientId | quote }}
             - name: Hydra__Issuer
               value: {{ include "open-jam.hydraPublicUrl" . | quote }}
             - name: Hydra__MetadataAddress

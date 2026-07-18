@@ -79,6 +79,9 @@ builder.Services.AddOpenJamMapping(typeof(Program).Assembly);
 // JWT Bearer 驗證（Hydra JWKS）+ Admin Policy
 builder.Services.AddOpenJamJwtAuth(builder.Configuration);
 
+// InternalService policy：檔案 API 僅限內部服務（Catalog / Store / Quota）以 service token 呼叫。
+builder.Services.AddOpenJamInternalServicePolicy(builder.Configuration);
+
 // CORS（允許前端 SPA 與本機 dev server 跨來源呼叫）
 builder.Services.AddOpenJamCors(builder.Configuration);
 

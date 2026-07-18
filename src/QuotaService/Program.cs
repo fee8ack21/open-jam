@@ -26,8 +26,12 @@ builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Ser
 
 // 外部微服務 API client（對帳加總實際用量）
 var services = builder.Configuration.GetSection("Services").Get<ServiceOptions>() ?? new ServiceOptions();
+// 呼叫 StorageService 內部檔案 API 需帶 service token（受 InternalService policy 保護）。
+builder.Services.AddOpenJamServiceTokenClient(builder.Configuration);
+
 var storageBaseUrl = (services.StorageService.BaseUrl ?? "http://localhost:5171").TrimEnd('/') + "/";
-builder.Services.AddHttpClient("storage", client => client.BaseAddress = new Uri(storageBaseUrl));
+builder.Services.AddHttpClient("storage", client => client.BaseAddress = new Uri(storageBaseUrl))
+    .AddHttpMessageHandler<ServiceTokenHandler>();
 builder.Services.AddScoped<StorageServiceClient>();
 
 // 業務邏輯 Service 層（Controller 僅負責 HTTP 轉接）

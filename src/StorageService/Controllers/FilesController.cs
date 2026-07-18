@@ -11,7 +11,10 @@ namespace StorageService.Controllers;
 /// 調用方為功能 API（商品服務），前端不直接呼叫此 Controller，
 /// 而是透過簽章 URL 直接與儲存後端（本地 blob 端點 / GCS）互動。
 ///
-/// 授權說明（MVP 暫無 JWT 驗證，待功能 API 整合後補上 service token 驗證）。
+/// 授權：檔案端點掛 <c>"InternalService"</c> policy，僅限內部服務以 service token 呼叫
+/// （避免匿名者簽發下載 URL 竊取私有付費檔、灌別人配額或刪檔）；
+/// 平台用量彙總 <c>usage/summary</c> 例外，掛 <c>"Admin"</c> policy 供管理員後台呼叫。
+/// 實體檔案直傳 / 下載走 <see cref="BlobController"/> 的 HMAC 簽章 URL，不經此 Controller。
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
@@ -28,6 +31,7 @@ public class FilesController(IFileService fileService) : ControllerBase
     /// <param name="ct">Cancellation token。</param>
     /// <returns>包含 presigned URL 與 fileId 的回應。</returns>
     [HttpPost("upload-url")]
+    [Authorize(Policy = "InternalService")]
     [ProducesResponseType<RequestUploadUrlResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<ActionResult<RequestUploadUrlResponse>> RequestUploadUrlAsync(
@@ -38,6 +42,7 @@ public class FilesController(IFileService fileService) : ControllerBase
     /// <param name="creatorId">創作者（租戶）ID。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("usage")]
+    [Authorize(Policy = "InternalService")]
     [ProducesResponseType<TenantUsageResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<TenantUsageResponse>> GetTenantUsageAsync(
         [FromQuery] Guid creatorId, CancellationToken ct) =>
@@ -60,6 +65,7 @@ public class FilesController(IFileService fileService) : ControllerBase
     /// <param name="id">檔案 ID。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/confirm")]
+    [Authorize(Policy = "InternalService")]
     [ProducesResponseType<FileDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -74,6 +80,7 @@ public class FilesController(IFileService fileService) : ControllerBase
     /// <param name="id">檔案 ID。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpPost("{id:guid}/reference")]
+    [Authorize(Policy = "InternalService")]
     [ProducesResponseType<FileDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -84,6 +91,7 @@ public class FilesController(IFileService fileService) : ControllerBase
     /// <param name="id">檔案 ID。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = "InternalService")]
     [ProducesResponseType<FileDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FileDto>> GetAsync(Guid id, CancellationToken ct) =>
@@ -98,6 +106,7 @@ public class FilesController(IFileService fileService) : ControllerBase
     /// <param name="id">檔案 ID。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpGet("{id:guid}/download-url")]
+    [Authorize(Policy = "InternalService")]
     [ProducesResponseType<GetDownloadUrlResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -108,6 +117,7 @@ public class FilesController(IFileService fileService) : ControllerBase
     /// <param name="id">檔案 ID。</param>
     /// <param name="ct">Cancellation token。</param>
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "InternalService")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken ct)

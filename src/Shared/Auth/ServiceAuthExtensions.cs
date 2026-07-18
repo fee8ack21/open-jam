@@ -21,6 +21,8 @@ public static class ServiceAuthExtensions
         services.Configure<ServiceAuthOptions>(config.GetSection("ServiceAuth"));
         services.AddHttpClient("service-auth");
         services.AddSingleton<ServiceTokenClient>();
+        // 供呼叫端以 AddHttpMessageHandler<ServiceTokenHandler>() 掛在需認證的 named client 上。
+        services.AddTransient<ServiceTokenHandler>();
         return services;
     }
 

@@ -201,6 +201,7 @@ services:
       Storage__Local__RootPath: ${STORAGE_LOCAL_ROOT_PATH}
       Storage__Local__BaseUrl: ${STORAGE_LOCAL_BASE_URL}
       Storage__Local__SigningKey: ${STORAGE_LOCAL_SIGNING_KEY}
+      ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
@@ -230,6 +231,9 @@ services:
       RabbitMQ__Password: ${RABBITMQ_PASSWORD}
       Storage__PublicBaseUrl: ${STORAGE_PUBLIC_BASE_URL}
       Services__StorageService__BaseUrl: http://${PROJECT_NAME}-storage-service:8080
+      ServiceAuth__TokenUrl: http://${PROJECT_NAME}-hydra:4444/oauth2/token
+      ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
+      ServiceAuth__ClientSecret: ${HYDRA_SERVICE_CLIENT_SECRET:-change-me-in-production}
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
@@ -255,6 +259,9 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080"
       ConnectionStrings__DefaultConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_quota;Username=${DB_USER};Password=${DB_PASSWORD}
       Services__StorageService__BaseUrl: http://${PROJECT_NAME}-storage-service:8080
+      ServiceAuth__TokenUrl: http://${PROJECT_NAME}-hydra:4444/oauth2/token
+      ServiceAuth__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}
+      ServiceAuth__ClientSecret: ${HYDRA_SERVICE_CLIENT_SECRET:-change-me-in-production}
       Hydra__Issuer: ${HYDRA_PUBLIC_URL}
       Hydra__MetadataAddress: ${HYDRA_INTERNAL_URL}
     ports:
