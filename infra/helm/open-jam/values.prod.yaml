@@ -159,7 +159,7 @@ auth:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
-    tag: v0.0.22
+    tag: v0.0.23
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -174,7 +174,7 @@ logService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/log-service
-    tag: v0.0.8
+    tag: v0.0.9
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -189,7 +189,7 @@ emailService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/email-service
-    tag: v0.0.6
+    tag: v0.0.7
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -204,7 +204,7 @@ storageService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/storage-service
-    tag: v0.0.14
+    tag: v0.0.15
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -219,7 +219,7 @@ storeService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/store-service
-    tag: v0.0.10
+    tag: v0.0.11
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -234,7 +234,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.18
+    tag: v0.0.19
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -249,7 +249,7 @@ quotaService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/quota-service
-    tag: v0.0.4
+    tag: v0.0.5
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -290,7 +290,7 @@ orderService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
-    tag: v0.0.10
+    tag: v0.0.11
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -305,7 +305,7 @@ notificationService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/notification-service
-    tag: v0.0.3
+    tag: v0.0.4
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
