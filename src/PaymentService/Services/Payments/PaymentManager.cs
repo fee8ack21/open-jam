@@ -60,9 +60,14 @@ public class PaymentManager(
         // 才查 StoreService 取代（本地開發單一 creator-web 無子網域、模板不帶佔位符則免查）。
         var (successUrl, cancelUrl) = await ResolveReturnUrlsAsync(opts, request.StoreId, ct);
 
-        // 平台抽成（application fee）：百分比取自設定，四捨五入至最低貨幣單位。
-        var applicationFee = (long)Math.Round(
-            request.Amount * opts.PlatformFeePercent / 100m, MidpointRounding.AwayFromZero);
+        // 平台抽成（application fee）＝百分比部分（四捨五入至最低貨幣單位）＋固定費。固定費用以吸收
+        // Stripe 每筆約 $0.30 的固定手續費，否則低單價訂單光百分比抽成無法打平（見 PlatformFeeFixed）。
+        // 抽成不得超過訂單金額（Stripe 約束 application_fee_amount ≤ amount）——上架最低定價已擋下過小
+        // 金額，此處再以 Min 防禦性夾住，避免異常金額導致 Stripe 拒絕。
+        var rawFee = (long)Math.Round(
+            request.Amount * opts.PlatformFeePercent / 100m, MidpointRounding.AwayFromZero)
+            + opts.PlatformFeeFixed;
+        var applicationFee = Math.Min(rawFee, request.Amount);
 
         var payment = new Payment
         {

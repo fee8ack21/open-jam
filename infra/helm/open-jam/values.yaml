@@ -308,8 +308,10 @@ paymentService:
     webhookSecret: ""
     # Connect webhook 端點（account.updated 等）簽章密鑰，與平台 webhookSecret 分屬不同端點
     connectWebhookSecret: ""
-    # 平台抽成百分比（destination charge 的 application fee）
-    platformFeePercent: 3
+    # 平台抽成（destination charge 的 application fee）＝百分比 ＋ 固定費
+    platformFeePercent: 10
+    # 平台抽成固定費，最低貨幣單位（1200 = NT$12），吸收 Stripe 每筆固定手續費
+    platformFeeFixed: 1200
     successUrl: ""
     cancelUrl: ""
     # Stripe Connect onboarding 導回 URL（workspace-web 收款設定頁）

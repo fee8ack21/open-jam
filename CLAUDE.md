@@ -195,7 +195,7 @@ REST API，租戶（創作者）資源配額計量與扣量。Controller（`Char
 REST API，Stripe Checkout 金流整合與 Stripe Connect 分帳。Controller（`Payments` / `ConnectAccounts` / `Webhook`）僅轉接，業務在 `Services/Payments/` 的 `IPaymentManager` / `StripeWebhookHandler` 與 `Services/Connect/` 的 `IConnectAccountService`。
 
 - **建立 Checkout Session**：`POST /v1/payments/checkout-session` 掛 `"InternalService"` policy，僅限 OrderService 以 service token 呼叫（買家不直接接觸本服務）。以 `OrderId` 建 Stripe Checkout Session（`payment_id` / `order_id` 放 Session metadata）；同訂單已有未過期 `Pending` 付款時直接重用既有 Session（含並發 unique violation 時重用勝者），避免重複建立。`GET /v1/payments/{id}`（Admin）查詢付款。
-- **Stripe Connect 分帳（destination charge）**：request 帶 `StoreId`，查本地 `ConnectedAccount`（一店一 Stripe Express 帳戶；無帳戶或 `ChargesEnabled=false` 回 422，為上架閘門的最後防線）。Session 帶 `PaymentIntentData.TransferData.Destination` 與 `ApplicationFeeAmount`（`Stripe:PlatformFeePercent` 百分比抽成，四捨五入），款項自動入創作者帳戶、平台留抽成，Stripe 手續費從平台抽成中吸收。`Payment` 快照 `StoreId` / `DestinationAccountId` / `ApplicationFeeAmount`。
+- **Stripe Connect 分帳（destination charge）**：request 帶 `StoreId`，查本地 `ConnectedAccount`（一店一 Stripe Express 帳戶；無帳戶或 `ChargesEnabled=false` 回 422，為上架閘門的最後防線）。Session 帶 `PaymentIntentData.TransferData.Destination` 與 `ApplicationFeeAmount`（`Stripe:PlatformFeePercent` 百分比 ＋ `Stripe:PlatformFeeFixed` 固定費，四捨五入後夾住不超過訂單金額；固定費吸收 Stripe 每筆約 $0.30 固定手續費，使低單價訂單不虧本），款項自動入創作者帳戶、平台留抽成，Stripe 手續費從平台抽成中吸收。`Payment` 快照 `StoreId` / `DestinationAccountId` / `ApplicationFeeAmount`。
 - **Connect onboarding**：`POST /v1/connect/accounts/{storeId}/onboarding-link`（Owner，經 `StoreServiceClient` 轉發 Bearer token 驗證）建立（或重用，並發 unique violation 重用勝者）Express 帳戶（僅請求 `transfers` capability）並簽發 Account Link；`GET /v1/connect/accounts/{storeId}`（Owner，`?refresh=true` 向 Stripe 取即時狀態回寫，供 onboarding 導回頁不等 webhook）；`GET /v1/connect/accounts/{storeId}/status`（匿名，僅布林旗標，供 CatalogService 上架閘門）。`account.updated`（Connect webhook 端點 `POST /v1/webhook/stripe/connect`，簽章密鑰 `Stripe:ConnectWebhookSecret` 與平台端點分開）同步 `DetailsSubmitted` / `ChargesEnabled` / `PayoutsEnabled` 旗標。
 - **付款狀態**：`Payment` `Pending → Succeeded` / `Failed` / `Expired`；每次轉移寫一筆 `PaymentTransaction`（`Created` / `Success` / `Fail` / `Expired`，留 Stripe raw payload）。
 - **Webhook 兩段式處理**：`POST /v1/webhook/stripe` 驗簽後僅將原始事件落地 `ProviderEvent`（以 Stripe event id 去重）即回 200，避免處理中掛掉遺失 webhook；`StripeWebhookProcessorService`（`IHostedService`）排程處理未完成事件——`checkout.session.completed` / `async_payment_succeeded` → `Succeeded` 並經 Outbox 發 `PaymentSucceededEvent`；`async_payment_failed` / `payment_intent.payment_failed` → `Failed`；`checkout.session.expired` → 僅 `Pending` 轉 `Expired`。
@@ -316,7 +316,8 @@ REST API，管理平台內容——法律文件（`LegalDocument`，服務條款
   "Stripe": {
     "SecretKey": "sk_test_...", "PublishableKey": "pk_test_...", "WebhookSecret": "whsec_...",
     "ConnectWebhookSecret": "whsec_...",   // Connect webhook 端點（account.updated）簽章密鑰
-    "PlatformFeePercent": 3,               // 平台抽成百分比（destination charge application fee）
+    "PlatformFeePercent": 10,              // 平台抽成百分比（destination charge application fee 百分比部分）
+    "PlatformFeeFixed": 1200,              // 平台抽成固定費（最低貨幣單位，1200 = NT$12），吸收 Stripe 每筆固定手續費
     "SuccessUrl": "http://localhost:5174/checkout/success?session_id={CHECKOUT_SESSION_ID}",
     "CancelUrl": "http://localhost:5174/checkout/cancel",
     // Stripe Connect onboarding 導回 workspace-web 收款設定頁

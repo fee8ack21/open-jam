@@ -74,6 +74,8 @@ spec:
                   key: payment-stripe-connect-webhook-secret
             - name: Stripe__PlatformFeePercent
               value: {{ .Values.paymentService.stripe.platformFeePercent | quote }}
+            - name: Stripe__PlatformFeeFixed
+              value: {{ .Values.paymentService.stripe.platformFeeFixed | quote }}
             - name: Stripe__SuccessUrl
               value: {{ .Values.paymentService.stripe.successUrl | quote }}
             - name: Stripe__CancelUrl

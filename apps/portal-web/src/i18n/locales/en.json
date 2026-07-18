@@ -93,7 +93,7 @@
     },
     "ctaBand": {
       "title": "Do you {hl} too?",
-      "sub": "Bring your sheet music, photography, and e-books to Open Jam — no monthly fee, just a 3% cut when a work sells.",
+      "sub": "Bring your sheet music, photography, and e-books to Open Jam — no monthly fee, just 10% + NT$12 per sale when a work sells.",
       "button": "Become a creator",
       "titleHl": "create",
       "note": "no monthly fees, just jam ♡"
@@ -182,8 +182,8 @@
           "d": "Listing never transfers copyright — you only license us to display and sell it."
         },
         {
-          "t": "No monthly fee, 3% cut",
-          "d": "Opening a shop and listing are free; we take a 3% fee only when a work sells."
+          "t": "No monthly fee, pay only when you sell",
+          "d": "Opening a shop and listing are free; we take 10% + NT$12 per sale only when a work sells."
         },
         {
           "t": "Original or licensed only",
@@ -210,7 +210,7 @@
         },
         {
           "h": "Fees and settlement",
-          "p": "Open Jam charges no monthly fee; once a work sells, the platform takes a 3% transaction fee. Funds are paid out to your linked payout account according to the settlement cycle."
+          "p": "Open Jam charges no monthly fee; once a work sells, the platform takes a transaction fee of 10% of the sale price plus NT$12 per transaction. Funds are paid out to your linked payout account according to the settlement cycle."
         },
         {
           "h": "Content license",
@@ -594,7 +594,7 @@
       {
         "cat": "selling",
         "q": "Is there a fee to open a shop or list works?",
-        "a": "There's no monthly fee to open a shop or list works. The platform only takes a small transaction fee (3%) when a work actually sells."
+        "a": "There's no monthly fee to open a shop or list works. The platform only takes a transaction fee (10% of the sale price + NT$12 per transaction) when a work actually sells."
       },
       {
         "cat": "selling",
@@ -624,7 +624,7 @@
       {
         "cat": "payments",
         "q": "How much does the platform take?",
-        "a": "No monthly fee — the platform only takes a 3% transaction fee when a work sells."
+        "a": "No monthly fee — the platform only takes 10% of the sale price plus NT$12 per transaction when a work sells."
       },
       {
         "cat": "payments",
@@ -777,7 +777,7 @@
         },
         {
           "title": "Money goes to creators",
-          "text": "97% of every sale goes to the creator. The platform takes 3%, and shops are free to open."
+          "text": "When a work sells, the platform takes just 10% + NT$12 — the rest goes to the creator, and shops are free to open."
         }
       ]
     },

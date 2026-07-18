@@ -269,7 +269,9 @@ paymentService:
   replicaCount: 1
   stripe:
     # secretKey / publishableKey / webhookSecret / connectWebhookSecret → 機密 overlay
-    platformFeePercent: 3
+    platformFeePercent: 10
+    # 平台抽成固定費，最低貨幣單位（1200 = NT$12），吸收 Stripe 每筆固定手續費
+    platformFeeFixed: 1200
     # 結帳結果頁位於 creator-web（<slug>.openjam.co），故導回買家原本所在的店面子網域；
     # {storeSlug} 由 PaymentService 以訂單所屬商店代稱代入、{CHECKOUT_SESSION_ID} 由 Stripe 代入。
     successUrl: "https://{storeSlug}.openjam.co/checkout/success?session_id={CHECKOUT_SESSION_ID}"
