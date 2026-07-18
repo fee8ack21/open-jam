@@ -53,6 +53,27 @@ async function loadStatus(refresh: boolean) {
   }
 }
 
+const dashboardLoading = ref(false)
+
+/** 開啟 Stripe Express Dashboard（login link 短效，每次點擊即時簽發），查看餘額、撥款排程與交易明細。 */
+async function goDashboard() {
+  const storeId = primaryStore.value?.id
+  if (!storeId || dashboardLoading.value) return
+  dashboardLoading.value = true
+  try {
+    const res = await paymentApi.connectAccounts.createLoginLink(storeId)
+    if (res.data.url) {
+      window.open(res.data.url, '_blank', 'noopener')
+      return
+    }
+    message.error(t('payouts.msgDashboardFailed'))
+  } catch (err) {
+    message.error(messageOf(err, t('payouts.msgDashboardFailed')))
+  } finally {
+    dashboardLoading.value = false
+  }
+}
+
 /** 前往 Stripe 託管 onboarding（Account Link 短效，每次點擊即時簽發）。 */
 async function goOnboarding() {
   const storeId = primaryStore.value?.id
@@ -111,10 +132,17 @@ onMounted(async () => {
                 </li>
               </ul>
 
-              <n-button type="primary" :loading="redirecting" :disabled="loading" @click="goOnboarding">
-                <template #icon><app-icon name="wallet" :size="16" /></template>
-                {{ state === 'none' ? t('payouts.actionStart') : state === 'pending' ? t('payouts.actionContinue') : t('payouts.actionUpdate') }}
-              </n-button>
+              <div class="payout-actions">
+                <!-- 已可收款時主要動作變成看儀表板（餘額 / 撥款排程 / 交易明細），更新資料退居次要 -->
+                <n-button v-if="state === 'ready'" type="primary" :loading="dashboardLoading" :disabled="loading" @click="goDashboard">
+                  <template #icon><app-icon name="chart" :size="16" /></template>
+                  {{ t('payouts.actionDashboard') }}
+                </n-button>
+                <n-button :type="state === 'ready' ? 'default' : 'primary'" :loading="redirecting" :disabled="loading" @click="goOnboarding">
+                  <template #icon><app-icon name="wallet" :size="16" /></template>
+                  {{ state === 'none' ? t('payouts.actionStart') : state === 'pending' ? t('payouts.actionContinue') : t('payouts.actionUpdate') }}
+                </n-button>
+              </div>
             </div>
           </div>
         </div>

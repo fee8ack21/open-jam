@@ -52,6 +52,15 @@ function shortId(v?: string | null) {
             <dt>{{ t('orderModal.amount') }}</dt>
             <dd class="od-amount">{{ formatOrderAmount(order.totalAmount, order.currency) }}</dd>
           </div>
+          <!-- 平台抽成與賣家實收：僅付款成功後有抽成快照的訂單顯示（免費訂單與快照上線前的舊訂單無值） -->
+          <div v-if="order.platformFeeAmount">
+            <dt>{{ t('orderModal.platformFee') }}</dt>
+            <dd class="od-mono">−{{ formatOrderAmount(order.platformFeeAmount, order.currency) }}</dd>
+          </div>
+          <div v-if="order.platformFeeAmount">
+            <dt>{{ t('orderModal.netAmount') }}</dt>
+            <dd class="od-amount">{{ formatOrderAmount((order.totalAmount ?? 0) - order.platformFeeAmount, order.currency) }}</dd>
+          </div>
           <div>
             <dt>{{ t('orderModal.currency') }}</dt>
             <dd class="od-mono">{{ (order.currency || '—').toUpperCase() }}</dd>

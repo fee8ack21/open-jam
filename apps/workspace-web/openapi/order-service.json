@@ -240,7 +240,7 @@
         "tags": [
           "Orders"
         ],
-        "summary": "查詢登入使用者本人的訂單列表（分頁）。",
+        "summary": "查詢登入使用者本人的訂單列表（分頁），含成為會員前以同信箱訪客結帳的訂單。",
         "operationId": "ListMine",
         "parameters": [
           {
@@ -713,6 +713,12 @@
             "format": "int64",
             "example": 1990
           },
+          "platformFeeAmount": {
+            "type": "integer",
+            "description": "平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。",
+            "format": "int64",
+            "example": 1399
+          },
           "createdAt": {
             "type": "string",
             "description": "建立時間（UTC）。",
@@ -825,6 +831,12 @@
             "description": "訂單總金額（最低貨幣單位）。",
             "format": "int64",
             "example": 1990
+          },
+          "platformFeeAmount": {
+            "type": "integer",
+            "description": "平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。",
+            "format": "int64",
+            "example": 1399
           },
           "createdAt": {
             "type": "string",

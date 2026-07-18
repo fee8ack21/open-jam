@@ -139,6 +139,12 @@ export interface OrderResponse {
    */
   totalAmount?: number;
   /**
+   * 平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。
+   * @format int64
+   * @example 1399
+   */
+  platformFeeAmount?: number;
+  /**
    * 建立時間（UTC）。
    * @format date-time
    */
@@ -213,6 +219,12 @@ export interface OrderSummaryDto {
    * @example 1990
    */
   totalAmount?: number;
+  /**
+   * 平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。
+   * @format int64
+   * @example 1399
+   */
+  platformFeeAmount?: number;
   /**
    * 建立時間（UTC）。
    * @format date-time
@@ -611,7 +623,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags Orders
      * @name ListMine
-     * @summary 查詢登入使用者本人的訂單列表（分頁）。
+     * @summary 查詢登入使用者本人的訂單列表（分頁），含成為會員前以同信箱訪客結帳的訂單。
      * @request GET:/v1/orders/mine
      */
     listMine: (

@@ -20,8 +20,11 @@ const SPLIT_COLORS = [
 
 /** 近幾個月營收趨勢顯示的月份數。 */
 const TREND_MONTHS = 8;
-/** 平台抽成比例（供「本期預估撥款」估算，對齊 PaymentService PlatformFeePercent）。 */
+/** 平台抽成估算參數（對齊 PaymentService PlatformFeePercent / PlatformFeeFixed），
+ * 僅供「抽成快照上線前的舊訂單」退補估算；新訂單一律取後端快照值。 */
 const PLATFORM_FEE_RATE = 0.1;
+/** 平台抽成固定費（最低貨幣單位，1200 = NT$12/筆）。 */
+const PLATFORM_FEE_FIXED_MINOR = 1200;
 
 /** 折線圖資料點（與 TrendChart 一致）。 */
 export interface TrendPoint {
@@ -139,8 +142,19 @@ export const useSellerDashboardStore = defineStore('sellerDashboard', () => {
     return prev ? Math.round(((monthSales.value - prev) / prev) * 100) : 0;
   });
 
-  /** 本期預估可撥款金額 = 本月已完成營收扣除平台抽成（估算，非 Stripe 即時餘額）。 */
-  const pendingPayoutMinor = computed(() => Math.round(monthRevenueMinor.value * (1 - PLATFORM_FEE_RATE)));
+  /** 該筆訂單的平台抽成（最低貨幣單位）：優先取付款成功時的後端快照，快照上線前的舊訂單以現行費率（百分比＋固定費）估算。 */
+  function orderFeeMinor(o: OrderSummaryDto): number {
+    if (o.platformFeeAmount) return o.platformFeeAmount;
+    const total = o.totalAmount ?? 0;
+    if (!total) return 0;
+    return Math.min(total, Math.round(total * PLATFORM_FEE_RATE) + PLATFORM_FEE_FIXED_MINOR);
+  }
+
+  /** 本期預估可撥款金額 = 本月已完成訂單逐筆（總額 − 平台抽成）加總（非 Stripe 即時餘額）。 */
+  const pendingPayoutMinor = computed(() =>
+    completedOrders.value
+      .filter((o) => monthKey(o) === offsetMonthKey(0))
+      .reduce((s, o) => s + Math.max(0, (o.totalAmount ?? 0) - orderFeeMinor(o)), 0));
 
   /** 近 8 個月營收趨勢（面額，供折線圖）。 */
   const monthlyTrend = computed<TrendPoint[]>(() => {

@@ -356,7 +356,9 @@
     "aboutBody2": "免費商品不經過金流，買家送出訂單即可直接下載，無需完成收款設定。",
     "msgLoadFailed": "收款狀態載入失敗",
     "msgLinkFailed": "無法取得 Stripe 設定連結，請稍後再試。",
-    "msgLinkExpired": "Stripe 設定連結已失效，請重新點擊按鈕前往。"
+    "msgLinkExpired": "Stripe 設定連結已失效，請重新點擊按鈕前往。",
+    "actionDashboard": "前往 Stripe 儀表板",
+    "msgDashboardFailed": "無法開啟 Stripe 儀表板，請稍後再試"
   },
   "catalogCategories": {
     "searchPlaceholder": "搜尋分類名稱或 slug",
@@ -666,7 +668,9 @@
     "statusHistory": "狀態歷程",
     "noHistory": "無狀態歷程",
     "changedFrom": "由「{status}」變更",
-    "created": "訂單建立"
+    "created": "訂單建立",
+    "platformFee": "平台服務費",
+    "netAmount": "賣家實收"
   },
   "purchaseModal": {
     "title": "購買明細",

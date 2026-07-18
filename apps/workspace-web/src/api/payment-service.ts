@@ -10,12 +10,34 @@
  * ---------------------------------------------------------------
  */
 
+export enum PaymentStatus {
+  Pending = "Pending",
+  Processing = "Processing",
+  Succeeded = "Succeeded",
+  Failed = "Failed",
+  Cancelled = "Cancelled",
+  Expired = "Expired",
+}
+
 /** Stripe Connect onboarding Account Link 回應。 */
 export interface AccountLinkResponse {
   /**
    * Stripe 託管 onboarding 頁 URL（短效，前端直接導向）。
    * @example "https://connect.stripe.com/setup/e/acct_xxx/yyy"
    */
+  url?: string | null;
+}
+
+/** Checkout Session 建立回應。 */
+export interface CheckoutSessionResponse {
+  /**
+   * 付款 ID。
+   * @format uuid
+   */
+  paymentId?: string;
+  /** Stripe Checkout Session ID。 */
+  sessionId?: string | null;
+  /** Stripe Checkout URL（前端導向此 URL 完成付款）。 */
   url?: string | null;
 }
 
@@ -41,6 +63,81 @@ export interface ConnectAccountStatusResponse {
    * @example true
    */
   payoutsEnabled?: boolean;
+}
+
+/** 建立 Stripe Checkout Session 請求。 */
+export interface CreateCheckoutSessionRequest {
+  /**
+   * 商品訂單 ID。
+   * @format uuid
+   */
+  orderId?: string;
+  /**
+   * 賣方商店 ID，用於查找分帳目的地 Stripe 帳戶。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  storeId?: string;
+  /**
+   * 購買者使用者 ID；null 表示匿名購買。由 OrderService 帶入（呼叫者為內部服務，非買家本人）。
+   * @format uuid
+   * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+   */
+  userId?: string | null;
+  /** 購買者電子信箱。 */
+  email?: string | null;
+  /**
+   * 付款金額（最低貨幣單位，如 cents）。
+   * @format int64
+   */
+  amount?: number;
+  /** 貨幣代碼（小寫，如 "usd"、"twd"）。 */
+  currency?: string | null;
+  /** 商品名稱（顯示於 Stripe Checkout 頁面）。 */
+  productName?: string | null;
+}
+
+/** 付款紀錄回應。 */
+export interface PaymentResponse {
+  /** @format uuid */
+  id?: string;
+  /** @format uuid */
+  orderId?: string;
+  /** @format uuid */
+  storeId?: string;
+  /** @format uuid */
+  userId?: string | null;
+  email?: string | null;
+  provider?: string | null;
+  /** @format int64 */
+  amount?: number;
+  /** @format int64 */
+  applicationFeeAmount?: number;
+  destinationAccountId?: string | null;
+  currency?: string | null;
+  status?: PaymentStatus;
+  providerPaymentId?: string | null;
+  providerCheckoutId?: string | null;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  failedAt?: string | null;
+  /** @format date-time */
+  expiresAt?: string | null;
+  /** @format date-time */
+  expiredAt?: string | null;
+}
+
+export interface ProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -309,21 +406,6 @@ export class Api<SecurityDataType extends unknown> {
     this.http = http;
   }
 
-  paymentService = {
-    /**
-     * No description
-     *
-     * @tags PaymentService
-     * @name HealthzList
-     * @request GET:/healthz
-     */
-    healthzList: (params: RequestParams = {}) =>
-      this.http.request<void, any>({
-        path: `/healthz`,
-        method: "GET",
-        ...params,
-      }),
-  };
   connectAccounts = {
     /**
      * No description
@@ -336,6 +418,22 @@ export class Api<SecurityDataType extends unknown> {
     createOnboardingLink: (storeId: string, params: RequestParams = {}) =>
       this.http.request<AccountLinkResponse, any>({
         path: `/v1/connect/accounts/${storeId}/onboarding-link`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ConnectAccounts
+     * @name CreateLoginLink
+     * @summary 簽發商店 Stripe Express Dashboard 登入連結（短效，前端直接開啟）。僅商店 Owner 可操作； 創作者於 Stripe 託管頁查看餘額、撥款排程與交易明細。
+     * @request POST:/v1/connect/accounts/{storeId}/login-link
+     */
+    createLoginLink: (storeId: string, params: RequestParams = {}) =>
+      this.http.request<AccountLinkResponse, any>({
+        path: `/v1/connect/accounts/${storeId}/login-link`,
         method: "POST",
         format: "json",
         ...params,
@@ -378,6 +476,74 @@ export class Api<SecurityDataType extends unknown> {
         path: `/v1/connect/accounts/${storeId}/status`,
         method: "GET",
         format: "json",
+        ...params,
+      }),
+  };
+  payments = {
+    /**
+     * No description
+     *
+     * @tags Payments
+     * @name CreateCheckoutSession
+     * @summary 建立（或重用）Stripe Checkout Session。僅限內部服務（OrderService）以 service token 呼叫。
+     * @request POST:/v1/payments/checkout-session
+     */
+    createCheckoutSession: (
+      data: CreateCheckoutSessionRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CheckoutSessionResponse, any>({
+        path: `/v1/payments/checkout-session`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Payments
+     * @name ExpireByOrder
+     * @summary 作廢訂單既有的 Stripe Checkout Session（取消訂單前呼叫，付款頁立即失效）。 訂單已完成付款回 409（呼叫端應拒絕取消）；無 Pending 付款時冪等視為成功。 僅限內部服務（OrderService）以 service token 呼叫。
+     * @request POST:/v1/payments/expire-by-order/{orderId}
+     */
+    expireByOrder: (orderId: string, params: RequestParams = {}) =>
+      this.http.request<void, ProblemDetails>({
+        path: `/v1/payments/expire-by-order/${orderId}`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Payments
+     * @name Get
+     * @summary 查詢付款紀錄。僅 Admin 可操作。
+     * @request GET:/v1/payments/{id}
+     */
+    get: (id: string, params: RequestParams = {}) =>
+      this.http.request<PaymentResponse, any>({
+        path: `/v1/payments/${id}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  paymentService = {
+    /**
+     * No description
+     *
+     * @tags PaymentService
+     * @name HealthzList
+     * @request GET:/healthz
+     */
+    healthzList: (params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/healthz`,
+        method: "GET",
         ...params,
       }),
   };

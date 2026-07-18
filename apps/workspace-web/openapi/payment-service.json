@@ -5,18 +5,6 @@
     "version": "v1"
   },
   "paths": {
-    "/healthz": {
-      "get": {
-        "tags": [
-          "PaymentService"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/v1/connect/accounts/{storeId}/onboarding-link": {
       "post": {
         "tags": [
@@ -24,6 +12,49 @@
         ],
         "summary": "為商店建立（或重用）Stripe Express 帳戶並簽發 onboarding Account Link。僅商店 Owner 可操作。",
         "operationId": "CreateOnboardingLink",
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "path",
+            "description": "商店 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountLinkResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountLinkResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountLinkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/connect/accounts/{storeId}/login-link": {
+      "post": {
+        "tags": [
+          "ConnectAccounts"
+        ],
+        "summary": "簽發商店 Stripe Express Dashboard 登入連結（短效，前端直接開啟）。僅商店 Owner 可操作；\r\n            創作者於 Stripe 託管頁查看餘額、撥款排程與交易明細。",
+        "operationId": "CreateLoginLink",
         "parameters": [
           {
             "name": "storeId",
@@ -153,6 +184,158 @@
           }
         }
       }
+    },
+    "/v1/payments/checkout-session": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "建立（或重用）Stripe Checkout Session。僅限內部服務（OrderService）以 service token 呼叫。",
+        "operationId": "CreateCheckoutSession",
+        "requestBody": {
+          "description": "訂單 ID、買家資訊、金額與商品名稱。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/payments/expire-by-order/{orderId}": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "作廢訂單既有的 Stripe Checkout Session（取消訂單前呼叫，付款頁立即失效）。\r\n            訂單已完成付款回 409（呼叫端應拒絕取消）；無 Pending 付款時冪等視為成功。\r\n            僅限內部服務（OrderService）以 service token 呼叫。",
+        "operationId": "ExpireByOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "description": "訂單 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/payments/{id}": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "查詢付款紀錄。僅 Admin 可操作。",
+        "operationId": "Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "付款 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "PaymentService"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -169,6 +352,28 @@
         },
         "additionalProperties": false,
         "description": "Stripe Connect onboarding Account Link 回應。"
+      },
+      "CheckoutSessionResponse": {
+        "type": "object",
+        "properties": {
+          "paymentId": {
+            "type": "string",
+            "description": "付款 ID。",
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Stripe Checkout Session ID。",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Stripe Checkout URL（前端導向此 URL 完成付款）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Checkout Session 建立回應。"
       },
       "ConnectAccountStatusResponse": {
         "type": "object",
@@ -196,6 +401,172 @@
         },
         "additionalProperties": false,
         "description": "商店 Stripe Connect 帳戶狀態。"
+      },
+      "CreateCheckoutSessionRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "description": "商品訂單 ID。",
+            "format": "uuid"
+          },
+          "storeId": {
+            "type": "string",
+            "description": "賣方商店 ID，用於查找分帳目的地 Stripe 帳戶。",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "userId": {
+            "type": "string",
+            "description": "購買者使用者 ID；null 表示匿名購買。由 OrderService 帶入（呼叫者為內部服務，非買家本人）。",
+            "format": "uuid",
+            "nullable": true,
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "email": {
+            "type": "string",
+            "description": "購買者電子信箱。",
+            "nullable": true
+          },
+          "amount": {
+            "type": "integer",
+            "description": "付款金額（最低貨幣單位，如 cents）。",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string",
+            "description": "貨幣代碼（小寫，如 \"usd\"、\"twd\"）。",
+            "nullable": true
+          },
+          "productName": {
+            "type": "string",
+            "description": "商品名稱（顯示於 Stripe Checkout 頁面）。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "建立 Stripe Checkout Session 請求。"
+      },
+      "PaymentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "applicationFeeAmount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "destinationAccountId": {
+            "type": "string",
+            "nullable": true
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/PaymentStatus"
+          },
+          "providerPaymentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerCheckoutId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expiredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "付款紀錄回應。"
+      },
+      "PaymentStatus": {
+        "enum": [
+          "Pending",
+          "Processing",
+          "Succeeded",
+          "Failed",
+          "Cancelled",
+          "Expired"
+        ],
+        "type": "string"
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
       }
     }
   }

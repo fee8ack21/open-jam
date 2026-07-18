@@ -356,7 +356,9 @@
     "aboutBody2": "Free products skip payment entirely — buyers can download right after placing an order, and no payout setup is required.",
     "msgLoadFailed": "Failed to load payout status",
     "msgLinkFailed": "Could not get the Stripe setup link. Please try again later.",
-    "msgLinkExpired": "The Stripe setup link has expired. Please click the button to try again."
+    "msgLinkExpired": "The Stripe setup link has expired. Please click the button to try again.",
+    "actionDashboard": "Open Stripe dashboard",
+    "msgDashboardFailed": "Couldn't open the Stripe dashboard. Please try again later."
   },
   "catalogCategories": {
     "searchPlaceholder": "Search category name or slug",
@@ -666,7 +668,9 @@
     "statusHistory": "Status history",
     "noHistory": "No status history",
     "changedFrom": "Changed from “{status}”",
-    "created": "Order created"
+    "created": "Order created",
+    "platformFee": "Platform fee",
+    "netAmount": "Seller net payout"
   },
   "purchaseModal": {
     "title": "Purchase details",
