@@ -39,6 +39,8 @@ const VIDEO_ALLOWED = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video
 const VIDEO_MAX_BYTES = 100 * 1024 * 1024
 const MEDIA_ACCEPT = `${COVER_ACCEPT},${VIDEO_ALLOWED.join(',')}`
 const MAX_PREVIEW_MEDIA = 8
+// 付費商品最低定價（與後端 CatalogValidators.MinPaidPrice 對齊，避免低於 Stripe 最低收費）
+const MIN_PAID_PRICE = 30
 
 const store = useDashboardStore()
 const message = useMessage()
@@ -390,6 +392,8 @@ function goNext() {
 async function submit(publish: boolean) {
   if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
   if (!step1Valid.value) { message.warning(t('upload.msgNeedTitle')); return }
+  // 清空定價欄位會落回 0，繞過 :min 夾制；付費商品於送出前再擋一次。
+  if (!d.value.free && (d.value.price ?? 0) < MIN_PAID_PRICE) { message.warning(t('upload.minPriceHint', { min: MIN_PAID_PRICE })); return }
   if (anyUploading.value) { message.warning(t('upload.msgUploadInProgress')); return }
   if (cover.value?.status === 'error') { message.warning(t('upload.msgCoverNotReady')); return }
   if (mediaEntries.value.some(e => e.status === 'error')) { message.warning(t('upload.msgMediaNotReady')); return }
@@ -487,14 +491,16 @@ async function submit(publish: boolean) {
             <h4 class="fb-title">{{ t('upload.priceLabel') }}</h4>
             <div class="price-input">
               <n-input-number :value="d.price" @update:value="(v: number | null) => store.patchDraft({ price: v || 0 })"
-                              :disabled="d.free" :min="0" :max="999" :step="1" size="large" style="width:180px;">
+                              :disabled="d.free" :min="d.free ? 0 : MIN_PAID_PRICE" :max="999" :step="1" size="large" style="width:180px;">
                 <template #prefix>$</template>
               </n-input-number>
-              <button class="free-toggle" :class="{ on: d.free }" @click="store.patchDraft({ free: !d.free })">
+              <button class="free-toggle" :class="{ on: d.free }"
+                      @click="store.patchDraft(d.free ? { free: false, price: Math.max(d.price, MIN_PAID_PRICE) } : { free: true })">
                 <app-icon :name="d.free ? 'check' : 'tag'" :size="16" :stroke="2.2" /> {{ t('upload.freeToggle') }}
               </button>
               <span style="font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono);">{{ t('upload.platformFee') }}</span>
             </div>
+            <div v-if="!d.free" style="margin-top:8px; font-size:12.5px; color:var(--text-faint); font-family:var(--oj-mono);">{{ t('upload.minPriceHint', { min: MIN_PAID_PRICE }) }}</div>
           </div>
 
           <div class="form-block">

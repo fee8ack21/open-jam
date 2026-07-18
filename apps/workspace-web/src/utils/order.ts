@@ -65,3 +65,15 @@ export function orderStatusOptions(): { label: string; value: OrderStatus | 'all
 export function formatOrderTime(iso?: string | null): string {
   return iso ? new Date(iso).toLocaleString(i18n.global.locale.value, { hour12: false }) : '—'
 }
+
+/** 面額（如 150 元）→ 最低貨幣單位（如 15000）；零位小數貨幣不乘 100。 */
+export function toMinorAmount(major?: number, currency?: string | null): number {
+  const cur = (currency || 'usd').toLowerCase()
+  return Math.round((major ?? 0) * (ZERO_DECIMAL_CURRENCIES.has(cur) ? 1 : 100))
+}
+
+/** 最低貨幣單位（如 15000）→ 面額（如 150）；零位小數貨幣不除 100。 */
+export function toMajorAmount(minor?: number, currency?: string | null): number {
+  const cur = (currency || 'usd').toLowerCase()
+  return (minor ?? 0) / (ZERO_DECIMAL_CURRENCIES.has(cur) ? 1 : 100)
+}

@@ -45,6 +45,7 @@
     "imageUploadFailed": "圖片上傳失敗（{status}）",
     "uploadImageFailed": "上傳圖片失敗。",
     "loadOrdersFailed": "載入訂單失敗，請稍後再試。",
+    "loadDashboardFailed": "載入儀表板資料失敗，請稍後再試。",
     "loadCatalogFailed": "載入商品失敗。",
     "loadStoreCatalogsFailed": "載入商店商品失敗。",
     "suspendProductFailed": "停權商品失敗。",
@@ -186,6 +187,7 @@
     "priceLabel": "定價",
     "freeToggle": "免費提供",
     "platformFee": "平台抽成 10% + 每筆 NT$12",
+    "minPriceHint": "付費商品最低定價 ${min}。",
     "blurbLabel": "一句話簡介",
     "blurbPlaceholder": "用一句話打動買家…",
     "uploadLabel": "上傳檔案",
@@ -624,7 +626,11 @@
     "topProducts": "熱銷作品",
     "recentOrders": "最新訂單",
     "viewAll": "查看全部",
-    "salesViews": "{sales} 次售出 · {views} 瀏覽"
+    "salesViews": "{sales} 次售出 · {views} 瀏覽",
+    "categoryOther": "其他",
+    "payoutEstimate": "本期預估",
+    "emptyProducts": "尚無商品資料",
+    "emptyOrders": "尚無訂單"
   },
   "orderStatus": {
     "all": "全部",
@@ -863,6 +869,7 @@
     "tagsHint": "最多 {max} 個，幫助買家在商城找到你。",
     "priceLabel": "定價",
     "freeToggle": "免費提供",
+    "minPriceHint": "付費商品最低定價 ${min}。",
     "coverHueLabel": "封面色調",
     "coverHueHint": "未設定封面圖時，作品縮圖會以這個色調呈現。",
     "coverTitle": "封面圖",

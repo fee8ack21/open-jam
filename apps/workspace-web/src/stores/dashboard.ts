@@ -67,7 +67,8 @@ export const useDashboardStore = defineStore('dashboard', {
     // upload wizard draft
     wizardStep: 1,
     draft: load<DraftState>('draft', {
-      title: '', cat: 'photo', tags: [], price: 12, free: false,
+      // 預設定價對齊付費商品最低金額（後端 CatalogValidators.MinPaidPrice = 30）
+      title: '', cat: 'photo', tags: [], price: 30, free: false,
       blurb: '', files: [], coverHue: 256,
     }),
   }),
@@ -150,7 +151,7 @@ export const useDashboardStore = defineStore('dashboard', {
     addDraftFile(f: DraftFile) { this.draft.files.push(f); save('draft', this.draft) },
     removeDraftFile(i: number) { this.draft.files.splice(i, 1); save('draft', this.draft) },
     resetDraft() {
-      this.draft = { title: '', cat: 'photo', tags: [], price: 12, free: false, blurb: '', files: [], coverHue: 256 }
+      this.draft = { title: '', cat: 'photo', tags: [], price: 30, free: false, blurb: '', files: [], coverHue: 256 }
       this.wizardStep = 1; save('draft', this.draft)
     },
     publishDraft() {

@@ -66,6 +66,7 @@ export interface DraftMeta {
 export const useCatalogStore = defineStore('catalog', () => {
   const products = ref<CatalogSummaryDto[]>([]); // 目前頁次的商品
   const totalCount = ref(0);                     // 目前篩選條件下的總筆數
+  const count = ref(0);                          // 全部商品數（側欄徽章用，不受列表篩選影響）
   const offset = ref(0);
   const pageSize = ref(PAGE_SIZE);
   const categories = ref<CatalogCategoryDto[]>([]);
@@ -109,6 +110,10 @@ export const useCatalogStore = defineStore('catalog', () => {
         : await catalogApi.catalogs.listByStore(src.storeId, query);
       products.value = res.data.items ?? [];
       totalCount.value = res.data.totalCount ?? products.value.length;
+      // 未套用任何篩選時，目前總筆數即為全部商品數，順帶更新側欄徽章。
+      if (src.kind === 'mine' && !query.Search && query.Status == null) {
+        count.value = totalCount.value;
+      }
     } catch (err) {
       const fallback = src.kind === 'mine'
         ? i18n.global.t('storeError.loadCatalogFailed')
@@ -118,6 +123,17 @@ export const useCatalogStore = defineStore('catalog', () => {
       totalCount.value = 0;
     } finally {
       loading.value = false;
+    }
+  }
+
+  /** 僅取全部商品數（單一輕量請求，不載入列表詳情），供側欄徽章使用。 */
+  async function loadCount(storeId: string) {
+    if (!storeId) { count.value = 0; return; }
+    try {
+      const res = await catalogApi.catalogs.listMine({ StoreId: storeId, Offset: 0, Limit: 1 });
+      count.value = res.data.totalCount ?? 0;
+    } catch {
+      count.value = 0;
     }
   }
 
@@ -230,6 +246,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     error.value = null;
     try {
       await catalogApi.catalogs.delete(id);
+      count.value = Math.max(0, count.value - 1);
       await reload();
       return true;
     } catch (err) {
@@ -505,6 +522,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       if (publish) await catalogApi.catalogs.publish(catalogId);
 
       const dto = await catalogApi.catalogs.get(catalogId);
+      count.value += 1; // 新商品建立完成，同步側欄徽章
       resetDraftUpload();
       return dto.data;
     } catch (err) {
@@ -518,6 +536,7 @@ export const useCatalogStore = defineStore('catalog', () => {
   return {
     products,
     totalCount,
+    count,
     offset,
     pageSize,
     setPageSize,
@@ -528,6 +547,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     error,
     filter,
     loadCategories,
+    loadCount,
     load,
     loadByStore,
     reload,

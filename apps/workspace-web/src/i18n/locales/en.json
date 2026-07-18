@@ -45,6 +45,7 @@
     "imageUploadFailed": "Image upload failed ({status})",
     "uploadImageFailed": "Failed to upload image.",
     "loadOrdersFailed": "Failed to load orders, please try again later.",
+    "loadDashboardFailed": "Failed to load dashboard data, please try again later.",
     "loadCatalogFailed": "Failed to load products.",
     "loadStoreCatalogsFailed": "Failed to load store products.",
     "suspendProductFailed": "Failed to suspend product.",
@@ -186,6 +187,7 @@
     "priceLabel": "Pricing",
     "freeToggle": "Offer for free",
     "platformFee": "10% + NT$12 platform fee",
+    "minPriceHint": "Paid items start at ${min}.",
     "blurbLabel": "One-line summary",
     "blurbPlaceholder": "Win buyers over in one line…",
     "uploadLabel": "Upload files",
@@ -624,7 +626,11 @@
     "topProducts": "Top products",
     "recentOrders": "Recent orders",
     "viewAll": "View all",
-    "salesViews": "{sales} sold · {views} views"
+    "salesViews": "{sales} sold · {views} views",
+    "categoryOther": "Other",
+    "payoutEstimate": "This cycle (est.)",
+    "emptyProducts": "No products yet",
+    "emptyOrders": "No orders yet"
   },
   "orderStatus": {
     "all": "All",
@@ -863,6 +869,7 @@
     "tagsHint": "Up to {max}; they help buyers find you in the marketplace.",
     "priceLabel": "Price",
     "freeToggle": "Give away free",
+    "minPriceHint": "Paid items start at ${min}.",
     "coverHueLabel": "Cover tint",
     "coverHueHint": "Used for the generated thumbnail when no cover image is set.",
     "coverTitle": "Cover image",

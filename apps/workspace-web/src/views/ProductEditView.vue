@@ -25,6 +25,8 @@ const COVER_ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 const COVER_MAX_BYTES = 5 * 1024 * 1024
 
 const MAX_TAGS = 5
+// 付費商品最低定價（與後端 CatalogValidators.MinPaidPrice 對齊，避免低於 Stripe 最低收費）
+const MIN_PAID_PRICE = 30
 // 與上架精靈相同的色票（後端接受 0–359）
 const HUE_OPTIONS = [256, 320, 28, 168, 44, 198, 142, 226]
 const HUE_PASTELS = ['#dff5d3', '#e4f6ff', '#ffe3f6', '#fff3c4', '#ede6ff']
@@ -128,8 +130,19 @@ function removeTag(tag: string) {
   form.value.tags = form.value.tags.filter((x) => x !== tag)
 }
 
+/** 切換免費 / 付費；轉為付費時把低於最低定價的金額補到最低值。 */
+function toggleFree() {
+  free.value = !free.value
+  if (!free.value && form.value.price < MIN_PAID_PRICE) form.value.price = MIN_PAID_PRICE
+}
+
 async function onSave() {
   if (!canSave.value) return
+  // 清空定價欄位會讓 n-input-number 回傳 null，繞過 :min 夾制；付費商品於送出前再擋一次。
+  if (!free.value && (form.value.price ?? 0) < MIN_PAID_PRICE) {
+    message.warning(t('productEdit.minPriceHint', { min: MIN_PAID_PRICE }))
+    return
+  }
   const ok = await edit.saveBasics(catalogId.value, { ...form.value, price: free.value ? 0 : form.value.price })
   if (ok) message.success(t('productEdit.msgSaved'))
   else message.error(edit.error ?? t('productEdit.msgSaveFailed'))
@@ -407,14 +420,15 @@ function fmtDate(v?: string | null) {
               <div class="field">
                 <label class="field-label">{{ t('productEdit.priceLabel') }}</label>
                 <div class="price-input">
-                  <n-input-number v-model:value="form.price" :disabled="free" :min="0" :step="1"
+                  <n-input-number v-model:value="form.price" :disabled="free" :min="free ? 0 : MIN_PAID_PRICE" :step="1"
                                   size="large" style="width:180px;">
                     <template #prefix>$</template>
                   </n-input-number>
-                  <button class="free-toggle" :class="{ on: free }" @click="free = !free">
+                  <button class="free-toggle" :class="{ on: free }" @click="toggleFree">
                     <app-icon :name="free ? 'check' : 'tag'" :size="16" /> {{ t('productEdit.freeToggle') }}
                   </button>
                 </div>
+                <div v-if="!free" class="field-hint">{{ t('productEdit.minPriceHint', { min: MIN_PAID_PRICE }) }}</div>
               </div>
 
               <div class="field">
