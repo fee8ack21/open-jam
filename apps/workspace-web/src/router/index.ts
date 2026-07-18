@@ -15,6 +15,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/admin-products', name: 'admin-products', component: () => import('@/views/AdminProductsView.vue'), meta: { titleKey: 'route.adminProducts' } },
   { path: '/catalog-categories', name: 'catalog-categories', component: () => import('@/views/CatalogCategoriesView.vue'), meta: { titleKey: 'route.catalogCategories' } },
   { path: '/admin-orders', name: 'admin-orders', component: () => import('@/views/AdminOrdersView.vue'), meta: { titleKey: 'route.adminOrders' } },
+  { path: '/admin-payments', name: 'admin-payments', component: () => import('@/views/AdminPaymentsView.vue'), meta: { titleKey: 'route.adminPayments' } },
   { path: '/resource-usage', name: 'resource-usage', component: () => import('@/views/AdminUsageView.vue'), meta: { titleKey: 'route.resourceUsage' } },
   { path: '/legal-documents', name: 'legal-documents', component: () => import('@/views/AdminLegalView.vue'), meta: { titleKey: 'route.legalDocs' } },
   { path: '/faqs', name: 'faqs', component: () => import('@/views/AdminFaqView.vue'), meta: { titleKey: 'route.faqs' } },
@@ -44,7 +45,7 @@ const SELL_ROUTES = ['overview', 'open-store', 'products', 'product-edit', 'uplo
 // 需要先開店才能操作的路由：尚未開店時一律導回「開店」
 const REQUIRE_STORE_ROUTES = ['overview', 'products', 'product-edit', 'upload', 'orders', 'announcements', 'store-settings', 'payouts']
 // 平台管理員專屬路由：僅 role === "Admin" 可進入
-const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'members', 'admin-products', 'catalog-categories', 'admin-orders', 'resource-usage', 'legal-documents', 'faqs', 'faq-categories', 'audit-log']
+const ADMIN_ROUTES = ['admin-overview', 'review', 'review-history', 'stores', 'store-products', 'members', 'admin-products', 'catalog-categories', 'admin-orders', 'admin-payments', 'resource-usage', 'legal-documents', 'faqs', 'faq-categories', 'audit-log']
 
 let userLoaded = false
 let storeStateLoaded = false

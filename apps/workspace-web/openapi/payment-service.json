@@ -282,6 +282,120 @@
         }
       }
     },
+    "/v1/payments": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "付款紀錄分頁列表（可依狀態 / 商店 / 訂單 / 買家信箱 / 時間區間過濾）。僅 Admin 可操作，\r\n            供管理員後台對帳與客訴查案。",
+        "operationId": "List",
+        "parameters": [
+          {
+            "name": "Status",
+            "in": "query",
+            "description": "限定付款狀態；null 表示不限。",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentStatus"
+            },
+            "example": "Succeeded"
+          },
+          {
+            "name": "StoreId",
+            "in": "query",
+            "description": "限定賣方商店 ID；null 表示不限。",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          {
+            "name": "OrderId",
+            "in": "query",
+            "description": "限定商品訂單 ID；null 表示不限。",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          {
+            "name": "Email",
+            "in": "query",
+            "description": "限定購買者 Email（完全比對，不分大小寫）；null 表示不限。",
+            "schema": {
+              "type": "string",
+              "example": "buyer@example.com"
+            },
+            "example": "buyer@example.com"
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "description": "建立時間下限（UTC，含）；null 表示不限。",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "description": "建立時間上限（UTC，含）；null 表示不限。",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "Offset",
+            "in": "query",
+            "description": "略過筆數。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "每頁筆數（最大 100）。",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPaymentsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPaymentsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPaymentsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/payments/{id}": {
       "get": {
         "tags": [
@@ -446,6 +560,27 @@
         },
         "additionalProperties": false,
         "description": "建立 Stripe Checkout Session 請求。"
+      },
+      "ListPaymentsResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "integer",
+            "description": "符合條件的總筆數（未分頁）。",
+            "format": "int32",
+            "example": 42
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentResponse"
+            },
+            "description": "本頁付款清單。",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "付款列表分頁回應。"
       },
       "PaymentResponse": {
         "type": "object",

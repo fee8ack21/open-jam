@@ -167,6 +167,10 @@ const appVersion = __APP_VERSION__
             <span class="nav-ic"><app-icon name="receipt" :size="19" /></span>
             <span>{{ t('route.adminOrders') }}</span>
           </div>
+          <div class="nav-item" :class="{ on: isActive('admin-payments') }" @click="nav('admin-payments')">
+            <span class="nav-ic"><app-icon name="card" :size="19" /></span>
+            <span>{{ t('route.adminPayments') }}</span>
+          </div>
           <div class="nav-item" :class="{ on: isActive('resource-usage') }" @click="nav('resource-usage')">
             <span class="nav-ic"><app-icon name="layers" :size="19" /></span>
             <span>{{ t('route.resourceUsage') }}</span>

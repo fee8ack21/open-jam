@@ -66,7 +66,8 @@
     "createVersionFailed": "Failed to create version.",
     "uploadFileFailed": "Upload failed: {name}",
     "deleteFileFailed": "Failed to delete file.",
-    "deleteProductFailed": "Failed to delete product."
+    "deleteProductFailed": "Failed to delete product.",
+    "loadPaymentsFailed": "Failed to load payments"
   },
   "catalogStatus": {
     "all": "All",
@@ -582,7 +583,8 @@
     "purchases": "Purchases",
     "wishlist": "Wishlist",
     "announcements": "Announcements",
-    "faqs": "FAQ"
+    "faqs": "FAQ",
+    "adminPayments": "Payments"
   },
   "header": {
     "openMenu": "Open menu",
@@ -936,5 +938,35 @@
     "msgFileDeleted": "File deleted.",
     "msgFileDeleteFailed": "Failed to delete file",
     "msgDownloadFailed": "Failed to get download link"
+  },
+  "paymentStatus": {
+    "all": "All statuses",
+    "pending": "Pending",
+    "processing": "Processing",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "unknown": "Unknown"
+  },
+  "payments": {
+    "buyerEmail": "Buyer email",
+    "buyerEmailPlaceholder": "Search by email",
+    "paymentStatus": "Payment status",
+    "colCreatedAt": "Created at",
+    "colBuyer": "Buyer",
+    "colOrder": "Order",
+    "colAmount": "Amount",
+    "colFee": "Platform fee",
+    "colDetail": "Detail",
+    "emptyTitle": "No payments",
+    "emptyDesc": "No payments match the current filters",
+    "modalTitle": "Payment details",
+    "orderId": "Order ID",
+    "storeId": "Store ID",
+    "netAmount": "Seller net",
+    "paidAt": "Paid at",
+    "checkoutSession": "Checkout Session",
+    "openInStripe": "Open in Stripe Dashboard"
   }
 }

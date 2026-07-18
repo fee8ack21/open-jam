@@ -97,6 +97,18 @@ export interface CreateCheckoutSessionRequest {
   productName?: string | null;
 }
 
+/** 付款列表分頁回應。 */
+export interface ListPaymentsResponse {
+  /**
+   * 符合條件的總筆數（未分頁）。
+   * @format int32
+   * @example 42
+   */
+  totalCount?: number;
+  /** 本頁付款清單。 */
+  items?: PaymentResponse[] | null;
+}
+
 /** 付款紀錄回應。 */
 export interface PaymentResponse {
   /** @format uuid */
@@ -513,6 +525,71 @@ export class Api<SecurityDataType extends unknown> {
       this.http.request<void, ProblemDetails>({
         path: `/v1/payments/expire-by-order/${orderId}`,
         method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Payments
+     * @name List
+     * @summary 付款紀錄分頁列表（可依狀態 / 商店 / 訂單 / 買家信箱 / 時間區間過濾）。僅 Admin 可操作， 供管理員後台對帳與客訴查案。
+     * @request GET:/v1/payments
+     */
+    list: (
+      query?: {
+        /**
+         * 限定付款狀態；null 表示不限。
+         * @example "Succeeded"
+         */
+        Status?: PaymentStatus;
+        /**
+         * 限定賣方商店 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        StoreId?: string;
+        /**
+         * 限定商品訂單 ID；null 表示不限。
+         * @format uuid
+         * @example "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+         */
+        OrderId?: string;
+        /**
+         * 限定購買者 Email（完全比對，不分大小寫）；null 表示不限。
+         * @example "buyer@example.com"
+         */
+        Email?: string;
+        /**
+         * 建立時間下限（UTC，含）；null 表示不限。
+         * @format date-time
+         */
+        From?: string;
+        /**
+         * 建立時間上限（UTC，含）；null 表示不限。
+         * @format date-time
+         */
+        To?: string;
+        /**
+         * 略過筆數。
+         * @format int32
+         * @example 0
+         */
+        Offset?: number;
+        /**
+         * 每頁筆數（最大 100）。
+         * @format int32
+         * @example 20
+         */
+        Limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ListPaymentsResponse, any>({
+        path: `/v1/payments`,
+        method: "GET",
+        query: query,
+        format: "json",
         ...params,
       }),
 

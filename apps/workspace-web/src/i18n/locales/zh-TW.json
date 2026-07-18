@@ -66,7 +66,8 @@
     "createVersionFailed": "建立版本失敗。",
     "uploadFileFailed": "檔案上傳失敗：{name}",
     "deleteFileFailed": "刪除檔案失敗。",
-    "deleteProductFailed": "刪除商品失敗。"
+    "deleteProductFailed": "刪除商品失敗。",
+    "loadPaymentsFailed": "付款紀錄載入失敗"
   },
   "catalogStatus": {
     "all": "全部",
@@ -582,7 +583,8 @@
     "purchases": "購買紀錄",
     "wishlist": "Wishlist",
     "announcements": "公告通知",
-    "faqs": "常見問題"
+    "faqs": "常見問題",
+    "adminPayments": "金流付款"
   },
   "header": {
     "openMenu": "開啟選單",
@@ -936,5 +938,35 @@
     "msgFileDeleted": "已刪除檔案。",
     "msgFileDeleteFailed": "刪除檔案失敗",
     "msgDownloadFailed": "取得下載連結失敗"
+  },
+  "paymentStatus": {
+    "all": "全部狀態",
+    "pending": "待付款",
+    "processing": "處理中",
+    "succeeded": "已付款",
+    "failed": "付款失敗",
+    "cancelled": "已取消",
+    "expired": "已過期",
+    "unknown": "未知"
+  },
+  "payments": {
+    "buyerEmail": "買家信箱",
+    "buyerEmailPlaceholder": "輸入信箱搜尋",
+    "paymentStatus": "付款狀態",
+    "colCreatedAt": "建立時間",
+    "colBuyer": "買家",
+    "colOrder": "訂單",
+    "colAmount": "金額",
+    "colFee": "平台抽成",
+    "colDetail": "詳情",
+    "emptyTitle": "沒有付款紀錄",
+    "emptyDesc": "目前沒有符合條件的付款",
+    "modalTitle": "付款詳情",
+    "orderId": "訂單 ID",
+    "storeId": "商店 ID",
+    "netAmount": "賣家實收",
+    "paidAt": "付款時間",
+    "checkoutSession": "Checkout Session",
+    "openInStripe": "在 Stripe Dashboard 開啟"
   }
 }
