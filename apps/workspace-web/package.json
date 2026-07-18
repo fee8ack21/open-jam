@@ -1,6 +1,6 @@
 {
   "name": "workspace-web",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "private": true,
   "type": "module",
   "description": "Open Jam — 創作者後台 (Vue 3 + Vite + Pinia + Vue Router)",
