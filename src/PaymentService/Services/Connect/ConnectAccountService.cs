@@ -5,6 +5,7 @@ using PaymentService.Data.Entities;
 using PaymentService.Models;
 using PaymentService.Options;
 using Shared.Auth;
+using Shared.Exceptions;
 using Stripe;
 
 namespace PaymentService.Services.Connect;
@@ -58,6 +59,23 @@ public class ConnectAccountService(
             ChargesEnabled = account.ChargesEnabled,
             PayoutsEnabled = account.PayoutsEnabled,
         };
+    }
+
+    /// <inheritdoc/>
+    public async Task<AccountLinkResponse> CreateLoginLinkAsync(Guid storeId, CancellationToken ct)
+    {
+        var account = await db.ConnectedAccounts.FirstOrDefaultAsync(a => a.StoreId == storeId, ct)
+            ?? throw new NotFoundException("此商店尚未建立收款帳戶。");
+
+        // login link 僅對已完成 onboarding 的 Express 帳戶有意義；未完成者導回 onboarding 流程。
+        if (!account.DetailsSubmitted)
+            throw new ValidationException("收款帳戶尚未完成設定，請先完成收款設定。");
+
+        StripeConfiguration.ApiKey = stripeOptions.Value.SecretKey;
+        var link = await new LoginLinkService().CreateAsync(
+            account.StripeAccountId, cancellationToken: ct);
+
+        return new AccountLinkResponse { Url = link.Url };
     }
 
     /// <summary>以 Stripe 帳戶即時狀態更新本地旗標（webhook 與 refresh 共用）。</summary>

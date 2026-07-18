@@ -27,6 +27,20 @@ public class ConnectAccountsController(
         return StatusCode(201, result);
     }
 
+    /// <summary>簽發商店 Stripe Express Dashboard 登入連結（短效，前端直接開啟）。僅商店 Owner 可操作；
+    /// 創作者於 Stripe 託管頁查看餘額、撥款排程與交易明細。</summary>
+    /// <param name="storeId">商店 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{storeId:guid}/login-link")]
+    [Authorize]
+    [ProducesResponseType<AccountLinkResponse>(StatusCodes.Status201Created)]
+    public async Task<ActionResult<AccountLinkResponse>> CreateLoginLink(Guid storeId, CancellationToken ct)
+    {
+        await storeClient.EnsureStoreOwnerAsync(storeId, ct);
+        var result = await connectAccounts.CreateLoginLinkAsync(storeId, ct);
+        return StatusCode(201, result);
+    }
+
     /// <summary>查詢商店連接帳戶狀態。僅商店 Owner 可操作；<paramref name="refresh"/> 時向 Stripe 取即時狀態。</summary>
     /// <param name="storeId">商店 ID。</param>
     /// <param name="refresh">是否向 Stripe 取得即時狀態並回寫（onboarding 導回頁使用）。</param>
