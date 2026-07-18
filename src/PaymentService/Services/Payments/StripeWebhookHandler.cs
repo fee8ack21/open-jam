@@ -78,9 +78,10 @@ public class StripeWebhookHandler(
             case "checkout.session.expired":
                 await HandleCheckoutExpiredAsync(evt, ct);
                 break;
-            case "payment_intent.payment_failed":
-                await HandlePaymentFailedAsync(evt, ct);
-                break;
+            // payment_intent.payment_failed 刻意不處理：Checkout 模式下建 session 時 PaymentIntent
+            // 尚未產生（本地 ProviderPaymentId 為 null，成功後才回填），此事件對不上任何付款；
+            // 且 Checkout 內刷卡被拒可原地重試，據此把付款標 Failed 語義上是錯的。真正的失敗 /
+            // 過期由 checkout.session.async_payment_failed 與 checkout.session.expired 覆蓋。
             case "account.updated":
                 await HandleAccountUpdatedAsync(evt, ct);
                 break;
@@ -199,33 +200,6 @@ public class StripeWebhookHandler(
         });
 
         logger.LogInformation("Checkout session expired: {PaymentId} {CheckoutSessionId}", payment.Id, session.Id);
-    }
-
-    private async Task HandlePaymentFailedAsync(Event evt, CancellationToken ct)
-    {
-        var intent = evt.Data.Object as PaymentIntent;
-        if (intent == null) return;
-
-        var payment = await db.Payments
-            .FirstOrDefaultAsync(p => p.ProviderPaymentId == intent.Id || p.ProviderCheckoutId == intent.Id, ct);
-        if (payment == null) return;
-
-        // 只有仍是 Pending 才標記失敗（Checkout 內刷卡失敗後重試成功是常見流程，失敗事件可能晚到）。
-        if (payment.Status != PaymentStatus.Pending) return;
-
-        payment.Status = PaymentStatus.Failed;
-        payment.FailedAt = DateTimeOffset.UtcNow;
-
-        db.PaymentTransactions.Add(new PaymentTransaction
-        {
-            Id = Guid.NewGuid(),
-            PaymentId = payment.Id,
-            TransactionType = TransactionType.Fail,
-            ProviderTransactionId = intent.Id,
-            RawPayload = evt.Data.RawObject?.ToString(),
-        });
-
-        logger.LogInformation("Payment failed: {PaymentId} {PaymentIntentId}", payment.Id, intent.Id);
     }
 
     private async Task HandleAccountUpdatedAsync(Event evt, CancellationToken ct)

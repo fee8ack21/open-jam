@@ -25,6 +25,19 @@ public class PaymentManager(
     public async Task<CheckoutSessionResponse> CreateCheckoutSessionAsync(
         CreateCheckoutSessionRequest request, CancellationToken ct)
     {
+        // 分帳目的地：商店須已完成 Stripe onboarding 且可承接款項（上架閘門的最後防線，
+        // 涵蓋上架後帳戶被 Stripe 停用等狀態回退情境）。此閘門必須先於 Pending 付款重用檢查：
+        // 帳戶停用後，同訂單既有 session（最長存活 24 小時）不得再被遞出，並順手作廢，
+        // 避免買家對已停用的目的地帳戶付款導致款項懸置。
+        var connectedAccount = await db.ConnectedAccounts
+            .FirstOrDefaultAsync(a => a.StoreId == request.StoreId, ct);
+
+        if (connectedAccount is not { ChargesEnabled: true })
+        {
+            await ExpireCheckoutByOrderAsync(request.OrderId, ct);
+            throw new ValidationException("此商店尚未完成收款設定，暫時無法接受付款。");
+        }
+
         // 同一訂單已有未過期的 Pending 付款時直接重用，避免使用者重複建立 Checkout Session（如重複點擊購買鈕）。
         var existing = await db.Payments
             .Where(p => p.OrderId == request.OrderId
@@ -46,14 +59,6 @@ public class PaymentManager(
 
         var opts = stripeOptions.Value;
         StripeConfiguration.ApiKey = opts.SecretKey;
-
-        // 分帳目的地：商店須已完成 Stripe onboarding 且可承接款項（上架閘門的最後防線，
-        // 涵蓋上架後帳戶被 Stripe 停用等狀態回退情境）。
-        var connectedAccount = await db.ConnectedAccounts
-            .FirstOrDefaultAsync(a => a.StoreId == request.StoreId, ct);
-
-        if (connectedAccount is not { ChargesEnabled: true })
-            throw new ValidationException("此商店尚未完成收款設定，暫時無法接受付款。");
 
         // 導回 URL 以買家原本所在的店面子網域組出（結帳結果頁 CheckoutResultView 位於 creator-web，
         // 只服務 <slug>.openjam.co；導回 apex 會落到沒有此路由的 portal-web）。模板含 {storeSlug} 時
