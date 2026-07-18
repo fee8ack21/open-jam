@@ -53,6 +53,7 @@ public class PaymentDbContext(DbContextOptions<PaymentDbContext> options, ICurre
             e.Property(ev => ev.EventId).HasMaxLength(100).IsRequired();
             e.Property(ev => ev.EventType).HasMaxLength(100).IsRequired();
             e.Property(ev => ev.RawPayload).IsRequired();
+            e.Property(ev => ev.LastError).HasMaxLength(2000);
         });
 
         model.Entity<OutboxMessage>(e =>

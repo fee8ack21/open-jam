@@ -22,6 +22,15 @@ public class ProviderEvent : ICreatedAt
     /// <summary>處理完成時間（UTC）；null 表示尚未處理完畢，由 <c>StripeWebhookProcessorService</c> 排程處理。</summary>
     public DateTimeOffset? ProcessedAt { get; set; }
 
+    /// <summary>處理失敗次數；達上限後標記 <see cref="FailedAt"/> 出列，避免毒事件永久佔據處理批次。</summary>
+    public int AttemptCount { get; set; }
+
+    /// <summary>最後一次處理失敗的錯誤內容（截斷保留），供事後排查 dead-letter 事件。</summary>
+    public string? LastError { get; set; }
+
+    /// <summary>處理失敗放棄時間（UTC，dead-letter）；非 null 者不再重試，需人工排查後清除此欄位重新入列。</summary>
+    public DateTimeOffset? FailedAt { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 }
