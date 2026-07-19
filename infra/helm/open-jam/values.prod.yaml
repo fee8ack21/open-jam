@@ -178,7 +178,7 @@ logService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/log-service
-    tag: v0.0.9
+    tag: v0.0.10
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -294,7 +294,7 @@ orderService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
-    tag: v0.0.16
+    tag: v0.0.17
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -339,7 +339,7 @@ creatorWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/creator-web
-    tag: v0.0.34
+    tag: v0.0.35
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -354,7 +354,7 @@ portalWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/portal-web
-    tag: v0.0.44
+    tag: v0.0.45
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
