@@ -61,9 +61,14 @@ public class OutboxRelayService(
 
             foreach (var message in messages)
             {
-                object evt = message.EventType == CatalogEventPublisher.CatalogPublishedType
-                    ? JsonSerializer.Deserialize<CatalogPublishedEvent>(message.Payload)!
-                    : JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload)!;
+                object evt = message.EventType switch
+                {
+                    CatalogEventPublisher.CatalogPublishedType =>
+                        JsonSerializer.Deserialize<CatalogPublishedEvent>(message.Payload)!,
+                    CatalogEventPublisher.CatalogVersionReleasedType =>
+                        JsonSerializer.Deserialize<CatalogVersionReleasedEvent>(message.Payload)!,
+                    _ => JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload)!,
+                };
 
                 await bus.Publish(evt, ct);
                 message.ProcessedAt = DateTimeOffset.UtcNow;

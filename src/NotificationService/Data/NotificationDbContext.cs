@@ -11,6 +11,7 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
     public DbSet<NotificationRequest> NotificationRequests => Set<NotificationRequest>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<StoreFollowerRef> StoreFollowerRefs => Set<StoreFollowerRef>();
+    public DbSet<CatalogBuyerRef> CatalogBuyerRefs => Set<CatalogBuyerRef>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<ProcessedEvent> ProcessedEvents => Set<ProcessedEvent>();
 
@@ -43,6 +44,14 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
             e.Property(f => f.Email).HasMaxLength(320).IsRequired();
             e.HasIndex(f => new { f.StoreId, f.Email }).IsUnique();
             e.HasIndex(f => f.Email);
+        });
+
+        model.Entity<CatalogBuyerRef>(e =>
+        {
+            e.HasKey(b => b.Id);
+            e.Property(b => b.Email).HasMaxLength(320).IsRequired();
+            e.HasIndex(b => new { b.CatalogId, b.Email }).IsUnique();
+            e.HasIndex(b => b.Email);
         });
 
         model.Entity<OutboxMessage>(e =>

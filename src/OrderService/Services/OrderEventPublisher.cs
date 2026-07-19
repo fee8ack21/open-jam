@@ -30,7 +30,9 @@ public class OrderEventPublisher(OrderDbContext db)
             CompletedAt: order.CompletedAt ?? DateTimeOffset.UtcNow,
             Items: order.Items
                 .Select(i => new OrderCompletedItem(i.CatalogId, i.CatalogVersionId))
-                .ToList());
+                .ToList(),
+            BuyerUserId: order.BuyerUserId,
+            BuyerEmail: order.BuyerEmail);
         outbox.Payload = JsonSerializer.Serialize(evt, OutboxJson.Options);
         db.OutboxMessages.Add(outbox);
     }

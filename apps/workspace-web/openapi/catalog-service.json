@@ -2513,6 +2513,69 @@
           }
         }
       }
+    },
+    "/v1/catalogs/{catalogId}/versions/{versionId}/notify-buyers": {
+      "post": {
+        "tags": [
+          "CatalogVersions"
+        ],
+        "summary": "通知既有買家此版本已發布。商品須已上架且版本至少有一個可下載檔案；每版本至多通知一次（重複呼叫回 409）。",
+        "operationId": "NotifyBuyers",
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "description": "商品 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "description": "版本 ID。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogVersionDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3145,6 +3208,13 @@
             "nullable": true,
             "example": "首次發行。"
           },
+          "buyerNotifiedAt": {
+            "type": "string",
+            "description": "已通知既有買家的時間；null 表示尚未通知。",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-07-19T10:00:00+00:00"
+          },
           "assets": {
             "type": "array",
             "items": {
@@ -3414,7 +3484,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": { }
+        "additionalProperties": {}
       },
       "PurchasedVersionAssetDto": {
         "type": "object",

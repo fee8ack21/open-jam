@@ -43,5 +43,6 @@ public class ListOrdersRequestValidator : AbstractValidator<ListOrdersRequest>
         RuleFor(r => r.Limit).ValidLimit();
         RuleFor(r => r.BuyerEmail).EmailAddress().When(r => !string.IsNullOrEmpty(r.BuyerEmail))
             .WithMessage("Email 格式不正確。");
+        RuleFor(r => r.Search).MaximumLength(200).WithMessage("搜尋關鍵字最多 200 字元。");
     }
 }

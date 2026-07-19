@@ -103,6 +103,14 @@ public class EmailTemplateSeeder(AppDbContext db, ILogger<EmailTemplateSeeder> l
             "追蹤商店公告通知",
             [("zh-TW", "Open Jam · {{store_name}}：{{title}}", notificationStoreAnnouncementHtml)]);
 
+        var notificationCatalogVersionReleasedHtml = await File.ReadAllTextAsync(
+            Path.Combine(ResourcesDir, "notification-catalog-version-released-email-template.html"));
+
+        await UpsertAsync(
+            "notification.catalog_version_released",
+            "已購商品版本更新通知",
+            [("zh-TW", "Open Jam · 「{{catalog_name}}」發布新版本 {{version}}", notificationCatalogVersionReleasedHtml)]);
+
         var orderCompletedHtml = await File.ReadAllTextAsync(
             Path.Combine(ResourcesDir, "order-completed-email-template.html"));
 

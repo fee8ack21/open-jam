@@ -38,6 +38,8 @@ builder.Services.AddMassTransit(x =>
             intervalDelta: TimeSpan.FromSeconds(2));
 
     x.AddConsumer<CatalogPublishedConsumer>(cfg => cfg.UseMessageRetry(UseRetry));
+    x.AddConsumer<CatalogVersionReleasedConsumer>(cfg => cfg.UseMessageRetry(UseRetry));
+    x.AddConsumer<OrderCompletedConsumer>(cfg => cfg.UseMessageRetry(UseRetry));
     x.AddConsumer<StoreFollowerChangedConsumer>(cfg => cfg.UseMessageRetry(UseRetry));
     x.AddConsumer<UserRegisteredConsumer>(cfg => cfg.UseMessageRetry(UseRetry));
 

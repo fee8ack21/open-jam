@@ -259,6 +259,22 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     }
   }
 
+  /** 通知既有買家此版本已發布（每版本至多一次；商品須已上架且版本已有檔案）。 */
+  async function notifyBuyers(id: string, versionId: string) {
+    busy.value = true;
+    error.value = null;
+    try {
+      await catalogApi.catalogVersions.notifyBuyers(id, versionId);
+      await refreshVersions(id);
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.notifyBuyersFailed'));
+      return false;
+    } finally {
+      busy.value = false;
+    }
+  }
+
   /** 上傳版本可下載檔：簽 URL 直傳後 confirm（此刻才扣配額並建立 reference）。 */
   async function uploadVersionFile(id: string, versionId: string, file: File) {
     busy.value = true;
@@ -326,6 +342,7 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     reorderPreviewMedia,
     deletePreviewMedia,
     createVersion,
+    notifyBuyers,
     uploadVersionFile,
     deleteVersionFile,
     versionFileDownloadUrl,

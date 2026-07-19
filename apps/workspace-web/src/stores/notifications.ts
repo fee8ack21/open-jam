@@ -20,6 +20,18 @@ export interface CatalogPublishedPayload {
   storeSlug?: string | null
 }
 
+/** catalog.version_released 通知的 Payload（已購商品發布新版本）。 */
+export interface CatalogVersionReleasedPayload {
+  catalogId: string
+  catalogName: string
+  catalogSlug: string
+  versionId: string
+  version: string
+  releaseNote?: string | null
+  storeName?: string | null
+  storeSlug?: string | null
+}
+
 /** store.announcement 通知的 Payload。 */
 export interface StoreAnnouncementPayload {
   title: string

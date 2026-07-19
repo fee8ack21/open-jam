@@ -17,6 +17,8 @@ public class CatalogVersionService(
     StoreServiceClient storeClient,
     QuotaServiceClient quotaClient,
     OrderServiceClient orderClient,
+    CatalogEventPublisher eventPublisher,
+    AuditLogPublisher auditLog,
     IMapper mapper) : ICatalogVersionService
 {
     /// <inheritdoc/>
@@ -58,6 +60,32 @@ public class CatalogVersionService(
 
         // 新版本成為目前對外版本。
         catalog.CurrentVersionId = version.Id;
+
+        await db.SaveChangesAsync(ct);
+
+        return await ToDtoAsync(version, ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CatalogVersionDto> NotifyBuyersAsync(Guid catalogId, Guid versionId, CancellationToken ct)
+    {
+        var catalog = await CatalogAuthorization.LoadOwnedCatalogAsync(db, storeClient, currentUser, catalogId, ct);
+        var version = await LoadVersionAsync(catalogId, versionId, ct);
+
+        if (catalog.Status != CatalogStatus.Published)
+            throw new ValidationException("商品尚未上架，無法通知買家。");
+        if (version.BuyerNotifiedAt is not null)
+            throw new ConflictException("此版本已通知過買家。");
+
+        // 版本是「先建立、後傳檔」：擋下空版本，避免買家收到通知卻無檔可下載。
+        var hasAssets = await db.CatalogVersionAssets.AnyAsync(a => a.CatalogVersionId == versionId, ct);
+        if (!hasAssets)
+            throw new ValidationException("版本尚無可下載檔案，請先上傳檔案再通知買家。");
+
+        version.BuyerNotifiedAt = DateTimeOffset.UtcNow;
+
+        auditLog.Add(currentUser.UserId, "catalog.notify_buyers", "CatalogVersion", version.Id, tenant: catalog.StoreId);
+        eventPublisher.AddCatalogVersionReleased(catalog, version);
 
         await db.SaveChangesAsync(ct);
 

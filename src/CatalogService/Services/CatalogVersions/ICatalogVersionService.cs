@@ -12,6 +12,12 @@ public interface ICatalogVersionService
     /// <summary>建立新版本，並將其設為商品的目前版本。僅 Owner 可操作。</summary>
     Task<CatalogVersionDto> CreateAsync(Guid catalogId, CreateCatalogVersionRequest request, CancellationToken ct);
 
+    /// <summary>
+    /// 通知既有買家此版本已發布（經 Outbox 發 CatalogVersionReleasedEvent，由 NotificationService fan-out）。
+    /// 商品須為 Published 且版本至少有一個可下載檔案；每版本至多通知一次（重複呼叫回 409）。僅 Owner 可操作。
+    /// </summary>
+    Task<CatalogVersionDto> NotifyBuyersAsync(Guid catalogId, Guid versionId, CancellationToken ct);
+
     /// <summary>申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額。僅 Owner 可操作。</summary>
     Task<VersionAssetUploadUrlResponse> RequestAssetUploadUrlAsync(
         Guid catalogId, Guid versionId, RequestVersionAssetUploadUrlRequest request, CancellationToken ct);

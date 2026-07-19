@@ -22,8 +22,8 @@ watch(error, (msg) => { if (msg) message.error(msg) })
 // 賣家本人商店 ID（開店資料由 router guard 先載入）；變動時重新綁定查詢來源。
 const myStoreId = computed(() => storeApp.primaryStore?.id ?? null)
 
-// 篩選狀態（買家信箱即時 debounce，狀態下拉即時生效）
-const emailFilter = ref('')
+// 篩選狀態（關鍵字由搜尋鈕 / Enter 觸發，狀態下拉即時生效）
+const searchFilter = ref('')
 const statusFilter = ref<OrderStatus | 'all'>('all')
 const page = ref(1)
 
@@ -31,9 +31,9 @@ const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / store
 
 async function applyFilter() {
   page.value = 1
-  await store.applyFilter({ buyerEmail: emailFilter.value, status: statusFilter.value === 'all' ? null : statusFilter.value })
+  await store.applyFilter({ search: searchFilter.value, status: statusFilter.value === 'all' ? null : statusFilter.value })
 }
-// 買家信箱改由「搜尋」按鈕 / Enter 觸發；下拉狀態維持即時套用
+// 關鍵字由「搜尋」按鈕 / Enter 觸發；下拉狀態維持即時套用
 watch(statusFilter, () => {
   applyFilter()
 })
@@ -57,7 +57,7 @@ async function openDetail(row: OrderSummaryDto) {
 
 /** 綁定（或切換）查詢商店並重置篩選表單。 */
 async function bindStore(id: string) {
-  emailFilter.value = ''
+  searchFilter.value = ''
   statusFilter.value = 'all'
   page.value = 1
   await store.setStore(id)
@@ -77,11 +77,11 @@ onMounted(() => { if (myStoreId.value) bindStore(myStoreId.value) })
           <div class="filter-bar">
             <div class="fb-group">
               <div class="fb-field" style="flex:2 1 240px;">
-                <label class="fb-label">{{ t('orders.buyerEmail') }}</label>
+                <label class="fb-label">{{ t('orders.searchKeyword') }}</label>
                 <n-input
-                  v-model:value="emailFilter"
+                  v-model:value="searchFilter"
                   clearable
-                  :placeholder="t('orders.buyerEmailPlaceholder')"
+                  :placeholder="t('orders.searchKeywordPlaceholder')"
                   @keyup.enter="applyFilter">
                   <template #prefix><app-icon name="search" :size="16" /></template>
                 </n-input>

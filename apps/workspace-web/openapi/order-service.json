@@ -104,6 +104,16 @@
             "example": "Completed"
           },
           {
+            "name": "Search",
+            "in": "query",
+            "description": "關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。",
+            "schema": {
+              "maxLength": 200,
+              "type": "string",
+              "example": "buyer@example.com"
+            }
+          },
+          {
             "name": "Offset",
             "in": "query",
             "description": "略過筆數。",
@@ -285,6 +295,16 @@
             "example": "Completed"
           },
           {
+            "name": "Search",
+            "in": "query",
+            "description": "關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。",
+            "schema": {
+              "maxLength": 200,
+              "type": "string",
+              "example": "buyer@example.com"
+            }
+          },
+          {
             "name": "Offset",
             "in": "query",
             "description": "略過筆數。",
@@ -389,6 +409,16 @@
               "$ref": "#/components/schemas/OrderStatus"
             },
             "example": "Completed"
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "description": "關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。",
+            "schema": {
+              "maxLength": 200,
+              "type": "string",
+              "example": "buyer@example.com"
+            }
           },
           {
             "name": "Offset",

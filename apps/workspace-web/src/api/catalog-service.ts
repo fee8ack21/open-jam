@@ -534,6 +534,12 @@ export interface CatalogVersionDto {
    * @example "首次發行。"
    */
   releaseNote?: string | null;
+  /**
+   * 已通知既有買家的時間；null 表示尚未通知。
+   * @format date-time
+   * @example "2026-07-19T10:00:00+00:00"
+   */
+  buyerNotifiedAt?: string | null;
   /** 本版本的可下載檔案清單。 */
   assets?: CatalogVersionAssetDto[] | null;
   /**
@@ -2287,6 +2293,26 @@ export class Api<SecurityDataType extends unknown> {
       this.http.request<void, any>({
         path: `/v1/catalogs/${catalogId}/versions/${versionId}/assets/${assetId}`,
         method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags CatalogVersions
+     * @name NotifyBuyers
+     * @summary 通知既有買家此版本已發布。商品須已上架且版本至少有一個可下載檔案；每版本至多通知一次（重複呼叫回 409）。
+     * @request POST:/v1/catalogs/{catalogId}/versions/{versionId}/notify-buyers
+     */
+    notifyBuyers: (
+      catalogId: string,
+      versionId: string,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<CatalogVersionDto, ProblemDetails>({
+        path: `/v1/catalogs/${catalogId}/versions/${versionId}/notify-buyers`,
+        method: "POST",
+        format: "json",
         ...params,
       }),
   };

@@ -315,6 +315,17 @@ async function onVersionFiles(e: Event, versionId: string) {
   if (files.length) message.success(t('productEdit.msgFilesUploaded', { count: files.length }))
 }
 
+/** 可通知買家：商品已上架、版本已有檔案且尚未通知過（每版本一次）。 */
+function canNotifyBuyers(v: CatalogVersionDto) {
+  return catalog.value?.status === CatalogStatus.Published && !!v.assets?.length && !v.buyerNotifiedAt
+}
+
+async function onNotifyBuyers(versionId: string) {
+  const ok = await edit.notifyBuyers(catalogId.value, versionId)
+  if (ok) message.success(t('productEdit.msgBuyersNotified'))
+  else message.error(edit.error ?? t('productEdit.msgNotifyBuyersFailed'))
+}
+
 async function onDeleteFile(versionId: string, assetId: string) {
   const ok = await edit.deleteVersionFile(catalogId.value, versionId, assetId)
   if (ok) message.success(t('productEdit.msgFileDeleted'))
@@ -567,10 +578,25 @@ function fmtDate(v?: string | null) {
                   </div>
                   <input :ref="el => (versionInputs[v.id!] = el as HTMLInputElement)" type="file" multiple
                          style="display:none" @change="e => onVersionFiles(e, v.id!)" />
-                  <n-button size="small" :disabled="busy" @click="pickVersionFile(v.id!)">
-                    <template #icon><app-icon name="upload" :size="14" /></template>
-                    {{ t('productEdit.addFiles') }}
-                  </n-button>
+                  <div class="ver-actions">
+                    <span v-if="v.buyerNotifiedAt" class="ver-notified">
+                      {{ t('productEdit.buyersNotifiedAt', { date: fmtDate(v.buyerNotifiedAt) }) }}
+                    </span>
+                    <n-popconfirm v-else-if="canNotifyBuyers(v)" placement="top-end"
+                                  @positive-click="onNotifyBuyers(v.id!)">
+                      <template #trigger>
+                        <n-button size="small" :disabled="busy">
+                          <template #icon><app-icon name="bell" :size="14" /></template>
+                          {{ t('productEdit.notifyBuyers') }}
+                        </n-button>
+                      </template>
+                      {{ t('productEdit.notifyBuyersConfirm') }}
+                    </n-popconfirm>
+                    <n-button size="small" :disabled="busy" @click="pickVersionFile(v.id!)">
+                      <template #icon><app-icon name="upload" :size="14" /></template>
+                      {{ t('productEdit.addFiles') }}
+                    </n-button>
+                  </div>
                 </div>
 
                 <div v-if="!v.assets?.length" class="ver-nofile">{{ t('productEdit.noFiles') }}</div>
@@ -769,6 +795,8 @@ img.media-viewer { background: transparent; }
   border: var(--bw) solid var(--border-strong);
 }
 .ver-meta { font-family: var(--oj-display); font-size: 11.5px; color: var(--text-faint); margin-top: 4px; }
+.ver-actions { display: flex; align-items: center; gap: 10px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+.ver-notified { font-size: 12px; font-weight: 700; color: var(--text-faint); white-space: nowrap; }
 .ver-note { font-size: 13px; color: var(--text-soft); margin-top: 8px; line-height: 1.5; white-space: pre-wrap; }
 .ver-nofile {
   margin-top: 12px; padding: 16px; text-align: center; border-radius: var(--r-sm);

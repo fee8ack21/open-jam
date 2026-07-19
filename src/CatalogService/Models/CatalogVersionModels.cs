@@ -19,6 +19,10 @@ public class CatalogVersionDto
     /// <example>首次發行。</example>
     public string? ReleaseNote { get; set; }
 
+    /// <summary>已通知既有買家的時間；null 表示尚未通知。</summary>
+    /// <example>2026-07-19T10:00:00+00:00</example>
+    public DateTimeOffset? BuyerNotifiedAt { get; set; }
+
     /// <summary>本版本的可下載檔案清單。</summary>
     public List<CatalogVersionAssetDto> Assets { get; set; } = [];
 

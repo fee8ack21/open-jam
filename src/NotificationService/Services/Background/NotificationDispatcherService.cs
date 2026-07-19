@@ -132,8 +132,22 @@ public class NotificationDispatcherService(
         return true;
     }
 
+    /// <summary>
+    /// 依通知類型 fan-out：catalog.version_released 對商品既有買家，其餘對商店追蹤者。
+    /// 回傳通知的收件者數。不負責 Commit。
+    /// </summary>
+    private static Task<int> FanOutAsync(
+        NotificationDbContext db,
+        NotificationRequest request,
+        StoreServiceClient.StoreInfo store,
+        NotificationOptions opts,
+        CancellationToken ct) =>
+        request.Type == NotificationTypes.CatalogVersionReleased
+            ? FanOutBuyersAsync(db, request, store, opts, ct)
+            : FanOutFollowersAsync(db, request, store, opts, ct);
+
     /// <summary>對商店追蹤者分批 fan-out。回傳通知的追蹤者數。不負責 Commit。</summary>
-    private static async Task<int> FanOutAsync(
+    private static async Task<int> FanOutFollowersAsync(
         NotificationDbContext db,
         NotificationRequest request,
         StoreServiceClient.StoreInfo store,
@@ -193,6 +207,80 @@ public class NotificationDispatcherService(
         return total;
     }
 
+    /// <summary>
+    /// 對商品既有買家（CatalogBuyerRef）分批 fan-out。信件的下載頁連結以各買家自己的
+    /// 完成訂單 ID 組出（訪客亦可憑此下載），故 download_url 為逐收件者參數。
+    /// 回傳通知的買家數。不負責 Commit。
+    /// </summary>
+    private static async Task<int> FanOutBuyersAsync(
+        NotificationDbContext db,
+        NotificationRequest request,
+        StoreServiceClient.StoreInfo store,
+        NotificationOptions opts,
+        CancellationToken ct)
+    {
+        var payload = JsonSerializer.Deserialize<CatalogVersionReleasedPayload>(request.Payload, PayloadJson.Options)!;
+
+        var inAppPayload = BuildInAppPayload(request, store);
+        // "catalog.version_released" → 模板鍵 "notification.catalog_version_released"
+        var templateKey  = "notification." + request.Type.Replace('.', '_');
+        var baseParams   = BuildEmailParams(request, store, opts);
+
+        var total     = 0;
+        var lastEmail = "";
+
+        while (true)
+        {
+            var batch = await db.CatalogBuyerRefs.AsNoTracking()
+                .Where(b => b.CatalogId == payload.CatalogId && string.Compare(b.Email, lastEmail) > 0)
+                .OrderBy(b => b.Email)
+                .Take(opts.DispatchBatchSize)
+                .ToListAsync(ct);
+
+            if (batch.Count == 0)
+                break;
+
+            foreach (var buyer in batch)
+            {
+                if (buyer.UserId is { } userId)
+                {
+                    db.Notifications.Add(new Notification
+                    {
+                        RequestId       = request.Id,
+                        RecipientUserId = userId,
+                        RecipientEmail  = buyer.Email,
+                        Type            = request.Type,
+                        Payload         = inAppPayload,
+                    });
+                }
+
+                var emailParams = new Dictionary<string, string>(baseParams)
+                {
+                    ["download_url"] = opts.OrderUrlPattern
+                        .Replace("{storeSlug}", store.StoreSlug)
+                        .Replace("{orderId}", buyer.OrderId.ToString()),
+                };
+
+                var outbox = new OutboxMessage { EventType = "email." + request.Type };
+                outbox.Payload = JsonSerializer.Serialize(new EmailRequestedEvent(
+                    OutboxMessageId: outbox.Id,
+                    To:              buyer.Email,
+                    TemplateKey:     templateKey,
+                    Params:          emailParams,
+                    Locale:          "zh-TW"));
+                db.OutboxMessages.Add(outbox);
+            }
+
+            // 交易內分批落地，避免一次追蹤過多實體
+            await db.SaveChangesAsync(ct);
+
+            total     += batch.Count;
+            lastEmail  = batch[^1].Email;
+        }
+
+        return total;
+    }
+
     /// <summary>把商店資訊補進任務 Payload，作為 in-app 通知內容。</summary>
     private static string BuildInAppPayload(NotificationRequest request, StoreServiceClient.StoreInfo store)
     {
@@ -208,6 +296,13 @@ public class NotificationDispatcherService(
             case NotificationTypes.StoreAnnouncement:
             {
                 var payload = JsonSerializer.Deserialize<StoreAnnouncementPayload>(request.Payload, PayloadJson.Options)!;
+                payload.StoreName = store.StoreName;
+                payload.StoreSlug = store.StoreSlug;
+                return JsonSerializer.Serialize(payload, PayloadJson.Options);
+            }
+            case NotificationTypes.CatalogVersionReleased:
+            {
+                var payload = JsonSerializer.Deserialize<CatalogVersionReleasedPayload>(request.Payload, PayloadJson.Options)!;
                 payload.StoreName = store.StoreName;
                 payload.StoreSlug = store.StoreSlug;
                 return JsonSerializer.Serialize(payload, PayloadJson.Options);
@@ -251,6 +346,24 @@ public class NotificationDispatcherService(
                     ["store_slug"] = store.StoreSlug,
                     ["title"]      = payload.Title,
                     ["message"]    = payload.Message,
+                };
+            }
+            case NotificationTypes.CatalogVersionReleased:
+            {
+                // download_url 依收件者訂單而異，由 FanOutBuyersAsync 逐收件者補上
+                var payload = JsonSerializer.Deserialize<CatalogVersionReleasedPayload>(request.Payload, PayloadJson.Options)!;
+                var catalogUrl = opts.CatalogUrlPattern
+                    .Replace("{storeSlug}", store.StoreSlug)
+                    .Replace("{catalogId}", payload.CatalogId.ToString());
+
+                return new()
+                {
+                    ["store_name"]   = store.StoreName,
+                    ["store_slug"]   = store.StoreSlug,
+                    ["catalog_name"] = payload.CatalogName,
+                    ["catalog_url"]  = catalogUrl,
+                    ["version"]      = payload.Version,
+                    ["release_note"] = payload.ReleaseNote ?? "",
                 };
             }
             default:

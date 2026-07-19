@@ -52,6 +52,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "open-jam.secretName" . }}
                   key: notification-service-connection-string
+            - name: ConnectionStrings__OrderConnection
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: order-service-connection-string
             - name: ConnectionStrings__ContentConnection
               valueFrom:
                 secretKeyRef:

@@ -44,13 +44,27 @@ function formatAmount(minor?: number, currency?: string | null): string {
   return `${amount} ${(currency ?? '').toUpperCase()}`;
 }
 
+/**
+ * 解析要提供下載的版本：優先取商品「目前版本」（買家永久享有更新，賣家發新版後
+ * 回到本頁即可拿到最新檔），商品查詢失敗（如已下架）則退回購買當下的版本。
+ */
+async function resolveVersionId(item: { catalogId?: string | null; catalogVersionId?: string | null }): Promise<string> {
+  try {
+    const res = await catalogApi.catalogs.get(item.catalogId!);
+    return res.data.currentVersion?.id ?? item.catalogVersionId!;
+  } catch {
+    return item.catalogVersionId!;
+  }
+}
+
 async function loadDownloads(o: OrderResponse) {
   await Promise.all(
     (o.items ?? []).map(async (item) => {
       const key = item.id ?? '';
       try {
+        const versionId = await resolveVersionId(item);
         const res = await catalogApi.catalogVersions.listPurchasedDownloads(
-          item.catalogId!, item.catalogVersionId!, { orderId: orderId.value });
+          item.catalogId!, versionId, { orderId: orderId.value });
         downloads.value[key] = res.data;
       } catch {
         downloads.value[key] = null;

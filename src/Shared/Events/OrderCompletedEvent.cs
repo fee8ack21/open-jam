@@ -15,7 +15,11 @@ public record OrderCompletedEvent(
     /// <summary>訂單完成（付款成功）時間（UTC）。</summary>
     DateTimeOffset CompletedAt,
     /// <summary>訂單項目明細。</summary>
-    IReadOnlyList<OrderCompletedItem> Items
+    IReadOnlyList<OrderCompletedItem> Items,
+    /// <summary>買家使用者 ID；訪客（免註冊）訂單為 null。</summary>
+    Guid? BuyerUserId,
+    /// <summary>買家 Email（結帳時填寫）。NotificationService 據此維護商品買家參照表。</summary>
+    string BuyerEmail
 );
 
 /// <summary>訂單完成事件中的單一商品項目。</summary>

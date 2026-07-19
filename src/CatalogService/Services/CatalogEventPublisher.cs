@@ -31,4 +31,26 @@ public class CatalogEventPublisher(CatalogDbContext db)
             IsFirstPublish: isFirstPublish));
         db.OutboxMessages.Add(outbox);
     }
+
+    /// <summary>商品新版本發布通知事件的 Outbox EventType。</summary>
+    public const string CatalogVersionReleasedType = "catalog.version_released";
+
+    /// <summary>寫入一筆 CatalogVersionReleasedEvent（通知既有買家）。不負責 SaveChanges。</summary>
+    /// <param name="catalog">版本所屬商品（Published 狀態）。</param>
+    /// <param name="version">要通知買家的版本。</param>
+    public void AddCatalogVersionReleased(Catalog catalog, CatalogVersion version)
+    {
+        var outbox = new OutboxMessage { EventType = CatalogVersionReleasedType };
+        outbox.Payload = JsonSerializer.Serialize(new CatalogVersionReleasedEvent(
+            OutboxMessageId: outbox.Id,
+            CatalogId: catalog.Id,
+            StoreId: catalog.StoreId,
+            CatalogName: catalog.Name,
+            CatalogSlug: catalog.Slug,
+            VersionId: version.Id,
+            Version: version.Version,
+            ReleaseNote: version.ReleaseNote,
+            ReleasedAt: DateTimeOffset.UtcNow));
+        db.OutboxMessages.Add(outbox);
+    }
 }

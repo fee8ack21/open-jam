@@ -34,6 +34,17 @@ public class CatalogVersionsController(ICatalogVersionService versionService) : 
         return CreatedAtAction(nameof(List), new { catalogId, version = "1.0" }, version);
     }
 
+    /// <summary>通知既有買家此版本已發布。商品須已上架且版本至少有一個可下載檔案；每版本至多通知一次（重複呼叫回 409）。</summary>
+    /// <param name="catalogId">商品 ID。</param>
+    /// <param name="versionId">版本 ID。</param>
+    /// <param name="ct">Cancellation token。</param>
+    [HttpPost("{versionId:guid}/notify-buyers")]
+    [ProducesResponseType<CatalogVersionDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<CatalogVersionDto>> NotifyBuyers(Guid catalogId, Guid versionId, CancellationToken ct) =>
+        Ok(await versionService.NotifyBuyersAsync(catalogId, versionId, ct));
+
     /// <summary>申請版本可下載檔案上傳簽章 URL（私有物件）。簽發階段不扣配額、不建資產。</summary>
     /// <param name="catalogId">商品 ID。</param>
     /// <param name="versionId">版本 ID。</param>

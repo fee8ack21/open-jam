@@ -8,6 +8,7 @@ using Shared.Auth;
 using CatalogService.Data;
 using ContentService.Data;
 using NotificationService.Data;
+using OrderService.Data;
 using StoreService.Data;
 using AuthDbContext = Auth.Data.AppDbContext;
 using EmailDbContext = EmailService.Data.AppDbContext;
@@ -42,6 +43,11 @@ var host = Host.CreateDefaultBuilder(args)
                     o => o.MigrationsHistoryTable("__ef_migrations_history"))
                 .UseSnakeCaseNamingConvention());
 
+        services.AddDbContext<OrderDbContext>(opts =>
+            opts.UseNpgsql(ctx.Configuration["ConnectionStrings:OrderConnection"],
+                    o => o.MigrationsHistoryTable("__ef_migrations_history"))
+                .UseSnakeCaseNamingConvention());
+
         services.AddDbContext<ContentDbContext>(opts =>
             opts.UseNpgsql(ctx.Configuration["ConnectionStrings:ContentConnection"],
                     o => o.MigrationsHistoryTable("__ef_migrations_history"))
@@ -60,6 +66,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<StoreSeeder>();
         services.AddScoped<CatalogCategorySeeder>();
         services.AddScoped<StoreFollowerRefSeeder>();
+        services.AddScoped<CatalogBuyerRefSeeder>();
         services.AddScoped<StorefrontRedirectSeeder>();
     })
     .Build();
@@ -75,6 +82,7 @@ await sp.GetRequiredService<FaqSeeder>().SeedAsync();
 await sp.GetRequiredService<StoreSeeder>().SeedAsync();
 await sp.GetRequiredService<CatalogCategorySeeder>().SeedAsync();
 await sp.GetRequiredService<StoreFollowerRefSeeder>().SeedAsync();
+await sp.GetRequiredService<CatalogBuyerRefSeeder>().SeedAsync();
 await sp.GetRequiredService<StorefrontRedirectSeeder>().SeedAsync();
 
 // TODO: SubdomainReservedWordSeeder — 待 Auth 或 Product DbContext 建立後接入。

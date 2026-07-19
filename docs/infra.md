@@ -189,8 +189,6 @@ kubectl run wi-test -n open-jam --rm -it --restart=Never \
 
 > 另一個間接訊號：storage-service 啟動時會呼叫 GCS 套公開 bucket 的匿名讀取 IAM（`EnsurePublicReadPolicyAsync`），pod 能進入 Running / Ready 即代表 ADC 憑證與 bucket 權限已生效；signed URL 的 SignBlob 路徑則需實際簽發上傳 / 下載 URL 才會走到。
 
-> 自「掛金鑰檔」模式遷移：確認新版部署正常簽發上傳 / 下載 URL 後，刪除舊 k8s Secret（`kubectl delete secret gcs-sa-key -n open-jam`）並作廢外流面最大的服務帳戶金鑰（`gcloud iam service-accounts keys list / delete`）。
-
 ### 4. 部署 open-jam 應用 chart
 
 ```bash

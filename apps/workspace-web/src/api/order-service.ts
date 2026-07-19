@@ -564,6 +564,12 @@ export class Api<SecurityDataType extends unknown> {
          */
         Status?: OrderStatus;
         /**
+         * 關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。
+         * @maxLength 200
+         * @example "buyer@example.com"
+         */
+        Search?: string;
+        /**
          * 略過筆數。
          * @format int32
          * @example 0
@@ -651,6 +657,12 @@ export class Api<SecurityDataType extends unknown> {
          */
         Status?: OrderStatus;
         /**
+         * 關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。
+         * @maxLength 200
+         * @example "buyer@example.com"
+         */
+        Search?: string;
+        /**
          * 略過筆數。
          * @format int32
          * @example 0
@@ -706,6 +718,12 @@ export class Api<SecurityDataType extends unknown> {
          * @example "Completed"
          */
         Status?: OrderStatus;
+        /**
+         * 關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。
+         * @maxLength 200
+         * @example "buyer@example.com"
+         */
+        Search?: string;
         /**
          * 略過筆數。
          * @format int32

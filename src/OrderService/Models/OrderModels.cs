@@ -52,6 +52,10 @@ public class ListOrdersRequest
     /// <example>Completed</example>
     public OrderStatus? Status { get; set; }
 
+    /// <summary>關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。</summary>
+    /// <example>buyer@example.com</example>
+    public string? Search { get; set; }
+
     /// <summary>略過筆數。</summary>
     /// <example>0</example>
     public int Offset { get; set; } = 0;

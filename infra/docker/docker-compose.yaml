@@ -521,12 +521,13 @@ services:
       context: ../../src
       dockerfile: Bootstrap/Dockerfile
     environment:
-      # Bootstrap 掛 6 個具名連線字串（非 DefaultConnection）
+      # Bootstrap 掛 7 個具名連線字串（非 DefaultConnection）
       ConnectionStrings__AuthConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_auth;Username=${DB_USER};Password=${DB_PASSWORD}
       ConnectionStrings__EmailConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_email;Username=${DB_USER};Password=${DB_PASSWORD}
       ConnectionStrings__CatalogConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_catalog;Username=${DB_USER};Password=${DB_PASSWORD}
       ConnectionStrings__StoreConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_store;Username=${DB_USER};Password=${DB_PASSWORD}
       ConnectionStrings__NotificationConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_notification;Username=${DB_USER};Password=${DB_PASSWORD}
+      ConnectionStrings__OrderConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_order;Username=${DB_USER};Password=${DB_PASSWORD}
       ConnectionStrings__ContentConnection: Host=${DB_HOST};Database=${DB_NAME_PREFIX}_content;Username=${DB_USER};Password=${DB_PASSWORD}
       Hydra__AdminUrl: ${HYDRA_ADMIN_URL}
       HydraClients__Service__ClientId: ${HYDRA_SERVICE_CLIENT_ID:-open-jam-service}

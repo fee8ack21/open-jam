@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import {
   useNotificationsStore,
   type CatalogPublishedPayload,
+  type CatalogVersionReleasedPayload,
   type StoreAnnouncementPayload,
 } from '@/stores/notifications'
 import type { NotificationDto } from '@/api/notification-service'
@@ -39,6 +40,13 @@ function renderText(n: NotificationDto): string {
           title: p.title ?? '',
         })
       }
+      case 'catalog.version_released': {
+        const p = payload as CatalogVersionReleasedPayload
+        return t('notifications.catalogVersionReleased', {
+          catalogName: p.catalogName ?? '',
+          version: p.version ?? '',
+        })
+      }
       default:
         return n.type ?? ''
     }
@@ -64,11 +72,11 @@ function toggle() {
   if (open.value) void store.loadPanel()
 }
 
-/** 由 catalog.published 通知的 payload 組出商品頁網址；資訊不足時回傳 null。 */
+/** 由 catalog.published / catalog.version_released 通知的 payload 組出商品頁網址；資訊不足時回傳 null。 */
 function catalogUrlOf(n: NotificationDto): string | null {
-  if (n.type !== 'catalog.published') return null
+  if (n.type !== 'catalog.published' && n.type !== 'catalog.version_released') return null
   try {
-    const p = JSON.parse(n.payload ?? '{}') as CatalogPublishedPayload
+    const p = JSON.parse(n.payload ?? '{}') as CatalogPublishedPayload | CatalogVersionReleasedPayload
     if (!p.storeSlug || !p.catalogId) return null
     return `${env.CREATOR_PAGE_BASE_URL.replace('<store-slug>', p.storeSlug)}/product/${p.catalogId}`
   } catch {

@@ -13,7 +13,7 @@ function messageOf(err: unknown, fallback = i18n.global.t('storeError.loadOrders
 
 /** 查詢條件（皆為選填；空字串視為未篩選）。 */
 export interface SellerOrderFilter {
-  buyerEmail?: string;
+  search?: string;
   status?: OrderStatus | null;
 }
 
@@ -21,7 +21,7 @@ const PAGE_SIZE = 10;
 
 /**
  * 賣家視角的訂單列表 store：分頁查詢 OrderService `/v1/orders/store/{storeId}`
- * （本人商店收到的訂單，後端驗證 Owner），支援以買家 Email / 訂單狀態篩選，
+ * （本人商店收到的訂單，後端驗證 Owner），支援以關鍵字（買家 Email / 訂單編號）與訂單狀態篩選，
  * 並可載入單筆訂單明細。商店 ID 由呼叫端（賣家後台）以 setStore 指定。
  */
 export const useSellerOrdersStore = defineStore('sellerOrders', () => {
@@ -32,7 +32,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
   const pageSize = ref(PAGE_SIZE);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const filter = ref<SellerOrderFilter>({ buyerEmail: '', status: null });
+  const filter = ref<SellerOrderFilter>({ search: '', status: null });
 
   // 單筆訂單明細（彈窗用）
   const detail = ref<OrderResponse | null>(null);
@@ -43,7 +43,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
   async function setStore(id: string) {
     storeId.value = id;
     offset.value = 0;
-    filter.value = { buyerEmail: '', status: null };
+    filter.value = { search: '', status: null };
     await load();
   }
 
@@ -60,7 +60,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
       const res = await orderApi.orders.listByStore(storeId.value, {
         Offset: offset.value,
         Limit: pageSize.value,
-        BuyerEmail: filter.value.buyerEmail?.trim() || undefined,
+        Search: filter.value.search?.trim() || undefined,
         Status: filter.value.status ?? undefined,
       });
       items.value = res.data.items ?? [];

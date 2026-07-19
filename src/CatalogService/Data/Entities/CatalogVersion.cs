@@ -17,6 +17,9 @@ public class CatalogVersion : ICreatedAt
     /// <summary>版本說明 / 更新紀錄。</summary>
     public string? ReleaseNote { get; set; }
 
+    /// <summary>已通知既有買家的時間；null 表示尚未通知。每版本至多通知一次。</summary>
+    public DateTimeOffset? BuyerNotifiedAt { get; set; }
+
     /// <inheritdoc/>
     public DateTimeOffset CreatedAt { get; private set; }
 }

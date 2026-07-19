@@ -183,6 +183,14 @@ public class OrderManager(
             query = query.Where(o => o.BuyerEmail == email);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var term = request.Search.Trim();
+            query = query.Where(o =>
+                EF.Functions.ILike(o.BuyerEmail, $"%{term}%") ||
+                EF.Functions.ILike(o.OrderNumber, $"%{term}%"));
+        }
+
         return PageAsync(query, request, ct);
     }
 
