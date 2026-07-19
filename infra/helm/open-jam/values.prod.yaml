@@ -159,7 +159,7 @@ auth:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
-    tag: v0.0.24
+    tag: v0.0.25
     pullPolicy: IfNotPresent
   # Cloudflare Turnstile 認證表單人機驗證（Site Key 為公開值；secretKey → 機密 overlay，
   # 未提供時整組停用：widget 不渲染、後端不驗）
