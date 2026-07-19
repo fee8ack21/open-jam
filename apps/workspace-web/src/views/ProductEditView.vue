@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
 import { useCatalogEditStore, type CatalogBasics } from '@/stores/catalogEdit'
+import { useConnectStatusStore } from '@/stores/connectStatus'
 import { CatalogAssetType, CatalogStatus, type CatalogVersionDto } from '@/api/catalog-service'
 import ImageCropDialog from '@/components/ImageCropDialog.vue'
 
@@ -37,6 +38,7 @@ const message = useMessage()
 const dashboard = useDashboardStore()
 const catalogList = useCatalogStore()
 const edit = useCatalogEditStore()
+const connect = useConnectStatusStore()
 const { catalog, versions, loading, saving, busy } = storeToRefs(edit)
 
 const catalogId = computed(() => String(route.params.id ?? ''))
@@ -69,6 +71,32 @@ const categoryOptions = computed(() =>
 )
 const coverUrl = computed(() => coverPreview.value || catalog.value?.thumbnailUrl || '')
 const currentVersionId = computed(() => catalog.value?.currentVersion?.id ?? null)
+
+// 草稿 / 已封存可於此頁上架（Published ↔ Archived 的切換另在商品列表以開關操作）
+const canPublish = computed(() =>
+  catalog.value?.status === CatalogStatus.Draft || catalog.value?.status === CatalogStatus.Archived,
+)
+// 付費商品上架 / 已上架商品免費改付費前主動擋下（收款未就緒，與後端上架閘門一致）；
+// 狀態查詢失敗（chargesEnabled = null）不擋，交由後端回 422 當安全網。
+const publishBlocked = computed(() =>
+  canPublish.value && (catalog.value?.price ?? 0) > 0 && connect.chargesEnabled === false,
+)
+const saveBlocked = computed(() =>
+  catalog.value?.status === CatalogStatus.Published &&
+  (catalog.value?.price ?? 0) === 0 &&
+  !free.value &&
+  connect.chargesEnabled === false,
+)
+// store 的 busy 為所有操作共用，spinner 僅綁定上架自身（同封面鈕作法）
+const publishing = ref(false)
+async function onPublish() {
+  if (publishBlocked.value) { message.warning(t('common.payoutRequired')); return }
+  publishing.value = true
+  const ok = await edit.publish(catalogId.value)
+  publishing.value = false
+  if (ok) message.success(t('productEdit.msgPublished'))
+  else message.error(edit.error ?? t('productEdit.msgPublishFailed'))
+}
 
 /** 目前表單與後端資料是否有差異（未變更時儲存鈕維持禁用）。 */
 const dirty = computed(() => {
@@ -106,6 +134,8 @@ function syncForm() {
   free.value = (c.price ?? 0) === 0
 }
 watch(catalog, syncForm)
+// 商品載入後查詢商店收款狀態（匿名端點，供付費上架 / 改付費前主動擋下）
+watch(catalog, (c) => { if (c?.storeId) connect.load(c.storeId) })
 
 onMounted(async () => {
   await Promise.all([catalogList.loadCategories(), edit.load(catalogId.value)])
@@ -138,6 +168,7 @@ function toggleFree() {
 
 async function onSave() {
   if (!canSave.value) return
+  if (saveBlocked.value) { message.warning(t('common.payoutRequired')); return }
   // 清空定價欄位會讓 n-input-number 回傳 null，繞過 :min 夾制；付費商品於送出前再擋一次。
   if (!free.value && (form.value.price ?? 0) < MIN_PAID_PRICE) {
     message.warning(t('productEdit.minPriceHint', { min: MIN_PAID_PRICE }))
@@ -376,7 +407,20 @@ function fmtDate(v?: string | null) {
               <h2 class="pe-title">{{ catalog.name }}</h2>
               <div class="pe-slug">{{ catalog.slug }}</div>
             </div>
-            <n-tag :type="statusMeta.type" size="small" round>{{ t(statusMeta.labelKey) }}</n-tag>
+            <div class="pe-status">
+              <n-tag :type="statusMeta.type" size="small" round>{{ t(statusMeta.labelKey) }}</n-tag>
+              <n-button v-if="canPublish" type="primary" size="small" strong
+                        :disabled="busy || !currentVersionId || publishBlocked" :loading="publishing" @click="onPublish">
+                <template #icon><app-icon name="upload" :size="14" /></template>
+                {{ t('productEdit.publish') }}
+              </n-button>
+            </div>
+          </div>
+          <div v-if="canPublish && !currentVersionId" class="pe-publish-hint">
+            {{ t('productEdit.publishNeedVersionHint') }}
+          </div>
+          <div v-else-if="publishBlocked" class="pe-publish-hint">
+            {{ t('common.payoutRequired') }}
           </div>
         </div>
 
@@ -454,9 +498,14 @@ function fmtDate(v?: string | null) {
               </div>
 
               <div style="display:flex; justify-content:flex-end; margin-top:16px;">
-                <n-button type="primary" size="large" strong :disabled="!canSave" :loading="saving" @click="onSave">
-                  {{ t('common.save') }}
-                </n-button>
+                <n-tooltip :disabled="!saveBlocked" style="max-width:260px;">
+                  <template #trigger>
+                    <n-button type="primary" size="large" strong :disabled="!canSave || saveBlocked" :loading="saving" @click="onSave">
+                      {{ t('common.save') }}
+                    </n-button>
+                  </template>
+                  {{ t('common.payoutRequired') }}
+                </n-tooltip>
               </div>
             </div>
           </div>
@@ -688,6 +737,8 @@ function fmtDate(v?: string | null) {
 .pe-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .pe-title { font-family: var(--oj-font); font-weight: 900; font-size: 20px; margin: 0; }
 .pe-slug { font-family: var(--oj-mono); font-size: 12px; color: var(--text-faint); margin-top: 4px; }
+.pe-status { display: flex; align-items: center; gap: 10px; flex: none; }
+.pe-publish-hint { font-size: 12px; color: var(--text-faint); margin-top: 10px; text-align: right; }
 
 .field-hint { font-size: 12px; color: var(--text-faint); margin-top: 8px; line-height: 1.5; }
 

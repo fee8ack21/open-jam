@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
+import { useConnectStatusStore } from '@/stores/connectStatus'
 import { CatalogStatus, type CatalogSummaryDto } from '@/api/catalog-service'
 import ReviewList from '@/components/ReviewList.vue'
 
@@ -28,6 +29,7 @@ const message = useMessage()
 const dialog = useDialog()
 const catalog = useCatalogStore()
 const storeApp = useStoreApplicationStore()
+const connect = useConnectStatusStore()
 const { products, totalCount, loading, busyId } = storeToRefs(catalog)
 
 const filterKey = ref<'all' | CatalogStatus>('all')
@@ -140,9 +142,13 @@ function coverGlyph(p: CatalogSummaryDto) {
   while (cat?.parentId) cat = catalog.categories.find((c) => c.id === cat!.parentId)
   return CAT_GLYPHS[cat?.slug ?? ''] ?? 'tag'
 }
-// 只有 Published / Archived 可用開關切換上下架；Draft 需先補版本後於精靈上架，Suspended 僅 Admin 可解
+// 只有 Published / Archived 可用開關切換上下架；Draft 於編輯頁補版本後上架，Suspended 僅 Admin 可解
 function canToggle(p: CatalogSummaryDto) {
   return p.status === CatalogStatus.Published || p.status === CatalogStatus.Archived
+}
+// 付費商品重新上架前主動擋下（收款未就緒）；狀態查詢失敗不擋，交由後端上架閘門回 422
+function payoutBlocked(p: CatalogSummaryDto) {
+  return p.status === CatalogStatus.Archived && (p.price ?? 0) > 0 && connect.chargesEnabled === false
 }
 
 async function toggle(p: CatalogSummaryDto) {
@@ -157,7 +163,7 @@ async function toggle(p: CatalogSummaryDto) {
 
 async function load() {
   if (!storeApp.stores.length) await storeApp.load()
-  await Promise.all([catalog.load(storeId.value), catalog.loadCategories()])
+  await Promise.all([catalog.load(storeId.value), catalog.loadCategories(), connect.load(storeId.value)])
 }
 
 onMounted(load)
@@ -249,7 +255,12 @@ onMounted(load)
                 <td class="num hide-sm"><span class="history-mono" style="font-size:12px;">{{ fmtDate(p.publishedAt) }}</span></td>
                 <td>
                   <div class="row-actions">
-                    <n-switch v-if="canToggle(p)" :value="p.status === CatalogStatus.Published" :loading="busyId === p.id" :disabled="busyId === p.id" @update:value="toggle(p)" size="medium" />
+                    <n-tooltip v-if="canToggle(p)" :disabled="!payoutBlocked(p)" style="max-width:260px;">
+                      <template #trigger>
+                        <n-switch :value="p.status === CatalogStatus.Published" :loading="busyId === p.id" :disabled="busyId === p.id || payoutBlocked(p)" @update:value="toggle(p)" size="medium" />
+                      </template>
+                      {{ t('common.payoutRequired') }}
+                    </n-tooltip>
                     <span v-else style="font-size:12px; color:var(--text-faint); font-family:var(--oj-mono); margin-right:6px;">
                       {{ p.status === CatalogStatus.Suspended ? t('catalogStatus.suspended') : t('catalogStatus.draft') }}
                     </span>

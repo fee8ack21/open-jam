@@ -88,6 +88,22 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     }
   }
 
+  /** 上架商品（Draft / Archived → Published）。需已有目前版本；付費商品另需完成收款設定。 */
+  async function publish(id: string) {
+    busy.value = true;
+    error.value = null;
+    try {
+      await catalogApi.catalogs.publish(id);
+      await refreshCatalog(id);
+      return true;
+    } catch (err) {
+      error.value = messageOf(err, i18n.global.t('storeError.publishNeedVersion'));
+      return false;
+    } finally {
+      busy.value = false;
+    }
+  }
+
   /**
    * 儲存基本資料：欄位 PATCH、分類與標籤各自全量覆蓋（slug 不變，避免商品網址漂移）。
    */
@@ -334,6 +350,7 @@ export const useCatalogEditStore = defineStore('catalogEdit', () => {
     busy,
     error,
     load,
+    publish,
     saveBasics,
     uploadCover,
     removeCover,

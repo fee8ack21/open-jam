@@ -15,7 +15,8 @@
     "loading": "Loading…",
     "all": "All",
     "perPagePrefix": "",
-    "perPageSuffix": "/ page"
+    "perPageSuffix": "/ page",
+    "payoutRequired": "Payouts are not set up yet, so paid products cannot be published. Complete Stripe setup in \"Payouts\" first."
   },
   "storeError": {
     "actionFailed": "Action failed, please try again later.",
@@ -945,7 +946,11 @@
     "msgFileFailed": "Upload failed: {name}",
     "msgFileDeleted": "File deleted.",
     "msgFileDeleteFailed": "Failed to delete file",
-    "msgDownloadFailed": "Failed to get download link"
+    "msgDownloadFailed": "Failed to get download link",
+    "publish": "Publish",
+    "publishNeedVersionHint": "Create a version and upload downloadable files before publishing.",
+    "msgPublished": "Published. The product is now live.",
+    "msgPublishFailed": "Failed to publish"
   },
   "paymentStatus": {
     "all": "All statuses",

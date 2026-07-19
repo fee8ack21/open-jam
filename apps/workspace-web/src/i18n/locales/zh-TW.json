@@ -15,7 +15,8 @@
     "loading": "載入中…",
     "all": "全部",
     "perPagePrefix": "每頁",
-    "perPageSuffix": "筆"
+    "perPageSuffix": "筆",
+    "payoutRequired": "商店尚未完成收款設定，無法上架付費商品。請先於「收款設定」完成 Stripe 設定。"
   },
   "storeError": {
     "actionFailed": "操作失敗，請稍後再試。",
@@ -945,7 +946,11 @@
     "msgFileFailed": "檔案上傳失敗：{name}",
     "msgFileDeleted": "已刪除檔案。",
     "msgFileDeleteFailed": "刪除檔案失敗",
-    "msgDownloadFailed": "取得下載連結失敗"
+    "msgDownloadFailed": "取得下載連結失敗",
+    "publish": "上架商品",
+    "publishNeedVersionHint": "需先建立版本並上傳可下載檔，才能上架商品。",
+    "msgPublished": "已上架，商品現已對外販售。",
+    "msgPublishFailed": "上架失敗"
   },
   "paymentStatus": {
     "all": "全部狀態",

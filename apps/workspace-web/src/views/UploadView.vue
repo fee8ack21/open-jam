@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useCatalogStore } from '@/stores/catalog'
 import { useStoreApplicationStore } from '@/stores/storeApplication'
+import { useConnectStatusStore } from '@/stores/connectStatus'
 import ImageCropDialog from '@/components/ImageCropDialog.vue'
 import { JFmt } from '@/utils/format'
 import { TAGS } from '@/data/products'
@@ -46,6 +47,7 @@ const store = useDashboardStore()
 const message = useMessage()
 const catalog = useCatalogStore()
 const storeApp = useStoreApplicationStore()
+const connect = useConnectStatusStore()
 const F = JFmt
 
 const tagDraft = ref('')
@@ -116,6 +118,9 @@ const cats = computed(() =>
 )
 
 const storeId = computed(() => storeApp.stores[0]?.store?.id ?? '')
+// 付費商品上架前主動擋下（收款未就緒）；查詢失敗不擋，交由後端上架閘門回 422。
+// 僅擋「直接上架」，存成草稿不受限。
+const payoutBlocked = computed(() => !d.value.free && connect.chargesEnabled === false)
 const suggestedTags = computed(() =>
   catMeta(d.value.cat).tags.filter(t => !d.value.tags.includes(t)).slice(0, 6),
 )
@@ -148,6 +153,8 @@ onMounted(async () => {
   // 殘留的欄位文字若掛到新草稿上反而不一致。
   store.resetDraft()
   catalog.resetDraftUpload()
+  // 收款狀態供付費商品上架前主動擋下（router guard 已先載入開店資料）
+  if (storeId.value) connect.load(storeId.value)
   await catalog.loadCategories()
   // draft 預設 cat 不是有效 slug，載入後對齊到第一個分類。
   const slugs = cats.value.map(c => c.slug)
@@ -391,6 +398,7 @@ function goNext() {
 
 async function submit(publish: boolean) {
   if (!storeId.value) { message.error(t('upload.msgNoStore')); return }
+  if (publish && payoutBlocked.value) { message.warning(t('common.payoutRequired')); return }
   if (!step1Valid.value) { message.warning(t('upload.msgNeedTitle')); return }
   // 清空定價欄位會落回 0，繞過 :min 夾制；付費商品於送出前再擋一次。
   if (!d.value.free && (d.value.price ?? 0) < MIN_PAID_PRICE) { message.warning(t('upload.minPriceHint', { min: MIN_PAID_PRICE })); return }
@@ -663,10 +671,15 @@ async function submit(publish: boolean) {
               {{ t('upload.nextStep') }}
               <template #icon><app-icon name="arrowRight" :size="17" /></template>
             </n-button>
-            <n-button v-else type="primary" size="large" :loading="catalog.creating" :disabled="catalog.creating || anyUploading" @click="submit(true)">
-              <template #icon><app-icon name="rocket" :size="17" /></template>
-              {{ t('upload.publish') }}
-            </n-button>
+            <n-tooltip v-else :disabled="!payoutBlocked" style="max-width:260px;">
+              <template #trigger>
+                <n-button type="primary" size="large" :loading="catalog.creating" :disabled="catalog.creating || anyUploading || payoutBlocked" @click="submit(true)">
+                  <template #icon><app-icon name="rocket" :size="17" /></template>
+                  {{ t('upload.publish') }}
+                </n-button>
+              </template>
+              {{ t('common.payoutRequired') }}
+            </n-tooltip>
           </div>
         </div>
       </div>
