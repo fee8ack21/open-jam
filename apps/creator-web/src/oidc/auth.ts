@@ -1,6 +1,6 @@
 import { UserManager, WebStorageStateStore, Log, type User } from 'oidc-client-ts';
 import { env } from '@/environment';
-import { markLoggedOut } from '@/oidc/cross-domain-logout';
+import { markLoggedOut, getLogoutMark } from '@/oidc/cross-domain-logout';
 
 Log.setLogger(console);
 Log.setLevel(Log.WARN);
@@ -51,9 +51,24 @@ export function createUserManager(): UserManager {
 
 export const userManager = createUserManager();
 
+/**
+ * 登出後的抑制窗口：登出分頁 broadcast 後才導航 Hydra end_session，SSO session
+ * 銷毀需要時間；其他分頁收到廣播重載後若立刻 silent 登入（或 signinRedirect 被
+ * 還活著的 session skip），會把自己重新登回去並清掉 oj_logout 標記，造成多分頁
+ * 登出不同步。窗口內一律不自動登入、登入導轉強制顯示登入頁（prompt=login）。
+ */
+const LOGOUT_GRACE_MS = 60_000;
+
+function isRecentlyLoggedOut(): boolean {
+  const mark = getLogoutMark();
+  return mark !== null && Date.now() - mark < LOGOUT_GRACE_MS;
+}
+
 export function login(redirectPath?: string): void {
   const target = redirectPath ?? window.location.href;
-  userManager.signinRedirect({ state: target }).catch(console.error);
+  userManager
+    .signinRedirect({ state: target, ...(isRecentlyLoggedOut() ? { prompt: 'login' } : {}) })
+    .catch(console.error);
 }
 
 export async function logout(): Promise<void> {
@@ -175,6 +190,10 @@ export async function validateSession(): Promise<User | null> {
     }
     return current;
   }
+
+  // 剛登出（本站分頁或其他子網域）：不做 silent 自動登入，避免搶在 Hydra
+  // session 銷毀完成前把自己重新登回去。
+  if (isRecentlyLoggedOut()) return null;
 
   try {
     return await userManager.signinSilent();
