@@ -17,6 +17,7 @@ import { useRouter } from 'vue-router';
 import { useShopStore } from '@/stores/shop.js';
 import { useAuthStore } from '@/stores/auth.js';
 import BrandLogo from '@/components/BrandLogo.vue';
+import { env } from '@/environment.js';
 
 const store = useShopStore();
 const auth = useAuthStore();
@@ -126,7 +127,9 @@ const gridCards = computed(() =>
 );
 
 function goMarket() { router.push('/'); }
-function goLogin() { auth.login(); }
+// 登入成功後導向市集首頁（而非回到 landing）
+function goLogin() { auth.login(new URL(import.meta.env.BASE_URL, window.location.origin).href); }
+function goWorkspace() { window.location.href = env.WORKSPACE_PAGE_URL; }
 
 // ---- 捲動 / 滑鼠驅動（全部直接寫 DOM style，不走 Vue 反應式以保 60fps） ----
 const stageEl = ref<HTMLElement | null>(null);
@@ -247,8 +250,11 @@ onBeforeUnmount(() => {
     <!-- 漂浮 header：logo + 登入 -->
     <header class="ld-head">
       <span class="ld-head-brand"><BrandLogo /></span>
-      <button type="button" class="ld-login" @click="goLogin">
+      <button v-if="!auth.isAuthenticated" type="button" class="ld-login" @click="goLogin">
         {{ t('nav.login') }} <app-icon name="arrow" :size="13" />
+      </button>
+      <button v-else type="button" class="ld-login" @click="goWorkspace">
+        {{ t('nav.workspace') }} <app-icon name="arrow" :size="13" />
       </button>
     </header>
 
@@ -462,7 +468,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div class="ld-ctarow ld-pb">
-          <button type="button" class="ld-btn ld-btn-yellow" @click="goLogin">
+          <button type="button" class="ld-btn ld-btn-yellow" @click="auth.isAuthenticated ? goWorkspace() : goLogin()">
             <app-icon name="note" :size="14" /> {{ t('landingPage.final.ctaJam') }}
           </button>
           <button type="button" class="ld-btn ld-btn-ghost" @click="goMarket">
