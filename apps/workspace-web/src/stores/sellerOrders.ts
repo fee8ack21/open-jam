@@ -28,6 +28,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
   const storeId = ref<string | null>(null);
   const items = ref<OrderSummaryDto[]>([]);
   const totalCount = ref(0);
+  const count = ref(0); // 全部訂單數（側欄徽章用，不受列表篩選影響）
   const offset = ref(0);
   const pageSize = ref(PAGE_SIZE);
   const loading = ref(false);
@@ -65,12 +66,27 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
       });
       items.value = res.data.items ?? [];
       totalCount.value = res.data.totalCount ?? 0;
+      // 未套用任何篩選時，目前總筆數即為全部訂單數，順帶更新側欄徽章。
+      if (!filter.value.search?.trim() && filter.value.status == null) {
+        count.value = totalCount.value;
+      }
     } catch (err) {
       error.value = messageOf(err);
       items.value = [];
       totalCount.value = 0;
     } finally {
       loading.value = false;
+    }
+  }
+
+  /** 僅取全部訂單數（單一輕量請求，不載入列表詳情），供側欄徽章使用。 */
+  async function loadCount(id: string) {
+    if (!id) { count.value = 0; return; }
+    try {
+      const res = await orderApi.orders.listByStore(id, { Offset: 0, Limit: 1 });
+      count.value = res.data.totalCount ?? 0;
+    } catch {
+      count.value = 0;
     }
   }
 
@@ -113,6 +129,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
     storeId,
     items,
     totalCount,
+    count,
     offset,
     pageSize,
     setPageSize,
@@ -124,6 +141,7 @@ export const useSellerOrdersStore = defineStore('sellerOrders', () => {
     detailError,
     setStore,
     load,
+    loadCount,
     applyFilter,
     goPage,
     loadDetail,
