@@ -85,6 +85,26 @@ pnpm preview
 - **錯誤處理**：業務層拋 `AppException` 子類。REST API 服務（LogService / StorageService / StoreService 等）以 `ExceptionMiddleware` 轉為 RFC 9457 Problem Details；MVC 服務（Auth）以 ASP.NET Core 內建 `UseExceptionHandler` 導頁至 Error Page，不掛載 `ExceptionMiddleware`
 - **微服務 Ref Table**：本地保留其他服務資源的參照表，資源變更時發 Event 同步
 
+## Release 與部署流程（強制）
+
+CI（`.github/workflows/release.yml`）於 push 到 main 時掃描本次 push 內**所有** `chore(release)` commit，解析 body 的 `- <image-key>@<version>` 清單（合法 key 見 workflow 內 manifest，如 `order-service` / `creator-web`）建置映像並部署；**沒有清單＝不會建任何東西**。不打 git tag。
+
+一次發佈固定**兩種 commit 分開**：
+
+1. `feat(...)` / `fix(...)`：實際程式 / 設定改動（可含 `values.prod.yaml` 的非 tag 設定），**不改版本號**。
+2. `chore(release): <摘要>`：**只 bump 版本**——`infra/helm/open-jam/values.prod.yaml` 的 image `tag` ＋ 前端 `apps/<app>/package.json` 的 `version`（兩者同步；後端 `.csproj <Version>` 不維護、不動）。commit body **必列** `- <image-key>@<version>` 清單，並附一段「含 <hash>（摘要）」說明本次涵蓋的 feat / fix commit。
+
+範例 body：
+
+```
+chore(release): 新版本通知買家＋訂單搜尋部署
+
+- order-service@0.0.16
+- creator-web@0.0.34
+
+含 3d9af86（商品新版本通知既有買家 + 賣家訂單搜尋）。
+```
+
 ## Shared 類別庫（`src/Shared/`）
 
 所有服務共用，不含 HTTP 路由邏輯。
