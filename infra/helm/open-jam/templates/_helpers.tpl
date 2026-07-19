@@ -49,10 +49,15 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-PostgreSQL Service hostname.
+PostgreSQL hostname：externalHost 有值時使用外部資料庫（如 Cloud SQL 私有 IP），
+否則為 in-cluster StatefulSet 的 Service 名稱。
 */}}
 {{- define "open-jam.postgresHost" -}}
+{{- if .Values.postgres.externalHost }}
+{{- .Values.postgres.externalHost }}
+{{- else }}
 {{- printf "%s-postgres" (include "open-jam.fullname" .) }}
+{{- end }}
 {{- end }}
 
 {{/*

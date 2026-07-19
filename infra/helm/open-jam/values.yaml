@@ -80,8 +80,14 @@ secrets:
 
 postgres:
   enabled: true
+  # 外部資料庫 host（如 Cloud SQL 私有 IP）；有值時 connection string 指向它，
+  # 搭配 enabled: false 停用 in-cluster StatefulSet
+  externalHost: ""
   image: postgres:16-alpine
   user: postgres
+  # Npgsql 每服務連線池上限（11 個服務共用同一實例，Cloud SQL max_connections=100，
+  # 11×5=55 留餘裕給 Hydra 與維運連線；服務加副本時每 pod 一份 pool，需重新估算）
+  maxPoolSize: 5
   persistence:
     enabled: true
     storageClass: ""

@@ -42,7 +42,10 @@ hydraClients:
 # ── Infrastructure ────────────────────────────────────────────────────────────
 
 postgres:
-  enabled: true
+  # 2026-07-20 遷移至 Cloud SQL（私有 IP），in-cluster StatefulSet 停用；
+  # PVC 保留供回滾（enabled: true + Secret Manager 密碼改回即可）
+  enabled: false
+  externalHost: "172.25.192.5"
   image: postgres:16-alpine
   user: postgres
   persistence:
