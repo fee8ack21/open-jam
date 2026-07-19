@@ -9,10 +9,10 @@ fullnameOverride: ""
 # open-jam 應用 chart 為各自獨立的 release，因此以下直接填入「open-jam chart
 # 實際建立的 Service 名稱」（預設對應 release name = open-jam 的命名慣例：
 # <release>-<component>）。若 release 名稱不同，請對應調整。
-# `api.openjam.co` 對應 docs/infra.md 所述「功能 API」服務，目前以 path 路由
-# 逐步對應各微服務（如 `/store-service` → StoreService、`/log-service` →
-# LogService）；其餘 path（如 storage-service）待對應服務的 Helm chart /
-# Service 就緒（storageService.enabled=true）後再依需求新增。
+# `api.openjam.co` 對應 docs/infra.md 所述「功能 API」服務，以 path 路由
+# 對應各微服務（如 `/store-service` → StoreService）。QuotaService 刻意不對外
+# 曝露（扣量端點信任轉發的使用者 token，公開後使用者可自打扣量），僅供叢集內
+# CatalogService 呼叫。
 # 注意：GCE Ingress 的 translation 為 all-or-nothing —— 任一 path 指向不存在的
 # Service 會使「整個」Ingress 同步失敗，連帶讓 api.openjam.co 所有路由都無法寫入
 # URL map（請求將掉進 *.openjam.co 萬用網域）。新增 path 前務必確認 Service 已部署。
@@ -54,6 +54,10 @@ ingress:
           serviceName: open-jam-order-service
         - path: /notification-service
           serviceName: open-jam-notification-service
+        # workspace-web 管理員「資源用量」頁呼叫 GET /v1/files/usage/summary（Admin）；
+        # 其餘檔案 API 受 InternalService policy / HMAC 簽章保護，可安全對外。
+        - path: /storage-service
+          serviceName: open-jam-storage-service
     - host: docs.openjam.co
       serviceName: open-jam-docs
     - host: "*.openjam.co"
