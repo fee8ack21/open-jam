@@ -189,6 +189,9 @@ const goList = () => router.push({ name: 'list' });
   padding: 1px 12px; transform: rotate(-1deg);
 }
 .order-total { font-family: var(--oj-display); color: var(--text); }
+@media (max-width: 860px) {
+  .order-eyebrow { margin-top: 16px; }
+}
 .order-item { padding: 16px 0; border-bottom: 1px dashed var(--border); }
 .order-item:first-child { padding-top: 0; }
 .order-item-price { font-size: 13px; font-weight: 700; color: var(--text-soft); font-family: var(--oj-display); white-space: nowrap; }
