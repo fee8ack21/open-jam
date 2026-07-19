@@ -160,7 +160,7 @@ auth:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
-    tag: v0.0.25
+    tag: v0.0.26
     pullPolicy: IfNotPresent
   # Cloudflare Turnstile 認證表單人機驗證（Site Key 為公開值；secretKey → 機密 overlay，
   # 未提供時整組停用：widget 不渲染、後端不驗）
@@ -224,7 +224,7 @@ storeService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/store-service
-    tag: v0.0.11
+    tag: v0.0.12
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -239,7 +239,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.20
+    tag: v0.0.21
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -269,7 +269,7 @@ paymentService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/payment-service
-    tag: v0.0.17
+    tag: v0.0.18
     pullPolicy: IfNotPresent
   replicaCount: 1
   stripe:
@@ -295,7 +295,7 @@ orderService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
-    tag: v0.0.17
+    tag: v0.0.18
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -310,7 +310,7 @@ notificationService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/notification-service
-    tag: v0.0.5
+    tag: v0.0.6
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -325,7 +325,7 @@ contentService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/content-service
-    tag: v0.0.3
+    tag: v0.0.4
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
