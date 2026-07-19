@@ -234,7 +234,7 @@ catalogService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/catalog-service
-    tag: v0.0.19
+    tag: v0.0.20
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -290,7 +290,7 @@ orderService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/order-service
-    tag: v0.0.15
+    tag: v0.0.16
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -305,7 +305,7 @@ notificationService:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/notification-service
-    tag: v0.0.4
+    tag: v0.0.5
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -335,7 +335,7 @@ creatorWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/creator-web
-    tag: v0.0.33
+    tag: v0.0.34
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -365,7 +365,7 @@ workspaceWeb:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/workspace-web
-    tag: v0.0.49
+    tag: v0.0.50
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
@@ -397,7 +397,7 @@ bootstrap:
   enabled: true
   image:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/bootstrap
-    tag: v0.0.22
+    tag: v0.0.23
     pullPolicy: IfNotPresent
   ttlSecondsAfterFinished: 300
   # seed 平台管理員（password → 機密 overlay）
