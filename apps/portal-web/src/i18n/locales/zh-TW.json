@@ -282,32 +282,6 @@
       "note": "the boring pages, made friendly ♡"
     }
   },
-  "onboarding": {
-    "modalAria": "平台說明",
-    "title": "關於這個平台",
-    "meta": "OPEN JAM · SIDE PROJECT",
-    "closeAria": "關閉",
-    "s1": {
-      "title": "這是一個 Side Project",
-      "body": "Open Jam 是個人開發的 side project，純粹作為技術測試與作品集展示之用，並非正式營運的商業平台。"
-    },
-    "s2": {
-      "title": "金流為測試模式",
-      "body": "結帳僅串接 Stripe 金流的 {testMode}，不會產生任何真實扣款。請勿輸入真實信用卡資訊，可使用 Stripe 提供的測試卡號（例如 {card}）。",
-      "testMode": "Test Mode"
-    },
-    "s3": {
-      "title": "資料僅供展示",
-      "body": "站上的作品與資料皆為示範內容，可能隨時調整或重置，請勿用於正式交易。"
-    },
-    "start": "我知道了，開始逛逛",
-    "coachEyebrow": "右上角工具列",
-    "coachGithubTitle": "GitHub 原始碼",
-    "coachGithubDesc": "本平台完整原始碼 repository",
-    "coachDocsTitle": "專案文件",
-    "coachDocsDesc": "系統設計與規格說明文件",
-    "coachDone": "知道了"
-  },
   "notifications": {
     "title": "通知",
     "empty": "目前沒有通知",

@@ -282,32 +282,6 @@
       "note": "the boring pages, made friendly ♡"
     }
   },
-  "onboarding": {
-    "modalAria": "Platform notice",
-    "title": "About this platform",
-    "meta": "OPEN JAM · SIDE PROJECT",
-    "closeAria": "Close",
-    "s1": {
-      "title": "This is a side project",
-      "body": "Open Jam is a personal side project, built purely for technical experimentation and as a portfolio showcase — it is not a commercially operated platform."
-    },
-    "s2": {
-      "title": "Payments are in test mode",
-      "body": "Checkout only connects to Stripe’s {testMode}, so no real charges are ever made. Please do not enter real credit card details; you can use a Stripe test card number (for example {card}).",
-      "testMode": "Test Mode"
-    },
-    "s3": {
-      "title": "Data is for demonstration only",
-      "body": "The works and data on the site are sample content and may be changed or reset at any time. Please do not use it for real transactions."
-    },
-    "start": "Got it, start browsing",
-    "coachEyebrow": "Top-right toolbar",
-    "coachGithubTitle": "GitHub source",
-    "coachGithubDesc": "The platform’s full source code repository",
-    "coachDocsTitle": "Documentation",
-    "coachDocsDesc": "System design and specification docs",
-    "coachDone": "Got it"
-  },
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet",
