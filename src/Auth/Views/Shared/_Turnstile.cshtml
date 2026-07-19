@@ -1,0 +1,9 @@
+@inject Microsoft.Extensions.Options.IOptions<Auth.Options.TurnstileOptions> Turnstile
+@* Cloudflare Turnstile 人機驗證 widget：驗證通過後自動於表單塞入 cf-turnstile-response
+   hidden 欄位，隨 POST 送出由 HomeController.VerifyCaptchaAsync 驗證。金鑰未設定時不渲染。 *@
+@if (Turnstile.Value.Enabled)
+{
+    var lang = System.Globalization.CultureInfo.CurrentUICulture.Name == "en" ? "en" : "zh-tw";
+    <div class="cf-turnstile" data-sitekey="@Turnstile.Value.SiteKey" data-language="@lang" data-theme="light"></div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+}

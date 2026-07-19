@@ -5,6 +5,7 @@ using Auth.Models;
 using Auth.Options;
 using Auth.Services.Hydra;
 using Auth.Services.Legal;
+using Auth.Services.Security;
 using Auth.Services.Users;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
@@ -22,6 +23,7 @@ public class HomeController(
     IHydraService hydra,
     IUserService userService,
     ILegalConsentService legalConsentService,
+    ITurnstileService turnstileService,
     IDataProtectionProvider dataProtection,
     IOptions<AppOptions> appOptions) : Controller
 {
@@ -73,6 +75,7 @@ public class HomeController(
             return Redirect(appOptions.Value.WorkspaceUrl);
 
         if (!ModelState.IsValid) return View(model);
+        if (!await VerifyCaptchaAsync()) return View(model);
 
         var (success, subject, error) = await userService.LoginAsync(model.Email, model.Password);
         if (!success)
@@ -145,6 +148,7 @@ public class HomeController(
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid) return View(await WithActiveLegalDocumentsAsync(model));
+        if (!await VerifyCaptchaAsync()) return View(await WithActiveLegalDocumentsAsync(model));
 
         var (success, error) = await userService.RegisterAsync(model.Email, model.Password);
         if (!success)
@@ -246,6 +250,7 @@ public class HomeController(
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
+        if (!await VerifyCaptchaAsync()) return View(model);
 
         await userService.SendPasswordResetAsync(model.Email);
         TempData["Email"] = model.Email;
@@ -281,6 +286,7 @@ public class HomeController(
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
+        if (!await VerifyCaptchaAsync()) return View(model);
 
         var (success, error) = await userService.ResetPasswordAsync(model.Token, model.Password);
         if (!success)
@@ -349,6 +355,20 @@ public class HomeController(
             ReconsentTicketLifetime);
 
         return View("LegalReconsent", new LegalReconsentViewModel { Ticket = ticket, Documents = pending });
+    }
+
+    /// <summary>
+    /// 驗證表單夾帶的 Turnstile token（widget 自動塞入 cf-turnstile-response 欄位）；
+    /// 未通過時掛上表單層級錯誤，呼叫端據以重新渲染表單（widget 隨頁面重載重新出題）。
+    /// </summary>
+    private async Task<bool> VerifyCaptchaAsync()
+    {
+        var token = Request.Form["cf-turnstile-response"].ToString();
+        if (await turnstileService.VerifyAsync(token, HttpContext.Connection.RemoteIpAddress?.ToString()))
+            return true;
+
+        ModelState.AddModelError("", "人機驗證未通過，請再試一次");
+        return false;
     }
 
     /// <summary>re-consent 登入票證的 time-limited Data Protector。</summary>

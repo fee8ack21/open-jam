@@ -108,6 +108,16 @@ builder.Services.AddRateLimiter(options =>
         }));
 });
 
+// Cloudflare Turnstile（認證表單人機驗證；金鑰留空即整組停用）。
+// 短 timeout：siteverify 失敗採 fail-open，不讓外部服務延遲拖垮表單送出。
+builder.Services.Configure<TurnstileOptions>(builder.Configuration.GetSection("Turnstile"));
+builder.Services.AddHttpClient("turnstile", client =>
+{
+    client.BaseAddress = new Uri("https://challenges.cloudflare.com/");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
+builder.Services.AddScoped<ITurnstileService, TurnstileService>();
+
 // ContentService API client（取得啟用中法律文件供註冊 / re-consent 同意流程）
 var contentBaseUrl = (builder.Configuration["Services:ContentService:BaseUrl"] ?? "http://localhost:5181").TrimEnd('/') + "/";
 builder.Services.AddHttpClient("content", client => client.BaseAddress = new Uri(contentBaseUrl));

@@ -71,6 +71,14 @@ spec:
             # 取得啟用中法律文件供註冊 / 登入 re-consent 同意流程
             - name: Services__ContentService__BaseUrl
               value: {{ include "open-jam.contentServiceUrl" . | quote }}
+            # Cloudflare Turnstile 人機驗證（任一金鑰留空即整組停用）
+            - name: Turnstile__SiteKey
+              value: {{ .Values.auth.turnstile.siteKey | quote }}
+            - name: Turnstile__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "open-jam.secretName" . }}
+                  key: auth-turnstile-secret-key
           {{- with .Values.auth.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

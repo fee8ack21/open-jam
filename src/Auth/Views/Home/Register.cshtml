@@ -36,6 +36,10 @@
                 <form asp-action="Register" method="post" novalidate>
                     <input type="hidden" asp-for="LoginChallenge">
                     <div class="form-body">
+                        @if (ViewData.ModelState[""] is { } ms && ms.Errors.Any())
+                        {
+                            <p class="field-err" style="display:block">@ms.Errors[0].ErrorMessage</p>
+                        }
 
                         <div class="field" data-field="Email">
                             <label class="field-label" asp-for="Email">@T["Register.EmailLabel"]</label>
@@ -85,6 +89,8 @@
                             <span asp-validation-for="Agree" class="field-err"></span>
                             <span class="field-err" data-legal-hint style="display:none">@T["Register.MustReadLegal"]</span>
                         </div>
+
+                        @await Html.PartialAsync("_Turnstile")
 
                         <button type="submit" class="btn-pop">
                             @IconHelper.Render("sparkle", 18) @T["Register.Submit"]

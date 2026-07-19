@@ -67,6 +67,8 @@
                                    style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
                         </div>
 
+                        @await Html.PartialAsync("_Turnstile")
+
                         <button type="submit" class="btn-pop violet">
                             @IconHelper.Render("arrowRight", 18) @T["Login.Submit"]
                         </button>

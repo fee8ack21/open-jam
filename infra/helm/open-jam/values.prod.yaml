@@ -161,6 +161,10 @@ auth:
     repository: asia-east1-docker.pkg.dev/open-jam-498418/open-jam/auth
     tag: v0.0.23
     pullPolicy: IfNotPresent
+  # Cloudflare Turnstile 認證表單人機驗證（Site Key 為公開值；secretKey → 機密 overlay，
+  # 未提供時整組停用：widget 不渲染、後端不驗）
+  turnstile:
+    siteKey: "0x4AAAAAAD45oi1uDWrs9i7o"
   replicaCount: 1
   resources:
     requests:
