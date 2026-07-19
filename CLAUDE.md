@@ -105,6 +105,16 @@ chore(release): 新版本通知買家＋訂單搜尋部署
 含 3d9af86（商品新版本通知既有買家 + 賣家訂單搜尋）。
 ```
 
+## 監控告警（Discord）
+
+三層告警匯入同一 Discord 頻道（詳見 `infra/gcp/README.md`）：
+
+1. **網站掛了**——GCP Cloud Monitoring uptime check 外部探測（openjam.co / auth / hydra / api / workspace），叢集全掛仍能告警。
+2. **應用程式錯誤 log**——Cloud Logging log-based alert。**filter 認 `textPayload` 行首 `fail:` / `crit:`，勿改用 `severity>=ERROR`**（.NET console log 進 Cloud Logging 一律 severity=INFO；stderr 反而全被標 ERROR、噪音極大）。
+3. **pod / node 異常**——叢集內 kwatch（open-jam chart `kwatch` 區塊，`templates/kwatch/`），CrashLoop / OOM / ImagePull / PVC 快滿，告警附原因與 log 片段。webhook 走機密 overlay `secrets.discord.webhookUrl`（缺值時 helm render 直接失敗）。
+
+前兩層經 `infra/gcp/alert-relay/`（Cloud Function）轉發成 Discord embed（GCP webhook 格式與 Discord 不相容）；GCP 資源以 `infra/gcp/monitoring/setup.sh` 建置（冪等）。
+
 ## Shared 類別庫（`src/Shared/`）
 
 所有服務共用，不含 HTTP 路由邏輯。

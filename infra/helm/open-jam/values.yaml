@@ -72,6 +72,9 @@ secrets:
   storage:
     # 本地檔案後端的 HMAC blob 簽章密鑰（僅 storage.provider=Local 時使用）
     localSigningKey: "changeme-local-storage-signing-key"
+  discord:
+    # 告警頻道 webhook URL（kwatch pod 異常告警用；kwatch.enabled=true 時必填）
+    webhookUrl: ""
 
 # ── Infrastructure ────────────────────────────────────────────────────────────
 
@@ -437,6 +440,23 @@ docs:
     limits:
       cpu: 200m
       memory: 256Mi
+
+# ── 監控告警 ──────────────────────────────────────────────────────────────────
+# kwatch：叢集內 pod / node 異常偵測（CrashLoopBackOff / OOM / probe 失敗 /
+# PVC 空間不足等）直接發 Discord webhook。外部視角（網站掛了）另由 GCP
+# Cloud Monitoring uptime check 負責（見 infra/gcp/monitoring/）。
+kwatch:
+  enabled: false
+  image: ghcr.io/abahmed/kwatch:v0.10.5
+  alertTitle: "Open Jam 叢集告警"
+  maxRecentLogLines: 30
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
 
 # ── One-time Seed Job ─────────────────────────────────────────────────────────
 

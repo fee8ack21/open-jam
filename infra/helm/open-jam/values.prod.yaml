@@ -23,7 +23,8 @@ dbNamePrefix: open_jam
 # 取出疊上（見 release.yml deploy job）。
 secrets:
   # postgres.password / redis.password / rabbitmq.password /
-  # hydra.systemSecret / hydra.pairwiseSalt / sendgrid.apiKey → 機密 overlay
+  # hydra.systemSecret / hydra.pairwiseSalt / sendgrid.apiKey /
+  # discord.webhookUrl（kwatch 告警頻道）→ 機密 overlay
   smtp:
     username: ""
     password: ""
@@ -394,6 +395,22 @@ docs:
     limits:
       cpu: 200m
       memory: 256Mi
+
+# ── 監控告警 ──────────────────────────────────────────────────────────────────
+
+# 叢集內 pod / node 異常告警 → Discord（webhook URL 由機密 overlay 提供）
+kwatch:
+  enabled: true
+  image: ghcr.io/abahmed/kwatch:v0.10.5
+  alertTitle: "Open Jam 正式站告警"
+  maxRecentLogLines: 30
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
 
 # ── One-time Seed Job ─────────────────────────────────────────────────────────
 

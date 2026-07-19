@@ -1,0 +1,61 @@
+{{- if .Values.kwatch.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-jam.fullname" . }}-kwatch
+  labels:
+    {{- include "open-jam.labels" . | nindent 4 }}
+    app.kubernetes.io/component: kwatch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "open-jam.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: kwatch
+  template:
+    metadata:
+      labels:
+        {{- include "open-jam.labels" . | nindent 8 }}
+        app.kubernetes.io/component: kwatch
+      annotations:
+        # 設定（含 webhook）變更時觸發 rollout
+        checksum/config: {{ include (print $.Template.BasePath "/kwatch/secret.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "open-jam.fullname" . }}-kwatch
+      containers:
+        - name: kwatch
+          image: {{ .Values.kwatch.image | quote }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: true
+          ports:
+            - name: health
+              containerPort: 8060
+          env:
+            - name: CONFIG_FILE
+              value: /config/config.yaml
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          {{- with .Values.kwatch.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "open-jam.fullname" . }}-kwatch-config
+{{- end }}
