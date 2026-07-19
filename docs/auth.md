@@ -2,7 +2,7 @@
 
 Auth Service 負責 Open Jam 的帳號、認證與授權，以 OIDC（Hydra）為核心，並透過 Outbox 機制與 [[Email]]、[[Log]] 等服務串接。本頁分為**功能規格**（面向使用者的流程）與**技術設計**（基礎建設與實作策略）兩部分。
 
-> **實作現況（MVP）**：本頁多數內容為規劃規格。**已實作**：註冊（含 Pending 帳號覆蓋重註冊）/ Email 驗證 / 登入 / 忘記密碼 / 重置密碼、Hydra Login & Consent Provider、Argon2id 雜湊、條款同意與 re-consent、`UserRegisteredEvent`、`GET /v1/users`（Admin）、店面子網域 OIDC redirect URI 註冊（消費 `StoreProvisionedEvent`）、JWT role claim（`User.Role` enum：`User` / `Admin`）。**尚未實作**：CAPTCHA（Turnstile）、登入失敗鎖定與 rate limit（`UserStatus.Locked` 僅預留）、過期未驗證帳號清理排程、修改密碼 / 修改信箱 / 帳號停用刪除（GDPR）、2FA、多裝置管理與異常登入偵測、Role–Permission 關聯表與 Redis permission cache、front-channel / back-channel 全域登出；SPA token 實際採 oidc-client-ts silent renew（非下述「refresh token 放 HttpOnly cookie」策略）。
+> **實作現況（MVP）**：本頁多數內容為規劃規格。**已實作**：註冊（含 Pending 帳號覆蓋重註冊）/ Email 驗證 / 登入 / 忘記密碼 / 重置密碼、Hydra Login & Consent Provider、Argon2id 雜湊、條款同意與 re-consent、`UserRegisteredEvent`、`GET /v1/users`（Admin）、店面子網域 OIDC redirect URI 註冊（消費 `StoreProvisionedEvent`）、JWT role claim（`User.Role` enum：`User` / `Admin`）、**登入失敗鎖定**（連續失敗達上限暫鎖 + 鎖定通知信，期滿自動解鎖）、**IP rate limit**（認證表單 POST 固定視窗限流，超限 429）與**寄信節流**（驗證信 / 重置信冷卻 + 每小時上限，mail-bomb 防護），設定見 `Security` 區段（`SecurityOptions`）。**尚未實作**：CAPTCHA（Turnstile）與失敗升級 CAPTCHA、過期未驗證帳號清理排程、修改密碼 / 修改信箱 / 帳號停用刪除（GDPR）、2FA、多裝置管理與異常登入偵測、Role–Permission 關聯表與 Redis permission cache、front-channel / back-channel 全域登出；SPA token 實際採 oidc-client-ts silent renew（非下述「refresh token 放 HttpOnly cookie」策略）。
 
 ## 功能規格
 

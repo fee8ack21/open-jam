@@ -9,6 +9,7 @@ using Auth.Services.Security;
 using Auth.Services.Storefront;
 using Auth.Services.Users;
 using MassTransit;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Shared.Auth;
@@ -17,6 +18,7 @@ using Shared.Middleware;
 using Shared.Web;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +63,50 @@ builder.Services.AddScoped<IHydraService, HydraService>();
 // App options
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("App"));
 builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
+builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection("Security"));
+
+// 正式環境前置 GCLB（GCE Ingress）：真實客戶端 IP 在 X-Forwarded-For。GCLB 會在既有
+// XFF 之後附加「<client>, <lb>」兩段，故 ForwardLimit = 2 取到倒數第二段（真實 client），
+// 客戶端自帶的偽造段不會被採信。本機直連無 XFF header 時不作用。
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 2;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// IP 維度 rate limit（固定視窗，單 pod in-memory；replica > 1 時各 pod 各自計數，屬可接受的放寬）。
+// 表單類（登入 / 重置密碼）與寄信類（註冊 / 忘記密碼）分開限額；寄信類另有帳號維度的
+// DB 節流（UserService 冷卻 + 每小時上限）作第二道防線。
+var security = builder.Configuration.GetSection("Security").Get<SecurityOptions>() ?? new SecurityOptions();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (ctx, ct) =>
+    {
+        ctx.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        await ctx.HttpContext.Response.WriteAsync("請求過於頻繁，請稍後再試。", ct);
+    };
+
+    static string ClientIp(HttpContext ctx) => ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+    options.AddPolicy("auth-form", ctx => RateLimitPartition.GetFixedWindowLimiter(ClientIp(ctx),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = security.FormRateLimit,
+            Window      = TimeSpan.FromSeconds(security.RateLimitWindowSeconds),
+            QueueLimit  = 0,
+        }));
+
+    options.AddPolicy("auth-email", ctx => RateLimitPartition.GetFixedWindowLimiter(ClientIp(ctx),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = security.EmailFormRateLimit,
+            Window      = TimeSpan.FromSeconds(security.RateLimitWindowSeconds),
+            QueueLimit  = 0,
+        }));
+});
 
 // ContentService API client（取得啟用中法律文件供註冊 / re-consent 同意流程）
 var contentBaseUrl = (builder.Configuration["Services:ContentService:BaseUrl"] ?? "http://localhost:5181").TrimEnd('/') + "/";
@@ -123,8 +169,11 @@ if (!skipStartupTasks)
         .Database.MigrateAsync();
 }
 
+// 還原真實客戶端 IP（GCLB X-Forwarded-For），rate limit 分區與日誌依賴，須最早執行
+app.UseForwardedHeaders();
+
 // 正式環境 REST API 掛在 api.openjam.co/auth-service 之下，GCE Ingress 不剝前綴，
-// 由此剝除（設定 PathBase=/auth-service）。須為第一個 middleware；不帶前綴的 MVC
+// 由此剝除（設定 PathBase=/auth-service）。不帶前綴的 MVC
 // 頁面（auth.openjam.co/login…）與 /healthz 不符前綴，原樣通過、不受影響。
 app.UseOpenJamPathBase();
 
@@ -143,6 +192,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// IP 維度 rate limit（掛 [EnableRateLimiting] 的認證表單 POST），須在 Routing 之後
+app.UseRateLimiter();
 
 // REST API（/v1）例外統一轉 RFC 9457 Problem Details；
 // MVC 視圖頁面不在此分支，仍由 UseExceptionHandler 導向 Error 頁。

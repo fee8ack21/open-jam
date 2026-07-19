@@ -15,7 +15,8 @@ public interface IUserService
     Task<ListUsersResponse> ListAsync(ListUsersRequest request, CancellationToken ct = default);
 
     /// <summary>
-    /// 註冊新帳號。若同一信箱已有 Pending 帳號（squatting）則覆蓋並重發驗證信；
+    /// 註冊新帳號。若同一信箱已有 Pending 帳號（squatting）則覆蓋並重發驗證信
+    /// （重發受冷卻時間與每小時次數上限節流，超限回傳錯誤）；
     /// 若已是 Active 等已驗證狀態則回傳衝突錯誤。
     /// </summary>
     /// <param name="email">電子信箱。</param>
@@ -34,6 +35,8 @@ public interface IUserService
     /// <summary>
     /// 驗證帳號密碼，回傳帳號 ID（作為 Hydra subject）。
     /// 帳號不存在、密碼錯誤或帳號狀態不允許登入皆回傳失敗。
+    /// 連續失敗達上限即暫時鎖定帳號（<see cref="Auth.Options.SecurityOptions"/>）並寄發鎖定通知信，
+    /// 鎖定期滿自動解鎖；成功登入歸零失敗計數。
     /// </summary>
     /// <param name="email">電子信箱。</param>
     /// <param name="password">明文密碼。</param>
@@ -42,7 +45,8 @@ public interface IUserService
 
     /// <summary>
     /// 送出忘記密碼請求，若信箱存在則建立重置 token 並寫入 Outbox。
-    /// 無論信箱是否存在一律成功回傳，防止帳號列舉。
+    /// 無論信箱是否存在一律成功回傳，防止帳號列舉；
+    /// 冷卻時間內或超過每小時寄信上限時靜默略過寄信（mail-bomb 防護）。
     /// </summary>
     /// <param name="email">電子信箱。</param>
     /// <returns>(Success, Error)。</returns>

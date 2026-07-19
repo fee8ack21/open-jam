@@ -9,6 +9,7 @@ using Auth.Services.Users;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace Auth.Controllers;
@@ -64,7 +65,7 @@ public class HomeController(
     }
 
     /// <summary>登入 POST；驗證帳號密碼，成功後回應 Hydra 或導向完成頁。</summary>
-    [HttpPost("login"), ValidateAntiForgeryToken]
+    [HttpPost("login"), ValidateAntiForgeryToken, EnableRateLimiting("auth-form")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         // challenge 遺失（過期頁面重送、直接 POST）時無法回應 Hydra，導向 Workspace 重新發起 OIDC flow
@@ -140,7 +141,7 @@ public class HomeController(
     /// 註冊 POST；建立帳號、寫入條款同意紀錄（同意當下啟用中的版本）並寄發驗證信。
     /// 若同一信箱已有 Pending 帳號（squatting）則覆蓋並重發驗證信。
     /// </summary>
-    [HttpPost("register"), ValidateAntiForgeryToken]
+    [HttpPost("register"), ValidateAntiForgeryToken, EnableRateLimiting("auth-email")]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid) return View(await WithActiveLegalDocumentsAsync(model));
@@ -241,7 +242,7 @@ public class HomeController(
         View(new ForgotPasswordViewModel { LoginChallenge = login_challenge });
 
     /// <summary>忘記密碼 POST；寄出重置信（無論信箱是否存在皆回同一畫面，防帳號列舉）。</summary>
-    [HttpPost("forgot"), ValidateAntiForgeryToken]
+    [HttpPost("forgot"), ValidateAntiForgeryToken, EnableRateLimiting("auth-email")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
@@ -276,7 +277,7 @@ public class HomeController(
     }
 
     /// <summary>重置密碼 POST；驗證 token 並更新密碼，成功後導向完成頁。</summary>
-    [HttpPost("reset"), ValidateAntiForgeryToken]
+    [HttpPost("reset"), ValidateAntiForgeryToken, EnableRateLimiting("auth-form")]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
         if (!ModelState.IsValid) return View(model);

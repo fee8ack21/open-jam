@@ -112,7 +112,8 @@ pnpm preview
 ASP.NET Core 8 MVC，整合 Ory Hydra（OIDC）。
 
 **核心服務**：
-- `UserService` — 註冊、登入、密碼重設、email 驗證；註冊成功經 Outbox 發 `UserRegisteredEvent`（供 StoreService / NotificationService 回填訪客 UserId）；註冊交易內寫入當下啟用中條款版本的 `UserLegalConsent`（啟用文件清單於交易前向 ContentService 即時取得）
+- `UserService` — 註冊、登入、密碼重設、email 驗證；註冊成功經 Outbox 發 `UserRegisteredEvent`（供 StoreService / NotificationService 回填訪客 UserId）；註冊交易內寫入當下啟用中條款版本的 `UserLegalConsent`（啟用文件清單於交易前向 ContentService 即時取得）。**登入失敗鎖定**：連續失敗達上限（`Security:MaxFailedLoginAttempts`，預設 5）暫時鎖定（`User.LockedUntil`，預設 15 分鐘，期滿自動解鎖歸零）並寄 `email.account_locked` 通知信（unlock_at 台北時間）；成功登入歸零計數。**寄信節流**（mail-bomb 防護）：同帳號驗證信 / 重置信有冷卻（預設 60 秒）與每小時上限（預設 5），驗證信超限回錯誤、重置信靜默略過（維持防列舉統一訊息）
+- **IP rate limit**（`Program.cs` + `[EnableRateLimiting]`）— 認證表單 POST 分兩組固定視窗限流（單 pod in-memory）：`auth-form`（登入 / 重置密碼，預設 10 次/分）、`auth-email`（註冊 / 忘記密碼，預設 5 次/分），超限回 429；設定於 `Security` 區段（`SecurityOptions`）。真實客戶端 IP 經 `UseForwardedHeaders`（`ForwardLimit=2`，GCLB 附加「client, lb」兩段）還原
 - `HydraService` — 包裝 Hydra Admin API（accept/reject login/consent）
 - `ContentServiceClient` + `LegalConsentService` — 法律文件本身由 **ContentService** 管理，Auth 僅保留**同意紀錄**（`UserLegalConsent`，`LegalDocumentId` 為跨服務參照、無外鍵）。`ContentServiceClient`（named HttpClient `"content"`）呼叫 ContentService 匿名端點 `GET /v1/legal-documents/active` 取啟用版本；`LegalConsentService` 以此比對本地同意紀錄算出「未同意清單」（`GetPendingConsentAsync`）、寫入同意（`RecordConsentsAsync`）。註冊時 ContentService 不可用則中止註冊（fail-closed，不建帳號）。
 - `Argon2idHasher` — 密碼雜湊
