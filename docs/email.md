@@ -40,19 +40,20 @@ EmailService 是平台的**共用寄信服務**。各 API service（[[Auth]]、[
 
 ## 模板與多國語系
 
-- 信件模板集中存放於 **EmailService**（上游不持有模板）。
-- 採**每語系獨立模板檔**（例如 `zh-TW/account-activation.html`、`en/account-activation.html`）。
-- 渲染時依訊息攜帶的 locale 選用對應語系模板。
-- 模板清單（隨各服務需求擴充）：
-  - 帳號開通
-  - 重置密碼
-  - 密碼已變更通知
-  - 信箱變更確認（新信箱）/ 變更通知（舊信箱）
-  - 新裝置 / 異常登入提醒
-  - 帳號鎖定 / 停權通知
-  - 訂單確認信（含 order id 與下載連結，見 [[Order]]）
-  - 追蹤新品 / 動態通知（含退訂連結，見 [[Order]]）
-  - （其他服務的交易信日後再擴充）
+- 信件模板集中存放於 **EmailService 的 DB**（`EmailTemplate` + 每語系一筆 `EmailTemplateTranslation`，由 Bootstrap `EmailTemplateSeeder` 寫入；上游不持有模板）。
+- 渲染時依訊息攜帶的 locale 選用對應語系翻譯。
+- 模板清單（已 seed）：
+  - `email.verification` 帳號開通
+  - `email.password_reset` 重置密碼
+  - `email.password_changed` 密碼已變更通知 *
+  - `email.email_change_confirm` / `email.email_change_notify` 信箱變更確認 / 通知 *
+  - `email.new_device_login` 新裝置登入提醒 *
+  - `email.account_locked` 帳號鎖定通知 *
+  - `email.store_application_approved` / `_rejected` 開店申請核准 / 駁回（見 [[Store]]）
+  - `order.completed` 訂單完成信（逐項收據 + 下載頁連結，見 [[Order]]）
+  - `notification.catalog_published` / `notification.store_announcement` 追蹤者上架 / 公告通知（見 [[Notification]]）
+
+  > 標 * 的模板已 seed 但**對應的 Auth 流程尚未實作**（修改密碼 / 修改信箱 / 裝置偵測 / 登入鎖定，見 [[Auth]]），目前不會被觸發。
 
 ## 冪等去重
 

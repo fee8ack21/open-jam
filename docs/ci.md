@@ -24,9 +24,9 @@ on:
     branches: [main]
 ```
 
-`setup` job 讀 HEAD commit：subject 非 `chore(release)` 即判定非發佈、輸出 `is_release=false` 直接結束（一般 feature / fix commit 不會觸發建置）。是 release commit 時，解析 body 的 `- key@version` 條列產出 build matrix。此清單本就是 monorepo per-package 版控的既有產物（各 `apps/<app>/package.json` 各自的 `version`，release commit body 列 `- portal-web@0.0.26` 這類 bullet，見 [[Develop]] 的「Release Commit」）。條列的版本部分（`1.0.0`）**自動補 `v` 前綴**成映像 tag（`v1.0.0`），對齊既有的 `v0.0.x` 映像 tag 慣例。
+`setup` job 掃描**本次 push 內的所有 commits**（`github.event.commits`，不只 HEAD——release commit 之後又疊了其他 commit 一起 push 時，只看 HEAD 會整批漏建）：沒有任何 `chore(release)` commit 即判定非發佈、輸出 `is_release=false` 直接結束（一般 feature / fix commit 不會觸發建置）。有 release commit 時，解析其 body 的 `- key@version` 條列產出 build matrix；同一 push 有多個 release commit 時清單合併、同 key 取較後者。此清單本就是 monorepo per-package 版控的既有產物（各 `apps/<app>/package.json` 各自的 `version`，release commit body 列 `- portal-web@0.0.26` 這類 bullet，見 [[Develop]] 的「Release Commit」）。條列的版本部分（`1.0.0`）**自動補 `v` 前綴**成映像 tag（`v1.0.0`），對齊既有的 `v0.0.x` 映像 tag 慣例。
 
-> **一個 release commit = 一次 workflow run**：清單列幾個服務就在同一個 run 內以 matrix 平行建置，最後彙整成**一則** Discord 通知（不再是每服務一則）。
+> **一次 push = 一次 workflow run**：清單列幾個服務就在同一個 run 內以 matrix 平行建置，最後彙整成**一則** Discord 通知（不再是每服務一則）；同一 push 內即使有多個 release commit，也是同一個 run、同一則通知。
 
 ## 建置範圍：由 release commit 清單決定
 
@@ -145,9 +145,11 @@ Workflow 需要三個 repository secret：
 ```yaml
 name: Release build & push
 
-# 觸發策略：push 到 main，且 HEAD 為 chore(release) commit。
+# 觸發策略：push 到 main，掃描本次 push 內「所有」chore(release) commit
+#（不只 HEAD——release commit 之後又疊了其他 commit 一起 push 時，只看 HEAD
+# 會整批漏建，values.prod.yaml 卻已指向新 tag，下次部署即拉不到映像而回滾）。
 # commit body 的 `- <image-key>@<version>` 清單即宣告要建哪些映像與版本，
-# 無需另打 git tag——一個 release commit = 一次 workflow run = 一則 Discord 通知。
+# 無需另打 git tag；同一 push 有多個 release commit 時清單合併、同 key 取較後者。
 on:
   push:
     branches: [main]
@@ -168,6 +170,9 @@ jobs:
         with:
           fetch-depth: 1
       - id: parse
+        env:
+          # push event payload 內含本次 push 的 commit 清單（含完整 message，上限 20 筆）
+          COMMITS: ${{ toJSON(github.event.commits) }}
         run: |
           cat > /tmp/manifest.json <<'JSON'
           {
@@ -190,18 +195,21 @@ jobs:
           }
           JSON
 
-          # 只看 HEAD 這一筆 commit：subject 非 chore(release) 即非發佈，直接結束
-          SUBJECT=$(git log -1 --format=%s)
-          case "$SUBJECT" in
-            chore\(release\)*) : ;;
-            *)
-              echo "非 release commit（$SUBJECT），略過"
-              echo "is_release=false" >> "$GITHUB_OUTPUT"
-              exit 0
-              ;;
-          esac
+          # 撈本次 push 內所有 chore(release) commit 的 message（依 push 時間序）；
+          # 一個都沒有即非發佈，直接結束
+          RELEASE_MSGS=$(printf '%s' "$COMMITS" | jq -r '.[] | select(.message | startswith("chore(release)")) | .message')
+          if [ -z "$RELEASE_MSGS" ]; then
+            echo "本次 push 無 release commit，略過"
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-          # 解析 body 的 `- key@version` 行 → 查 manifest → 併入 version 組出 include
+          # 解析各 message body 的 `- key@version` 行（同 key 出現多次取最後一筆）
+          # → 查 manifest → 併入 version 組出 include
+          ITEMS=$(printf '%s\n' "$RELEASE_MSGS" \
+            | grep -oE '^- [a-z0-9-]+@[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^- //' \
+            | awk -F@ '{v[$1]=$2; if (!($1 in seen)) { order[++n]=$1; seen[$1]=1 }} END{for(i=1;i<=n;i++) print order[i]"@"v[order[i]]}')
+
           INCLUDE='[]'
           while IFS='@' read -r KEY VER; do
             [ -z "$KEY" ] && continue
@@ -211,7 +219,7 @@ jobs:
               exit 1
             fi
             INCLUDE=$(echo "$INCLUDE" | jq -c --argjson e "$ENTRY" --arg v "v$VER" '. + [$e + {version:$v}]')
-          done < <(git log -1 --format=%b | grep -oE '^- [a-z0-9-]+@[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^- //')
+          done <<< "$ITEMS"
 
           if [ "$(echo "$INCLUDE" | jq 'length')" -eq 0 ]; then
             echo "::error::release commit 未列出任何 '- <key>@<version>' 項目"
@@ -358,7 +366,7 @@ git commit -m "chore(release): 發佈新版本" -m "- portal-web@1.0.0
 git push origin main
 ```
 
-流程：`setup` 確認 HEAD 為 `chore(release)`、解析 body 清單查 manifest 產出 matrix →
+流程：`setup` 掃描本次 push 的所有 commits、找出 `chore(release)`、解析 body 清單查 manifest 產出 matrix →
 `build` 以 matrix 平行建置各映像並以 WIF 推送 `.../portal-web:v1.0.0` 與 `:latest` →
 `notify` 下載各 entry 結果 artifact，彙整成一則 Discord embed。整個發佈是**單一** workflow run。
 
@@ -370,7 +378,7 @@ git push origin main
 
 - **release commit 清單 vs per-package git tag**：改以 `chore(release)` commit body 的 `- <key>@<version>` 清單為建置來源——該清單本就是 release 流程既有產物（見 [[Develop]]），單一事實來源、不必再逐服務打 tag；同一次發佈的多服務落在**同一個 run**，天然彙整成一則通知（避免跨 run 彙整的競態與延遲取捨）。代價是清單需與各服務真實版本一致（release 流程既有要求）。
 - **版本補 `v` 前綴**：清單用 `@1.0.0`（對齊 `package.json` 的 `version`），映像 tag 用 `v1.0.0`（對齊既有映像 tag 慣例），由 `setup` 自動轉換。
-- **只看 HEAD commit**：`setup` 僅解析推送後的 tip commit。慣例上 release commit 為該次 push 的最後一筆（先 release 再 push），故一般不漏；若 release commit 非 tip 則不會被偵測到。
+- **掃描整包 push 而非只看 HEAD**：`setup` 以 `github.event.commits` 解析本次 push 的所有 commits（payload 上限 20 筆）。早期版本只看 tip commit，release commit 之後又疊其他 commit 一起 push 時會整批漏建——`values.prod.yaml` 已指向新 tag、映像卻不存在，部署即 ImagePullBackOff 回滾，故改為全掃；多個 release commit 的清單合併、同 key 取較後者。
 - **WIF vs SA JSON key**：採 WIF 免長期金鑰、無外洩風險；`attribute-condition` 限定 repo 是安全關鍵。
 - **建置前查存在性（冪等）**：以 registry `/v2/.../manifests/<tag>` 查詢比重建再靠 registry 拒絕更省時、也不會覆蓋既有映像；重推同一個 release commit 安全（已存在者標略過）。查詢用 `auth` 產出的 access token（`token_format: 'access_token'`），無需額外裝 `gcloud`。
 - **彙整通知（單一 run 內）**：`build` 各 matrix entry 以結果 artifact 回報自身狀態，`notify` 下載彙整成一則 embed，逐服務標示 `image:version`（✅ 成功 / ⏭️ 略過 / ❌ 失敗），任一失敗即整體標紅。

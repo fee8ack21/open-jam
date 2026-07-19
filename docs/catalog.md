@@ -21,8 +21,9 @@
 
 ### 定價模式
 
-- **固定價**：創作者設定固定售價。
-- **免費**：免費商品（仍可憑信箱領取，見 [[Order]]）。
+- **固定價**：創作者設定固定售價；**付費商品最低定價 NT$30**（低於 Stripe 最低收款金額的訂單會被拒，0 元為免費）。
+- **免費**：免費商品（仍可憑信箱領取，訂單直接履約完成，見 [[Order]]）。
+- **付費商品上架閘門**：`Price > 0` 上架（及已上架商品免費改付費）時向 PaymentService 查該商店 Stripe Connect 收款狀態，`ChargesEnabled=false` 回 422；免費商品不受限（見 [[Order]] 的 Connect 分帳）。
 - **折扣碼 / 優惠碼**（未來工作）：創作者可發折扣碼。
 
 ### 檔案與版本
@@ -37,8 +38,9 @@
 - `Suspended`（遭平台停權，強制下架）：由 Admin 停權 / 解除；解除後回到 `Archived`，由 Owner 自行決定是否重新上架。
 - **上架條件**：
   - 須先建立至少一個版本（current version）。
-  - 檔案須已 **ready**（[[Storage]] 掃毒 + 轉碼完成）。
+  - 檔案須已 **ready**（MVP 為 confirm 即 ready 的 stub；掃毒 + 轉碼為 [[Storage]] 未來工作）。
   - 必填欄位齊全。
+  - 付費商品須通過 Stripe Connect 收款閘門（見定價模式）。
 - **下架**：封存後可重新上架；**已售出商品仍保留買家下載權**（呼應 [[Auth]] GDPR 與 [[Storage]] 生命週期策略）。
 
 ## 分類與標籤
@@ -48,23 +50,27 @@
 
 ## 評論與收藏
 
-- **評論評分**：限**已購買者**（CatalogService 以呼叫者身分向 [[Order]] `GET /v1/orders/purchased/{catalogId}` 驗證完成訂單），每人每商品一則（upsert / 可刪除）；商品維護 `RatingAverage` / `RatingCount`。
+- **評論評分**：限**已購買者**，每人每商品一則（upsert / 可刪除）；商品維護 `RatingAverage` / `RatingCount`。兩種身分路徑：
+  - **登入買家**：CatalogService 以呼叫者 Bearer token 向 [[Order]] `GET /v1/orders/purchased/{catalogId}` 驗證完成訂單。
+  - **未註冊訪客**：憑 `?orderId=`（已完成且含此商品的訂單 ID，即下單憑證）匿名驗證，以下單信箱識別身分（`CatalogReview` 雙身分 `UserId` / `Email`，partial unique index 防重）。
 - **收藏（Wishlist）**：登入使用者可收藏 / 取消收藏商品，查詢自己的收藏清單。
 
 ## 計數與策展
 
 - **銷量 `SalesCount`**：消費 `OrderCompletedEvent` 原子累加（`ProcessedEvent` 冪等去重）。
 - **瀏覽數 `ViewCount`**：`POST /v1/catalogs/{id}/view`，前端以 localStorage 時間窗去重。
-- **精選 `IsFeatured`**：Admin 設定精選旗標，首頁採「精選 × 熱門」混合策展。
+- **平台精選 `IsFeatured`**：Admin 設定精選旗標（`POST /{id}/feature` / `/unfeature`），首頁採「精選 × 熱門」混合策展。
+- **店長精選 `IsStoreFeatured`**：店家 Owner 於自家店面策展（`POST /{id}/store-feature` / `/store-unfeature`），`PUT /v1/catalogs/store-featured/order` 全量覆蓋重排顯示順序（`StoreFeaturedSortOrder`）。
 - 商品列表 API 支援排序（熱門 / 最新 / 價格）與價格區間篩選。
 
 ## 買家下載
 
 - 買家於已完成訂單後，經 `GET /v1/catalogs/{id}/versions/{versionId}/downloads` 取得版本可下載檔清單與短效下載 URL；授權以購買紀錄即時驗證（見 [[Order]] 履約）。
 
-## 預覽
+## 預覽媒體
 
-- 採雙層機制：**公開預覽衍生檔**（試看片段、PDF 前幾頁、預覽圖）vs **付費完整檔**，預覽內容由創作者指定。詳見 [[Storage]]。
+- 商品內頁圖庫由創作者上傳的**預覽媒體**組成：截圖（`Screenshot`）/ 預覽影片（`PreviewVideo`）/ YouTube 外嵌（`ExternalVideo`，`POST /v1/catalogs/{id}/assets/external` 驗證並正規化網址、不涉 StorageService 不計配額）。跨型別共用同一條 `SortOrder` 序列、總數上限 8；圖片單檔 5MB、影片 100MB；`PUT /v1/catalogs/{id}/assets/preview-media/order` 全量覆蓋重排。
+- 原規劃的「公開預覽**衍生檔**」（試看片段、PDF 前幾頁自動生成）為 [[Storage]] 未來工作，MVP 以上述創作者自行上傳的預覽媒體取代。
 
 ## 配額
 
@@ -76,7 +82,9 @@
   - 上架商品數上限
 - 配額於使用者提交確認（資產 confirm）時檢查並扣量，簽發上傳 signed URL 階段不計配額（見 [[Storage]]）；計量與用量統計見 [[Quota]]。
 
-## 內容檢舉與審核
+## 內容檢舉與審核（未實作，規劃中）
+
+> 檢舉機制尚未實作（見 [[MVP]] TODO）；目前僅有 Admin 手動停權 / 解除（`POST /{id}/suspend` / `/unsuspend`）已可用。
 
 - **任何人（含未登入）可檢舉**不宜內容。
 - 檢舉進入**管理員審核**，成立則**下架商品**或**停權創作者**（接 [[Auth]] 管理員停權）。

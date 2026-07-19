@@ -20,14 +20,13 @@ src/
   PaymentService/       # Stripe Checkout 金流 / Webhook
   QuotaService/         # 資源配額計量
   NotificationService/  # 追蹤者通知（上架 / 公告）
+  ContentService/       # 平台內容（法律文件 / FAQ）
   Bootstrap/            # 平台初始化 seed
   Shared/               # 共用程式庫
 apps/
   workspace-web/    # 用戶後台
   creator-web/      # 創作者商品空間
   portal-web/       # 平台首頁，探索各產品與創作者
-scripts/
-  publish/
 infra/
   docker/
   helm/

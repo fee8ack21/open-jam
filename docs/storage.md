@@ -22,8 +22,8 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
 1. 前端向**功能 API** 請求上傳，功能 API 轉向 StorageService 簽發 **upload signed URL**（內含大小、content-type 限制與時效）。**簽發階段不計配額**。
 2. 前端透過 signed URL **直傳** storage，不經功能 API 轉傳。
 3. 使用者**提交確認**後，功能 API 執行 confirm 管線：確認檔案 Ready → 向 [[Quota]] **扣量**（單檔 / 單商品 / 帳號總量上限）→ 建立資產 reference → 呼叫 `POST /v1/files/{id}/reference` 標記檔案**已被使用**。未標記的檔案不計配額，逾期由清理排程回收。
-4. 大檔（影片）支援 **resumable 上傳**（GCS resumable / S3 multipart），斷線可續傳。
-5. 上傳檔案須做**類型驗證**（magic-bytes 比對實際類型，非僅副檔名）與**大小上限**檢查。
+4. 大檔（影片）支援 **resumable 上傳**（GCS resumable / S3 multipart），斷線可續傳。（**未來工作**，目前為單次 PUT 直傳。）
+5. 上傳檔案須做**類型驗證**與**大小上限**檢查。（目前為 content-type 白名單 + 簽發時大小上限；magic-bytes 比對實際類型為**未來工作**。）
 
 ## 上傳完成與異步處理 Pipeline
 
@@ -53,20 +53,21 @@ StorageService 負責平台數位商品檔案（影片、圖片、PDF）的**上
   2. 功能 API 驗證請求者是否擁有該商品（entitlement，見 [[Order]]）。
   3. 通過後簽發授權憑證：
      - **一般檔案**：短效 signed URL。
-     - **HLS 串流**：signed cookie，一次涵蓋整個串流的多個 segment。
-- **CDN**：透過 CDN 加速分發，signed URL / signed cookie 與 CDN 快取並存。
+     - **HLS 串流**（未來工作，隨轉碼一併實作）：signed cookie，一次涵蓋整個串流的多個 segment。
+- **CDN**（未來工作）：透過 CDN 加速分發，signed URL / signed cookie 與 CDN 快取並存。
+- **服務間授權**：檔案管理 API（簽 URL / confirm / reference / 租戶用量）掛 `"InternalService"` policy，僅限功能 API（StoreService / CatalogService / QuotaService，各以 `ServiceTokenHandler` 帶 service token）呼叫，不對外開放（防匿名簽發私有付費檔下載 URL）；`GET /v1/files/usage/summary` 為 Admin。本地 blob 端點以 HMAC 簽章 + `public/` 虛擬 bucket 段控管匿名讀取。
 
 ### 影片防盜
 
 - MVP 採**僅 signed URL / cookie 存取控制**（不加密 segment）。
 - 已知取捨：可防止未授權存取，但**無法防止下載後的轉發 / 盜錄**；若日後需更強保護再評估 HLS AES-128 加密或 DRM。
 
-## 預覽機制（雙層）
+## 預覽機制（雙層，衍生檔為未來工作）
 
 - 檔案分為兩層：
-  - **公開預覽衍生檔**：可未授權瀏覽（影片試看片段、PDF 前幾頁、預覽圖等）。
+  - **公開預覽衍生檔**（未來工作，隨轉碼 pipeline 實作）：可未授權瀏覽（影片試看片段、PDF 前幾頁、預覽圖等）。
   - **付費完整檔**：須授權才能下載。
-- 預覽內容由**創作者自行指定**（而非一律自動生成）。
+- 預覽內容由**創作者自行指定**（而非一律自動生成）。**MVP 現況**：由創作者自行上傳的預覽媒體（截圖 / 預覽影片 / YouTube 外嵌）取代衍生檔，見 [[Catalog]] 預覽媒體。
 
 ## 檔案組織與生命週期
 

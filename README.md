@@ -30,8 +30,9 @@ src/
   PaymentService/       # Stripe Checkout 金流與 Webhook
   OrderService/         # 訂單、結帳入口、狀態歷程 REST API
   NotificationService/  # 追蹤者上架 / 公告通知（Email + in-app）
+  ContentService/       # 平台內容：法律文件版本、常見問題（FAQ）分類與問答
   EmailService/         # RabbitMQ Worker，渲染模板並寄送 Email
-  Bootstrap/            # 一次性 seed：Hydra client、Email template、分類、管理員
+  Bootstrap/            # 一次性 seed：Hydra client、Email template、分類、管理員、法律文件、FAQ
   Shared/               # 共用 DbContext、Auth、Exception、Events、Outbox model
 apps/
   portal-web/           # 市集首頁 / landing SPA，OIDC
@@ -72,18 +73,18 @@ docker compose --profile seed run --rm bootstrap
 | creator-web | 5173 | 創作者店面 |
 | portal-web | 5174 | 市集首頁 |
 | workspace-web | 5175 | 創作者後台 |
-| docs | 5176 | VitePress 文件站 |
+| catalog-service | 5176 | 商品目錄 API |
 | quota-service | 5177 | 資源配額 API |
 | payment-service | 5178 | Stripe 金流 API |
 | order-service | 5179 | 訂單 API |
 | notification-service | 5180 | 通知 API |
+| content-service | 5181 | 平台內容（法律文件 / FAQ）API |
+| docs | 5182 | VitePress 文件站（5176 讓給 catalog-service） |
 | postgres | 5432 | PostgreSQL |
 | redis | 6379 | Redis |
 | rabbitmq | 5672 / 15672 | RabbitMQ / Management UI |
 | hydra | 4444 / 4445 | Ory Hydra Public / Admin |
 | mailpit | 1025 / 8025 | SMTP / Web UI |
-
-> `CatalogService` 目前存在於專案中，但尚未加入 `infra/docker/docker-compose.yaml`（前端容器以 `CATALOG_API_URL` 指向宿主機的開發伺服器）。
 
 ## 後端服務
 
@@ -108,6 +109,7 @@ dotnet ef database update
 | PaymentService | Stripe Checkout 金流 REST API | http://localhost:5178，Swagger: `/swagger` |
 | OrderService | 訂單 / 結帳 / 狀態歷程 REST API | http://localhost:5179，Swagger: `/swagger` |
 | NotificationService | 通知（上架 / 公告，Email + in-app）REST API | http://localhost:5180，Swagger: `/swagger` |
+| ContentService | 法律文件版本 + 常見問題（FAQ）REST API | http://localhost:5181，Swagger: `/swagger` |
 | EmailService | RabbitMQ Worker | 無 HTTP port |
 | Bootstrap | 一次性 seed 工具 | 無 HTTP port |
 
@@ -130,9 +132,9 @@ pnpm type-check
 
 | App | 用途 | 認證 |
 |-----|------|------|
-| portal-web | 市集首頁 / landing、通知鈴鐺 | OIDC (`oidc-client-ts`) |
-| creator-web | 創作者店面、商品列表 / 詳情、結帳（Stripe Checkout 導轉） | 無，消費者免註冊 |
-| workspace-web | 創作者後台（開店、商品 / 訂單 / 公告管理、購買紀錄與下載、設定）+ 管理員後台（會員 / 商店 / 商品 / 訂單 / 資源用量 / 稽核） | OIDC (`oidc-client-ts`) |
+| portal-web | 市集首頁 / landing、常見問題（FAQ）、服務條款 / 隱私權政策、關於頁、通知鈴鐺 | OIDC (`oidc-client-ts`) |
+| creator-web | 創作者店面、商品列表 / 詳情、結帳（Stripe Checkout 導轉）、訂單下載頁 | 無，消費者免註冊 |
+| workspace-web | 創作者後台（開店、商品 / 訂單 / 公告管理、收款設定、購買紀錄與下載、設定）+ 管理員後台（會員 / 商店 / 商品 / 訂單 / 金流付款 / 商品分類 / 條款 / FAQ / 資源用量 / 稽核） | OIDC (`oidc-client-ts`) |
 
 三個 app 皆為 TypeScript + vue-i18n；API client 由 `swagger-typescript-api` 從後端 OpenAPI 自動產生（`pnpm gen:api`），不手寫 API 呼叫與型別。
 
@@ -180,4 +182,4 @@ pnpm preview
 | `Quota` | QuotaService 固定額度（總量 / 單檔 / 單商品 / 上架商品數） |
 | `Notification` | NotificationService 商品連結樣板、dispatch 批次與重試 |
 
-本地開發預設資料庫命名為 `open_jam_<service>`，例如 `open_jam_auth`、`open_jam_store`、`open_jam_catalog`、`open_jam_order`、`open_jam_payment`、`open_jam_quota`。
+本地開發預設資料庫命名為 `open_jam_<service>`，例如 `open_jam_auth`、`open_jam_store`、`open_jam_catalog`、`open_jam_order`、`open_jam_payment`、`open_jam_quota`、`open_jam_content`。

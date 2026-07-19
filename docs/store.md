@@ -123,7 +123,7 @@ StoreService 面向**創作者**，管理開店申請、商店資料、商店成
 ## 業務規則與 Outbox 事件
 
 - 提交申請 → `AuditLogRequestedEvent`（action: `store.application.submit`）
-- **Approve**：transaction 內建立 `Store`（Status=Active）+ `StoreMember`（Role=Owner, UserId=申請人）+ 更新 Application（Status=Approved, ReviewedAt, ReviewedBy）→ `AuditLogRequestedEvent`（action: `store.application.approve`, Tenant=新 StoreId）+ `EmailRequestedEvent`（template `email.store_application_approved`）
+- **Approve**：transaction 內建立 `Store`（Status=Active）+ `StoreMember`（Role=Owner, UserId=申請人）+ 更新 Application（Status=Approved, ReviewedAt, ReviewedBy）→ `AuditLogRequestedEvent`（action: `store.application.approve`, Tenant=新 StoreId）+ `EmailRequestedEvent`（template `email.store_application_approved`）+ **`StoreProvisionedEvent`**（Auth 消費後將店面子網域 `<slug>.openjam.co` 的 OIDC redirect URI 註冊進 Hydra web client 白名單，見 [[Auth]]；存量店家由 Bootstrap `StorefrontRedirectSeeder` 回填）
 - **Reject**：更新 Application（Status=Rejected, ReviewedAt, ReviewedBy, ReviewComment）→ `AuditLogRequestedEvent`（action: `store.application.reject`）+ `EmailRequestedEvent`（template `email.store_application_rejected`，帶 ReviewComment）
 - `suspend` / `unsuspend` / `close` → `AuditLogRequestedEvent`（action 對應 `store.suspend` / `store.unsuspend` / `store.close`, Tenant=StoreId）
 - Follow / Unfollow 為高頻、低風險操作，**不寫 AuditLog**

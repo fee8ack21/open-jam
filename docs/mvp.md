@@ -19,8 +19,8 @@
 | **Auth** | 註冊 / 登入 / 忘記密碼 / Email 驗證，整合 Ory Hydra（OIDC）；Argon2id 密碼雜湊；法律文件同意流程（註冊同意 + 登入 re-consent，同意紀錄 `UserLegalConsent`，文件本身由 ContentService 管理）；使用者列表 API（Admin）；註冊發 `UserRegisteredEvent` | [[Auth]] |
 | **StoreService** | 開店申請與管理員審核、商店資料（名稱 / 描述 / Avatar / Banner / 狀態）、商店成員（僅 Owner）、憑信箱追蹤（含註冊後 UserId 回填）、全平台商店列表（Admin） | [[Store]] |
 | **CatalogService** | 數位商品 CRUD、版本、平台多層分類、創作者標籤、展示型與下載型資產、商品狀態機、評論（限已購買者）、收藏、瀏覽 / 銷量計數、精選策展、買家下載授權 | [[Catalog]] |
-| **OrderService** | 訂單建立（免註冊憑信箱、伺服器端核價）、結帳單一入口（串 PaymentService）、狀態歷程、買家 / 賣家 / Admin 三視角列表、購買驗證、取消、訪客訂單註冊後回填（消費 `UserRegisteredEvent` 補 `BuyerUserId`）、訂單完成信（含下載頁連結） | [[Order]] |
-| **PaymentService** | Stripe Checkout Session、Webhook 兩段式處理（落地→背景處理）、`PaymentSucceededEvent`、付款交易紀錄 | [[Order]] |
+| **OrderService** | 訂單建立（免註冊憑信箱、伺服器端核價）、結帳單一入口（串 PaymentService）、免費訂單直接履約（`TotalAmount == 0` 不走 Stripe，建單即完成）、狀態歷程、買家 / 賣家 / Admin 三視角列表、購買驗證、取消、訪客訂單註冊後回填（消費 `UserRegisteredEvent` 補 `BuyerUserId`）、訂單完成信（含下載頁連結） | [[Order]] |
+| **PaymentService** | Stripe Checkout Session、Stripe Connect 分帳（一店一 Express 帳戶、destination charge + application fee、託管 onboarding、Connect webhook 同步收款狀態）、Webhook 兩段式處理（落地→背景處理）、`PaymentSucceededEvent`、付款交易紀錄 | [[Order]] |
 | **QuotaService** | 帳號總儲存空間 / 單檔 / 單商品總量 / 上架商品數固定額度，confirm 時原子扣量、每日對帳 | [[Quota]] |
 | **StorageService** | 簽發上傳 / 下載 URL（不計配額）、本地 / GCS 雙後端（雙 bucket）、confirm / reference 生命週期、用量統計 API、`FileReadyEvent`、孤兒檔清理 | [[Storage]] |
 | **NotificationService** | 追蹤者上架通知、商店公告（可排程），Email + in-app 雙管道、統一排程管線 | [[Notification]] |
@@ -35,7 +35,7 @@
 |-----|----------|------|
 | **portal-web** | 市集首頁 / landing、平台探索入口、常見問題頁（FAQ，依主題分頁）、服務條款 / 隱私權政策頁、關於頁、通知鈴鐺 | OIDC |
 | **creator-web** | 創作者子網域店面：商品列表（搜尋 / 篩選）/ 詳情（評論、收藏、追蹤商店）/ 結帳（Stripe Checkout 導轉、結果頁）/ 訂單下載頁（`/orders/:orderId`，訪客憑訂單 ID 下載） | 無（消費者免註冊） |
-| **workspace-web** | 創作者後台：開店、商品 / 版本 / 資產管理、上架、訂單、公告排程、購買紀錄與下載、收藏清單、商店設定；管理員後台：會員 / 商店（開店審核 + 審核紀錄）/ 商品 / 訂單 / 商品分類 / 條款管理 / 常見問題（分類 + 問答）/ 資源用量 / 稽核 | OIDC |
+| **workspace-web** | 創作者後台：開店、商品 / 版本 / 資產管理、上架、訂單、公告排程、收款設定（Stripe Connect onboarding）、購買紀錄與下載、收藏清單、商店設定；管理員後台：會員 / 商店（開店審核 + 審核紀錄）/ 商品 / 訂單 / 金流付款 / 商品分類 / 條款管理 / 常見問題（分類 + 問答）/ 資源用量 / 稽核 | OIDC |
 
 ### 平台共通能力
 
@@ -55,10 +55,9 @@
 
 ### 金流進階
 
-- [ ] **Stripe Connect Express**：創作者各自收款、平台抽成（`application_fee_amount`）、payout；目前收款進平台帳戶未分帳。
 - [ ] **退款**：退款窗口、經 Stripe 退款並撤銷下載權（`Refunded` 狀態已預留）。
 - [ ] **Stripe Tax**：各地稅負自動計算。
-- [ ] **定價進階**：折扣碼 / 優惠碼、免費商品領取流程。
+- [ ] **定價進階**：折扣碼 / 優惠碼。
 
 ### 儲存進階
 

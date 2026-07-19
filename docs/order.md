@@ -18,6 +18,8 @@ creator-web 結帳頁
 ```
 
 - Checkout Session 建立失敗時訂單保留 `Pending`，可重試。
+- **Stripe Connect 分帳（destination charge）**：一店一 Stripe Express 帳戶（`ConnectedAccount`），Session 帶 `PaymentIntentData.TransferData.Destination` 與 `ApplicationFeeAmount`（`Stripe:PlatformFeePercent` 百分比 + `Stripe:PlatformFeeFixed` 固定費），款項自動入創作者帳戶、平台留抽成；商店無帳戶或 `ChargesEnabled=false` 回 422（付費商品上架閘門的最後防線）。onboarding 經 `POST /v1/connect/accounts/{storeId}/onboarding-link` 簽發 Account Link，`account.updated` webhook（獨立端點 `/v1/webhook/stripe/connect`）同步收款旗標。
+- **免費訂單**（`TotalAmount == 0`）不呼叫 PaymentService（Stripe 不接受 0 元 Checkout），建單後直接履約完成（與付款成功共用 `FulfillAsync`），`CheckoutUrl` 為 null，前端據此直接導向結帳成功頁。
 - 服務間認證走 Hydra `client_credentials`（`ServiceTokenClient`，client 為 Bootstrap seed 的 `open-jam-service`），見 [[Develop]]。
 - 付款成功 / 取消由 Stripe 導回前端 `SuccessUrl` / `CancelUrl`（checkout result 頁）。
 
@@ -34,8 +36,9 @@ creator-web 結帳頁
 - `Payment`：`Pending → Succeeded` / `Failed` / `Expired`；每次轉移寫一筆 `PaymentTransaction`（`Created` / `Success` / `Fail` / `Expired`，保留 Stripe raw payload）。
 - **Webhook 兩段式處理**：`POST /v1/webhook/stripe` 驗簽後僅將原始事件落地 `ProviderEvent`（以 Stripe event id 去重）即回應，避免處理中服務掛掉遺失 webhook；`StripeWebhookProcessorService` 背景排程處理未完成事件：
   - `checkout.session.completed` / `async_payment_succeeded` → `Succeeded`，經 Outbox 發 `PaymentSucceededEvent`。
-  - `checkout.session.async_payment_failed` / `payment_intent.payment_failed` → `Failed`。
+  - `checkout.session.async_payment_failed` → `Failed`。
   - `checkout.session.expired` → 僅 `Pending` 轉 `Expired`。
+  - `payment_intent.payment_failed` **刻意不處理**：Checkout 內刷卡被拒可原地重試，且該事件對不上本地付款紀錄。
 - **冪等**：Stripe event id 去重 + 付款既有狀態判斷，重複 webhook 不重複履約。
 
 ## REST API 契約
@@ -57,8 +60,15 @@ creator-web 結帳頁
 | Method | Path | 用途 | 授權 |
 |--------|------|------|------|
 | `POST` | `/v1/payments/checkout-session` | 以 OrderId 建 Stripe Checkout Session | `InternalService`（僅 OrderService） |
+| `POST` | `/v1/payments/expire-by-order/{orderId}` | 取消訂單前先讓 Stripe Session 過期（expire-first 防競態） | `InternalService`（僅 OrderService） |
+| `GET`  | `/v1/payments` | 全平台付款分頁列表 | Admin |
 | `GET`  | `/v1/payments/{id}` | 查付款 | Admin |
+| `POST` | `/v1/connect/accounts/{storeId}/onboarding-link` | 建立 / 重用 Express 帳戶並簽發 onboarding Account Link | Owner |
+| `POST` | `/v1/connect/accounts/{storeId}/login-link` | 簽發 Stripe Express Dashboard 登入連結 | Owner |
+| `GET`  | `/v1/connect/accounts/{storeId}` | 查 Connect 帳戶（`?refresh=true` 向 Stripe 取即時狀態回寫） | Owner |
+| `GET`  | `/v1/connect/accounts/{storeId}/status` | 收款就緒布林旗標（CatalogService 上架閘門用） | 匿名 |
 | `POST` | `/v1/webhook/stripe` | Stripe webhook 接收 | Stripe 簽章 |
+| `POST` | `/v1/webhook/stripe/connect` | Stripe Connect webhook（`account.updated`）接收 | Stripe 簽章 |
 
 ## 履約（下載授權）
 
@@ -76,7 +86,7 @@ creator-web 結帳頁
 
 ## Guest → 帳號回溯（Mapping）
 
-- 用戶憑信箱註冊後（`UserRegisteredEvent`），追蹤紀錄由 StoreService / NotificationService 回填 `UserId`（已實作）；歷史**訂單**回溯掛帳為未來工作。
+- 用戶憑信箱註冊後（`UserRegisteredEvent`），追蹤紀錄由 StoreService / NotificationService 回填 `UserId`，歷史**訂單**由 OrderService 的 `UserRegisteredConsumer` 依信箱回填 `BuyerUserId`（冪等 UPDATE），註冊後即可在會員中心看到購買紀錄（皆已實作）。
 
 ## 稽核
 
@@ -84,10 +94,9 @@ creator-web 結帳頁
 
 ## 未來工作（Roadmap）
 
-- **Stripe Connect Express**：創作者各自 connected account 收款、平台以 `application_fee_amount` 抽成、Stripe 託管 onboarding 與 payout；**Stripe Tax** 稅務。目前 MVP 收款進平台帳戶，未分帳。
 - **退款**：退款窗口、經 Stripe 退款並撤銷下載權（`Refunded` 狀態已預留）。
-- **折扣碼 / 免費商品領取**：定價進階，見 [[Catalog]]。
-- **Guest 歷史訂單回溯**：註冊後以信箱掛帳歷史訂單。
+- **Stripe Tax**：各地稅負自動計算。
+- **折扣碼 / 優惠碼**：定價進階，見 [[Catalog]]。
 
 ## 技術與架構
 

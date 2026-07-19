@@ -10,7 +10,7 @@
 | 特性 | 量大、可遺失、技術性 | 不可竄改、需精準查詢、與業務動作一致 |
 | 儲存 | Loki | LogService + 關聯式 DB（分表分庫）|
 
-## Application Log
+## Application Log（規劃，Loki 堆疊尚未部署）
 
 ### 蒐集與儲存
 
@@ -69,14 +69,14 @@
 
 ### 查詢權限
 
-- **管理員**：可查全平台稽核紀錄。
-- **用戶**：可查自己帳號的安全活動（呼應 [[Auth]] 裝置管理 / 異常登入偵測）。
-- **創作者**：可查自己店鋪的操作紀錄。
+- **管理員**：可查全平台稽核紀錄。（已實作：`GET /v1/audit-logs` 掛 `Admin` policy，供 workspace-web 管理員稽核頁。）
+- **用戶**（未來工作）：可查自己帳號的安全活動（`who = currentUserId` 限縮，呼應 [[Auth]] 裝置管理 / 異常登入偵測）。
+- **創作者**（未來工作）：可查自己店鋪的操作紀錄（`tenant = currentTenantId` 限縮）。
 
 ### 保留與不可竄改
 
 - 保留期限：**3 年以上**（涉金流，偏向長期追溯）。
-- **Append-only**：僅允許 insert，不開放 update / delete（應用層 + DB 權限雙重限制）。
+- **Append-only**：僅允許 insert，不開放 update / delete（應用層已做到——無 update / delete API；DB 權限層限制尚未另設）。
 
 ## 技術與架構
 

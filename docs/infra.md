@@ -6,7 +6,7 @@
 
 - 於 Cloudflare 承租網域 **openjam.co**。
 - Cloudflare DNS 設定，含 **wildcard `*.openjam.co`**（對應動態的創作者子網域）。
-- Cloudflare Turnstile 作為 CAPTCHA（見 [[Auth]]）。
+- Cloudflare Turnstile 作為 CAPTCHA（規劃，Auth 尚未實作，見 [[Auth]]）。
 - **Cloudflare Email Routing**：網域收信路由，將 `support@openjam.co` 等地址轉發至內部信箱（僅收信路由，寄出由 SendGrid 負責，見 [[Email]]）。
 
 ## 站點
@@ -29,14 +29,14 @@
 ### Cloud SQL（PostgreSQL）
 
 - **每服務獨立 database**（同一 Cloud SQL 實例下多個 database），兼顧成本與隔離。
-- 前置 **PgBouncer 連線池**，解決大量 pod 連線耗盡 max connection 的問題。
+- 前置 **PgBouncer 連線池**（規劃，尚未導入），解決大量 pod 連線耗盡 max connection 的問題（壓測已證實此瓶頸存在）。
 - 透過 private IP + Cloud SQL Auth Proxy 連線。
 - 啟用**自動備份 + PITR（時間點還原）**。
 
 ### Redis（GKE 自建）
 
 - 部署於 GKE，PVC 持久化。
-- 用途：[[Auth]] permission cache 等。
+- 用途（規劃）：[[Auth]] permission cache 等。**目前尚無程式使用**（容器已就緒，見 [[MVP]] TODO）。
 
 ### RabbitMQ（GKE 自建）
 
@@ -70,12 +70,12 @@
 ## 平台服務元件
 
 - **Hydra**（OIDC server，見 [[Auth]]）：部署於 GKE。
-- **GCP Transcoder API**：影片轉碼 HLS（見 [[Storage]]）。
-- **ClamAV**：檔案掃毒 worker，部署於 GKE（見 [[Storage]]）。
+- **GCP Transcoder API**（未來工作）：影片轉碼 HLS（見 [[Storage]]）。
+- **ClamAV**（未來工作）：檔案掃毒 worker，部署於 GKE（見 [[Storage]]）。
 
-## 可觀測性
+## 可觀測性（規劃，尚未部署）
 
-- **Loki + Promtail**（logs）、**Tempo**（traces）、**Grafana**（查詢 / 儀表板 / 告警），部署於 GKE，詳見 [[Log]]。
+- **Loki + Promtail**（logs）、**Tempo**（traces）、**Grafana**（查詢 / 儀表板 / 告警），規劃部署於 GKE，詳見 [[Log]]；見 [[MVP]] TODO。
 
 ## CI / CD
 
@@ -92,7 +92,7 @@
 ## Secrets 管理
 
 - 機密集中存於 **GCP Secret Manager**。
-- **External Secrets Operator** 同步至 GKE，集中、可稽核、避免明文進 git。
+- **External Secrets Operator** 同步至 GKE（規劃，尚未導入，見「後續待辦」；目前以 helm values / `kubectl create secret` 手動注入），集中、可稽核、避免明文進 git。
 - **GCS 授權（GKE Workload Identity，免金鑰）**：StorageService 存取 GCS 不使用服務帳戶金鑰。Helm chart 為 storage-service 建立專屬 KSA（`open-jam-storage-service`，帶 `iam.gke.io/gcp-service-account` annotation 指向 `storage.gcs.gcpServiceAccount` 設定的 GSA），pod 內 ADC 自 GKE metadata server 取得 GSA 憑證；V4 signed URL 改經 **IAM SignBlob API** 簽章，故 GSA 需對**自身**具 `roles/iam.serviceAccountTokenCreator`（涵蓋 `iam.serviceAccounts.signBlob`）。bucket 權限沿用：`open-jam-public` 需 `roles/storage.admin`（含 bucket IAM 管理，啟動時 `EnsurePublicReadPolicyAsync` 套匿名讀取繫結）、`open-jam-private` 需 `roles/storage.objectAdmin`。GSA 建立與 IAM 綁定指令見下方 Runbook 第 3 步。
 
 ## 環境
@@ -312,6 +312,6 @@ kubectl get ns
 
 ### 後續待辦
 
-- `api.openjam.co`：目前已新增 `/store-service`、`/log-service`、`/storage-service` path 路由分別至 StoreService、LogService、StorageService（見 `infra/helm/infra/values.prod.yaml`）。其餘 path（其他「功能 API」服務）待對應 Helm chart / Service 就緒後再依需求新增。
+- `api.openjam.co`：目前已新增 `/store-service`、`/catalog-service`、`/log-service` path 路由分別至 StoreService、CatalogService、LogService（見 `infra/helm/infra/values.prod.yaml`）。其餘 path（其他「功能 API」服務）待依需求新增；注意 GCE Ingress 的 translation 為 all-or-nothing，新增 path 前務必確認 Service 已部署。
 - 將 Cloudflare API Token 與其他正式環境機密改由 External Secrets Operator 從 GCP Secret Manager 同步，避免明文存於 git（見上方「Secrets 管理」）。
 - **（未來可考慮）Argo CD GitOps**：改以 Argo CD 接管部署（宣告式同步 / self-heal），取代目前 release workflow 直接跑 `helm upgrade` 的方式。短期不實作。
