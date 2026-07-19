@@ -21,10 +21,11 @@ public interface IOrderManager
     Task<OrderResponse> CancelAsync(Guid id, CancelOrderRequest request, Guid? userId, CancellationToken ct);
 
     /// <summary>
-    /// 查詢指定使用者是否曾以已完成訂單購買某商品（供評論購買驗證）。
+    /// 查詢指定使用者是否曾以已完成訂單購買某商品（供評論購買驗證與結帳頁預檢），
+    /// 已購買回最新一筆完成訂單 ID（前端據此連向下載頁），未購買回 null。
     /// 訪客結帳的訂單無 BuyerUserId，故另以結帳時實際填寫的 Email 比對（<paramref name="email"/> 須為小寫）。
     /// </summary>
-    Task<bool> HasPurchasedAsync(Guid catalogId, Guid userId, string? email, CancellationToken ct);
+    Task<Guid?> FindPurchasedOrderAsync(Guid catalogId, Guid userId, string? email, CancellationToken ct);
 
     /// <summary>付款成功時履約完成訂單（由 <c>PaymentSucceededEvent</c> consumer 呼叫，冪等）。</summary>
     Task CompleteFromPaymentAsync(Guid orderId, DateTimeOffset paidAt, long platformFeeAmount, CancellationToken ct);

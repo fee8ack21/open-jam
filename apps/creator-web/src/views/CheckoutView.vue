@@ -5,6 +5,7 @@ import { useMessage, type FormInst, type FormRules } from 'naive-ui';
 import { useI18n } from 'vue-i18n';
 import { useShopStore } from '@/stores/shop';
 import { useAuthStore } from '@/stores/auth';
+import { orderApi } from '@/api';
 import ProductThumb from '@/components/ProductThumb.vue';
 import AppIcon from '@/components/app-icon';
 
@@ -40,6 +41,33 @@ const items = computed(() => store.cartProducts);
 const subtotal = computed(() => store.subtotal);
 const total = computed(() => subtotal.value);
 
+// 已購買預檢：登入買家後端以帳號 ID 判定已購買（與結帳信箱無關），送單必吃 409。
+// 進頁時逐項查詢購買紀錄，命中者改顯示「前往下載」（連向該筆完成訂單的下載頁）並擋下送單。
+// 訪客無從預檢（信箱未驗證），維持送單後由後端 409 訊息擋下。
+const purchasedOrders = ref<Record<string, string | null>>({}); // catalogId → 完成訂單 ID（null = 已查、未購買）
+const purchasedOf = (id: string): string | null => purchasedOrders.value[id] ?? null;
+const hasPurchasedItems = computed(() => items.value.some((it) => purchasedOf(it.id)));
+
+watch(
+  [() => items.value.map((it) => it.id).join(','), () => auth.isAuthenticated],
+  async () => {
+    if (!auth.isAuthenticated) return;
+    const unchecked = items.value.filter((it) => !(it.id in purchasedOrders.value));
+    await Promise.all(unchecked.map(async (it) => {
+      try {
+        const res = await orderApi.orders.hasPurchased(it.id);
+        purchasedOrders.value[it.id] = res.data.purchased ? (res.data.orderId ?? null) : null;
+      } catch {
+        // 預檢失敗不擋結帳（僅屬 UX 提前提示），重複購買仍由後端 409 把關
+        purchasedOrders.value[it.id] = null;
+      }
+    }));
+  },
+  { immediate: true },
+);
+
+const goOrder = (orderId: string) => router.push({ name: 'order', params: { orderId } });
+
 onMounted(() => {
   // 直接以網址進入結帳頁時，購物車項目需先載入商品目錄才能顯示
   store.loadCatalog();
@@ -51,6 +79,10 @@ const openProduct = (id: string) => router.push({ name: 'product', params: { id 
 
 /** 建立訂單 + Stripe Checkout Session，導向 Stripe 安全頁面填寫信用卡資訊。 */
 const pay = async () => {
+  if (hasPurchasedItems.value) {
+    message.error(t('checkout.ownedHint'));
+    return;
+  }
   try {
     await form.value!.validate();
   } catch { return; }
@@ -115,13 +147,22 @@ const errorText = (e: unknown): string => {
                 <product-thumb :product="it" :glyph-size="30" :show-cat="false" hide-label style="cursor:pointer;"
                                @click="openProduct(it.id)" />
                 <div class="cart-item-body">
-                  <div class="cart-item-title">{{ it.title }}</div>
+                  <div class="cart-item-title">
+                    {{ it.title }}
+                    <span v-if="purchasedOf(it.id)" class="owned-tag">
+                      <app-icon name="check" :size="12" /> {{ t('checkout.owned') }}
+                    </span>
+                  </div>
                   <div class="cart-item-creator">{{ it.creator }}・{{ it.formats.join('・') }}</div>
                   <div class="cart-item-foot">
                     <button class="link-btn" @click="store.removeFromCart(it.id)">
                       <app-icon name="trash" :size="14" /> {{ t('checkout.remove') }}
                     </button>
-                    <span class="price">{{ it.price === 0 ? t('common.free') : '$' + it.price }}</span>
+                    <button v-if="purchasedOf(it.id)" type="button" class="link-btn owned-download"
+                            @click="goOrder(purchasedOf(it.id)!)">
+                      <app-icon name="download" :size="14" /> {{ t('checkout.goDownload') }}
+                    </button>
+                    <span v-else class="price">{{ it.price === 0 ? t('common.free') : '$' + it.price }}</span>
                   </div>
                 </div>
               </div>
@@ -172,10 +213,11 @@ const errorText = (e: unknown): string => {
               <div class="sum-row total"><span>{{ t('checkout.total') }}</span><span>${{ total }}</span></div>
 
               <button type="button" class="cta-ink block" style="margin-top:22px"
-                      :disabled="processing" @click="pay">
+                      :disabled="processing || hasPurchasedItems" @click="pay">
                 <app-icon v-if="!processing" name="lock" :size="16" />
                 {{ processing ? t('checkout.payProcessing') : t('checkout.pay', { amount: total }) }}
               </button>
+              <p v-if="hasPurchasedItems" class="owned-hint">{{ t('checkout.ownedHint') }}</p>
 
               <div class="trust" style="margin-top:16px;">
                 <app-icon name="shield" :size="14" /> {{ t('checkout.trust') }}
@@ -220,4 +262,14 @@ const errorText = (e: unknown): string => {
 }
 .stripe-note-title { font-weight: 900; font-size: 15px; }
 .stripe-note-sub { margin: 4px 0 0; font-size: 12.5px; font-weight: 500; color: var(--text-soft); line-height: 1.7; }
+
+/* 已購買標記與前往下載（登入買家結帳預檢命中） */
+.owned-tag {
+  display: inline-flex; align-items: center; gap: 3px; vertical-align: 2px;
+  margin-left: 6px; padding: 1px 8px;
+  border: var(--bw) solid var(--border-strong); border-radius: 999px;
+  background: var(--bg); font-size: 11px; font-weight: 900; transform: rotate(-1deg);
+}
+.owned-download { color: var(--text); text-decoration: underline; }
+.owned-hint { margin: 10px 0 0; font-size: 12.5px; font-weight: 700; color: var(--text-soft); line-height: 1.7; }
 </style>

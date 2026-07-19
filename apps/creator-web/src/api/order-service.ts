@@ -139,6 +139,12 @@ export interface OrderResponse {
    */
   totalAmount?: number;
   /**
+   * 平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。
+   * @format int64
+   * @example 1399
+   */
+  platformFeeAmount?: number;
+  /**
    * 建立時間（UTC）。
    * @format date-time
    */
@@ -214,6 +220,12 @@ export interface OrderSummaryDto {
    */
   totalAmount?: number;
   /**
+   * 平台抽成金額（最低貨幣單位）；免費訂單與抽成快照上線前的舊訂單為 0。賣家實收 = TotalAmount − 本值。
+   * @format int64
+   * @example 1399
+   */
+  platformFeeAmount?: number;
+  /**
    * 建立時間（UTC）。
    * @format date-time
    */
@@ -232,6 +244,12 @@ export interface PurchaseCheckResponse {
    * @example true
    */
   purchased?: boolean;
+  /**
+   * 已購買時為最新一筆完成訂單 ID（供前端連向訂單下載頁）；未購買為 null。
+   * @format uuid
+   * @example "0d5c1c07-5f3e-4a5b-9c56-4f4be5cbb1a3"
+   */
+  orderId?: string | null;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -552,6 +570,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         Status?: OrderStatus;
         /**
+         * 關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。
+         * @example "buyer@example.com"
+         */
+        Search?: string;
+        /**
          * 略過筆數。
          * @format int32
          * @example 0
@@ -611,7 +634,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags Orders
      * @name ListMine
-     * @summary 查詢登入使用者本人的訂單列表（分頁）。
+     * @summary 查詢登入使用者本人的訂單列表（分頁），含成為會員前以同信箱訪客結帳的訂單。
      * @request GET:/v1/orders/mine
      */
     listMine: (
@@ -638,6 +661,11 @@ export class Api<SecurityDataType extends unknown> {
          * @example "Completed"
          */
         Status?: OrderStatus;
+        /**
+         * 關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。
+         * @example "buyer@example.com"
+         */
+        Search?: string;
         /**
          * 略過筆數。
          * @format int32
@@ -695,6 +723,11 @@ export class Api<SecurityDataType extends unknown> {
          */
         Status?: OrderStatus;
         /**
+         * 關鍵字搜尋（買家 Email 或訂單編號，部分比對）；null 表示不搜尋。
+         * @example "buyer@example.com"
+         */
+        Search?: string;
+        /**
          * 略過筆數。
          * @format int32
          * @example 0
@@ -722,7 +755,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags Orders
      * @name HasPurchased
-     * @summary 查詢登入使用者是否已購買（已完成訂單）某商品。供評論前的購買驗證。
+     * @summary 查詢登入使用者是否已購買（已完成訂單）某商品。供評論前的購買驗證與結帳頁預檢； 已購買時回最新完成訂單 ID，前端據此顯示「前往下載」。
      * @request GET:/v1/orders/purchased/{catalogId}
      */
     hasPurchased: (catalogId: string, params: RequestParams = {}) =>

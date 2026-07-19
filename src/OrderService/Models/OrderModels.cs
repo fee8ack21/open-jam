@@ -197,6 +197,10 @@ public class PurchaseCheckResponse
     /// <summary>登入使用者是否曾以已完成訂單購買此商品。</summary>
     /// <example>true</example>
     public bool Purchased { get; set; }
+
+    /// <summary>已購買時為最新一筆完成訂單 ID（供前端連向訂單下載頁）；未購買為 null。</summary>
+    /// <example>0d5c1c07-5f3e-4a5b-9c56-4f4be5cbb1a3</example>
+    public Guid? OrderId { get; set; }
 }
 
 /// <summary>訂單狀態歷程回應。</summary>

@@ -159,6 +159,9 @@
       "emailRequired": "請輸入電子信箱",
       "emailInvalid": "信箱格式不正確"
     },
+    "owned": "已購買",
+    "goDownload": "前往下載",
+    "ownedHint": "購物車內有已購買過的商品：點「前往下載」取得檔案，或先移除再結帳。",
     "msgError": "結帳失敗，請稍後再試",
     "multiItemName": "{title} 等 {count} 件商品"
   },

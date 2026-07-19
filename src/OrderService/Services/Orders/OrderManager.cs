@@ -28,7 +28,7 @@ public class OrderManager(
     {
         // 伺服器端核價：逐項向 CatalogService 取回商品現況（匿名呼叫，未上架 / 不存在回 404），
         // 名稱 / 單價 / 版本 / 幣別一律以伺服器端快照為準，不信任 client 傳入值。
-        // 已購買防呆比對用信箱（小寫）：與 HasPurchasedAsync 的 Email 準則一致。訪客無 userId，
+        // 已購買防呆比對用信箱（小寫）：與 FindPurchasedOrderAsync 的 Email 準則一致。訪客無 userId，
         // 僅能以結帳信箱比對；登入買家另以 userId 比對。信箱未驗證，故對訪客為「同信箱才擋」。
         var buyerEmail = request.BuyerEmail.Trim().ToLowerInvariant();
 
@@ -45,7 +45,7 @@ public class OrderManager(
 
             // 數位商品買過即永久擁有：已完成訂單含此商品時擋下重複購買（回 409）。
             // 訊息不附下載連結（避免任意輸入他人信箱即探知 / 取得其購買），引導至訂單完成信。
-            if (await HasPurchasedAsync(item.CatalogId, userId ?? Guid.Empty, buyerEmail, ct))
+            if (await FindPurchasedOrderAsync(item.CatalogId, userId ?? Guid.Empty, buyerEmail, ct) is not null)
                 throw new ConflictException($"您已購買過「{catalog.Name}」，下載連結請見當初的訂單完成信，無需重複購買。");
 
             catalogs.Add(catalog);
@@ -135,7 +135,7 @@ public class OrderManager(
                 && o.StoreId == request.StoreId
                 && o.CreatedAt >= cutoff);
 
-        // 訪客無 userId，僅以結帳信箱比對；登入買家另以 userId 比對（與 HasPurchasedAsync 準則一致）。
+        // 訪客無 userId，僅以結帳信箱比對；登入買家另以 userId 比對（與 FindPurchasedOrderAsync 準則一致）。
         query = userId is { } uid
             ? query.Where(o => o.BuyerUserId == uid || o.BuyerEmail.ToLower() == buyerEmail)
             : query.Where(o => o.BuyerEmail.ToLower() == buyerEmail);
@@ -197,7 +197,7 @@ public class OrderManager(
     /// <inheritdoc/>
     public Task<ListOrdersResponse> ListMineAsync(Guid userId, string? email, ListOrdersRequest request, CancellationToken ct)
     {
-        // 以結帳時實際填寫的 Email 一併比對（與 HasPurchasedAsync 同準則），
+        // 以結帳時實際填寫的 Email 一併比對（與 FindPurchasedOrderAsync 同準則），
         // 讓成為會員前以同信箱訪客結帳的訂單也出現在本人購買紀錄。
         var query = email is null
             ? db.Orders.AsNoTracking().Where(o => o.BuyerUserId == userId)
@@ -355,7 +355,7 @@ public class OrderManager(
     }
 
     /// <inheritdoc/>
-    public Task<bool> HasPurchasedAsync(Guid catalogId, Guid userId, string? email, CancellationToken ct)
+    public Task<Guid?> FindPurchasedOrderAsync(Guid catalogId, Guid userId, string? email, CancellationToken ct)
     {
         var query = db.Orders.AsNoTracking().Where(o => o.Status == OrderStatus.Completed);
 
@@ -364,7 +364,11 @@ public class OrderManager(
             ? query.Where(o => o.BuyerUserId == userId)
             : query.Where(o => o.BuyerUserId == userId || o.BuyerEmail.ToLower() == email);
 
-        return query.AnyAsync(o => o.Items.Any(i => i.CatalogId == catalogId), ct);
+        return query
+            .Where(o => o.Items.Any(i => i.CatalogId == catalogId))
+            .OrderByDescending(o => o.CreatedAt)
+            .Select(o => (Guid?)o.Id)
+            .FirstOrDefaultAsync(ct);
     }
 
     private void TransitionTo(Order order, OrderStatus next, string? reason)

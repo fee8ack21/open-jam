@@ -159,6 +159,9 @@
       "emailRequired": "Please enter your email",
       "emailInvalid": "Invalid email format"
     },
+    "owned": "Owned",
+    "goDownload": "Go to downloads",
+    "ownedHint": "Your cart contains items you already own. Open “Go to downloads” to get your files, or remove them before checking out.",
     "msgError": "Checkout failed, please try again later",
     "multiItemName": "{title} and {count} items"
   },
