@@ -11,7 +11,7 @@ export const JFmt = {
     return '' + n
   },
   relTime(iso: string) {
-    const d = new Date(iso), now = new Date('2026-05-30T12:00:00')
+    const d = new Date(iso), now = new Date()
     const mins = Math.round((now.getTime() - d.getTime()) / 60000)
     const t = i18n.global.t
     if (mins < 60) return t('time.minsAgo', { n: mins })

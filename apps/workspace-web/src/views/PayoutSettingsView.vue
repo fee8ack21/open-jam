@@ -199,4 +199,9 @@ onMounted(async () => {
   color: var(--t2, #777);
 }
 .payout-steps li.done { color: var(--t1, #1a1a1a); }
+.payout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 </style>

@@ -1,21 +1,28 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
+import { useMessage } from 'naive-ui'
 import { useAdminStatsStore } from '@/stores/adminStats'
 import { useStoreReviewStore } from '@/stores/storeReview'
 import { useDashboardStore } from '@/stores/dashboard'
 import { JFmt as F } from '@/utils/format'
+import { formatOrderAmount } from '@/utils/order'
 
 const { t } = useI18n()
+const message = useMessage()
 const stats = useAdminStatsStore()
 const review = useStoreReviewStore()
 const dashboard = useDashboardStore()
-const { monthly, byCategory } = storeToRefs(stats)
+const { monthly, byCategory, error } = storeToRefs(stats)
+
+// 載入錯誤以彈出 message 呈現，畫面維持空狀態
+watch(error, (msg) => { if (msg) message.error(msg) })
 
 const catMax = computed(() => Math.max(...byCategory.value.map((c) => c.value)) || 1)
 
-const kpis = computed(() => [
+interface Kpi { key: string; label: string; val: string; ic: string; bg: string; delta: number | null; up?: boolean; sub?: string }
+const kpis = computed<Kpi[]>(() => [
   {
     key: 'stores',
     label: t('adminOverview.kpiStores'),
@@ -23,7 +30,7 @@ const kpis = computed(() => [
     ic: 'home',
     bg: 'var(--c-pink)',
     sub: t('adminOverview.kpiStoresSub', { count: stats.activeStores }),
-    delta: null as number | null,
+    delta: null,
   },
   {
     key: 'products',
@@ -37,7 +44,7 @@ const kpis = computed(() => [
   {
     key: 'revenue',
     label: t('adminOverview.kpiRevenue'),
-    val: F.money(stats.monthRevenue),
+    val: formatOrderAmount(stats.monthRevenueMinor, stats.currency),
     ic: 'wallet',
     bg: 'var(--c-lime)',
     delta: stats.monthDelta,
@@ -49,8 +56,8 @@ const kpis = computed(() => [
     val: stats.monthOrders.toLocaleString('en-US'),
     ic: 'receipt',
     bg: 'var(--c-cyan)',
-    sub: t('adminOverview.kpiOrdersSub'),
-    delta: null,
+    delta: stats.ordersDelta,
+    up: stats.ordersDelta >= 0,
   },
 ])
 
@@ -61,6 +68,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <n-spin :show="stats.loading">
   <div :data-screen-label="t('route.adminOverview')">
 
     <!-- KPI -->
@@ -101,7 +109,7 @@ onMounted(() => {
           <div v-for="c in byCategory" :key="c.label" class="bar-row">
             <span class="bl">{{ c.label }}</span>
             <span class="bar-track"><span class="bar-fill" :style="{ width: Math.max((c.value/catMax)*100, 2) + '%', background: c.color }"></span></span>
-            <span class="bv">{{ F.money(c.value) }}</span>
+            <span class="bv">{{ formatOrderAmount(c.value, stats.currency) }}</span>
           </div>
         </div>
         <div style="margin-top:22px; padding-top:18px; border-top:1px dashed var(--border); display:flex; align-items:center; justify-content:space-between;">
@@ -142,4 +150,5 @@ onMounted(() => {
       </div>
     </div>
   </div>
+  </n-spin>
 </template>
