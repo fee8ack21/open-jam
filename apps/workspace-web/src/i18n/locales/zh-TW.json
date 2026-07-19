@@ -401,8 +401,7 @@
     "msgUpdateFailed": "更新商品分類失敗。",
     "msgCreateFailed": "建立商品分類失敗。",
     "msgDeleted": "已刪除商品分類。",
-    "msgDeleteBlocked": "此分類仍有子分類或商品引用，無法刪除。",
-    "systemDeleteBlocked": "系統預設分類，不允許刪除。"
+    "msgDeleteBlocked": "此分類仍有子分類或商品引用，無法刪除。"
   },
   "auditLog": {
     "subStats": "共 {count} 筆稽核事件",

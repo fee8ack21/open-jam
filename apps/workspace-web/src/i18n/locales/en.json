@@ -401,8 +401,7 @@
     "msgUpdateFailed": "Failed to update product category.",
     "msgCreateFailed": "Failed to create product category.",
     "msgDeleted": "Product category deleted.",
-    "msgDeleteBlocked": "This category still has subcategories or product references and can’t be deleted.",
-    "systemDeleteBlocked": "System default category — deletion is not allowed."
+    "msgDeleteBlocked": "This category still has subcategories or product references and can’t be deleted."
   },
   "auditLog": {
     "subStats": "{count} audit events",
