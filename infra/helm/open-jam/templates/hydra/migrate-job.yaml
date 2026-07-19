@@ -26,5 +26,6 @@ spec:
           args: ["migrate", "sql", "-e", "--yes"]
           env:
             - name: DSN
-              value: {{ printf "postgres://%s:%s@%s:5432/%s_hydra" .Values.postgres.user .Values.secrets.postgres.password (include "open-jam.postgresHost" .) .Values.dbNamePrefix | quote }}
+              # 密碼須 URL encode（與 secret.yaml 的 hydra-dsn 一致），否則含 # 等符號時 URL 截斷
+              value: {{ printf "postgres://%s:%s@%s:5432/%s_hydra" .Values.postgres.user (urlquery .Values.secrets.postgres.password) (include "open-jam.postgresHost" .) .Values.dbNamePrefix | quote }}
 {{- end }}
