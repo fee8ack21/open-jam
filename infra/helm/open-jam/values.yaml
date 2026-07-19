@@ -101,7 +101,8 @@ postgres:
       memory: 1Gi
 
 redis:
-  enabled: true
+  # 目前無任何服務使用 Redis（規劃中：快取 / permission cache），預設停用
+  enabled: false
   image: redis:7-alpine
   persistence:
     enabled: true

@@ -22,7 +22,10 @@ services:
       timeout: 5s
       retries: 10
 
+  # 目前無任何服務使用 Redis（規劃中：快取 / permission cache），預設不啟動；
+  # 需要時 docker compose --profile redis up -d
   redis:
+    profiles: ["redis"]
     container_name: ${PROJECT_NAME}-redis
     image: redis:7-alpine
     restart: unless-stopped

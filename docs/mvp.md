@@ -80,7 +80,7 @@
 
 ### 平台與維運
 
-- [ ] **Redis**：快取 / Session / 配額計數（compose 已就緒，尚未使用）。
+- [ ] **Redis**：快取 / Session / 配額計數。2026-07-20 起 compose 與 helm **皆預設停用**（無程式使用，省叢集資源）；設定保留，要用時 compose `--profile redis`、helm `redis.enabled: true` 即可（見 [[Infra]]）。
 - [ ] **Argo CD GitOps（未來可考慮，短期不做）**：目前 CD 為 GitHub Actions release build / push + 直接 `helm upgrade` 部署 GKE（見 [[CI]]），運作正常。未來若要宣告式同步 / self-heal，可評估改由 Argo CD 接管、移除 CI 直接 helm 步驟。
 - [ ] **可觀測性**：Loki + Promtail（Application Log）、OpenTelemetry / Tempo 整合。
 - [ ] **多商店成員**：StoreMember 角色擴充（如 Staff），目前僅 Owner。

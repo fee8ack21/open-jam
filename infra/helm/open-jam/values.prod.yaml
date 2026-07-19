@@ -61,7 +61,9 @@ postgres:
       memory: 1Gi
 
 redis:
-  enabled: true
+  # 2026-07-20 停用：目前無任何服務使用 Redis（規劃中：快取 / permission cache）。
+  # PVC 不隨 helm upgrade 刪除，重新啟用 enabled: true 即可（密碼仍在機密 overlay）
+  enabled: false
   image: redis:7-alpine
   persistence:
     enabled: true

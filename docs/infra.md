@@ -33,10 +33,12 @@
 - 透過 private IP + Cloud SQL Auth Proxy 連線。
 - 啟用**自動備份 + PITR（時間點還原）**。
 
-### Redis（GKE 自建）
+### Redis（GKE 自建，**預設停用**）
 
-- 部署於 GKE，PVC 持久化。
-- 用途（規劃）：[[Auth]] permission cache 等。**目前尚無程式使用**（容器已就緒，見 [[MVP]] TODO）。
+- 用途（規劃）：[[Auth]] permission cache 等。**目前尚無程式使用**，2026-07-20 起預設停用省資源（見 [[MVP]] TODO）。
+- 設定皆保留，啟用方式：
+  - 本地 compose：`docker compose --profile redis up -d`（`REDIS_PASSWORD` 在 `.env`）。
+  - Helm：`values.prod.yaml` 改 `redis.enabled: true`（`secrets.redis.password` 仍在機密 overlay）；PVC 持久化，停用期間不會被 helm 刪除。
 
 ### RabbitMQ（GKE 自建）
 

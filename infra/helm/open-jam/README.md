@@ -63,7 +63,7 @@ helm uninstall open-jam --namespace open-jam
 | 服務 | 種類 | 說明 |
 |------|------|------|
 | postgres | StatefulSet | PostgreSQL 16，含 init.sql 建立四個資料庫 |
-| redis | StatefulSet | Redis 7，requirepass 模式 |
+| redis | StatefulSet | Redis 7，requirepass 模式（**預設停用**，尚無程式使用） |
 | rabbitmq | StatefulSet | RabbitMQ 3.13 + Management UI |
 | hydra | Deployment | Ory Hydra v2.2 OIDC Provider |
 | mailpit | Deployment | 本地 SMTP 攔截器（僅開發 / Staging） |
@@ -158,7 +158,7 @@ infra/helm/open-jam/
 
 | 參數 | 預設值 | 說明 |
 |------|--------|------|
-| `redis.enabled` | `true` | 是否部署內建 Redis |
+| `redis.enabled` | `false` | 是否部署內建 Redis（目前無程式使用，預設停用） |
 | `redis.image` | `redis:7-alpine` | 映像檔 |
 | `redis.persistence.enabled` | `true` | 啟用 PVC |
 | `redis.persistence.size` | `1Gi` | PVC 容量 |

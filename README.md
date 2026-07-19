@@ -53,7 +53,7 @@ infra/helm/             # GKE 部署 Helm chart（open-jam 應用 + infra Ingres
 
 ## Docker Compose
 
-Docker Compose 設定位於 `infra/docker/docker-compose.yaml`，包含 PostgreSQL、Redis、RabbitMQ、Hydra、Mailpit，以及目前已納入 compose 的應用服務。StorageService 地端採本地檔案系統儲存（無需額外物件儲存容器）。
+Docker Compose 設定位於 `infra/docker/docker-compose.yaml`，包含 PostgreSQL、RabbitMQ、Hydra、Mailpit，以及目前已納入 compose 的應用服務。StorageService 地端採本地檔案系統儲存（無需額外物件儲存容器）。Redis 目前無程式使用，預設不啟動（需要時 `docker compose --profile redis up -d`）。
 
 ```bash
 cd infra/docker
@@ -81,7 +81,7 @@ docker compose --profile seed run --rm bootstrap
 | content-service | 5181 | 平台內容（法律文件 / FAQ）API |
 | docs | 5182 | VitePress 文件站（5176 讓給 catalog-service） |
 | postgres | 5432 | PostgreSQL |
-| redis | 6379 | Redis |
+| redis | 6379 | Redis（預設停用，`--profile redis` 才啟動） |
 | rabbitmq | 5672 / 15672 | RabbitMQ / Management UI |
 | hydra | 4444 / 4445 | Ory Hydra Public / Admin |
 | mailpit | 1025 / 8025 | SMTP / Web UI |
