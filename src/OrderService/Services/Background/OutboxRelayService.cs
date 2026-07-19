@@ -1,74 +1,26 @@
 using System.Text.Json;
-using MassTransit;
 using OrderService.Data;
+using OrderService.Data.Entities;
 using OrderService.Services;
-using Shared.Data;
 using Shared.Events;
+using Shared.Outbox;
 
 namespace OrderService.Services.Background;
 
+/// <summary>Outbox relay；掃描與推送邏輯見 <see cref="OutboxRelayServiceBase{TDbContext, TMessage}"/>。</summary>
 public class OutboxRelayService(
     IServiceScopeFactory scopeFactory,
-    ILogger<OutboxRelayService> logger) : BackgroundService
+    ILogger<OutboxRelayService> logger) : OutboxRelayServiceBase<OrderDbContext, OutboxMessage>(scopeFactory, logger)
 {
-    protected override async Task ExecuteAsync(CancellationToken ct)
+    /// <inheritdoc/>
+    protected override object? DeserializeEvent(OutboxMessage message) => message.EventType switch
     {
-        logger.LogInformation("OutboxRelayService started.");
-
-        while (!ct.IsCancellationRequested)
-        {
-            try
-            {
-                await using var scope = scopeFactory.CreateAsyncScope();
-                var db  = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
-                var bus = scope.ServiceProvider.GetRequiredService<IBus>();
-
-                await db.Database.ExecuteInTransactionAsync(async tx =>
-                {
-                    var batch = db.OutboxMessages
-                        .Where(m => m.ProcessedAt == null)
-                        .OrderBy(m => m.CreatedAt)
-                        .Take(10)
-                        .ToList();
-
-                    foreach (var msg in batch)
-                    {
-                        try
-                        {
-                            if (msg.EventType.StartsWith("audit."))
-                            {
-                                var evt = JsonSerializer.Deserialize<AuditLogRequestedEvent>(msg.Payload, OutboxJson.Options);
-                                if (evt != null) await bus.Publish(evt, ct);
-                            }
-                            else if (msg.EventType == OrderEventPublisher.OrderCompletedType)
-                            {
-                                var evt = JsonSerializer.Deserialize<OrderCompletedEvent>(msg.Payload, OutboxJson.Options);
-                                if (evt != null) await bus.Publish(evt, ct);
-                            }
-                            else if (msg.EventType.StartsWith("email."))
-                            {
-                                var evt = JsonSerializer.Deserialize<EmailRequestedEvent>(msg.Payload, OutboxJson.Options);
-                                if (evt != null) await bus.Publish(evt, ct);
-                            }
-
-                            msg.ProcessedAt = DateTimeOffset.UtcNow;
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.LogWarning(ex, "Failed to relay outbox message {Id} type {Type}", msg.Id, msg.EventType);
-                        }
-                    }
-
-                    await db.SaveChangesAsync(CancellationToken.None);
-                    await tx.CommitAsync(ct);
-                }, ct);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Outbox relay cycle failed.");
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(5), ct);
-        }
-    }
+        var t when t.StartsWith("audit.", StringComparison.Ordinal)
+            => JsonSerializer.Deserialize<AuditLogRequestedEvent>(message.Payload, OutboxJson.Options),
+        OrderEventPublisher.OrderCompletedType
+            => JsonSerializer.Deserialize<OrderCompletedEvent>(message.Payload, OutboxJson.Options),
+        var t when t.StartsWith("email.", StringComparison.Ordinal)
+            => JsonSerializer.Deserialize<EmailRequestedEvent>(message.Payload, OutboxJson.Options),
+        _ => null,
+    };
 }

@@ -135,7 +135,9 @@ chore(release): 新版本通知買家＋訂單搜尋部署
 
 ## Outbox 模式
 
-業務 transaction 內寫入 `OutboxMessage` 表，由各服務的 `OutboxRelayService`（`IHostedService`）定期掃描並 publish 到 RabbitMQ。冪等鍵為 `OutboxMessageId`，Consumer 端需去重。
+業務 transaction 內寫入 `OutboxMessage` 表，由各服務的 `OutboxRelayService` 定期掃描並 publish 到 RabbitMQ。冪等鍵為 `OutboxMessageId`，Consumer 端需去重。
+
+Relay 共用基底 `Shared/Outbox/OutboxRelayServiceBase<TDbContext, TMessage>`（entity 實作 `IOutboxMessage`），各服務子類只覆寫 `DeserializeEvent`（EventType → 事件型別對應；**序列化設定須與該服務 Publisher 寫入端一致**——Order / Payment 用 `OutboxJson.Options`（snake_case），其餘用預設）。基底行為：`FOR UPDATE SKIP LOCKED` 撈批（多副本安全）、撈滿一批立即續撈（drain loop，消化積壓不受輪詢間隔限制）、單筆失敗不影響同批（`AttemptCount` 指數退避，上限 10 分鐘）；反序列化失敗 / 未知型別為毒訊息，重試 5 次後標記 `FailedAt` 隔離不阻塞佇列（人工修正後清除 `FailedAt` / `AttemptCount` 重新投遞），publish 失敗視為暫時性、退避後永久重試。
 
 ## Auth 服務（`src/Auth/`）
 
