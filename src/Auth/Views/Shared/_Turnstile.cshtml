@@ -4,6 +4,6 @@
 @if (Turnstile.Value.Enabled)
 {
     var lang = System.Globalization.CultureInfo.CurrentUICulture.Name == "en" ? "en" : "zh-tw";
-    <div class="cf-turnstile" data-sitekey="@Turnstile.Value.SiteKey" data-language="@lang" data-theme="light"></div>
+    <div class="cf-turnstile" data-sitekey="@Turnstile.Value.SiteKey" data-language="@lang" data-theme="light" data-size="flexible"></div>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 }
