@@ -20,11 +20,13 @@ const processing = ref(false);
 const model = reactive({ name: '', email: '' });
 
 // 已登入則以登入信箱預填（仍可手動改動）；使用者一旦動過欄位就不再覆蓋。
+// 登出（或換帳號的過渡期間）清掉先前預填的信箱，避免殘留舊帳號。
 const emailEdited = ref(false);
 watch(
   () => auth.userEmail,
   (email) => {
-    if (email && !emailEdited.value) model.email = email;
+    if (emailEdited.value) return;
+    model.email = email ?? '';
   },
   { immediate: true },
 );

@@ -119,10 +119,14 @@ type SsoProbeResult = 'active' | 'logged-out' | 'unknown';
  * 而 refresh grant 不檢查 Hydra SSO session，會掩蓋「在其他子網域登出」的情況。直打
  * 授權端點才會檢查 session（hydra 與本站同為 *.openjam.co same-site，SSO cookie 會隨送）。
  *
- * 回傳 'logged-out' → Hydra 已無 session（含跨子網域登出）；'active' → 仍登入；
- * 'unknown' → 其他錯誤 / 逾時，保留現狀不動。
+ * 帶 `id_token_hint`（本地登入的 id_token）確認 session 屬於**同一位使用者**：依 OIDC
+ * 規格，session 主人與 hint 的 `sub` 不符時 Hydra 回 login_required——否則「登出後換
+ * 帳號登入」時任何人的 session 都會讓探測回 active，本地舊帳號永遠不會被換掉。
+ *
+ * 回傳 'logged-out' → Hydra 已無此使用者的 session（含跨子網域登出、換帳號登入）；
+ * 'active' → 仍登入；'unknown' → 其他錯誤 / 逾時，保留現狀不動。
  */
-function probeSsoSession(timeoutMs = 8000): Promise<SsoProbeResult> {
+function probeSsoSession(idTokenHint?: string, timeoutMs = 8000): Promise<SsoProbeResult> {
   return new Promise((resolve) => {
     const params = new URLSearchParams({
       client_id: config.client_id,
@@ -135,6 +139,7 @@ function probeSsoSession(timeoutMs = 8000): Promise<SsoProbeResult> {
       code_challenge: randomB64Url(32),
       code_challenge_method: 'S256',
     });
+    if (idTokenHint) params.set('id_token_hint', idTokenHint);
     const url = `${env.OIDC_AUTHORITY.replace(/\/$/, '')}/oauth2/auth?${params.toString()}`;
 
     const iframe = document.createElement('iframe');
@@ -183,12 +188,11 @@ export async function validateSession(): Promise<User | null> {
   const current = await userManager.getUser();
 
   if (current && !current.expired) {
-    const probe = await probeSsoSession();
-    if (probe === 'logged-out') {
-      await userManager.removeUser();
-      return null;
-    }
-    return current;
+    const probe = await probeSsoSession(current.id_token);
+    if (probe !== 'logged-out') return current;
+    // Hydra 已無此使用者的 session：可能是登出，也可能已換帳號登入。
+    // 清除本地舊登入後落入下方 silent 流程，嘗試以現行 SSO session 取得新身分。
+    await userManager.removeUser();
   }
 
   // 剛登出（本站分頁或其他子網域）：不做 silent 自動登入，避免搶在 Hydra
