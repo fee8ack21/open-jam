@@ -3,21 +3,21 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using LogService.Data;
 using LogService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LogService.Controllers;
 
 /// <summary>
-/// 稽核日誌查詢 API。
-/// 查詢權限說明（MVP 暫無 JWT 驗證，待 Auth 服務整合後補上）：
-///   - 管理員：可查全平台紀錄（不帶 who / tenant 篩選）
-///   - 用戶：應限制只查自己的 who = currentUserId
-///   - 創作者：應限制只查自己的 tenant = currentTenantId
+/// 稽核日誌查詢 API。僅限管理員查詢全平台紀錄；
+/// 用戶查自己（who = currentUserId）、創作者查自己店鋪（tenant = currentTenantId）
+/// 的限縮視角為未來工作。
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
 [Route("v{version:apiVersion}/audit-logs")]
+[Authorize(Policy = "Admin")]
 public class AuditLogController(LogDbContext db, IMapper mapper) : ControllerBase
 {
     /// <summary>查詢稽核事件（分頁，支援多條件篩選）。</summary>
